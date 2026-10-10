@@ -1,95 +1,86 @@
 # ADR-0003: Stack tecnológico
 
-- **Estado:** Propuesto
+- **Estado:** Propuesto (varias capas ya decididas en ADRs propios)
 - **Fecha:** 2026-10-10
-- **Participantes:** Jorge Retamal
-- **Origen:** Inicio del proyecto
+- **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
+- **Origen:** Reunión 001 (supuesto S3), Reunión 002 (D8), Reunión 005 (D18)
 
 ## Contexto
 
-Hay que elegir las tecnologías base de Acrux-Anime. Los criterios propuestos son:
+Este ADR reúne la visión completa del stack. Las capas que ya se decidieron en las reuniones tienen su propio ADR; aquí se registran las que todavía están abiertas y la coherencia del conjunto.
 
-1. **Un solo lenguaje en todo el monorepo**, para compartir tipos y código entre cliente y servidor (ver ADR-0002).
-2. **Productividad** de un equipo pequeño y curva de aprendizaje razonable.
-3. **Ecosistema maduro** y comunidad activa.
-4. **Costo bajo** de operación en etapa temprana (capas gratuitas, *serverless* o servicios gestionados).
-5. Adecuado para un producto con mucho **contenido visual** (catálogo de anime, imágenes, búsquedas) y buena **indexación SEO** si hay páginas públicas.
+Criterios:
 
-Este ADR agrupa la discusión; cuando se acepte cada capa, puede separarse en ADRs propios si la decisión lo amerita.
+1. **Plazo de 18 días:** tecnologías que el desarrollador ya conoce y con poca configuración.
+2. **Mobile primero** en Android e iOS con un solo código (ADR-0005).
+3. **Un solo lenguaje** en todo el monorepo (ADR-0002).
+4. **Costo bajo:** capas gratuitas de los servicios gestionados.
+5. **Publicación en tiendas** sin pasos manuales complejos (firma, builds, envío).
 
-## Opciones consideradas por capa
+## Resumen del stack
 
-### Lenguaje
+| Capa | Elección | Estado | Referencia |
+|---|---|---|---|
+| Lenguaje | TypeScript | Propuesto | Este ADR |
+| App móvil | Expo (React Native) | Propuesto (supuesto S3; ya figura en el plan del Sprint 0) | Este ADR |
+| Builds y envío a tiendas | EAS Build y EAS Submit | Propuesto | Este ADR |
+| Backend (Auth, base de datos, funciones) | Supabase | **Aceptado** (D8) | ADR-0006 |
+| Autenticación | Google y Apple vía Supabase Auth | **Aceptado** (D7) | ADR-0007 |
+| Fuente del catálogo | anime-offline-database (en revisión frente a Jikan) | Propuesto | ADR-0008 |
+| Internacionalización | Español e inglés desde el inicio | **Aceptado** (D13) | ADR-0010 |
+| Landing page | Alojada en Vercel | **Aceptado** (D18) | ADR-0012 |
+| Gestión del monorepo | pnpm workspaces | Propuesto | ADR-0002 |
 
-| Opción | Comentario |
-|---|---|
-| **TypeScript** (propuesto) | Mismo lenguaje en frontend, backend y paquetes compartidos; tipado estático. |
-| Python / Go / Java en backend | Buenos ecosistemas, pero rompen el código compartido con el frontend. |
+## Capas abiertas: opciones consideradas
 
-### Gestión del monorepo
-
-| Opción | Comentario |
-|---|---|
-| **pnpm workspaces + Turborepo** (propuesto) | Simple, rápido, caché local y remota. |
-| npm/yarn workspaces + Nx | Más funciones (generadores, grafo de dependencias), más complejidad. |
-
-### Frontend web
-
-| Opción | Comentario |
-|---|---|
-| **Next.js (React)** (propuesto) | SSR/SSG para SEO, gran ecosistema; puede alojar también rutas de API. |
-| React + Vite (SPA) | Más simple, pero sin SSR de serie. |
-| Nuxt (Vue) / SvelteKit | Alternativas sólidas con menor ecosistema. |
-
-### Móvil (si aplica)
+### App móvil
 
 | Opción | Comentario |
 |---|---|
-| **React Native + Expo** (propuesto) | Reutiliza React, TypeScript y paquetes del monorepo. |
-| Flutter | Excelente rendimiento, pero otro lenguaje (Dart). |
-| PWA | Sin tiendas de apps; menor costo; capacidades nativas limitadas. |
+| **Expo (React Native) con TypeScript** (propuesto) | Conocimiento previo del stakeholder (S3); un código para Android e iOS; EAS resuelve builds, firma y envío a las tiendas; SDK de Supabase compatible. |
+| React Native sin Expo | Más control nativo, pero firma y builds manuales: costo alto para el plazo. |
+| Flutter | Buen rendimiento, pero otro lenguaje (Dart) y sin conocimiento previo. |
 
-### Backend / API
+### Librerías propuestas para la app (a confirmar en el Sprint 0)
+
+| Necesidad | Propuesta | Motivo |
+|---|---|---|
+| Navegación | Expo Router | Viene con las plantillas de Expo. |
+| Lista grande del catálogo (R6) | FlashList | Lista virtualizada con buen rendimiento en miles de elementos. |
+| Datos remotos y paginación | TanStack Query | Caché, paginación infinita y reintentos sobre el cliente de Supabase. |
+| i18n | `expo-localization` + i18next | Detecta el idioma del dispositivo; textos en archivos por idioma. |
+| Imagen para compartir | `react-native-view-shot` + `expo-sharing` | Se genera en el dispositivo a partir de una vista; sin servidor. |
+| Login con Apple | `expo-apple-authentication` | Botón nativo exigido por Apple. |
+| Login con Google | Flujo OAuth de Supabase o `@react-native-google-signin/google-signin` | A decidir en el Sprint 0 según la experiencia en cada plataforma. |
+
+### Landing page
 
 | Opción | Comentario |
 |---|---|
-| **NestJS** | Estructura modular y opinada; bueno si el dominio crece. |
-| **Hono / Fastify** | Livianos y rápidos; menos estructura impuesta. |
-| Rutas de API de Next.js | Mínimo esfuerzo al inicio; se acopla al frontend. |
-| BaaS (Supabase) | Auth, base de datos, storage y realtime gestionados; menos código propio. |
+| **Astro** | Sitio estático, muy liviano, ideal para páginas de texto (privacidad, soporte). |
+| Next.js | Más conocido y con más funciones, pero excesivo para unas pocas páginas estáticas. |
+| HTML estático | Lo más simple; sin i18n ni componentes. |
 
-### Base de datos y persistencia
+### Calidad y CI
 
-| Opción | Comentario |
+| Necesidad | Propuesta |
 |---|---|
-| **PostgreSQL** (propuesto) | Relacional, robusto, búsqueda de texto completo y JSONB. |
-| ORM: **Prisma** o **Drizzle** | Tipado de extremo a extremo; Drizzle más liviano, Prisma más maduro. |
-| MongoDB | Flexible, pero el dominio (series, temporadas, episodios, usuarios, listas) es marcadamente relacional. |
-
-### Otros componentes a decidir
-
-- **Autenticación:** Auth.js, Clerk, Supabase Auth.
-- **Almacenamiento de imágenes:** S3 / Cloudflare R2 / Supabase Storage + CDN.
-- **Fuente de datos de anime:** APIs externas (AniList GraphQL, Jikan/MyAnimeList, Kitsu) vs. catálogo propio. Revisar términos de uso y límites de tasa.
-- **Pruebas:** Vitest (unitarias), Playwright (E2E).
-- **Calidad:** ESLint + Prettier (o Biome), TypeScript estricto.
-- **CI/CD:** GitHub Actions.
-- **Hosting:** Vercel (frontend), Railway / Fly.io / Render (backend), base de datos gestionada (Neon, Supabase).
+| Lint y formato | ESLint + Prettier (o Biome) |
+| Pruebas unitarias | Jest (estándar en Expo) |
+| CI | GitHub Actions: lint y typecheck en cada PR |
 
 ## Decisión
 
-**Pendiente.** Propuesta base: **TypeScript + pnpm/Turborepo + Next.js + PostgreSQL**, con las demás capas por definir según los requisitos levantados en las reuniones.
+**Pendiente** para las capas abiertas. Propuesta: **TypeScript + Expo (Expo Router, FlashList, TanStack Query, i18next) + EAS + Supabase**, con la landing en **Astro** sobre Vercel.
 
-## Consecuencias (si se acepta la propuesta base)
+## Consecuencias (si se acepta)
 
-- **Positivas:** un lenguaje en todo el stack; tipos compartidos de extremo a extremo; despliegue gratuito o de bajo costo al inicio.
-- **Negativas / riesgos:** dependencia del ecosistema JavaScript y su ritmo de cambio; algunas opciones de hosting atan a proveedores.
-- **Acciones derivadas:** fijar versiones (Node LTS, pnpm) en el repositorio; crear el esqueleto del monorepo.
+- **Positivas:** un solo lenguaje y un solo código para Android e iOS; EAS reduce el trabajo de firma y envío, que es la parte crítica del hito.
+- **Negativas / riesgos:** dependencia de los servicios de Expo (EAS tiene límites de builds en su capa gratuita) y de Supabase.
+- **Acciones derivadas:** crear la app con la plantilla de Expo dentro del monorepo y configurar EAS en el Sprint 0.
 
 ## Preguntas abiertas
 
-- ¿El producto incluye app móvil desde el inicio o solo web?
-- ¿Backend propio o BaaS (Supabase) para acelerar el MVP?
-- ¿De dónde salen los datos de anime y qué restricciones legales/técnicas tiene la fuente?
-- ¿Requisitos de tiempo real (chat, notificaciones, visualización conjunta)?
-- ¿Presupuesto mensual objetivo para infraestructura?
+- Confirmar Expo como tecnología de la app (supuesto S3).
+- Framework de la landing: Astro, Next.js o HTML estático.
+- ¿Alcanzan los builds gratuitos de EAS para el ritmo de publicaciones durante la prueba cerrada?

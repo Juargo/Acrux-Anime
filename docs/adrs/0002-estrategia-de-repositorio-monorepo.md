@@ -2,49 +2,64 @@
 
 - **Estado:** Propuesto
 - **Fecha:** 2026-10-10
-- **Participantes:** Jorge Retamal
-- **Origen:** Inicio del proyecto
+- **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
+- **Origen:** Inicio del proyecto. No se trató en las reuniones 001–005.
 
 ## Contexto
 
-Acrux-Anime probablemente estará compuesto por varias piezas: uno o más clientes (web y, eventualmente, móvil), uno o más servicios de backend, código compartido (tipos, validaciones, cliente de API, componentes de UI), infraestructura y documentación. Hay que decidir si estas piezas viven en un solo repositorio o en varios.
+Según lo decidido en las reuniones, Acrux tendrá estas piezas:
+
+- **App móvil** para Android e iOS (ADR-0005), probablemente con Expo (ADR-0003).
+- **Backend en Supabase** (ADR-0006): migraciones SQL, políticas RLS y, si hace falta, Edge Functions.
+- **Script de siembra del catálogo** (ADR-0008), que se ejecuta una vez o de forma puntual.
+- **Landing page en Vercel** con política de privacidad, soporte e información de la app (ADR-0012).
+- **Documentación**, incluidos estos ADRs.
+- Más adelante, una **versión web** (épica E6).
+
+Las piezas comparten tipos (el modelo del catálogo y del usuario), textos de i18n en español e inglés (ADR-0010) y la marca. Hay que decidir si viven en un solo repositorio o en varios. El plazo de 18 días obliga a minimizar el tiempo de configuración.
 
 ## Opciones consideradas
 
-### Opción A: Monorepo
+### Opción A: Monorepo con pnpm workspaces
 
-Un único repositorio con todas las aplicaciones y paquetes, gestionado con *workspaces* y una herramienta de orquestación (por ejemplo, Turborepo o Nx).
+Un solo repositorio con `apps/` y `packages/`; pnpm workspaces para enlazar paquetes. Turborepo es opcional y se puede sumar después para tareas en paralelo y caché.
 
 - **Ventajas:**
-  - Cambios atómicos que cruzan frontend, backend y paquetes compartidos en un solo commit/PR.
-  - Código compartido sin publicar paquetes ni versionarlos por separado.
-  - Una sola configuración de lint, formato, TypeScript, CI y convenciones.
-  - Los ADRs y la documentación viven junto al código que describen.
+  - Cambios atómicos: una migración de Supabase, los tipos generados y el código de la app que los usa van en el mismo commit.
+  - Tipos de la base de datos (`supabase gen types`) y textos de i18n compartidos entre la app, la landing y la futura web.
+  - Una sola configuración de TypeScript, lint, formato y CI.
+  - Los ADRs viven junto al código.
 - **Desventajas:**
-  - El CI debe ser selectivo (construir/probar solo lo afectado) para no volverse lento.
-  - Requiere configurar herramientas de workspaces y caché.
-  - Permisos menos granulares por componente.
+  - Expo y Metro necesitan configuración específica para monorepos (resolución de módulos, enlaces simbólicos de pnpm). Las versiones recientes de Expo lo soportan, pero hay que validarlo en el Sprint 0; la salida conocida es `node-linker=hoisted` en `.npmrc`.
+  - Los despliegues (EAS para la app, Vercel para la landing) deben configurarse para trabajar sobre un subdirectorio.
 
-### Opción B: Polirepo (un repositorio por componente)
+### Opción B: Polirepo (app, landing y backend por separado)
 
-- **Ventajas:** límites claros; despliegues y permisos independientes; repositorios pequeños.
-- **Desventajas:** cambios transversales requieren varios PRs coordinados; el código compartido debe publicarse y versionarse; configuración duplicada; sobrecarga alta para un equipo pequeño.
+- **Ventajas:** cada repositorio usa su configuración por defecto (sin ajustes de Metro ni de Vercel); despliegues independientes.
+- **Desventajas:** los tipos y textos compartidos se duplican o se publican como paquetes; los cambios transversales requieren varios PRs; más sobrecarga para una sola persona.
+
+### Opción C: Repositorio único sin workspaces (la app en la raíz)
+
+- **Ventajas:** cero configuración extra; Expo funciona tal cual.
+- **Desventajas:** la landing y la futura web no tienen dónde vivir sin reorganizar después; mover todo a un monorepo más adelante cuesta más que hacerlo al inicio.
 
 ## Decisión
 
-**Pendiente.** La propuesta es adoptar un **monorepo** (Opción A): con un equipo pequeño y un producto en etapa temprana, la velocidad para hacer cambios transversales y la configuración unificada pesan más que la independencia de despliegue.
+**Pendiente.** Propuesta: **Opción A, monorepo con pnpm workspaces**, sin Turborepo al inicio. Hay solo dos aplicaciones y el beneficio principal (tipos e i18n compartidos, cambios atómicos) no requiere orquestador.
+
+Si en el Sprint 0 la integración de Expo con el monorepo consume más de medio día, la salida es la Opción C para la app y mover la landing a un repositorio aparte. Ese caso se registraría en un ADR que reemplace a este.
 
 ## Consecuencias (si se acepta)
 
-- **Positivas:** un solo lugar para código, documentación e infraestructura; refactors transversales baratos.
-- **Negativas / riesgos:** hay que cuidar los límites entre paquetes para no acoplarlos; el CI necesita caché y ejecución selectiva.
+- **Positivas:** un solo lugar para app, backend, landing y documentación; los tipos generados de Supabase se consumen en todas las apps.
+- **Negativas / riesgos:** tiempo de configuración de Metro/EAS en el Sprint 0, la etapa con más presión.
 - **Acciones derivadas:**
-  - Elegir gestor de paquetes con workspaces y orquestador (ver ADR-0003).
-  - Definir la estructura de carpetas (ver ADR-0004).
-  - Definir la estrategia de ramas (propuesta: *trunk-based* con ramas cortas y PRs hacia `main`) y la convención de commits (propuesta: Conventional Commits).
+  - Crear la estructura descrita en ADR-0004.
+  - Fijar versiones de Node (LTS) y pnpm en el repositorio.
+  - **Ramas:** desarrollo directo sobre `main` con ramas cortas (*trunk-based*), adecuado para un solo programador.
+  - **Commits:** formato Conventional Commits.
 
 ## Preguntas abiertas
 
-- ¿Habrá componentes que deban ser open source o tener acceso restringido por separado?
-- ¿Orquestador: Turborepo (simple) o Nx (más completo, más complejo)?
-- ¿Se versionarán y publicarán paquetes, o todo se consume internamente?
+- ¿El repositorio será público como parte del portafolio? Si lo es, hay que cuidar que no se suban secretos (claves de Supabase, credenciales de OAuth, certificados de firma).
+- ¿Validar en el Sprint 0 que Expo, pnpm y EAS Build funcionan en el monorepo antes de seguir?

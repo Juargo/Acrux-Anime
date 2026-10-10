@@ -2,95 +2,107 @@
 
 - **Estado:** Propuesto
 - **Fecha:** 2026-10-10
-- **Participantes:** Jorge Retamal
-- **Origen:** Inicio del proyecto
+- **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
+- **Origen:** Inicio del proyecto; se apoya en las decisiones de las reuniones 001–005.
 
 ## Contexto
 
-Con un monorepo (ADR-0002) y un stack aún en discusión (ADR-0003), hay que definir dos aspectos de la topología:
+Hay que definir dos aspectos de la topología:
 
-1. **Topología de código:** cómo se organizan aplicaciones y paquetes dentro del repositorio, y qué dependencias se permiten entre ellos.
-2. **Topología de despliegue:** qué componentes se ejecutan, dónde y cómo se comunican.
+1. **Código:** cómo se organiza el monorepo (ADR-0002) y qué dependencias se permiten.
+2. **Despliegue:** qué componentes se ejecutan, dónde y cómo se comunican.
 
-## Topología de código
+Restricciones de las reuniones:
 
-### Estructura propuesta
+- Solo hay app móvil en el MVP; la web llega después (ADR-0005).
+- El backend es Supabase (ADR-0006); no se planifica una API propia.
+- El catálogo vive en el Postgres de Supabase, sembrado desde un dataset (ADR-0008).
+- La app requiere conexión; no hay modo offline (D14).
+- La landing con la política de privacidad va en Vercel (ADR-0012).
+- Apple exige que el usuario pueda borrar su cuenta dentro de la app (Reunión 004), lo que requiere una operación con privilegios de administrador.
+
+## Topología de código propuesta
 
 ```
 acrux-anime/
 ├── apps/
-│   ├── web/            # Cliente web
-│   ├── mobile/         # Cliente móvil (si aplica)
-│   └── api/            # Backend / API
+│   ├── mobile/          # App Expo (Android e iOS)
+│   └── landing/         # Landing en Vercel: privacidad, soporte, información
 ├── packages/
-│   ├── domain/         # Entidades, tipos y reglas de negocio puras
-│   ├── ui/             # Componentes de interfaz compartidos
-│   ├── api-client/     # Cliente tipado para consumir la API
-│   ├── config/         # Configuración compartida (tsconfig, eslint, prettier)
-│   └── utils/          # Utilidades genéricas
-├── infra/              # Infraestructura como código, docker-compose, scripts
+│   ├── shared/          # Tipos del dominio y tipos generados de Supabase
+│   └── i18n/            # Textos en español e inglés compartidos
+├── supabase/
+│   ├── migrations/      # Esquema SQL y políticas RLS
+│   └── functions/       # Edge Functions (por ejemplo, borrado de cuenta)
+├── scripts/
+│   └── seed-catalog/    # Siembra del catálogo y mapeo de géneros
 ├── docs/
-│   └── adrs/           # Este registro de decisiones
-└── .github/workflows/  # CI/CD
+│   └── adrs/            # Registro de decisiones
+└── .github/workflows/   # CI
 ```
 
-### Reglas de dependencia propuestas
+Reglas de dependencia:
 
-- `apps/*` pueden depender de `packages/*`; **nunca** una app depende de otra app.
-- `packages/domain` no depende de ningún framework (ni React, ni Next, ni ORM).
-- `packages/ui` solo lo consumen los clientes, nunca `apps/api`.
-- Las dependencias circulares entre paquetes están prohibidas (verificable con el orquestador o con reglas de lint).
+- `apps/*` pueden depender de `packages/*`; una app **nunca** depende de otra app.
+- `packages/shared` no depende de React, Expo ni de ningún framework.
+- `scripts/seed-catalog` puede usar `packages/shared`, pero ninguna app depende de los scripts.
+- Las claves con privilegios (`service_role` de Supabase) solo se usan en `scripts/` y en `supabase/functions/`; **nunca** en `apps/mobile`.
 
-## Topología de despliegue
+## Topología de despliegue: opciones consideradas
 
-### Opción A: Monolito modular
+### Opción A: App → Supabase directo (BaaS), con Edge Functions puntuales
 
-Una sola aplicación desplegable (por ejemplo, Next.js con rutas de API) organizada internamente en módulos.
+La app usa el SDK de Supabase para autenticarse y consultar Postgres (vía la API REST que Supabase genera). La seguridad se resuelve con políticas RLS: cada usuario solo lee y escribe sus propias marcas. Las operaciones privilegiadas, como el borrado de cuenta, van en Edge Functions.
 
-- **Ventajas:** un solo despliegue; operación mínima; ideal para un MVP.
-- **Desventajas:** frontend y backend escalan y se despliegan juntos; acoplamiento si no se cuidan los módulos.
+- **Ventajas:** sin servidor propio que mantener; mínimo código de backend; encaja con el plazo.
+- **Desventajas:** la lógica de negocio queda repartida entre la app y las políticas SQL; acoplamiento al modelo de Supabase.
 
-### Opción B: Cliente(s) + API separada
+### Opción B: App → API propia → Supabase/Postgres
 
-`apps/web` (y `apps/mobile`) consumen `apps/api` vía HTTP (REST o GraphQL); base de datos gestionada; almacenamiento de objetos + CDN para imágenes.
+- **Ventajas:** control total de la lógica y la validación.
+- **Desventajas:** otro componente que desarrollar, desplegar y operar; contradice el objetivo de D8.
 
-- **Ventajas:** una sola API para web y móvil; despliegue y escalado independientes; límites claros.
-- **Desventajas:** dos despliegues; hay que gestionar CORS, autenticación entre servicios y versionado de la API.
-
-### Opción C: Microservicios
-
-Varios servicios por dominio (catálogo, usuarios, recomendaciones, etc.).
-
-- **Ventajas:** escalado y despliegue por dominio.
-- **Desventajas:** complejidad operativa desproporcionada para la etapa actual.
-
-### Diagrama de la opción B (referencia)
+### Diagrama de la Opción A
 
 ```
- [Navegador] ──► apps/web (Next.js, CDN/Edge)
-                      │
- [App móvil] ─────────┼──► apps/api ──► PostgreSQL (gestionado)
-                      │        │
-                      │        ├──► Storage de imágenes + CDN
-                      │        └──► APIs externas de anime (caché)
+ [App móvil Expo] ──► Supabase Auth ◄── Google / Apple (OAuth)
+        │
+        ├──► Supabase Postgres (API REST + RLS)
+        │       ├─ catálogo (solo lectura, sembrado una vez)
+        │       └─ marcas de «visto» por usuario
+        │
+        ├──► Edge Function: borrado de cuenta
+        │
+        └──► Portadas (URLs de terceros o storage propio: pendiente, ADR-0008)
+
+ [scripts/seed-catalog] ──► Supabase Postgres (service_role, ejecución puntual)
+
+ [Navegador] ──► apps/landing (Vercel): privacidad, soporte, información
+                  └─ URL pública para las fichas de App Store y Google Play
 ```
+
+### Contador total
+
+El contador total (ADR-0009) puede calcularse con un `count` sobre las marcas del usuario o mantenerse en una columna actualizada por un trigger. Para el MVP basta con el `count` y una actualización optimista en la app; se revisa si aparece algún problema de rendimiento.
 
 ## Decisión
 
 **Pendiente.** Propuesta:
 
-- **Código:** adoptar la estructura `apps/` + `packages/` con las reglas de dependencia indicadas.
-- **Despliegue:** comenzar con un **monolito modular** (Opción A) si el MVP es solo web, o con **Opción B** si la app móvil forma parte del alcance inicial. En ambos casos, separar el dominio en `packages/domain` para que migrar de A a B sea barato.
+- **Código:** la estructura anterior, con sus reglas de dependencia.
+- **Despliegue:** **Opción A**, la app habla directo con Supabase, con RLS en todas las tablas de usuario y Edge Functions solo para operaciones privilegiadas.
 
 ## Consecuencias (si se acepta)
 
-- **Positivas:** límites claros desde el día uno; camino de evolución gradual sin reescrituras.
-- **Negativas / riesgos:** algo de estructura “por adelantado” que puede parecer excesiva en las primeras semanas.
-- **Acciones derivadas:** crear el esqueleto de carpetas; configurar las reglas de dependencia en lint/CI; documentar entornos (local, *staging*, producción).
+- **Positivas:** la topología más simple posible para cumplir el hito; la web futura (E6) puede reutilizar el mismo Supabase y `packages/shared`.
+- **Negativas / riesgos:** una política RLS mal escrita expone datos de otros usuarios; hay que probarlas.
+- **Acciones derivadas:**
+  - Diseñar el esquema (catálogo, géneros, perfiles, marcas) con RLS activada desde la primera migración.
+  - Implementar la Edge Function de borrado de cuenta antes del envío a App Store.
+  - Definir entornos: propuesta inicial de un proyecto Supabase de desarrollo y uno de producción.
 
 ## Preguntas abiertas
 
-- ¿El alcance del MVP incluye móvil? (determina la opción A o B)
-- ¿REST o GraphQL para la API?
-- ¿Cuántos entornos se mantendrán (local, *staging*, producción)?
-- ¿Desarrollo local con Docker Compose (base de datos, storage) o servicios en la nube?
+- Estrategia de imágenes del catálogo (ADR-0008).
+- ¿Un solo proyecto de Supabase en el MVP o dos (desarrollo y producción)? La capa gratuita limita la cantidad de proyectos activos.
+- ¿Desarrollo local con la CLI de Supabase (Docker) o directo contra el proyecto de desarrollo?
