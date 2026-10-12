@@ -35,8 +35,6 @@ acrux-anime/
 ├── packages/
 │   ├── shared/          # Tipos del dominio y contratos compartidos con la API
 │   └── i18n/            # Textos en español e inglés compartidos
-├── supabase/
-│   └── config.toml      # Configuración de Supabase Auth y entorno local (sin migraciones ni funciones)
 ├── docs/
 │   └── adrs/            # Registro de decisiones
 └── .github/workflows/   # CI
@@ -124,4 +122,4 @@ El contador total (ADR-0009) es un `count` sobre las marcas de «visto» del usu
 
 - ~~¿Se necesita el proxy `mal-proxy`?~~ Resuelto el 2026-10-12: sí, todas las consultas a MAL pasan por él (ADR-0008); desde ADR-0018 forma parte de la API propia y ya no es una Edge Function. Las portadas se muestran desde el CDN de MAL sin alojarlas.
 - ¿Un solo proyecto de Supabase en el MVP o dos (desarrollo y producción)? La capa gratuita limita la cantidad de proyectos activos.
-- ¿Desarrollo local con la CLI de Supabase (Docker) o directo contra el proyecto de desarrollo?
+- ~~¿Desarrollo local con la CLI de Supabase (Docker) o directo contra el proyecto de desarrollo?~~ Resuelto el 2026-10-12: sin la CLI de Supabase en local y sin carpeta `supabase/` en el repositorio. Las pruebas de la API usan un Postgres en Docker (ADR-0018) y el login completo se prueba contra un proyecto de Supabase de desarrollo en la nube. Esto implica dos proyectos de Supabase (desarrollo y producción); falta confirmar que la capa gratuita los permite.

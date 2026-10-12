@@ -77,7 +77,10 @@ Como referencia de stack se toma la API de otro proyecto del stakeholder (`mirac
 ### Pruebas
 
 - **Vitest** para pruebas unitarias, de integración y E2E de la API.
-- **Docker** para el Postgres local de pruebas.
+- **Docker** para el Postgres local de pruebas; no se usa la CLI de Supabase en local (ADR-0004).
+- Las pruebas no levantan Supabase Auth: firman JWT con una clave de prueba que la API verifica igual que en producción, y reemplazan la llamada de borrado de usuario en Supabase Auth por un doble de prueba.
+- `seen_anime.user_id` es un `uuid` sin clave foránea a `auth.users`, ya que ese esquema no existe en el Postgres de pruebas.
+- El flujo completo de login (Google → Supabase Auth → web app → API) se prueba contra un proyecto de Supabase de desarrollo en la nube.
 
 ### Infraestructura y CI
 
