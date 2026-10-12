@@ -35,7 +35,7 @@ acrux-anime/
 │   └── i18n/            # Textos en español e inglés compartidos
 ├── supabase/
 │   ├── migrations/      # Esquema SQL y políticas RLS
-│   └── functions/       # Edge Functions (borrado de cuenta; proxy mal-proxy si el spike lo exige)
+│   └── functions/       # Edge Functions (borrado de cuenta; proxy mal-proxy)
 ├── docs/
 │   └── adrs/            # Registro de decisiones
 └── .github/workflows/   # CI
@@ -47,7 +47,7 @@ Reglas de dependencia:
 
 - `apps/*` pueden depender de `packages/*`; una app **nunca** depende de otra app.
 - `packages/shared` no depende de React ni de ningún framework.
-- Las claves con privilegios (`service_role` de Supabase) solo se usan en `supabase/functions/`; **nunca** en `apps/web` ni en `apps/landing`, cuyo código llega al navegador.
+- Las claves con privilegios (`service_role` de Supabase) y el **Client ID de MyAnimeList** (secreto `MAL_CLIENT_ID`) solo se usan en `supabase/functions/`; **nunca** en `apps/web` ni en `apps/landing`, cuyo código llega al navegador, ni en el repositorio.
 
 ## Topología de despliegue: opciones consideradas
 
@@ -76,7 +76,7 @@ La web app usa el SDK de Supabase en el navegador para autenticarse y consultar 
       │
       ├──► Edge Function: borrado de cuenta
       │
-      ├──► (Edge Function proxy `mal-proxy`, pendiente del spike de CORS) ──► API de MyAnimeList v2
+      ├──► Edge Function `mal-proxy` (agrega el Client ID secreto) ──► API de MyAnimeList v2
       │
       └──► Portadas: imágenes del CDN de MAL, tal como las devuelve la API (ADR-0008)
 
@@ -120,6 +120,6 @@ El contador total (ADR-0009) puede calcularse con un `count` sobre las marcas de
 
 ## Preguntas abiertas
 
-- ¿Se necesita el proxy `mal-proxy` (depende del spike de CORS, ADR-0008)? Las portadas se muestran desde el CDN de MAL sin alojarlas.
+- ~~¿Se necesita el proxy `mal-proxy`?~~ Resuelto el 2026-10-12: sí, todas las consultas a MAL pasan por él (ADR-0008). Las portadas se muestran desde el CDN de MAL sin alojarlas.
 - ¿Un solo proyecto de Supabase en el MVP o dos (desarrollo y producción)? La capa gratuita limita la cantidad de proyectos activos.
 - ¿Desarrollo local con la CLI de Supabase (Docker) o directo contra el proyecto de desarrollo?

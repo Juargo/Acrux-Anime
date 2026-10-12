@@ -33,6 +33,23 @@ Condiciones verificadas del [acuerdo de licencia y desarrollo de la API de MAL](
 - El contenido debe obtenerse directamente de la API, sin scraping (§4(i)); no se puede alterar sin autorización (§3(a)(xii)).
 - Se permite indicar la atribución, por ejemplo «authorized by MyAnimeList» (§3(a)(xiii)); no se pueden usar marcas de MAL en el nombre ni el logo de la app (§17) ni inducir a pensar que es un producto de MAL (§3(a)(xi)).
 
+### Acceso a la API mediante el proxy `mal-proxy` (2026-10-12)
+
+El navegador **nunca llama directamente a MAL**. Todas las consultas pasan por una Edge Function de Supabase, `mal-proxy`, que agrega la cabecera `X-MAL-CLIENT-ID` en el servidor.
+
+Motivos:
+
+- **Confidencialidad del Client ID:** el formulario de registro de MAL indica que «Client ID and Client Secret must not be disclosed». Si la web app llamara a MAL, el Client ID quedaría expuesto en el bundle de JavaScript y en las peticiones del navegador.
+- **CORS:** según los reportes de la comunidad, MAL no envía cabeceras CORS; el proxy elimina ese problema sin importar el resultado del spike.
+
+Reglas del proxy:
+
+- El Client ID se guarda como **secreto de Supabase** (`MAL_CLIENT_ID`, con `supabase secrets set`) y nunca en el repositorio, en variables `VITE_*` ni en el código de `apps/web`.
+- Solo reenvía peticiones `GET` a una **lista cerrada de endpoints** (búsqueda, detalle por id, temporada y ranking) y de campos (`fields`); rechaza el resto. No es un proxy abierto.
+- Solo acepta peticiones con un JWT válido de Supabase y responde CORS únicamente para `app.acruxanime.com` y las vistas previas de desarrollo.
+- Ofrece una consulta agrupada por lista de ids para la lista de vistos y la imagen para compartir, de modo que el navegador hace una petición en lugar de N.
+- Devuelve cabeceras de caché (`Cache-Control`) para reducir la carga sobre MAL (§6: no imponer una carga irrazonable).
+
 ## Consecuencias
 
 - **Positivas:** sin siembra ni mantenimiento del catálogo; datos siempre frescos; almacenamiento mínimo (solo ids).
@@ -48,13 +65,14 @@ Condiciones verificadas del [acuerdo de licencia y desarrollo de la API de MAL](
   - El año se obtiene con `GET /anime/season/{year}/{season}`, y existe `GET /anime/ranking` (`ranking_type`: tv, movie, ova, special, etc.).
   - MAL no envía cabeceras CORS ([fuente](https://github.com/jraleman/anime)), por lo que el navegador no podría llamar a la API directamente.
 - **Acciones derivadas:**
-  - Registrar la app en `myanimelist.net/apiconfig` para obtener el Client ID.
-  - Spike al inicio del Sprint 0 para confirmar los filtros disponibles y el comportamiento de CORS.
-  - Si CORS lo bloquea, crear un proxy como Edge Function de Supabase (`mal-proxy`); además mantiene el Client ID fuera del bundle del navegador.
+  - ~~Registrar la app en `myanimelist.net/apiconfig` para obtener el Client ID.~~ Hecho el 2026-10-12 (homepage `https://acruxanime.com/`, redirect `https://app.acruxanime.com/`). El Client ID se guarda fuera del repositorio.
+  - Spike al inicio del Sprint 0 para confirmar los filtros disponibles; se hace desde el servidor o con `curl`, nunca desde el navegador.
+  - Implementar la Edge Function `mal-proxy` con las reglas anteriores y cargar el secreto `MAL_CLIENT_ID`.
   - Esquema de almacenamiento: `seen_anime(user_id, mal_anime_id, created_at)` con RLS.
 
 ## Preguntas abiertas
 
 - **Conjunto final de filtros** tras el spike; impacta el alcance de ADR-0009.
-- **Proxy:** ¿se necesita la Edge Function `mal-proxy` (depende de CORS)?
+- ~~**Proxy:** ¿se necesita la Edge Function `mal-proxy` (depende de CORS)?~~ Resuelto el 2026-10-12: sí, siempre, para no exponer el Client ID (ver «Acceso a la API mediante el proxy»).
+- ¿El catálogo se puede explorar sin iniciar sesión? Define si `mal-proxy` exige un usuario autenticado o acepta la clave anónima de Supabase.
 - **Datos mínimos desnormalizados** (título, portada) en la lista de vistos: el acuerdo (§3(c)) restringe guardar datos personales de usuarios de MAL, no datos del catálogo, pero hay que verificar si se permite almacenar contenido de MAL en el servidor antes de hacerlo. Por defecto se guarda solo el id.

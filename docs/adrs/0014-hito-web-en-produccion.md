@@ -44,7 +44,7 @@ Se conserva el ritmo de ADR-0001 (sprints de 2 a 5 días y colchón final de 3 d
 
 | Sprint | Fechas | Objetivo |
 |---|---|---|
-| Sprint 0 | 12–13 oct | Setup: monorepo, app web en React, landing en Astro, proyecto Supabase, OAuth de Google para web, registro en la API de MAL y spike de filtros y CORS (ADR-0008) y despliegue en Vercel. **Prioridad:** una primera vista previa pública temprana |
+| Sprint 0 | 12–13 oct | Setup: monorepo, app web en React, landing en Astro, proyecto Supabase, OAuth de Google para web, registro en la API de MAL y spike de filtros, Edge Function `mal-proxy` con el Client ID como secreto (ADR-0008) y despliegue en Vercel. **Prioridad:** una primera vista previa pública temprana |
 | Sprint 1 | 14–17 oct | Login funcional, lista virtualizada del catálogo con búsqueda y filtros (año, género, tipo) |
 | Sprint 2 | 18–21 oct | Marcar como visto (gris y contador), imagen para compartir (Web Share API con descarga alternativa), borrado de cuenta |
 | Sprint 3 | 22–25 oct | Pulido, política de privacidad en la landing, pantalla «Acerca de», dominio de producción y OAuth publicado |

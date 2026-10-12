@@ -10,8 +10,8 @@
 Acrux tendrá estas piezas:
 
 - **Web app responsive mobile first** en React (ADR-0013, ADR-0003).
-- **Backend en Supabase** (ADR-0006): migraciones SQL, políticas RLS y, si hace falta, Edge Functions.
-- **Proxy de la API de MyAnimeList** (Edge Function), solo si el spike de CORS lo exige (ADR-0008).
+- **Backend en Supabase** (ADR-0006): migraciones SQL, políticas RLS y Edge Functions.
+- **Proxy de la API de MyAnimeList** (Edge Function `mal-proxy`), que guarda el Client ID como secreto (ADR-0008).
 - **Landing page en Astro, en Vercel**, con política de privacidad, soporte e información (ADR-0012).
 - **Documentación**, incluidos estos ADRs.
 - Más adelante, **apps nativas** de Android (Kotlin) e iOS (Swift), fuera del MVP (ADR-0013).

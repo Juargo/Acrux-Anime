@@ -49,6 +49,8 @@ Route: delegated direct (writer trigger: 2+ non-trivial files). TDD: not applica
 - 2026-10-12: Playwright accepted as minimal E2E smoke suite (mobile viewport, Chromium + WebKit, MAL mocked via page.route, test session created via Supabase); recorded in ADR-0003.
 - 2026-10-12: PWA install hint shown at the moment of value (after first anime marked), dismissible, hidden when installed; recorded in ADR-0016.
 
+- 2026-10-12: MAL app registered (Client ID kept out of the repo). mal-proxy Edge Function made mandatory to keep the Client ID secret (MAL forbids disclosure) and avoid CORS; recorded in ADR-0008/0004 (+0002/0003/0014).
+
 ## Next step
 
 All ADR open questions from this session resolved. PR opened: https://github.com/Juargo/Acrux-Anime/pull/1 (merge is the stakeholder decision). Next: Sprint 0 MAL API spike (filters + CORS, ADR-0008) once the stakeholder has the Client ID.

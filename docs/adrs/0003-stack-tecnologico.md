@@ -48,7 +48,7 @@ Criterios:
 |---|---|---|
 | Enrutamiento | React Router | Estándar para una SPA con Vite. |
 | Lista grande del catálogo (R6) | TanStack Virtual | Virtualización de filas con buen rendimiento en listas largas, también en teléfonos. |
-| Datos remotos y paginación | TanStack Query | Caché, paginación infinita y reintentos sobre la API de MAL (vía proxy si hace falta) y el cliente de Supabase; agrupa y cachea las consultas por id (ADR-0008). |
+| Datos remotos y paginación | TanStack Query | Caché, paginación infinita y reintentos sobre la API de MAL (siempre vía la Edge Function `mal-proxy`) y el cliente de Supabase; agrupa y cachea las consultas por id (ADR-0008). |
 | i18n | i18next + react-i18next, con detección del idioma del navegador | Textos en archivos por idioma; inglés por defecto (ADR-0010). |
 | PWA instalable | `vite-plugin-pwa` (manifiesto y service worker con Workbox) | Caché solo del *app shell*; sin datos en caché (ADR-0016). |
 | Imagen para compartir | `html-to-image` + Web Share API, con descarga de la imagen como alternativa | Se genera en el navegador a partir de un nodo del DOM; sin servidor. Hay que probar en iOS Safari y Android Chrome. |
