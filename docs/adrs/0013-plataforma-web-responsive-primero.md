@@ -65,5 +65,5 @@ Una aplicación web diseñada primero para pantallas de teléfono y adaptada a e
 
 ## Preguntas abiertas
 
-- ¿Se ofrecerá la web como PWA instalable (manifiesto e ícono), sin modo offline? Queda fuera de este ADR hasta que el stakeholder lo pida.
+- ~~¿Se ofrecerá la web como PWA instalable (manifiesto e ícono), sin modo offline?~~ Resuelto el 2026-10-12: PWA instalable con caché solo del *app shell*, sin modo offline (ADR-0016).
 - Navegadores y versiones mínimas soportados.

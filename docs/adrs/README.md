@@ -33,6 +33,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0013](./0013-plataforma-web-responsive-primero.md) | Plataforma prioritaria: web responsive mobile first, sin modo offline | Aceptado | Sesión 2026-10-12 |
 | [0014](./0014-hito-web-en-produccion.md) | Hito del 28-oct: web app en producción | Aceptado | Sesión 2026-10-12 |
 | [0015](./0015-login-solo-con-google-en-el-mvp-web.md) | Login solo con Google en el MVP web | Aceptado | Sesión 2026-10-12 |
+| [0016](./0016-web-app-instalable-como-pwa.md) | Web app instalable como PWA, sin modo offline | Aceptado | Sesión 2026-10-12 |
 
 ## Trazabilidad con las reuniones
 
@@ -49,6 +50,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-10-12: React (Vite + React Router, SPA) para la web app y Astro para la landing | 0003 |
 | Sesión 2026-10-12: dominio `acruxanime.com` (landing) y `app.acruxanime.com` (web app) | 0004 |
 | Sesión 2026-10-12: login solo con Google en el MVP web; Apple con la app iOS | 0015 |
+| Sesión 2026-10-12: web app instalable como PWA, sin modo offline | 0016 |
 | D8 | 0006 |
 | D9 | 0001 |
 | D10 (en revisión) | 0008 |

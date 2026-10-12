@@ -50,6 +50,7 @@ Criterios:
 | Lista grande del catálogo (R6) | TanStack Virtual | Virtualización de filas con buen rendimiento en miles de elementos, también en teléfonos. |
 | Datos remotos y paginación | TanStack Query | Caché, paginación infinita y reintentos sobre el cliente de Supabase. |
 | i18n | i18next + react-i18next, con detección del idioma del navegador | Textos en archivos por idioma; inglés por defecto (ADR-0010). |
+| PWA instalable | `vite-plugin-pwa` (manifiesto y service worker con Workbox) | Caché solo del *app shell*; sin datos en caché (ADR-0016). |
 | Imagen para compartir | `html-to-image` + Web Share API, con descarga de la imagen como alternativa | Se genera en el navegador a partir de un nodo del DOM; sin servidor. Hay que probar en iOS Safari y Android Chrome. |
 | Login con Google | Flujo OAuth con redirección de Supabase Auth (`signInWithOAuth`) | Sin SDK nativos; Apple queda para la app iOS (ADR-0015). |
 
