@@ -36,7 +36,7 @@ ADR-0009 definía el catálogo como **una gran lista marcable** con búsqueda po
 **Opción B.** El catálogo tiene **dos formas de exploración**, excluyentes:
 
 1. **Por nombre:** búsqueda desde 3 caracteres (`GET /anime?q=`), con paginación.
-2. **Por año:** el usuario elige un año y ve **todos los animes estrenados ese año**. `mal-proxy` consulta las 4 temporadas (`winter`, `spring`, `summer`, `fall`), une los resultados sin duplicados y **conserva solo los que tienen `start_season.year` igual al año elegido** (decisión del stakeholder, 2026-10-12).
+2. **Por año:** el usuario elige un año y ve **todos los animes estrenados ese año**. `mal-proxy` consulta las 4 temporadas (`winter`, `spring`, `summer`, `fall`), une los resultados sin duplicados y **conserva solo los que tienen `start_season.year` igual al año elegido** (decisión del stakeholder, 2026-10-12). El selector de año va **del año actual hacia atrás hasta 1917**, con el año actual seleccionado por defecto; el año actual se calcula en tiempo de ejecución, no se fija en el código.
 
 Sobre los resultados de cualquiera de las dos se aplican, **en el cliente**, dos filtros combinables:
 
@@ -62,4 +62,4 @@ Se mantienen de ADR-0009: todos los formatos (TV, película, OVA, ONA, especial;
 
 - ~~¿Se mantiene el filtro por **tipo** (TV, película, OVA…) que pedía D11?~~ Resuelto el 2026-10-12: sí, como filtro en el cliente sobre `media_type`.
 - ~~«Por año»: ¿animes en emisión ese año o solo los estrenados ese año?~~ Resuelto el 2026-10-12: solo los estrenados ese año.
-- Rango de años del selector: ¿desde el primer año con datos en MAL o un rango acotado?
+- ~~Rango de años del selector.~~ Resuelto el 2026-10-12: del año actual hasta 1917, con el año actual por defecto.
