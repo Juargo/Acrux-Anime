@@ -26,7 +26,7 @@ Criterios:
 | Landing page | **Astro** | **Aceptado** (decidido por el stakeholder el 2026-10-12) | ADR-0012 |
 | Hosting | Vercel (web app y landing) | **Aceptado** (landing, D18) / Propuesto (web app) | ADR-0012 |
 | Backend (Auth, base de datos, funciones) | Supabase | **Aceptado** (D8) | ADR-0006 |
-| Autenticación | Google y Apple vía Supabase Auth | **Aceptado** (D7) | ADR-0007 |
+| Autenticación | Solo Google vía Supabase Auth en el MVP web; Apple con la app iOS futura | **Aceptado** | ADR-0007, ADR-0015 |
 | Fuente del catálogo | anime-offline-database (en revisión frente a Jikan) | Propuesto | ADR-0008 |
 | Internacionalización | Español e inglés desde el inicio | **Aceptado** (D13) | ADR-0010 |
 | Gestión del monorepo | pnpm workspaces | Propuesto | ADR-0002 |
@@ -51,7 +51,7 @@ Criterios:
 | Datos remotos y paginación | TanStack Query | Caché, paginación infinita y reintentos sobre el cliente de Supabase. |
 | i18n | i18next + react-i18next, con detección del idioma del navegador | Textos en archivos por idioma; inglés por defecto (ADR-0010). |
 | Imagen para compartir | `html-to-image` + Web Share API, con descarga de la imagen como alternativa | Se genera en el navegador a partir de un nodo del DOM; sin servidor. Hay que probar en iOS Safari y Android Chrome. |
-| Login con Google y Apple | Flujo OAuth con redirección de Supabase Auth (`signInWithOAuth`) | Sin SDK nativos; Apple en web requiere Services ID y dominio verificado (ADR-0014). |
+| Login con Google | Flujo OAuth con redirección de Supabase Auth (`signInWithOAuth`) | Sin SDK nativos; Apple queda para la app iOS (ADR-0015). |
 
 ### Landing page
 

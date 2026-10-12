@@ -71,7 +71,7 @@ La web app usa el SDK de Supabase en el navegador para autenticarse y consultar 
 ```
  [Navegador] ──► apps/web (Vercel, archivos estáticos) — app.acruxanime.com
       │
-      ├──► Supabase Auth ◄── Google / Apple (OAuth con redirección)
+      ├──► Supabase Auth ◄── Google (OAuth con redirección; Apple en la fase nativa, ADR-0015)
       │
       ├──► Supabase Postgres (API REST + RLS)
       │       ├─ catálogo (solo lectura, sembrado una vez)
@@ -98,7 +98,7 @@ El stakeholder compró **`acruxanime.com`** (2026-10-12) y aceptó este esquema:
 | `app.acruxanime.com` | `apps/web` (React) | Web app |
 
 - La landing, que es la parte indexable, queda en el dominio raíz; la web app, detrás del login, en un subdominio.
-- Las URLs de retorno de OAuth (Supabase Auth, Google y el *Services ID* de Apple) y la URL del sitio en Supabase usan `app.acruxanime.com`; la pantalla de consentimiento de Google declara `acruxanime.com` como dominio autorizado y su política de privacidad.
+- Las URLs de retorno de OAuth (Supabase Auth y Google) y la URL del sitio en Supabase usan `app.acruxanime.com`; la pantalla de consentimiento de Google declara `acruxanime.com` como dominio autorizado y su política de privacidad.
 - Las vistas previas de Vercel (`*.vercel.app`) se registran como URLs de retorno adicionales solo en el entorno de desarrollo.
 
 ### Contador total

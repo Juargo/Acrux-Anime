@@ -40,7 +40,8 @@ Route: delegated direct (writer trigger: 2+ non-trivial files). TDD: not applica
 - Review: passive documentation, structural readback only.
 - 2026-10-12: stakeholder accepted React + Vite + React Router (SPA) over Next.js; recorded in ADR-0003.
 - 2026-10-12: domain acruxanime.com bought; landing at apex, web app at app.acruxanime.com; recorded in ADR-0004 (Dominios) and ADR-0014 open question resolved.
+- 2026-10-12: login only with Google in the web MVP; Apple deferred to native iOS. New ADR-0015 (partially supersedes ADR-0007; account deletion stays).
 
 ## Next step
 
-Resolve open questions: Sign in with Apple on web, PWA (0013/0014).
+Resolve open questions: PWA (0013/0014).

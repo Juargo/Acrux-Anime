@@ -25,7 +25,7 @@ Se mantienen las restricciones de capacidad: ~12 h/día, 18 días desde el inici
 
 ## Decisión
 
-**Hito del 28-oct-2026:** web app en producción en Vercel, con **dominio público**, utilizable por usuarios reales, con **login (Google y Apple vía Supabase Auth) y borrado de cuenta funcionando**.
+**Hito del 28-oct-2026:** web app en producción en Vercel, con **dominio público**, utilizable por usuarios reales, con **login con Google vía Supabase Auth (ADR-0015) y borrado de cuenta funcionando**.
 
 Queda **fuera** del hito: publicación en tiendas, prueba cerrada de Google Play y revisión de App Store. Las cuentas de desarrollador (Apple Developer pagada y Google Play Console) se conservan para la fase nativa futura.
 
@@ -34,7 +34,7 @@ Siguen vigentes: sin modo offline (D14, ADR-0013), i18n en español e inglés (A
 ### Criterios de aceptación del hito
 
 - La app abre en producción desde el dominio público en navegadores móviles y de escritorio.
-- Un usuario nuevo puede iniciar sesión con Google y con Apple, marcar animes, ver el contador y compartir la imagen.
+- Un usuario nuevo puede iniciar sesión con Google, marcar animes, ver el contador y compartir la imagen.
 - El usuario puede borrar su cuenta desde la app y se eliminan su usuario y sus marcas (ADR-0007).
 - La landing publica la política de privacidad, el soporte y el borrado de cuenta, en español e inglés.
 
@@ -44,7 +44,7 @@ Se conserva el ritmo de ADR-0001 (sprints de 2 a 5 días y colchón final de 3 d
 
 | Sprint | Fechas | Objetivo |
 |---|---|---|
-| Sprint 0 | 12–13 oct | Setup: monorepo, app web en React, landing en Astro, proyecto Supabase, OAuth de Google y Apple para web, siembra del catálogo y despliegue en Vercel. **Prioridad:** una primera vista previa pública temprana |
+| Sprint 0 | 12–13 oct | Setup: monorepo, app web en React, landing en Astro, proyecto Supabase, OAuth de Google para web, siembra del catálogo y despliegue en Vercel. **Prioridad:** una primera vista previa pública temprana |
 | Sprint 1 | 14–17 oct | Login funcional, lista virtualizada del catálogo con búsqueda y filtros (año, género, tipo) |
 | Sprint 2 | 18–21 oct | Marcar como visto (gris y contador), imagen para compartir (Web Share API con descarga alternativa), borrado de cuenta |
 | Sprint 3 | 22–25 oct | Pulido, política de privacidad en la landing, pantalla «Acerca de», dominio de producción y OAuth publicado |
@@ -55,7 +55,6 @@ Se conserva el ritmo de ADR-0001 (sprints de 2 a 5 días y colchón final de 3 d
 - **Positivas:** el hito es alcanzable y no depende de revisiones externas; cada sprint termina con una versión desplegada.
 - **Negativas / riesgos:**
   - 12 h diarias durante el período siguen siendo difíciles de sostener (R8); el colchón final es la única holgura.
-  - **Sign in with Apple en web** requiere un *Services ID*, el dominio y las URLs de retorno verificados en Apple Developer, además de una clave de cliente que caduca; es la parte con más fricción del Sprint 0.
   - La pantalla de consentimiento de Google debe publicarse con la política de privacidad antes de abrirla a usuarios reales.
   - El Sprint 0 pierde un día de margen frente al plan anterior (inicia el 12-oct).
 - **Acciones derivadas:**
@@ -67,6 +66,6 @@ Se conserva el ritmo de ADR-0001 (sprints de 2 a 5 días y colchón final de 3 d
 ## Preguntas abiertas
 
 - ~~Dominio: ¿dominio propio o `vercel.app`?~~ Resuelto el 2026-10-12: `acruxanime.com` para la landing y `app.acruxanime.com` para la web app (ver ADR-0004, sección «Dominios»).
-- ¿Se mantiene Sign in with Apple en el MVP web? Apple solo lo exige en apps de App Store (ADR-0007 sigue vigente tal cual, salvo que el stakeholder decida lo contrario); quitarlo reduciría el riesgo del Sprint 0.
+- ~~¿Se mantiene Sign in with Apple en el MVP web?~~ Resuelto el 2026-10-12: solo Google en el MVP web; Apple con la app iOS (ADR-0015).
 - Fuente del catálogo (ADR-0008), pendiente de la Reunión 006.
 - Cómo se reclutan los primeros usuarios reales para la última semana.
