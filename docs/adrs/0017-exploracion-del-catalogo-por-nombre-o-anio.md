@@ -1,6 +1,6 @@
 # ADR-0017: Exploración del catálogo: por nombre o por año, con filtros de género y tipo
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado (las operaciones atribuidas a `mal-proxy` pasan a la API propia de ADR-0018)
 - **Fecha:** 2026-10-12
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-12, a partir de los resultados del spike de la API de MAL (ADR-0008). Reemplaza los ítems 1–3 de ADR-0009 (gran lista marcable, búsqueda por nombre, filtros por año, género y tipo).
