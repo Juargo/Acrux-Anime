@@ -55,18 +55,33 @@ Reglas del proxy:
 - **Positivas:** sin siembra ni mantenimiento del catálogo; datos siempre frescos; almacenamiento mínimo (solo ids).
 - **Negativas / riesgos:**
   - **Dependencia dura en producción** de la disponibilidad, los límites y una posible revocación o cobro de la API de MAL.
-  - Los filtros se limitan a lo que ofrece la API (ver «No verificado»).
+  - Los filtros se limitan a lo que ofrece la API (ver «Resultados del spike»).
   - Listar los animes vistos de un usuario y generar la imagen para compartir exigen consultas por id (`GET /anime/{id}`): N peticiones. Se mitiga con agrupación y caché en el cliente (TanStack Query).
   - Las portadas son imágenes del CDN de MAL, mostradas tal como las devuelve la API: no se alojan ni se alteran.
   - Se muestra la atribución a MAL en la app (pantalla «Acerca de») y en la landing.
   - Restricción de uso no comercial: ingresos o publicidad exigen autorización escrita.
-- **No verificado (validar con un spike al inicio del Sprint 0):** la página de documentación oficial se renderiza con JavaScript y no pudo leerse. Fuentes de la comunidad ([especificación](https://github.com/SuperMarcus/myanimelist-api-specification), [paquete myanimelist.net](https://npmjs.com/package/myanimelist.net)) indican que:
-  - `GET /anime` solo acepta `q`, `limit`, `offset` y `fields`, sin filtros de género, tipo ni año.
-  - El año se obtiene con `GET /anime/season/{year}/{season}`, y existe `GET /anime/ranking` (`ranking_type`: tv, movie, ova, special, etc.).
-  - MAL no envía cabeceras CORS ([fuente](https://github.com/jraleman/anime)), por lo que el navegador no podría llamar a la API directamente.
+- **Resultados del spike (2026-10-12, con `curl` y el Client ID real contra `https://api.myanimelist.net/v2`):**
+
+  | Prueba | Resultado observado |
+  |---|---|
+  | `GET /anime` sin `q` o con `q` de 2 caracteres | `400 invalid q`. La búsqueda exige al menos 3 caracteres: **no existe un listado completo navegable** del catálogo. |
+  | `GET /anime?q=naruto&genre=1&media_type=movie&year=2002` | `200`, pero los parámetros de filtro **se ignoran en silencio** (devuelve las series de TV). La búsqueda **no filtra por género, tipo ni año**. |
+  | `fields=media_type,start_season,genres,num_episodes,nsfw` en la búsqueda | Sí se devuelven: los filtros pueden aplicarse **en el cliente** sobre los resultados cargados. |
+  | Paginación de la búsqueda (`q=love`, `limit=100`) | Tope de `limit` = 100. Las páginas traen menos elementos que `limit` (75–90) porque se excluye el contenido adulto. Sin resultados a partir de `offset` ≈ 700: **la búsqueda tiene un tope de resultados**. |
+  | `nsfw` | Por defecto se excluye el contenido adulto; solo aparece con `nsfw=true`. |
+  | `GET /anime/season/{year}/{season}` | Funciona; acepta `fields` y hasta 500 resultados por página (389 en otoño de 2023). Permite explorar **por año y temporada**. |
+  | `GET /anime/ranking?ranking_type=movie` | Funciona. Permite explorar **por tipo** (`tv`, `movie`, `ova`, `special`, etc.) ordenado por ranking. |
+  | `GET /anime/{id}?fields=...` | Funciona: título, tipo, temporada, géneros y portadas (`main_picture`) del CDN de MAL. |
+  | Endpoint de consulta por varios ids | No existe: la lista de vistos requiere una consulta por id (la agrupa `mal-proxy`). |
+  | CORS: `GET` con `Origin` | `200` **sin** cabeceras `Access-Control-*`. |
+  | CORS: preflight `OPTIONS` | `405`. **Confirmado: el navegador no puede llamar a MAL directamente.** |
+  | Sin `X-MAL-CLIENT-ID` | `403 forbidden`. |
+  | Límites de uso | La respuesta no incluye cabeceras de límite (`X-RateLimit-*`, `Retry-After`). |
+
+  No existe un endpoint para filtrar por género; el género solo puede filtrarse en el cliente.
 - **Acciones derivadas:**
   - ~~Registrar la app en `myanimelist.net/apiconfig` para obtener el Client ID.~~ Hecho el 2026-10-12 (homepage `https://acruxanime.com/`, redirect `https://app.acruxanime.com/`). El Client ID se guarda fuera del repositorio.
-  - Spike al inicio del Sprint 0 para confirmar los filtros disponibles; se hace desde el servidor o con `curl`, nunca desde el navegador.
+  - ~~Spike al inicio del Sprint 0 para confirmar los filtros disponibles.~~ Hecho el 2026-10-12 (ver «Resultados del spike»).
   - Implementar la Edge Function `mal-proxy` con las reglas anteriores y cargar el secreto `MAL_CLIENT_ID`.
   - Esquema de almacenamiento: `seen_anime(user_id, mal_anime_id, created_at)` con RLS.
 

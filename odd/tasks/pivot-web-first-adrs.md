@@ -53,6 +53,8 @@ Route: delegated direct (writer trigger: 2+ non-trivial files). TDD: not applica
 
 - 2026-10-12: catalog visible only with an active session; mal-proxy requires role authenticated (anon key rejected); recorded in ADR-0008.
 
+- 2026-10-12: MAL API spike done with curl: search needs q>=3, filter params ignored, genres/media_type/start_season available as fields (client-side filtering), search capped (~700 results, limit 100), season and ranking endpoints usable for browsing by year/type, no genre endpoint, CORS blocked (no ACAO, preflight 405), 403 without client id. Recorded in ADR-0008. Pending: stakeholder decision on filters (ADR-0009).
+
 ## Next step
 
 All ADR open questions from this session resolved. PR opened: https://github.com/Juargo/Acrux-Anime/pull/1 (merge is the stakeholder decision). Next: Sprint 0 MAL API spike (filters + CORS, ADR-0008) once the stakeholder has the Client ID.
