@@ -1,6 +1,6 @@
 # ADR-0011: Hitos de publicación y estrategia de tiendas
 
-- **Estado:** Aceptado
+- **Estado:** Reemplazado por ADR-0014
 - **Fecha:** 2026-10-10
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Reunión 001 (D5, R2–R4), Reunión 002 (cuentas), Reunión 003 (investigación de Google Play), Reunión 004 (D15–D17)

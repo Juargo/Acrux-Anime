@@ -1,6 +1,6 @@
 # ADR-0009: Alcance funcional del MVP
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado (ítem «versión web fuera del MVP» reemplazado por ADR-0013; ítems 1–3 de catálogo, búsqueda y filtros reemplazados por ADR-0017)
 - **Fecha:** 2026-10-10
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Reunión 001 (D1, D4), Reunión 002 (D6), Reunión 003 (D11, D12)
