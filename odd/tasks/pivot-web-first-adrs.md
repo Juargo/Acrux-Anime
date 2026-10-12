@@ -51,4 +51,4 @@ Route: delegated direct (writer trigger: 2+ non-trivial files). TDD: not applica
 
 ## Next step
 
-All ADR open questions from this session resolved. Next: open PR for docs/pivot-web-first; then Sprint 0 MAL API spike (filters + CORS, ADR-0008) once the stakeholder has the Client ID.
+All ADR open questions from this session resolved. PR opened: https://github.com/Juargo/Acrux-Anime/pull/1 (merge is the stakeholder decision). Next: Sprint 0 MAL API spike (filters + CORS, ADR-0008) once the stakeholder has the Client ID.
