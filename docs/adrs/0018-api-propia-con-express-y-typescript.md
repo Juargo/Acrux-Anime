@@ -48,6 +48,7 @@ Como referencia de stack se toma la API de otro proyecto del stakeholder (`mirac
 
 - **Express**, con una fábrica `createApp(container)`, una cadena de middlewares (sesión → errores) y rutas en `routes/*.routes.ts`.
 - **Contrato OpenAPI** emitido a `apps/api/openapi.json` (`openapi:emit`) y verificado en CI (`openapi:check`).
+- **Zod 4 + `zod-openapi`** (decisión del stakeholder, 2026-10-12): cada ruta define sus esquemas Zod, que validan la petición en tiempo de ejecución, dan los tipos de TypeScript y generan el contrato con `createDocument`. Es la misma combinación que usa `mirach-api`. Se descartaron `@asteasolutions/zod-to-openapi` (mismo enfoque, sin ventaja adicional), tsoa (requiere decoradores) y la especificación escrita a mano (se desincroniza del código).
 
 ### Organización del código
 
@@ -113,5 +114,5 @@ Como referencia de stack se toma la API de otro proyecto del stakeholder (`mirac
   - Crear `apps/api` con el stack anterior y el pipeline de CI.
   - Implementar las rutas de exploración (por nombre y por año), marcas de «visto», perfil y borrado de cuenta.
   - Bloquear el acceso directo desde el navegador a las tablas de `public` (sin políticas RLS para `anon` ni `authenticated`), ya que todo pasa por la API.
-  - Elegir la herramienta que genera el contrato OpenAPI.
+  - ~~Elegir la herramienta que genera el contrato OpenAPI.~~ Resuelto el 2026-10-12: Zod 4 + `zod-openapi` (ver «HTTP»).
   - Actualizar ADR-0003 y ADR-0004 (en `Propuesto`) con esta decisión.
