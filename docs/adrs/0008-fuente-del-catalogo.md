@@ -87,7 +87,7 @@ Reglas del proxy:
 
 ## Preguntas abiertas
 
-- **Conjunto final de filtros** tras el spike; impacta el alcance de ADR-0009.
+- ~~**Conjunto final de filtros** tras el spike.~~ Resuelto el 2026-10-12: exploración por nombre o por año, con género como filtro en el cliente (ADR-0017).
 - ~~**Proxy:** ¿se necesita la Edge Function `mal-proxy` (depende de CORS)?~~ Resuelto el 2026-10-12: sí, siempre, para no exponer el Client ID (ver «Acceso a la API mediante el proxy»).
 - ~~¿El catálogo se puede explorar sin iniciar sesión?~~ Resuelto el 2026-10-12: no; el catálogo solo se ve con sesión iniciada y `mal-proxy` exige un usuario autenticado.
 - **Datos mínimos desnormalizados** (título, portada) en la lista de vistos: el acuerdo (§3(c)) restringe guardar datos personales de usuarios de MAL, no datos del catálogo, pero hay que verificar si se permite almacenar contenido de MAL en el servidor antes de hacerlo. Por defecto se guarda solo el id.
