@@ -65,8 +65,8 @@ Decidido por el stakeholder el 2026-10-12: **Astro**. Sitio estático, muy livia
 | Lint y formato | **Biome** (aceptado el 2026-10-12): una sola herramienta y un solo `biome.json` en la raíz del monorepo para lint y formato. Descartado ESLint + Prettier: más ecosistema de plugins, pero dos herramientas, más configuración y más lento; lo que se pierde (soporte parcial de `.astro`, plugins específicos como el de TanStack Query) pesa poco en el MVP. |
 | Pruebas unitarias | Vitest (integra con Vite) |
 | Pruebas de componentes | Testing Library |
-| Pruebas de humo en viewport móvil | Playwright (opcional) |
-| CI | GitHub Actions: lint, typecheck y pruebas en cada PR |
+| Pruebas E2E de humo | **Playwright** (aceptado el 2026-10-12): 3 o 4 pruebas de los flujos críticos del hito (buscar → marcar como visto → contador, borrado de cuenta, aviso de nueva versión de la PWA) en viewport de teléfono, con Chromium y WebKit (motor de Safari en iOS). La API de MAL se intercepta con `page.route()` y datos fijos; la sesión de prueba se crea directo contra Supabase, sin pasar por la pantalla de Google (que bloquea logins automatizados). |
+| CI | GitHub Actions: lint, typecheck y pruebas unitarias en cada PR; Playwright contra la vista previa de Vercel de cada PR |
 
 ### Apps nativas (futuro)
 
@@ -91,4 +91,4 @@ El stakeholder aceptó **React + Vite + React Router como SPA**. El SEO lo cubre
 ## Preguntas abiertas
 
 - ~~Elegir linter y formateador: ESLint + Prettier o Biome.~~ Resuelto el 2026-10-12: Biome.
-- ¿Se incluye Playwright en el MVP o solo pruebas con Vitest y Testing Library?
+- ~~¿Se incluye Playwright en el MVP o solo pruebas con Vitest y Testing Library?~~ Resuelto el 2026-10-12: Playwright con un conjunto mínimo de pruebas de humo.

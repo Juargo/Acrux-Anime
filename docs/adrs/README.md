@@ -47,7 +47,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | D5, D15, D16, D17 | 0011 (reemplazado por 0014: el hito pasa a web en producción; sin prueba cerrada ni revisión de tiendas) |
 | Sesión 2026-10-12: MVP como web app responsive mobile first; apps nativas en el futuro | 0013 |
 | Sesión 2026-10-12: hito del 28-oct con web en producción en Vercel | 0014 |
-| Sesión 2026-10-12: React (Vite + React Router, SPA) para la web app, Astro para la landing y Biome para lint y formato | 0003 |
+| Sesión 2026-10-12: React (Vite + React Router, SPA) para la web app, Astro para la landing, Biome para lint y formato y Playwright para pruebas E2E de humo | 0003 |
 | Sesión 2026-10-12: dominio `acruxanime.com` (landing) y `app.acruxanime.com` (web app) | 0004 |
 | Sesión 2026-10-12: login solo con Google en el MVP web; Apple con la app iOS | 0015 |
 | Sesión 2026-10-12: web app instalable como PWA, sin modo offline | 0016 |

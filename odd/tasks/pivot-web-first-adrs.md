@@ -46,6 +46,8 @@ Route: delegated direct (writer trigger: 2+ non-trivial files). TDD: not applica
 - 2026-10-12: Biome accepted for lint and format (over ESLint + Prettier); recorded in ADR-0003.
 - 2026-10-12: catalog is a live query to the official MyAnimeList API v2 (no seeding, only the MAL id of seen animes is stored); ADR-0008 accepted, 0003/0004/0009/0014 updated; filters and CORS to be validated in a Sprint 0 spike.
 
+- 2026-10-12: Playwright accepted as minimal E2E smoke suite (mobile viewport, Chromium + WebKit, MAL mocked via page.route, test session created via Supabase); recorded in ADR-0003.
+
 ## Next step
 
-Resolve open questions: install hint in the web app (0016), Playwright (0003) (0013/0014).
+Resolve open questions: install hint in the web app (0016). Then: Sprint 0 MAL API spike (filters + CORS, ADR-0008) once the stakeholder has the Client ID.
