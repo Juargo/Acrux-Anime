@@ -62,7 +62,7 @@ Decidido por el stakeholder el 2026-10-12: **Astro**. Sitio estático, muy livia
 
 | Necesidad | Propuesta |
 |---|---|
-| Lint y formato | ESLint + Prettier (o Biome) |
+| Lint y formato | **Biome** (aceptado el 2026-10-12): una sola herramienta y un solo `biome.json` en la raíz del monorepo para lint y formato. Descartado ESLint + Prettier: más ecosistema de plugins, pero dos herramientas, más configuración y más lento; lo que se pierde (soporte parcial de `.astro`, plugins específicos como el de TanStack Query) pesa poco en el MVP. |
 | Pruebas unitarias | Vitest (integra con Vite) |
 | Pruebas de componentes | Testing Library |
 | Pruebas de humo en viewport móvil | Playwright (opcional) |
@@ -90,5 +90,5 @@ El stakeholder aceptó **React + Vite + React Router como SPA**. El SEO lo cubre
 
 ## Preguntas abiertas
 
-- Elegir linter y formateador: ESLint + Prettier o Biome.
+- ~~Elegir linter y formateador: ESLint + Prettier o Biome.~~ Resuelto el 2026-10-12: Biome.
 - ¿Se incluye Playwright en el MVP o solo pruebas con Vitest y Testing Library?
