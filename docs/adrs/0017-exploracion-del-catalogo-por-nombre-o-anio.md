@@ -36,7 +36,7 @@ ADR-0009 definía el catálogo como **una gran lista marcable** con búsqueda po
 **Opción B.** El catálogo tiene **dos formas de exploración**, excluyentes:
 
 1. **Por nombre:** búsqueda desde 3 caracteres (`GET /anime?q=`), con paginación.
-2. **Por año:** el usuario elige un año y ve **todos los animes de ese año**. `mal-proxy` consulta las 4 temporadas (`winter`, `spring`, `summer`, `fall`) y devuelve la unión.
+2. **Por año:** el usuario elige un año y ve **todos los animes estrenados ese año**. `mal-proxy` consulta las 4 temporadas (`winter`, `spring`, `summer`, `fall`), une los resultados sin duplicados y **conserva solo los que tienen `start_season.year` igual al año elegido** (decisión del stakeholder, 2026-10-12).
 
 Sobre los resultados de cualquiera de las dos se aplican, **en el cliente**, dos filtros combinables:
 
@@ -49,7 +49,7 @@ Se mantienen de ADR-0009: todos los formatos (TV, película, OVA, ONA, especial;
 
 - **Positivas:** encaja con lo que la API ofrece de verdad; los resultados filtrados son completos dentro del año o la búsqueda; se elimina la lista curada de géneros (ADR-0009).
 - **Negativas / riesgos:**
-  - Las temporadas de MAL incluyen series que **siguen en emisión** (en el spike, One Piece aparece en primavera de 2024): «por año» significa «en emisión ese año», no solo «estrenados ese año». Si se quiere lo segundo, `mal-proxy` puede filtrar por `start_season.year`.
+  - Las temporadas de MAL incluyen series que **siguen en emisión** (en el spike, One Piece aparece en primavera de 2024). Como «por año» significa «estrenados ese año», `mal-proxy` descarta esas series filtrando por `start_season.year`; por eso la consulta debe pedir siempre el campo `start_season`. Una serie larga aparece solo en su año de estreno.
   - Un año puede tener más de mil animes: hay que paginar o virtualizar la lista en el cliente (TanStack Virtual) y cachear la respuesta del año en `mal-proxy` y en el cliente.
   - En la búsqueda por nombre, los filtros de género y tipo solo actúan sobre las páginas ya cargadas; hay que indicarlo en la interfaz o cargar todas las páginas (hasta ~700 resultados) antes de filtrar.
   - Los nombres de géneros y los valores de `media_type` vienen en inglés desde MAL; traducirlos al español requiere una tabla propia de traducciones (ADR-0010).
@@ -61,5 +61,5 @@ Se mantienen de ADR-0009: todos los formatos (TV, película, OVA, ONA, especial;
 ## Preguntas abiertas
 
 - ~~¿Se mantiene el filtro por **tipo** (TV, película, OVA…) que pedía D11?~~ Resuelto el 2026-10-12: sí, como filtro en el cliente sobre `media_type`.
-- «Por año»: ¿animes en emisión ese año o solo los estrenados ese año?
+- ~~«Por año»: ¿animes en emisión ese año o solo los estrenados ese año?~~ Resuelto el 2026-10-12: solo los estrenados ese año.
 - Rango de años del selector: ¿desde el primer año con datos en MAL o un rango acotado?
