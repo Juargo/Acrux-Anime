@@ -1,6 +1,6 @@
 # ADR-0006: Backend: Supabase
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado (el catálogo propio en Postgres quedó reemplazado por el catálogo en vivo de ADR-0008; Supabase sigue como backend de auth, marcas y funciones)
 - **Fecha:** 2026-10-10
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Reunión 001 (pendiente 9), Reunión 002 (D8)

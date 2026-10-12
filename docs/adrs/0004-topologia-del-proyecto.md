@@ -16,7 +16,7 @@ Restricciones:
 
 - El MVP es una web app responsive mobile first; las apps nativas llegan después (ADR-0013).
 - El backend es Supabase (ADR-0006); no se planifica una API propia.
-- El catálogo vive en el Postgres de Supabase, sembrado desde un dataset (ADR-0008).
+- No se almacena un catálogo: se consulta en vivo la API oficial de MyAnimeList v2 (ADR-0008). Postgres guarda solo perfiles y marcas de «visto» (ids de MAL).
 - La app requiere conexión; no hay modo offline (D14, ADR-0013).
 - La landing con la política de privacidad va en Vercel (ADR-0012).
 - El borrado de cuenta dentro de la app es un requisito del MVP (ADR-0007, ADR-0014); Apple lo exige a las apps de su tienda y se aplica igual aquí como buena práctica y para el futuro. Requiere una operación con privilegios de administrador.
@@ -35,9 +35,7 @@ acrux-anime/
 │   └── i18n/            # Textos en español e inglés compartidos
 ├── supabase/
 │   ├── migrations/      # Esquema SQL y políticas RLS
-│   └── functions/       # Edge Functions (por ejemplo, borrado de cuenta)
-├── scripts/
-│   └── seed-catalog/    # Siembra del catálogo y mapeo de géneros
+│   └── functions/       # Edge Functions (borrado de cuenta; proxy mal-proxy si el spike lo exige)
 ├── docs/
 │   └── adrs/            # Registro de decisiones
 └── .github/workflows/   # CI
@@ -49,8 +47,7 @@ Reglas de dependencia:
 
 - `apps/*` pueden depender de `packages/*`; una app **nunca** depende de otra app.
 - `packages/shared` no depende de React ni de ningún framework.
-- `scripts/seed-catalog` puede usar `packages/shared`, pero ninguna app depende de los scripts.
-- Las claves con privilegios (`service_role` de Supabase) solo se usan en `scripts/` y en `supabase/functions/`; **nunca** en `apps/web` ni en `apps/landing`, cuyo código llega al navegador.
+- Las claves con privilegios (`service_role` de Supabase) solo se usan en `supabase/functions/`; **nunca** en `apps/web` ni en `apps/landing`, cuyo código llega al navegador.
 
 ## Topología de despliegue: opciones consideradas
 
@@ -74,14 +71,14 @@ La web app usa el SDK de Supabase en el navegador para autenticarse y consultar 
       ├──► Supabase Auth ◄── Google (OAuth con redirección; Apple en la fase nativa, ADR-0015)
       │
       ├──► Supabase Postgres (API REST + RLS)
-      │       ├─ catálogo (solo lectura, sembrado una vez)
-      │       └─ marcas de «visto» por usuario
+      │       ├─ perfiles
+      │       └─ marcas de «visto» por usuario (solo ids de MAL)
       │
       ├──► Edge Function: borrado de cuenta
       │
-      └──► Portadas (URLs de terceros o storage propio: pendiente, ADR-0008)
-
- [scripts/seed-catalog] ──► Supabase Postgres (service_role, ejecución puntual)
+      ├──► (Edge Function proxy `mal-proxy`, pendiente del spike de CORS) ──► API de MyAnimeList v2
+      │
+      └──► Portadas: imágenes del CDN de MAL, tal como las devuelve la API (ADR-0008)
 
  [Navegador] ──► apps/landing (Vercel) — acruxanime.com: privacidad, soporte, información
                   └─ URL pública de la política de privacidad (también requerida por la pantalla de consentimiento de Google OAuth)
@@ -117,12 +114,12 @@ El contador total (ADR-0009) puede calcularse con un `count` sobre las marcas de
 - **Positivas:** la topología más simple posible para cumplir el hito; las apps nativas futuras reutilizan el mismo Supabase y su esquema.
 - **Negativas / riesgos:** una política RLS mal escrita expone datos de otros usuarios; hay que probarlas. Al ejecutarse en el navegador, cualquier clave incluida en la web app es pública: solo se usa la clave anónima.
 - **Acciones derivadas:**
-  - Diseñar el esquema (catálogo, géneros, perfiles, marcas) con RLS activada desde la primera migración.
+  - Diseñar el esquema (perfiles y `seen_anime(user_id, mal_anime_id, created_at)`) con RLS activada desde la primera migración.
   - Implementar la Edge Function de borrado de cuenta antes del hito del 28-oct (ADR-0014).
   - Definir entornos: propuesta inicial de un proyecto Supabase de desarrollo y uno de producción.
 
 ## Preguntas abiertas
 
-- Estrategia de imágenes del catálogo (ADR-0008).
+- ¿Se necesita el proxy `mal-proxy` (depende del spike de CORS, ADR-0008)? Las portadas se muestran desde el CDN de MAL sin alojarlas.
 - ¿Un solo proyecto de Supabase en el MVP o dos (desarrollo y producción)? La capa gratuita limita la cantidad de proyectos activos.
 - ¿Desarrollo local con la CLI de Supabase (Docker) o directo contra el proyecto de desarrollo?

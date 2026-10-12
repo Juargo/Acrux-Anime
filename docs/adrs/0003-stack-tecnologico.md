@@ -27,7 +27,7 @@ Criterios:
 | Hosting | Vercel (web app y landing) | **Aceptado** (landing, D18) / Propuesto (web app) | ADR-0012 |
 | Backend (Auth, base de datos, funciones) | Supabase | **Aceptado** (D8) | ADR-0006 |
 | Autenticación | Solo Google vía Supabase Auth en el MVP web; Apple con la app iOS futura | **Aceptado** | ADR-0007, ADR-0015 |
-| Fuente del catálogo | anime-offline-database (en revisión frente a Jikan) | Propuesto | ADR-0008 |
+| Fuente del catálogo | API oficial de MyAnimeList v2, en vivo | **Aceptado** | ADR-0008 |
 | Internacionalización | Español e inglés desde el inicio | **Aceptado** (D13) | ADR-0010 |
 | Gestión del monorepo | pnpm workspaces | Propuesto | ADR-0002 |
 | Apps nativas | Kotlin (Android) y Swift (iOS) | Futuro (fuera del MVP) | ADR-0013 |
@@ -47,8 +47,8 @@ Criterios:
 | Necesidad | Propuesta | Motivo |
 |---|---|---|
 | Enrutamiento | React Router | Estándar para una SPA con Vite. |
-| Lista grande del catálogo (R6) | TanStack Virtual | Virtualización de filas con buen rendimiento en miles de elementos, también en teléfonos. |
-| Datos remotos y paginación | TanStack Query | Caché, paginación infinita y reintentos sobre el cliente de Supabase. |
+| Lista grande del catálogo (R6) | TanStack Virtual | Virtualización de filas con buen rendimiento en listas largas, también en teléfonos. |
+| Datos remotos y paginación | TanStack Query | Caché, paginación infinita y reintentos sobre la API de MAL (vía proxy si hace falta) y el cliente de Supabase; agrupa y cachea las consultas por id (ADR-0008). |
 | i18n | i18next + react-i18next, con detección del idioma del navegador | Textos en archivos por idioma; inglés por defecto (ADR-0010). |
 | PWA instalable | `vite-plugin-pwa` (manifiesto y service worker con Workbox) | Caché solo del *app shell*; sin datos en caché (ADR-0016). |
 | Imagen para compartir | `html-to-image` + Web Share API, con descarga de la imagen como alternativa | Se genera en el navegador a partir de un nodo del DOM; sin servidor. Hay que probar en iOS Safari y Android Chrome. |

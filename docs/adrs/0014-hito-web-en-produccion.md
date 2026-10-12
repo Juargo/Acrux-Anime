@@ -44,7 +44,7 @@ Se conserva el ritmo de ADR-0001 (sprints de 2 a 5 días y colchón final de 3 d
 
 | Sprint | Fechas | Objetivo |
 |---|---|---|
-| Sprint 0 | 12–13 oct | Setup: monorepo, app web en React, landing en Astro, proyecto Supabase, OAuth de Google para web, siembra del catálogo y despliegue en Vercel. **Prioridad:** una primera vista previa pública temprana |
+| Sprint 0 | 12–13 oct | Setup: monorepo, app web en React, landing en Astro, proyecto Supabase, OAuth de Google para web, registro en la API de MAL y spike de filtros y CORS (ADR-0008) y despliegue en Vercel. **Prioridad:** una primera vista previa pública temprana |
 | Sprint 1 | 14–17 oct | Login funcional, lista virtualizada del catálogo con búsqueda y filtros (año, género, tipo) |
 | Sprint 2 | 18–21 oct | Marcar como visto (gris y contador), imagen para compartir (Web Share API con descarga alternativa), borrado de cuenta |
 | Sprint 3 | 22–25 oct | Pulido, política de privacidad en la landing, pantalla «Acerca de», dominio de producción y OAuth publicado |
@@ -67,5 +67,5 @@ Se conserva el ritmo de ADR-0001 (sprints de 2 a 5 días y colchón final de 3 d
 
 - ~~Dominio: ¿dominio propio o `vercel.app`?~~ Resuelto el 2026-10-12: `acruxanime.com` para la landing y `app.acruxanime.com` para la web app (ver ADR-0004, sección «Dominios»).
 - ~~¿Se mantiene Sign in with Apple en el MVP web?~~ Resuelto el 2026-10-12: solo Google en el MVP web; Apple con la app iOS (ADR-0015).
-- Fuente del catálogo (ADR-0008), pendiente de la Reunión 006.
+- ~~Fuente del catálogo.~~ Resuelto el 2026-10-12: API oficial de MyAnimeList v2 en vivo (ADR-0008).
 - Cómo se reclutan los primeros usuarios reales para la última semana.

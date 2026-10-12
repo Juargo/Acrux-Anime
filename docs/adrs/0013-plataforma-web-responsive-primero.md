@@ -46,7 +46,7 @@ Una aplicación web diseñada primero para pantallas de teléfono y adaptada a e
 ### Requisitos de diseño mobile first
 
 - Objetivos táctiles cómodos (mínimo recomendado de 44×44 px) y sin dependencia de *hover*.
-- La lista del catálogo (~40.000 elementos, R6) debe ser fluida en teléfonos de gama media: virtualización y paginación.
+- La lista del catálogo (resultados paginados de la API de MAL, ADR-0008; R6) debe ser fluida en teléfonos de gama media: virtualización y paginación.
 - Diseño pensado primero para pantalla vertical de teléfono; escritorio como adaptación.
 - Estados claros de carga, error y sin conexión.
 - Las funciones que en una app nativa usarían APIs del sistema deben funcionar en el navegador. En particular, la **imagen para compartir** (ADR-0009) se genera en el cliente y se comparte con la Web Share API, con descarga de la imagen como alternativa cuando el navegador no la soporte.

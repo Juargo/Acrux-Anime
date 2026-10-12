@@ -44,6 +44,7 @@ Route: delegated direct (writer trigger: 2+ non-trivial files). TDD: not applica
 - 2026-10-12: installable PWA with app-shell cache only, no offline data (D14 kept). New ADR-0016; 0013 open question resolved; vite-plugin-pwa added to 0003.
 - 2026-10-12: PWA updates via "new version" prompt with reload button (registerType prompt); recorded in ADR-0016.
 - 2026-10-12: Biome accepted for lint and format (over ESLint + Prettier); recorded in ADR-0003.
+- 2026-10-12: catalog is a live query to the official MyAnimeList API v2 (no seeding, only the MAL id of seen animes is stored); ADR-0008 accepted, 0003/0004/0009/0014 updated; filters and CORS to be validated in a Sprint 0 spike.
 
 ## Next step
 

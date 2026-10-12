@@ -23,10 +23,10 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0003](./0003-stack-tecnologico.md) | Stack tecnológico | Propuesto | Reuniones 001, 002, 005 |
 | [0004](./0004-topologia-del-proyecto.md) | Topología del proyecto | Propuesto | Inicio del proyecto |
 | [0005](./0005-plataforma-mobile-primero.md) | Plataforma prioritaria: mobile primero, sin modo offline | Reemplazado por ADR-0013 | Reuniones 001, 003 |
-| [0006](./0006-backend-supabase.md) | Backend: Supabase | Aceptado | Reunión 002 |
+| [0006](./0006-backend-supabase.md) | Backend: Supabase | Aceptado (catálogo propio reemplazado por ADR-0008) | Reunión 002 |
 | [0007](./0007-autenticacion-google-y-apple.md) | Autenticación con Google y Apple, y borrado de cuenta | Aceptado (proveedores del MVP web reemplazados por ADR-0015) | Reuniones 001, 002, 004 |
-| [0008](./0008-fuente-del-catalogo.md) | Fuente y siembra del catálogo de anime | Propuesto (en revisión) | Reuniones 001–005 |
-| [0009](./0009-alcance-funcional-del-mvp.md) | Alcance funcional del MVP | Aceptado (ítem «versión web fuera del MVP» reemplazado por ADR-0013) | Reuniones 001–003 |
+| [0008](./0008-fuente-del-catalogo.md) | Fuente del catálogo: API oficial de MyAnimeList en vivo | Aceptado | Reuniones 001–005, Sesión 2026-10-12 |
+| [0009](./0009-alcance-funcional-del-mvp.md) | Alcance funcional del MVP | Aceptado (ítem «versión web fuera del MVP» reemplazado por ADR-0013; filtros sujetos a la validación de la API de MAL, ADR-0008) | Reuniones 001–003 |
 | [0010](./0010-internacionalizacion.md) | Internacionalización en español e inglés desde el inicio | Aceptado | Reunión 003 |
 | [0011](./0011-hitos-y-estrategia-de-tiendas.md) | Hitos de publicación y estrategia de tiendas | Reemplazado por ADR-0014 | Reuniones 001–004 |
 | [0012](./0012-landing-page-en-vercel.md) | Landing page en Vercel para privacidad, soporte e información | Aceptado | Reuniones 004, 005 |
@@ -53,6 +53,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-10-12: web app instalable como PWA, sin modo offline | 0016 |
 | D8 | 0006 |
 | D9 | 0001 |
-| D10 (en revisión) | 0008 |
+| D10 (descartada el 2026-10-12: catálogo en vivo desde la API oficial de MAL) | 0008 |
+| Sesión 2026-10-12: catálogo en vivo desde la API oficial de MyAnimeList v2; solo se guarda el id del anime visto | 0008 |
 | D13 | 0010 |
 | D18 | 0012 |
