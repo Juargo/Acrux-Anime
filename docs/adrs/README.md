@@ -23,9 +23,9 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0003](./0003-stack-tecnologico.md) | Stack tecnológico | Propuesto | Reuniones 001, 002, 005 |
 | [0004](./0004-topologia-del-proyecto.md) | Topología del proyecto | Propuesto | Inicio del proyecto |
 | [0005](./0005-plataforma-mobile-primero.md) | Plataforma prioritaria: mobile primero, sin modo offline | Reemplazado por ADR-0013 | Reuniones 001, 003 |
-| [0006](./0006-backend-supabase.md) | Backend: Supabase | Aceptado (catálogo propio reemplazado por ADR-0008) | Reunión 002 |
-| [0007](./0007-autenticacion-google-y-apple.md) | Autenticación con Google y Apple, y borrado de cuenta | Aceptado (proveedores del MVP web reemplazados por ADR-0015) | Reuniones 001, 002, 004 |
-| [0008](./0008-fuente-del-catalogo.md) | Fuente del catálogo: API oficial de MyAnimeList en vivo | Aceptado | Reuniones 001–005, Sesión 2026-10-12 |
+| [0006](./0006-backend-supabase.md) | Backend: Supabase | Aceptado (catálogo propio reemplazado por ADR-0008; Edge Function de borrado de cuenta reemplazada por ADR-0018) | Reunión 002 |
+| [0007](./0007-autenticacion-google-y-apple.md) | Autenticación con Google y Apple, y borrado de cuenta | Aceptado (proveedores del MVP web reemplazados por ADR-0015; borrado de cuenta como Edge Function reemplazado por ADR-0018) | Reuniones 001, 002, 004 |
+| [0008](./0008-fuente-del-catalogo.md) | Fuente del catálogo: API oficial de MyAnimeList en vivo | Aceptado (proxy `mal-proxy` reemplazado por ADR-0018) | Reuniones 001–005, Sesión 2026-10-12 |
 | [0009](./0009-alcance-funcional-del-mvp.md) | Alcance funcional del MVP | Aceptado (ítem «versión web fuera del MVP» reemplazado por ADR-0013; ítems 1–3 reemplazados por ADR-0017) | Reuniones 001–003 |
 | [0010](./0010-internacionalizacion.md) | Internacionalización en español e inglés desde el inicio | Aceptado | Reunión 003 |
 | [0011](./0011-hitos-y-estrategia-de-tiendas.md) | Hitos de publicación y estrategia de tiendas | Reemplazado por ADR-0014 | Reuniones 001–004 |
@@ -34,7 +34,8 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0014](./0014-hito-web-en-produccion.md) | Hito del 28-oct: web app en producción | Aceptado | Sesión 2026-10-12 |
 | [0015](./0015-login-solo-con-google-en-el-mvp-web.md) | Login solo con Google en el MVP web | Aceptado | Sesión 2026-10-12 |
 | [0016](./0016-web-app-instalable-como-pwa.md) | Web app instalable como PWA, sin modo offline | Aceptado | Sesión 2026-10-12 |
-| [0017](./0017-exploracion-del-catalogo-por-nombre-o-anio.md) | Exploración del catálogo: por nombre o por año, con filtros de género y tipo | Aceptado | Sesión 2026-10-12 |
+| [0017](./0017-exploracion-del-catalogo-por-nombre-o-anio.md) | Exploración del catálogo: por nombre o por año, con filtros de género y tipo | Aceptado (operaciones de `mal-proxy` movidas a ADR-0018) | Sesión 2026-10-12 |
+| [0018](./0018-api-propia-con-express-y-typescript.md) | API propia con Express y TypeScript como intermediaria con MyAnimeList | Aceptado | Sesión 2026-10-12 |
 
 ## Trazabilidad con las reuniones
 
@@ -57,5 +58,6 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | D10 (descartada el 2026-10-12: catálogo en vivo desde la API oficial de MAL) | 0008 |
 | Sesión 2026-10-12: catálogo en vivo desde la API oficial de MyAnimeList v2; solo se guarda el id del anime visto | 0008 |
 | Sesión 2026-10-12: exploración del catálogo por nombre o por año, con filtros de género y tipo en el cliente | 0017 |
+| Sesión 2026-10-12: API propia en Express y TypeScript (stack de referencia sin Clean Architecture) como intermediaria con MAL y gestora de cuentas | 0018 |
 | D13 | 0010 |
 | D18 | 0012 |

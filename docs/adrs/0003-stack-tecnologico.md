@@ -25,7 +25,8 @@ Criterios:
 | Web app | **React + Vite + React Router (SPA)** | **Aceptado** (decidido por el stakeholder el 2026-10-12) | Este ADR |
 | Landing page | **Astro** | **Aceptado** (decidido por el stakeholder el 2026-10-12) | ADR-0012 |
 | Hosting | Vercel (web app y landing) | **Aceptado** (landing, D18) / Propuesto (web app) | ADR-0012 |
-| Backend (Auth, base de datos, funciones) | Supabase | **Aceptado** (D8) | ADR-0006 |
+| API | **Express + TypeScript** (Node 22, Prisma, Vitest), desplegada en Render | **Aceptado** | ADR-0018 |
+| Autenticación y base de datos | Supabase (Auth y Postgres) | **Aceptado** (D8) | ADR-0006 |
 | Autenticación | Solo Google vía Supabase Auth en el MVP web; Apple con la app iOS futura | **Aceptado** | ADR-0007, ADR-0015 |
 | Fuente del catálogo | API oficial de MyAnimeList v2, en vivo | **Aceptado** | ADR-0008 |
 | Internacionalización | Español e inglés desde el inicio | **Aceptado** (D13) | ADR-0010 |
@@ -38,7 +39,7 @@ Criterios:
 
 | Opción | Comentario |
 |---|---|
-| **React + Vite + React Router (SPA)** (aceptado) | Arranque y compilación rápidos; sin SEO que resolver detrás del login, y la parte pública es la landing en Astro; despliegue estático simple en Vercel; el SDK de Supabase funciona sin adaptaciones (sesión en el navegador) y encaja con la topología sin servidor propio (ADR-0004). |
+| **React + Vite + React Router (SPA)** (aceptado) | Arranque y compilación rápidos; sin SEO que resolver detrás del login, y la parte pública es la landing en Astro; despliegue estático simple en Vercel; el SDK de Supabase funciona sin adaptaciones (sesión en el navegador) y encaja con la topología (ADR-0004): no necesita render en servidor, ya que habla desde el navegador con la API propia (ADR-0018) y con Supabase Auth para el login. |
 | Next.js | Más funciones (SSR, Server Components, rutas de servidor), pero innecesarias para una app autenticada; la sesión de Supabase pasa a cookies (`@supabase/ssr`) y suma una capa de servidor; más conceptos y más superficie para el plazo. |
 | Astro con islas de React | Un solo framework para landing y app, pero la app es muy interactiva (lista grande, estado del cliente) y encaja mejor como SPA. |
 
@@ -48,7 +49,7 @@ Criterios:
 |---|---|---|
 | Enrutamiento | React Router | Estándar para una SPA con Vite. |
 | Lista grande del catálogo (R6) | TanStack Virtual | Virtualización de filas con buen rendimiento en listas largas, también en teléfonos. |
-| Datos remotos y paginación | TanStack Query | Caché, paginación infinita y reintentos sobre la API de MAL (siempre vía la Edge Function `mal-proxy`) y el cliente de Supabase; agrupa y cachea las consultas por id (ADR-0008). |
+| Datos remotos y paginación | TanStack Query | Caché, paginación infinita y reintentos sobre la API propia (ADR-0018), que intermedia con MAL; agrupa y cachea las consultas por id (ADR-0008). |
 | i18n | i18next + react-i18next, con detección del idioma del navegador | Textos en archivos por idioma; inglés por defecto (ADR-0010). |
 | PWA instalable | `vite-plugin-pwa` (manifiesto y service worker con Workbox) | Caché solo del *app shell*; sin datos en caché (ADR-0016). |
 | Imagen para compartir | `html-to-image` + Web Share API, con descarga de la imagen como alternativa | Se genera en el navegador a partir de un nodo del DOM; sin servidor. Hay que probar en iOS Safari y Android Chrome. |
@@ -70,17 +71,17 @@ Decidido por el stakeholder el 2026-10-12: **Astro**. Sitio estático, muy livia
 
 ### Apps nativas (futuro)
 
-Las apps de Android (Kotlin) e iOS (Swift) quedan fuera del MVP (ADR-0013) y usarán los SDK oficiales de Supabase para cada lenguaje. Como Kotlin y Swift no consumen paquetes de TypeScript, el **contrato compartido será el esquema de Supabase** (migraciones y políticas RLS) y, posiblemente, los textos de i18n exportados como JSON. Los tipos de `packages/shared` solo sirven a las piezas en TypeScript.
+Las apps de Android (Kotlin) e iOS (Swift) quedan fuera del MVP (ADR-0013) y usarán los SDK oficiales de Supabase para el login y consumirán la API propia. Como Kotlin y Swift no consumen paquetes de TypeScript, el **contrato compartido será el contrato OpenAPI de la API** (ADR-0018) y, posiblemente, los textos de i18n exportados como JSON. Los tipos de `packages/shared` solo sirven a las piezas en TypeScript.
 
 ## Decisión
 
-**Web app: aceptada** con React + Vite + React Router (SPA); ver «Decisión sobre la web app (2026-10-12)». **Pendiente** para el resto de las capas abiertas. Propuesta del conjunto: **TypeScript + React (Vite, React Router, TanStack Query y Virtual, i18next) para la web app, Astro para la landing, ambos en Vercel, y Supabase como backend**. Las apps nativas en Kotlin y Swift quedan como fase futura.
+**Web app: aceptada** con React + Vite + React Router (SPA); ver «Decisión sobre la web app (2026-10-12)». **Pendiente** para el resto de las capas abiertas. Propuesta del conjunto: **TypeScript + React (Vite, React Router, TanStack Query y Virtual, i18next) para la web app, Astro para la landing, ambos en Vercel, una API propia en Express + TypeScript en Render (ADR-0018) y Supabase para la autenticación y Postgres**. Las apps nativas en Kotlin y Swift quedan como fase futura.
 
 ## Consecuencias (si se acepta)
 
 - **Positivas:** un solo lenguaje y un solo despliegue continuo; sin firma de binarios ni envío a tiendas; la landing y la app pueden compartir los textos de i18n.
-- **Negativas / riesgos:** dependencia de Vercel y Supabase (límites de las capas gratuitas); rendimiento de una lista de ~40.000 elementos en teléfonos de gama baja; las apps nativas futuras no reutilizarán código TypeScript.
-- **Acciones derivadas:** crear la web app con Vite y la landing con Astro dentro del monorepo y conectar ambas a Vercel en el Sprint 0.
+- **Negativas / riesgos:** dependencia de Vercel, Render y Supabase (límites de las capas gratuitas) y un servidor propio que operar; rendimiento de una lista de ~40.000 elementos en teléfonos de gama baja; las apps nativas futuras no reutilizarán código TypeScript.
+- **Acciones derivadas:** crear la web app con Vite y la landing con Astro dentro del monorepo y conectar ambas a Vercel en el Sprint 0; crear `apps/api` y conectarla a Render (ADR-0018).
 
 ### Decisión sobre la web app (2026-10-12)
 

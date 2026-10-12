@@ -1,6 +1,6 @@
 # ADR-0007: Autenticación con Google y Apple, y borrado de cuenta
 
-- **Estado:** Aceptado (proveedores de login del MVP web reemplazados por ADR-0015)
+- **Estado:** Aceptado (proveedores de login del MVP web reemplazados por ADR-0015; borrado de cuenta como Edge Function reemplazado por la API propia de ADR-0018)
 - **Fecha:** 2026-10-10
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Reunión 001 (D3, R7), Reunión 002 (D7), Reunión 004 (implicaciones para iOS)
