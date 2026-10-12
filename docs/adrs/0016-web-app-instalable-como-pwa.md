@@ -37,13 +37,15 @@ Restricción vigente: **sin modo offline** (D14, ADR-0013).
 
 **Opción B.** La web app se publica como **PWA instalable**, con **caché solo del *app shell*** (HTML, JS, CSS, íconos y fuentes). **Los datos no se guardan en caché**: el catálogo, las marcas y la sesión siempre se consultan en línea a Supabase. Se mantiene D14: sin conexión, la app muestra el estado «sin conexión» en lugar de datos.
 
+Actualizaciones: cuando hay una versión nueva, la app muestra el aviso **«Hay una nueva versión»** con un botón para recargar; el nuevo service worker solo se activa cuando el usuario lo acepta (`registerType: prompt` en `vite-plugin-pwa`). Así nunca se recarga la página a mitad de una acción.
+
 Implementación propuesta: `vite-plugin-pwa` (genera el manifiesto y el service worker con Workbox), integrado al build de Vite (ADR-0003).
 
 ## Consecuencias
 
 - **Positivas:** experiencia cercana a una app nativa sin pasar por las tiendas; arranque más rápido en visitas siguientes; aprendizaje aplicable a la fase nativa y a otros proyectos.
 - **Negativas / riesgos:**
-  - **Versiones viejas en caché:** si el service worker no se actualiza bien, un usuario puede seguir viendo una versión anterior. Hay que definir la estrategia de actualización (por ejemplo, aviso «Hay una nueva versión» con botón para recargar).
+  - **Versiones viejas en caché:** si el service worker no se actualiza bien, un usuario puede seguir viendo una versión anterior. Se mitiga con el aviso de nueva versión; hay que probar el flujo de actualización antes del hito.
   - Las peticiones a Supabase y el flujo de OAuth no deben pasar por la caché del service worker.
   - En iOS no hay aviso automático de instalación; conviene explicar en la app o la landing cómo instalarla.
 - **Acciones derivadas:**
@@ -54,5 +56,5 @@ Implementación propuesta: `vite-plugin-pwa` (genera el manifiesto y el service 
 
 ## Preguntas abiertas
 
-- Estrategia de actualización: ¿aviso con botón para recargar o actualización automática al volver a abrir la app?
+- ~~Estrategia de actualización: ¿aviso con botón para recargar o actualización automática?~~ Resuelto el 2026-10-12: **aviso con botón para recargar** (ver «Decisión»).
 - ¿Se muestra en la web app una sugerencia de instalación (botón en Android, instrucciones en iOS)?

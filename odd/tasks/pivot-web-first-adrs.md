@@ -42,7 +42,8 @@ Route: delegated direct (writer trigger: 2+ non-trivial files). TDD: not applica
 - 2026-10-12: domain acruxanime.com bought; landing at apex, web app at app.acruxanime.com; recorded in ADR-0004 (Dominios) and ADR-0014 open question resolved.
 - 2026-10-12: login only with Google in the web MVP; Apple deferred to native iOS. New ADR-0015 (partially supersedes ADR-0007; account deletion stays).
 - 2026-10-12: installable PWA with app-shell cache only, no offline data (D14 kept). New ADR-0016; 0013 open question resolved; vite-plugin-pwa added to 0003.
+- 2026-10-12: PWA updates via "new version" prompt with reload button (registerType prompt); recorded in ADR-0016.
 
 ## Next step
 
-Resolve open questions: PWA update strategy (0016) (0013/0014).
+Resolve open questions: install hint in the web app (0016), linter (Biome vs ESLint+Prettier), Playwright (0003) (0013/0014).
