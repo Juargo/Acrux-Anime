@@ -69,7 +69,7 @@ La web app usa el SDK de Supabase en el navegador para autenticarse y consultar 
 ### Diagrama de la Opción A
 
 ```
- [Navegador] ──► apps/web (Vercel, archivos estáticos)
+ [Navegador] ──► apps/web (Vercel, archivos estáticos) — app.acruxanime.com
       │
       ├──► Supabase Auth ◄── Google / Apple (OAuth con redirección)
       │
@@ -83,9 +83,23 @@ La web app usa el SDK de Supabase en el navegador para autenticarse y consultar 
 
  [scripts/seed-catalog] ──► Supabase Postgres (service_role, ejecución puntual)
 
- [Navegador] ──► apps/landing (Vercel): privacidad, soporte, información
+ [Navegador] ──► apps/landing (Vercel) — acruxanime.com: privacidad, soporte, información
                   └─ URL pública de la política de privacidad (también requerida por la pantalla de consentimiento de Google OAuth)
 ```
+
+### Dominios
+
+El stakeholder compró **`acruxanime.com`** (2026-10-12) y aceptó este esquema:
+
+| URL | Proyecto de Vercel | Contenido |
+|---|---|---|
+| `acruxanime.com` | `apps/landing` (Astro) | Inicio, política de privacidad, soporte y borrado de cuenta |
+| `www.acruxanime.com` | `apps/landing` | Redirección permanente a `acruxanime.com` |
+| `app.acruxanime.com` | `apps/web` (React) | Web app |
+
+- La landing, que es la parte indexable, queda en el dominio raíz; la web app, detrás del login, en un subdominio.
+- Las URLs de retorno de OAuth (Supabase Auth, Google y el *Services ID* de Apple) y la URL del sitio en Supabase usan `app.acruxanime.com`; la pantalla de consentimiento de Google declara `acruxanime.com` como dominio autorizado y su política de privacidad.
+- Las vistas previas de Vercel (`*.vercel.app`) se registran como URLs de retorno adicionales solo en el entorno de desarrollo.
 
 ### Contador total
 

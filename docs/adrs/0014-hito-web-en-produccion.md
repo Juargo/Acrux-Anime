@@ -66,7 +66,7 @@ Se conserva el ritmo de ADR-0001 (sprints de 2 a 5 días y colchón final de 3 d
 
 ## Preguntas abiertas
 
-- Dominio: ¿dominio propio o `vercel.app`? Afecta la configuración de OAuth y la imagen de marca.
+- ~~Dominio: ¿dominio propio o `vercel.app`?~~ Resuelto el 2026-10-12: `acruxanime.com` para la landing y `app.acruxanime.com` para la web app (ver ADR-0004, sección «Dominios»).
 - ¿Se mantiene Sign in with Apple en el MVP web? Apple solo lo exige en apps de App Store (ADR-0007 sigue vigente tal cual, salvo que el stakeholder decida lo contrario); quitarlo reduciría el riesgo del Sprint 0.
 - Fuente del catálogo (ADR-0008), pendiente de la Reunión 006.
 - Cómo se reclutan los primeros usuarios reales para la última semana.
