@@ -38,7 +38,8 @@ Route: delegated direct (writer trigger: 2+ non-trivial files). TDD: not applica
 - Branch: docs/pivot-web-first
 - T1–T3 done by delegated writer; structural readback: all Estado lines correct, README links resolve (0000–0014); remaining Expo mentions only in Accepted bodies (0001, 0006) or discarded options.
 - Review: passive documentation, structural readback only.
+- 2026-10-12: stakeholder accepted React + Vite + React Router (SPA) over Next.js; recorded in ADR-0003.
 
 ## Next step
 
-Resolve open questions: Vite SPA vs Next.js (0003), own domain, Sign in with Apple on web, PWA (0013/0014).
+Resolve open questions: own domain, Sign in with Apple on web, PWA (0013/0014).

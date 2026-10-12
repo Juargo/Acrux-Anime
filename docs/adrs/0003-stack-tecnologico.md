@@ -22,7 +22,7 @@ Criterios:
 | Capa | Elección | Estado | Referencia |
 |---|---|---|---|
 | Lenguaje | TypeScript | Propuesto | Este ADR |
-| Web app | React; bundler y enrutamiento propuestos: Vite + React Router (SPA) | Propuesto | Este ADR |
+| Web app | **React + Vite + React Router (SPA)** | **Aceptado** (decidido por el stakeholder el 2026-10-12) | Este ADR |
 | Landing page | **Astro** | **Aceptado** (decidido por el stakeholder el 2026-10-12) | ADR-0012 |
 | Hosting | Vercel (web app y landing) | **Aceptado** (landing, D18) / Propuesto (web app) | ADR-0012 |
 | Backend (Auth, base de datos, funciones) | Supabase | **Aceptado** (D8) | ADR-0006 |
@@ -38,8 +38,8 @@ Criterios:
 
 | Opción | Comentario |
 |---|---|
-| **React + Vite + React Router (SPA)** (propuesto) | Arranque y compilación rápidos; sin SEO que resolver detrás del login, y la parte pública es la landing en Astro; despliegue estático simple en Vercel. |
-| Next.js | Más funciones (SSR, rutas de servidor), pero innecesarias para una app autenticada; más configuración y más superficie para el plazo. |
+| **React + Vite + React Router (SPA)** (aceptado) | Arranque y compilación rápidos; sin SEO que resolver detrás del login, y la parte pública es la landing en Astro; despliegue estático simple en Vercel; el SDK de Supabase funciona sin adaptaciones (sesión en el navegador) y encaja con la topología sin servidor propio (ADR-0004). |
+| Next.js | Más funciones (SSR, Server Components, rutas de servidor), pero innecesarias para una app autenticada; la sesión de Supabase pasa a cookies (`@supabase/ssr`) y suma una capa de servidor; más conceptos y más superficie para el plazo. |
 | Astro con islas de React | Un solo framework para landing y app, pero la app es muy interactiva (lista grande, estado del cliente) y encaja mejor como SPA. |
 
 ### Librerías propuestas para la web app (a confirmar en el Sprint 0)
@@ -73,7 +73,7 @@ Las apps de Android (Kotlin) e iOS (Swift) quedan fuera del MVP (ADR-0013) y usa
 
 ## Decisión
 
-**Pendiente** para las capas abiertas. Propuesta: **TypeScript + React (Vite, React Router, TanStack Query y Virtual, i18next) para la web app, Astro para la landing, ambos en Vercel, y Supabase como backend**. Las apps nativas en Kotlin y Swift quedan como fase futura.
+**Web app: aceptada** con React + Vite + React Router (SPA); ver «Decisión sobre la web app (2026-10-12)». **Pendiente** para el resto de las capas abiertas. Propuesta del conjunto: **TypeScript + React (Vite, React Router, TanStack Query y Virtual, i18next) para la web app, Astro para la landing, ambos en Vercel, y Supabase como backend**. Las apps nativas en Kotlin y Swift quedan como fase futura.
 
 ## Consecuencias (si se acepta)
 
@@ -81,8 +81,13 @@ Las apps de Android (Kotlin) e iOS (Swift) quedan fuera del MVP (ADR-0013) y usa
 - **Negativas / riesgos:** dependencia de Vercel y Supabase (límites de las capas gratuitas); rendimiento de una lista de ~40.000 elementos en teléfonos de gama baja; las apps nativas futuras no reutilizarán código TypeScript.
 - **Acciones derivadas:** crear la web app con Vite y la landing con Astro dentro del monorepo y conectar ambas a Vercel en el Sprint 0.
 
+### Decisión sobre la web app (2026-10-12)
+
+El stakeholder aceptó **React + Vite + React Router como SPA**. El SEO lo cubre la landing en Astro y la web app vive detrás del login, por lo que el render en servidor no aporta valor en el MVP.
+
+**Condición de revisión:** si entra al alcance un perfil público compartible con vista previa en redes (Open Graph), se necesita render en servidor para esas páginas. Se resolvería con una función puntual o desde Astro, sin migrar la web app a Next.js; si eso no alcanza, se registra un ADR nuevo.
+
 ## Preguntas abiertas
 
-- Confirmar Vite + React Router (SPA) frente a Next.js como base de la web app.
 - Elegir linter y formateador: ESLint + Prettier o Biome.
 - ¿Se incluye Playwright en el MVP o solo pruebas con Vitest y Testing Library?
