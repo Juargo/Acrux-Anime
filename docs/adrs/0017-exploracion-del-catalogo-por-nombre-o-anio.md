@@ -1,4 +1,4 @@
-# ADR-0017: Exploración del catálogo: por nombre o por año, con género como filtro
+# ADR-0017: Exploración del catálogo: por nombre o por año, con filtros de género y tipo
 
 - **Estado:** Aceptado
 - **Fecha:** 2026-10-12
@@ -38,7 +38,10 @@ ADR-0009 definía el catálogo como **una gran lista marcable** con búsqueda po
 1. **Por nombre:** búsqueda desde 3 caracteres (`GET /anime?q=`), con paginación.
 2. **Por año:** el usuario elige un año y ve **todos los animes de ese año**. `mal-proxy` consulta las 4 temporadas (`winter`, `spring`, `summer`, `fall`) y devuelve la unión.
 
-Sobre los resultados de cualquiera de las dos se aplica el **filtro de género en el cliente**, a partir del campo `genres` que devuelve MAL. Los géneros disponibles en el filtro son los que aparecen en los resultados cargados; no hay lista curada propia.
+Sobre los resultados de cualquiera de las dos se aplican, **en el cliente**, dos filtros combinables:
+
+- **Género**, a partir del campo `genres` que devuelve MAL. Los géneros disponibles son los que aparecen en los resultados cargados; no hay lista curada propia.
+- **Tipo** (TV, película, OVA, ONA, especial, etc.), a partir del campo `media_type` (se mantiene D11; decisión del stakeholder, 2026-10-12).
 
 Se mantienen de ADR-0009: todos los formatos (TV, película, OVA, ONA, especial; D6), marcar como visto con el contador total, la imagen para compartir y la pantalla «Acerca de». El contenido adulto queda excluido (comportamiento por defecto de MAL, sin `nsfw=true`).
 
@@ -48,15 +51,15 @@ Se mantienen de ADR-0009: todos los formatos (TV, película, OVA, ONA, especial;
 - **Negativas / riesgos:**
   - Las temporadas de MAL incluyen series que **siguen en emisión** (en el spike, One Piece aparece en primavera de 2024): «por año» significa «en emisión ese año», no solo «estrenados ese año». Si se quiere lo segundo, `mal-proxy` puede filtrar por `start_season.year`.
   - Un año puede tener más de mil animes: hay que paginar o virtualizar la lista en el cliente (TanStack Virtual) y cachear la respuesta del año en `mal-proxy` y en el cliente.
-  - En la búsqueda por nombre, el filtro de género solo actúa sobre las páginas ya cargadas; hay que indicarlo en la interfaz o cargar todas las páginas (hasta ~700 resultados) antes de filtrar.
-  - Los nombres de géneros vienen en inglés desde MAL; traducirlos al español requiere una tabla propia de traducciones (ADR-0010).
+  - En la búsqueda por nombre, los filtros de género y tipo solo actúan sobre las páginas ya cargadas; hay que indicarlo en la interfaz o cargar todas las páginas (hasta ~700 resultados) antes de filtrar.
+  - Los nombres de géneros y los valores de `media_type` vienen en inglés desde MAL; traducirlos al español requiere una tabla propia de traducciones (ADR-0010).
 - **Acciones derivadas:**
   - Agregar a `mal-proxy` la operación «año completo» (4 temporadas unidas, sin duplicados) con caché.
-  - Diseñar la pantalla de exploración: selector «Nombre / Año», selector de año y filtro de género.
+  - Diseñar la pantalla de exploración: selector «Nombre / Año», selector de año y filtros de género y tipo.
   - Redactar las historias de usuario de exploración con estos criterios.
 
 ## Preguntas abiertas
 
-- ¿Se mantiene el filtro por **tipo** (TV, película, OVA…) que pedía D11? Técnicamente es igual que el de género: filtro en el cliente sobre el campo `media_type`.
+- ~~¿Se mantiene el filtro por **tipo** (TV, película, OVA…) que pedía D11?~~ Resuelto el 2026-10-12: sí, como filtro en el cliente sobre `media_type`.
 - «Por año»: ¿animes en emisión ese año o solo los estrenados ese año?
 - Rango de años del selector: ¿desde el primer año con datos en MAL o un rango acotado?

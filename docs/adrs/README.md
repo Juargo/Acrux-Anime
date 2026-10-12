@@ -34,7 +34,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0014](./0014-hito-web-en-produccion.md) | Hito del 28-oct: web app en producción | Aceptado | Sesión 2026-10-12 |
 | [0015](./0015-login-solo-con-google-en-el-mvp-web.md) | Login solo con Google en el MVP web | Aceptado | Sesión 2026-10-12 |
 | [0016](./0016-web-app-instalable-como-pwa.md) | Web app instalable como PWA, sin modo offline | Aceptado | Sesión 2026-10-12 |
-| [0017](./0017-exploracion-del-catalogo-por-nombre-o-anio.md) | Exploración del catálogo: por nombre o por año, con género como filtro | Aceptado | Sesión 2026-10-12 |
+| [0017](./0017-exploracion-del-catalogo-por-nombre-o-anio.md) | Exploración del catálogo: por nombre o por año, con filtros de género y tipo | Aceptado | Sesión 2026-10-12 |
 
 ## Trazabilidad con las reuniones
 
@@ -44,7 +44,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 |---|---|
 | D1, D2, D14 | 0005 (reemplazado por 0013: D2 cambia a web primero; D1 y D14 siguen vigentes) |
 | D3, D7 | 0007 (D7 reemplazado por 0015 en el MVP web: solo Google) |
-| D4, D6, D11, D12, D19 | 0009 (D11 reemplazado por 0017: exploración por nombre o por año, género como filtro) |
+| D4, D6, D11, D12, D19 | 0009 (D11 reemplazado por 0017: exploración por nombre o por año, con filtros de género y tipo) |
 | D5, D15, D16, D17 | 0011 (reemplazado por 0014: el hito pasa a web en producción; sin prueba cerrada ni revisión de tiendas) |
 | Sesión 2026-10-12: MVP como web app responsive mobile first; apps nativas en el futuro | 0013 |
 | Sesión 2026-10-12: hito del 28-oct con web en producción en Vercel | 0014 |
@@ -56,6 +56,6 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | D9 | 0001 |
 | D10 (descartada el 2026-10-12: catálogo en vivo desde la API oficial de MAL) | 0008 |
 | Sesión 2026-10-12: catálogo en vivo desde la API oficial de MyAnimeList v2; solo se guarda el id del anime visto | 0008 |
-| Sesión 2026-10-12: exploración del catálogo por nombre o por año, con género como filtro en el cliente | 0017 |
+| Sesión 2026-10-12: exploración del catálogo por nombre o por año, con filtros de género y tipo en el cliente | 0017 |
 | D13 | 0010 |
 | D18 | 0012 |

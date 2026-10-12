@@ -54,7 +54,7 @@ Route: delegated direct (writer trigger: 2+ non-trivial files). TDD: not applica
 - 2026-10-12: catalog visible only with an active session; mal-proxy requires role authenticated (anon key rejected); recorded in ADR-0008.
 
 - 2026-10-12: MAL API spike done with curl: search needs q>=3, filter params ignored, genres/media_type/start_season available as fields (client-side filtering), search capped (~700 results, limit 100), season and ranking endpoints usable for browsing by year/type, no genre endpoint, CORS blocked (no ACAO, preflight 405), 403 without client id. Recorded in ADR-0008. Pending: stakeholder decision on filters (ADR-0009).
-- 2026-10-12: catalog exploration by name (q>=3) or by year (mal-proxy joins the 4 seasons), genre as client-side filter; new ADR-0017 supersedes items 1–3 of ADR-0009. Open: type filter, "aired" vs "started" in year, year range.
+- 2026-10-12: catalog exploration by name (q>=3) or by year (mal-proxy joins the 4 seasons), genre as client-side filter; new ADR-0017 supersedes items 1–3 of ADR-0009. Type filter kept (client-side on media_type). Open: "aired" vs "started" in year, year range.
 
 ## Next step
 
