@@ -47,6 +47,7 @@ Route: delegated direct (writer trigger: 2+ non-trivial files). TDD: not applica
 - 2026-10-12: catalog is a live query to the official MyAnimeList API v2 (no seeding, only the MAL id of seen animes is stored); ADR-0008 accepted, 0003/0004/0009/0014 updated; filters and CORS to be validated in a Sprint 0 spike.
 
 - 2026-10-12: Playwright accepted as minimal E2E smoke suite (mobile viewport, Chromium + WebKit, MAL mocked via page.route, test session created via Supabase); recorded in ADR-0003.
+- 2026-10-12: PWA install hint shown at the moment of value (after first anime marked), dismissible, hidden when installed; recorded in ADR-0016.
 
 ## Next step
 
