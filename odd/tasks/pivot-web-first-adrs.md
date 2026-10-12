@@ -51,6 +51,8 @@ Route: delegated direct (writer trigger: 2+ non-trivial files). TDD: not applica
 
 - 2026-10-12: MAL app registered (Client ID kept out of the repo). mal-proxy Edge Function made mandatory to keep the Client ID secret (MAL forbids disclosure) and avoid CORS; recorded in ADR-0008/0004 (+0002/0003/0014).
 
+- 2026-10-12: catalog visible only with an active session; mal-proxy requires role authenticated (anon key rejected); recorded in ADR-0008.
+
 ## Next step
 
 All ADR open questions from this session resolved. PR opened: https://github.com/Juargo/Acrux-Anime/pull/1 (merge is the stakeholder decision). Next: Sprint 0 MAL API spike (filters + CORS, ADR-0008) once the stakeholder has the Client ID.

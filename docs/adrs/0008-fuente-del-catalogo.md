@@ -46,7 +46,7 @@ Reglas del proxy:
 
 - El Client ID se guarda como **secreto de Supabase** (`MAL_CLIENT_ID`, con `supabase secrets set`) y nunca en el repositorio, en variables `VITE_*` ni en el código de `apps/web`.
 - Solo reenvía peticiones `GET` a una **lista cerrada de endpoints** (búsqueda, detalle por id, temporada y ranking) y de campos (`fields`); rechaza el resto. No es un proxy abierto.
-- Solo acepta peticiones con un JWT válido de Supabase y responde CORS únicamente para `app.acruxanime.com` y las vistas previas de desarrollo.
+- Solo acepta peticiones de **usuarios con sesión iniciada**: exige un JWT de Supabase con rol `authenticated` y rechaza la clave anónima (el catálogo solo se puede ver con sesión iniciada; decisión del stakeholder, 2026-10-12). Responde CORS únicamente para `app.acruxanime.com` y las vistas previas de desarrollo.
 - Ofrece una consulta agrupada por lista de ids para la lista de vistos y la imagen para compartir, de modo que el navegador hace una petición en lugar de N.
 - Devuelve cabeceras de caché (`Cache-Control`) para reducir la carga sobre MAL (§6: no imponer una carga irrazonable).
 
@@ -74,5 +74,5 @@ Reglas del proxy:
 
 - **Conjunto final de filtros** tras el spike; impacta el alcance de ADR-0009.
 - ~~**Proxy:** ¿se necesita la Edge Function `mal-proxy` (depende de CORS)?~~ Resuelto el 2026-10-12: sí, siempre, para no exponer el Client ID (ver «Acceso a la API mediante el proxy»).
-- ¿El catálogo se puede explorar sin iniciar sesión? Define si `mal-proxy` exige un usuario autenticado o acepta la clave anónima de Supabase.
+- ~~¿El catálogo se puede explorar sin iniciar sesión?~~ Resuelto el 2026-10-12: no; el catálogo solo se ve con sesión iniciada y `mal-proxy` exige un usuario autenticado.
 - **Datos mínimos desnormalizados** (título, portada) en la lista de vistos: el acuerdo (§3(c)) restringe guardar datos personales de usuarios de MAL, no datos del catálogo, pero hay que verificar si se permite almacenar contenido de MAL en el servidor antes de hacerlo. Por defecto se guarda solo el id.
