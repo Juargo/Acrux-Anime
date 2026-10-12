@@ -35,9 +35,17 @@ Restricción vigente: **sin modo offline** (D14, ADR-0013).
 
 ## Decisión
 
-**Opción B.** La web app se publica como **PWA instalable**, con **caché solo del *app shell*** (HTML, JS, CSS, íconos y fuentes). **Los datos no se guardan en caché**: el catálogo, las marcas y la sesión siempre se consultan en línea a Supabase. Se mantiene D14: sin conexión, la app muestra el estado «sin conexión» en lugar de datos.
+**Opción B.** La web app se publica como **PWA instalable**, con **caché solo del *app shell*** (HTML, JS, CSS, íconos y fuentes). **Los datos no se guardan en caché**: el catálogo se consulta en línea a la API de MyAnimeList (ADR-0008), y las marcas y la sesión, a Supabase. Se mantiene D14: sin conexión, la app muestra el estado «sin conexión» en lugar de datos.
 
 Actualizaciones: cuando hay una versión nueva, la app muestra el aviso **«Hay una nueva versión»** con un botón para recargar; el nuevo service worker solo se activa cuando el usuario lo acepta (`registerType: prompt` en `vite-plugin-pwa`). Así nunca se recarga la página a mitad de una acción.
+
+Sugerencia de instalación: aparece en el **momento de valor**, después de que el usuario marca su primer anime como visto, nunca al entrar.
+
+- **Android (Chrome):** se captura el evento `beforeinstallprompt` y se muestra un botón propio «Instalar Acrux» que abre el diálogo nativo.
+- **iOS (Safari):** no existe ese evento; se muestran instrucciones breves («Compartir» → «Agregar a pantalla de inicio»).
+- Se puede cerrar; si el usuario la descarta, no vuelve a aparecer (preferencia guardada en `localStorage`).
+- No se muestra si la app ya está instalada (media query `(display-mode: standalone)`) ni en navegadores que no permiten instalarla.
+- Textos en español e inglés (ADR-0010).
 
 Implementación propuesta: `vite-plugin-pwa` (genera el manifiesto y el service worker con Workbox), integrado al build de Vite (ADR-0003).
 
@@ -47,14 +55,14 @@ Implementación propuesta: `vite-plugin-pwa` (genera el manifiesto y el service 
 - **Negativas / riesgos:**
   - **Versiones viejas en caché:** si el service worker no se actualiza bien, un usuario puede seguir viendo una versión anterior. Se mitiga con el aviso de nueva versión; hay que probar el flujo de actualización antes del hito.
   - Las peticiones a Supabase y el flujo de OAuth no deben pasar por la caché del service worker.
-  - En iOS no hay aviso automático de instalación; conviene explicar en la app o la landing cómo instalarla.
+  - En iOS no hay aviso automático de instalación; se mitiga con las instrucciones de la sugerencia de instalación.
 - **Acciones derivadas:**
   - Configurar `vite-plugin-pwa` en `apps/web`: manifiesto bilingüe (nombre y descripción), íconos (incluido ícono *maskable* para Android), `display: standalone`, colores de tema.
   - Excluir de la caché las URLs de Supabase y las rutas de retorno de OAuth.
-  - Implementar el aviso de nueva versión y el estado «sin conexión».
+  - Implementar el aviso de nueva versión, el estado «sin conexión» y la sugerencia de instalación.
   - Verificar la instalación en Android Chrome y en iOS Safari antes del hito (ADR-0014), y revisar el informe de Lighthouse.
 
 ## Preguntas abiertas
 
 - ~~Estrategia de actualización: ¿aviso con botón para recargar o actualización automática?~~ Resuelto el 2026-10-12: **aviso con botón para recargar** (ver «Decisión»).
-- ¿Se muestra en la web app una sugerencia de instalación (botón en Android, instrucciones en iOS)?
+- ~~¿Se muestra en la web app una sugerencia de instalación (botón en Android, instrucciones en iOS)?~~ Resuelto el 2026-10-12: sí, en el momento de valor (ver «Decisión»).

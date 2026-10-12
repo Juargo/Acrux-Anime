@@ -50,4 +50,4 @@ Route: delegated direct (writer trigger: 2+ non-trivial files). TDD: not applica
 
 ## Next step
 
-Resolve open questions: install hint in the web app (0016). Then: Sprint 0 MAL API spike (filters + CORS, ADR-0008) once the stakeholder has the Client ID.
+All ADR open questions from this session resolved. Next: open PR for docs/pivot-web-first; then Sprint 0 MAL API spike (filters + CORS, ADR-0008) once the stakeholder has the Client ID.
