@@ -1,6 +1,6 @@
 # ADR-0001: Metodología de ciclo de vida del desarrollo
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado (plan de sprints reemplazado por ADR-0014)
 - **Fecha:** 2026-10-10
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Reunión 001 (contexto), Reunión 002 (capacidad y calendario)

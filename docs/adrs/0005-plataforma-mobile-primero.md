@@ -1,6 +1,6 @@
 # ADR-0005: Plataforma prioritaria: mobile primero, sin modo offline
 
-- **Estado:** Aceptado
+- **Estado:** Reemplazado por ADR-0013
 - **Fecha:** 2026-10-10
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Reunión 001 (D1, D2), Reunión 003 (D14)
