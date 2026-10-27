@@ -1,6 +1,6 @@
 # ADR-0018: API propia con Express y TypeScript como intermediaria con MyAnimeList
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado (intermediación con MAL reemplazada por ADR-0024; despliegue en Render reemplazado por ADR-0020; lista de CI revisada en ADR-0027)
 - **Fecha:** 2026-10-12
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-12

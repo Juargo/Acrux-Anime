@@ -1,6 +1,6 @@
 # ADR-0013: Plataforma prioritaria: web responsive mobile first, sin modo offline
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado (fase futura de apps nativas reemplazada por ADR-0031: solo web por ahora)
 - **Fecha:** 2026-10-12
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-12. Reemplaza a ADR-0005 y al ítem «versión web fuera del MVP» de ADR-0009.

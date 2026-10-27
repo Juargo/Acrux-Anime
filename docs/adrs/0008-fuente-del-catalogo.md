@@ -1,6 +1,6 @@
 # ADR-0008: Fuente del catálogo: API oficial de MyAnimeList en vivo
 
-- **Estado:** Aceptado (proxy `mal-proxy` como Edge Function reemplazado por la API propia de ADR-0018; sus reglas se conservan)
+- **Estado:** Reemplazado por ADR-0024
 - **Fecha:** 2026-10-12
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Reunión 001 (S2, R5), Reunión 002 (implicaciones), Reunión 003 (D10, investigación), Reunión 005 (revisión), Sesión con el stakeholder, 2026-10-12

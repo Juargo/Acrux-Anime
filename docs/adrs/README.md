@@ -19,23 +19,36 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | # | Título | Estado | Origen |
 |---|---|---|---|
 | [0001](./0001-metodologia-ciclo-de-vida.md) | Metodología de ciclo de vida del desarrollo | Aceptado (plan de sprints reemplazado por ADR-0014) | Reuniones 001, 002 |
-| [0002](./0002-estrategia-de-repositorio-monorepo.md) | Estrategia de repositorio: monorepo | Propuesto | Inicio del proyecto |
-| [0003](./0003-stack-tecnologico.md) | Stack tecnológico | Propuesto | Reuniones 001, 002, 005 |
-| [0004](./0004-topologia-del-proyecto.md) | Topología del proyecto | Propuesto | Inicio del proyecto |
+| [0002](./0002-estrategia-de-repositorio-monorepo.md) | Estrategia de repositorio: monorepo | Aceptado | Inicio del proyecto |
+| [0003](./0003-stack-tecnologico.md) | Stack tecnológico | Reemplazado por ADR-0026 | Reuniones 001, 002, 005 |
+| [0004](./0004-topologia-del-proyecto.md) | Topología del proyecto | Reemplazado por ADR-0019 (código) y ADR-0020 (despliegue) | Inicio del proyecto |
 | [0005](./0005-plataforma-mobile-primero.md) | Plataforma prioritaria: mobile primero, sin modo offline | Reemplazado por ADR-0013 | Reuniones 001, 003 |
 | [0006](./0006-backend-supabase.md) | Backend: Supabase | Aceptado (catálogo propio reemplazado por ADR-0008; Edge Function de borrado de cuenta reemplazada por ADR-0018) | Reunión 002 |
 | [0007](./0007-autenticacion-google-y-apple.md) | Autenticación con Google y Apple, y borrado de cuenta | Aceptado (proveedores del MVP web reemplazados por ADR-0015; borrado de cuenta como Edge Function reemplazado por ADR-0018) | Reuniones 001, 002, 004 |
-| [0008](./0008-fuente-del-catalogo.md) | Fuente del catálogo: API oficial de MyAnimeList en vivo | Aceptado (proxy `mal-proxy` reemplazado por ADR-0018) | Reuniones 001–005, Sesión 2026-10-12 |
+| [0008](./0008-fuente-del-catalogo.md) | Fuente del catálogo: API oficial de MyAnimeList en vivo | Reemplazado por ADR-0024 | Reuniones 001–005, Sesión 2026-10-12 |
 | [0009](./0009-alcance-funcional-del-mvp.md) | Alcance funcional del MVP | Aceptado (ítem «versión web fuera del MVP» reemplazado por ADR-0013; ítems 1–3 reemplazados por ADR-0017) | Reuniones 001–003 |
 | [0010](./0010-internacionalizacion.md) | Internacionalización en español e inglés desde el inicio | Aceptado | Reunión 003 |
 | [0011](./0011-hitos-y-estrategia-de-tiendas.md) | Hitos de publicación y estrategia de tiendas | Reemplazado por ADR-0014 | Reuniones 001–004 |
 | [0012](./0012-landing-page-en-vercel.md) | Landing page en Vercel para privacidad, soporte e información | Aceptado | Reuniones 004, 005 |
-| [0013](./0013-plataforma-web-responsive-primero.md) | Plataforma prioritaria: web responsive mobile first, sin modo offline | Aceptado | Sesión 2026-10-12 |
-| [0014](./0014-hito-web-en-produccion.md) | Hito del 28-oct: web app en producción | Aceptado | Sesión 2026-10-12 |
+| [0013](./0013-plataforma-web-responsive-primero.md) | Plataforma prioritaria: web responsive mobile first, sin modo offline | Aceptado (fase nativa reemplazada por ADR-0031) | Sesión 2026-10-12 |
+| [0014](./0014-hito-web-en-produccion.md) | Hito del 28-oct: web app en producción | Reemplazado por ADR-0031 | Sesión 2026-10-12 |
 | [0015](./0015-login-solo-con-google-en-el-mvp-web.md) | Login solo con Google en el MVP web | Aceptado | Sesión 2026-10-12 |
 | [0016](./0016-web-app-instalable-como-pwa.md) | Web app instalable como PWA, sin modo offline | Aceptado | Sesión 2026-10-12 |
-| [0017](./0017-exploracion-del-catalogo-por-nombre-o-anio.md) | Exploración del catálogo: por nombre o por año, con filtros de género y tipo | Aceptado (operaciones de `mal-proxy` movidas a ADR-0018) | Sesión 2026-10-12 |
-| [0018](./0018-api-propia-con-express-y-typescript.md) | API propia con Express y TypeScript como intermediaria con MyAnimeList | Aceptado | Sesión 2026-10-12 |
+| [0017](./0017-exploracion-del-catalogo-por-nombre-o-anio.md) | Exploración del catálogo: por nombre o por año, con filtros de género y tipo | Aceptado (operaciones de catálogo al navegador, ADR-0024) | Sesión 2026-10-12 |
+| [0018](./0018-api-propia-con-express-y-typescript.md) | API propia con Express y TypeScript como intermediaria con MyAnimeList | Aceptado (MAL reemplazado por ADR-0024; Render por ADR-0020) | Sesión 2026-10-12 |
+| [0019](./0019-estilo-de-arquitectura-monolito-modular-por-capas.md) | Estilo de arquitectura: monolito modular por capas | Aceptado | Sesión 2026-10-27 |
+| [0020](./0020-topologia-de-despliegue-vercel-y-supabase.md) | Topología de despliegue: Vercel (web, API y landing) y Supabase | Aceptado | Sesión 2026-10-27 |
+| [0021](./0021-mantenibilidad-y-escalabilidad.md) | Mantenibilidad y escalabilidad | Aceptado | Sesión 2026-10-27 |
+| [0022](./0022-base-de-datos-postgresql-relacional-acid.md) | Base de datos: PostgreSQL relacional (ACID) en Supabase, con Prisma | Aceptado | Sesión 2026-10-27 |
+| [0023](./0023-estilo-de-api-rest-con-openapi.md) | Estilo de la API: REST con contrato OpenAPI, sin WebSocket | Aceptado | Sesión 2026-10-27 |
+| [0024](./0024-catalogo-anilist-desde-el-navegador.md) | Fuente del catálogo: AniList, consultada desde el navegador | Aceptado | Reunión 006, decisiones 2026-10-26, sesión 2026-10-27 |
+| [0025](./0025-autenticacion-y-autorizacion.md) | Autenticación y autorización | Aceptado | Sesión 2026-10-27 |
+| [0026](./0026-stack-tecnologico-consolidado.md) | Stack tecnológico consolidado | Aceptado | Sesión 2026-10-27 |
+| [0027](./0027-ci-cd.md) | CI/CD: GitHub Actions y despliegue en Vercel | Aceptado | Sesión 2026-10-27 |
+| [0028](./0028-seguridad-y-privacidad-by-design-y-by-default.md) | Seguridad y privacidad desde el diseño y por defecto | Aceptado | Sesión 2026-10-27 |
+| [0029](./0029-estrategia-de-pruebas-y-criterios-de-aceptacion.md) | Estrategia de pruebas (pirámide) y criterios de aceptación en Gherkin | Aceptado | Sesión 2026-10-27 |
+| [0030](./0030-observabilidad-kpis-logs-y-errores.md) | Observabilidad: KPIs, logs y errores | Aceptado | Sesión 2026-10-27 |
+| [0031](./0031-validar-primero-sin-fecha-fija-y-solo-web.md) | Validar primero, sin fecha fija, y solo web | Aceptado | Decisión 2026-10-26, sesión 2026-10-27 |
 
 ## Trazabilidad con las reuniones
 
@@ -59,5 +72,17 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-10-12: catálogo en vivo desde la API oficial de MyAnimeList v2; solo se guarda el id del anime visto | 0008 |
 | Sesión 2026-10-12: exploración del catálogo por nombre o por año, con filtros de género y tipo en el cliente | 0017 |
 | Sesión 2026-10-12: API propia en Express y TypeScript (stack de referencia sin Clean Architecture) como intermediaria con MAL y gestora de cuentas | 0018 |
+| Decisión 2026-10-26: mantener AniList como fuente del catálogo (MAL como plan B) | 0024 (reemplaza 0008) |
+| Sesión 2026-10-27: monolito modular por capas; sin microservicios ni broker | 0019 |
+| Sesión 2026-10-27: todo en Vercel (Hobby → Pro antes de cobrar) + Supabase; API en el mismo origen | 0020 |
+| Sesión 2026-10-27: PostgreSQL ACID con Prisma; RLS sin políticas como defensa en profundidad | 0022 |
+| Sesión 2026-10-27: catálogo consultado desde el navegador | 0024 |
+| Sesión 2026-10-27: Supabase Auth (Google) + autorización denegada por defecto en la API | 0025 |
+| Sesión 2026-10-27: alcance de privacidad: ley chilena + GDPR básico | 0028 |
+| Sesión 2026-10-27: criterios de aceptación en Gherkin | 0029 |
+| Sesión 2026-10-27: PostHog + Sentry para KPIs y errores | 0030 |
+| Decisión 2026-10-26: sin fecha fija, primero validar; sesión 2026-10-27: solo web, sin apps nativas | 0031 (reemplaza 0014 y la fase nativa de 0013) |
+| Sesión 2026-10-27: repo público, región São Paulo, lista privada por defecto | 0027, 0020, 0028 |
+| Sesión 2026-10-27: monorepo con pnpm workspaces aceptado (solo web) | 0002 |
 | D13 | 0010 |
 | D18 | 0012 |

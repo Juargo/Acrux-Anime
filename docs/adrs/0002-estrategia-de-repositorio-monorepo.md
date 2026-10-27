@@ -1,22 +1,22 @@
 # ADR-0002: Estrategia de repositorio: monorepo
 
-- **Estado:** Propuesto
-- **Fecha:** 2026-10-12
+- **Estado:** Aceptado
+- **Fecha:** 2026-10-12 (aceptado el 2026-10-27)
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
-- **Origen:** Inicio del proyecto. No se trató en las reuniones 001–005. Actualizado tras la sesión del 2026-10-12.
+- **Origen:** Inicio del proyecto. Actualizado tras las sesiones del 2026-10-12 y del 2026-10-27 (solo web, API en Vercel, catálogo de AniList).
 
 ## Contexto
 
-Acrux tendrá estas piezas:
+Acrux tiene estas piezas, todas en TypeScript:
 
-- **Web app responsive mobile first** en React (ADR-0013, ADR-0003).
-- **Backend en Supabase** (ADR-0006): migraciones SQL, políticas RLS y Edge Functions.
-- **Proxy de la API de MyAnimeList** (Edge Function `mal-proxy`), que guarda el Client ID como secreto (ADR-0008).
-- **Landing page en Astro, en Vercel**, con política de privacidad, soporte e información (ADR-0012).
-- **Documentación**, incluidos estos ADRs.
-- Más adelante, **apps nativas** de Android (Kotlin) e iOS (Swift), fuera del MVP (ADR-0013).
+- **Web app** responsive mobile first en React + Vite, instalable como PWA (ADR-0013, ADR-0016, ADR-0026).
+- **API propia** en Express, desplegada como función de Vercel en el mismo proyecto que la web app (ADR-0018, ADR-0020), con el esquema y las migraciones de Prisma (ADR-0022).
+- **Landing** en Astro, en Vercel (ADR-0012).
+- **Dominio puro** (agrupamiento de franquicias, contador, plan) y **contratos** (esquemas Zod) compartidos entre la web y la API (ADR-0019, ADR-0023).
+- **Textos de i18n** en español e inglés, compartidos entre la web app y la landing (ADR-0010).
+- **Documentación**, incluidos estos ADRs y los criterios de aceptación (ADR-0029).
 
-Las piezas comparten tipos (el modelo del catálogo y del usuario), textos de i18n en español e inglés (ADR-0010) y la marca. Hay que decidir si viven en un solo repositorio o en varios. El plazo de 18 días obliga a minimizar el tiempo de configuración.
+Acrux es **solo web** (ADR-0031): no hay apps nativas que acomodar. Hay que decidir si estas piezas viven en un solo repositorio o en varios.
 
 ## Opciones consideradas
 
@@ -25,43 +25,62 @@ Las piezas comparten tipos (el modelo del catálogo y del usuario), textos de i1
 Un solo repositorio con `apps/` y `packages/`; pnpm workspaces para enlazar paquetes. Turborepo es opcional y se puede sumar después para tareas en paralelo y caché.
 
 - **Ventajas:**
-  - Cambios atómicos: una migración de Supabase, los tipos generados y el código de la web app que los usa van en el mismo commit.
-  - Tipos de la base de datos (`supabase gen types`) y textos de i18n compartidos entre la web app y la landing.
-  - Una sola configuración de TypeScript, lint, formato y CI.
+  - Cambios atómicos: una migración de Prisma, el contrato de la API y el código de la web app que lo usa van en el mismo commit y en el mismo despliegue (ADR-0020).
+  - Dominio, contratos e i18n compartidos sin publicar paquetes.
+  - Una sola configuración de TypeScript, Biome y CI (ADR-0027).
   - Los ADRs viven junto al código.
-- **Desventajas:**
-  - Los despliegues de Vercel (web app y landing) deben configurarse para trabajar sobre un subdirectorio.
-  - Las apps nativas futuras (Gradle, Xcode) no encajan en el toolchain de pnpm; se resuelve ubicándolas fuera del workspace.
+- **Desventajas:** los proyectos de Vercel (`app` y `landing`) deben configurarse con su directorio raíz dentro del monorepo.
 
-### Opción B: Polirepo (web app, landing y backend por separado)
+### Opción B: Polirepo (web app, API y landing por separado)
 
-- **Ventajas:** cada repositorio usa su configuración por defecto; despliegues independientes.
-- **Desventajas:** los tipos y textos compartidos se duplican o se publican como paquetes; los cambios transversales requieren varios PRs; más sobrecarga para una sola persona.
+- **Ventajas:** cada repositorio usa su configuración por defecto.
+- **Desventajas:** los tipos, contratos y textos compartidos se duplican o se publican como paquetes; los cambios transversales requieren varios PRs; más sobrecarga para una sola persona.
 
 ### Opción C: Repositorio único sin workspaces (la app en la raíz)
 
 - **Ventajas:** cero configuración extra.
-- **Desventajas:** la landing no tiene dónde vivir sin reorganizar después; mover todo a un monorepo más adelante cuesta más que hacerlo al inicio.
+- **Desventajas:** la landing y los paquetes compartidos no tienen dónde vivir sin reorganizar después.
 
 ## Decisión
 
-**Pendiente.** Propuesta: **Opción A, monorepo con pnpm workspaces**, sin Turborepo al inicio. Hay solo dos aplicaciones y el beneficio principal (tipos e i18n compartidos, cambios atómicos) no requiere orquestador.
+**Opción A: monorepo con pnpm workspaces**, sin Turborepo al inicio.
 
-El riesgo de integración es **bajo**: React (Vite) y Astro son estándar en pnpm workspaces y Vercel soporta monorepos con un directorio raíz por proyecto. Si en el Sprint 0 la configuración consume más de medio día, la salida es la Opción C para la web app y mover la landing a un repositorio aparte, registrado en un ADR que reemplace a este.
+### Estructura
 
-Las apps nativas futuras pueden vivir en el mismo repositorio (`apps/android`, `apps/ios`) **fuera del workspace de pnpm**, y compartirían solo el esquema de Supabase y, posiblemente, los textos de i18n como JSON (ADR-0003, ADR-0004).
+```
+acrux-anime/
+├── apps/
+│   ├── web/             # SPA React + Vite (PWA) — proyecto Vercel «app»
+│   ├── api/             # API Express (ADR-0018), servida en /api del proyecto «app»
+│   │   └── prisma/      # Esquema y migraciones (ADR-0022)
+│   └── landing/         # Astro — proyecto Vercel «landing»
+├── packages/
+│   ├── domain/          # Reglas puras: franquicias, contador, plan (sin I/O)
+│   ├── shared/          # Esquemas Zod y tipos de los contratos
+│   └── i18n/            # Textos en español e inglés
+├── docs/
+│   ├── adrs/            # Registro de decisiones
+│   └── criterios/       # Criterios de aceptación en Gherkin (ADR-0029)
+├── odd/tasks/           # Notas de trabajo por funcionalidad
+└── .github/workflows/   # CI/CD (ADR-0027)
+```
 
-## Consecuencias (si se acepta)
+### Reglas de dependencia
 
-- **Positivas:** un solo lugar para web app, backend, landing y documentación; los tipos generados de Supabase se consumen en toda la parte TypeScript.
-- **Negativas / riesgos:** bajo; tiempo de configuración de los dos proyectos de Vercel en el Sprint 0.
+- `apps/*` pueden depender de `packages/*`; una app **nunca** depende de otra app.
+- `packages/domain` no depende de ningún otro paquete ni de un framework.
+- `packages/shared` depende solo de Zod y de `packages/domain`.
+- Las reglas de capas dentro de `apps/api` están en ADR-0019 y se verifican en CI con `dependency-cruiser`.
+- Ningún secreto vive en el repositorio, que es **público** (ADR-0027, ADR-0028).
+
+### Flujo de trabajo
+
+Trunk-based development con ramas cortas y PRs hacia `main`, y Conventional Commits (detalle en ADR-0027).
+
+## Consecuencias
+
+- **Positivas:** un solo lugar para web app, API, landing y documentación; cada despliegue publica juntas la web y la API que le corresponde.
+- **Negativas / riesgos:** bajos; configurar los dos proyectos de Vercel con su directorio raíz. Si en el primer sprint esa configuración consume más de medio día, se registra un ADR nuevo que reemplace a este.
 - **Acciones derivadas:**
-  - Crear la estructura descrita en ADR-0004.
-  - Fijar versiones de Node (LTS) y pnpm en el repositorio.
-  - **Ramas:** desarrollo directo sobre `main` con ramas cortas (*trunk-based*), adecuado para un solo programador.
-  - **Commits:** formato Conventional Commits.
-
-## Preguntas abiertas
-
-- ¿El repositorio será público como parte del portafolio? Si lo es, hay que cuidar que no se suban secretos (claves de Supabase, credenciales de OAuth).
-- ¿Validar en el Sprint 0 que los dos proyectos de Vercel (web app y landing) despliegan correctamente desde el monorepo antes de seguir?
+  - Crear la estructura anterior y fijar las versiones de Node (22, en `.node-version`) y pnpm.
+  - En el primer sprint, verificar que los proyectos `app` (web + API) y `landing` despliegan desde el monorepo antes de seguir.
