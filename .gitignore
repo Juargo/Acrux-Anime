@@ -1,0 +1,23 @@
+# Sistema operativo
+.DS_Store
+
+# Herramientas locales de agentes
+.atl/
+
+# Dependencias y builds
+node_modules/
+dist/
+.astro/
+coverage/
+
+# Variables de entorno y secretos (el repo es público, ADR-0027 y ADR-0028)
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel/
+
+# Pruebas E2E
+playwright-report/
+test-results/
