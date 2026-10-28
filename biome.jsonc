@@ -34,6 +34,8 @@
       }
     }
   },
+  // Biome does not see frontmatter bindings used in the Astro template, so these
+  // rules report false positives in .astro files.
   "overrides": [
     {
       "includes": ["**/*.astro"],
