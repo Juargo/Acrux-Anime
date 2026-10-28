@@ -1,6 +1,6 @@
 # ADR-0014: Hito del 28-oct: web app en producción
 
-- **Estado:** Aceptado
+- **Estado:** Reemplazado por ADR-0031
 - **Fecha:** 2026-10-12
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-12. Reemplaza a ADR-0011 y a la tabla de calendario de sprints de ADR-0001 (la metodología Scrum adaptada de ADR-0001 sigue vigente).

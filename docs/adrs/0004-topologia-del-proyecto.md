@@ -1,6 +1,6 @@
 # ADR-0004: Topología del proyecto
 
-- **Estado:** Propuesto
+- **Estado:** Reemplazado por ADR-0019 (topología de código) y ADR-0020 (topología de despliegue y dominios)
 - **Fecha:** 2026-10-12
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Inicio del proyecto; se apoya en las decisiones de las reuniones 001–005 y en la sesión del 2026-10-12.

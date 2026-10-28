@@ -1,6 +1,6 @@
 # ADR-0003: Stack tecnológico
 
-- **Estado:** Propuesto (varias capas ya decididas en ADRs propios)
+- **Estado:** Reemplazado por ADR-0026
 - **Fecha:** 2026-10-12
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Reunión 001 (supuesto S3), Reunión 002 (D8), Reunión 005 (D18), Sesión con el stakeholder 2026-10-12
