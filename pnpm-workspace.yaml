@@ -1,0 +1,14 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Paquetes con scripts de instalación permitidos (pnpm 11 los bloquea por defecto).
+allowBuilds:
+  esbuild: true
+  sharp: true
+
+# Defensas de instalación. pnpm 11 lee estos ajustes de este archivo, no de `.npmrc`.
+# minimumReleaseAge: no instala versiones publicadas hace menos de 7 días (10080 minutos).
+minimumReleaseAge: 10080
+auditLevel: high
+blockExoticSubdeps: true
