@@ -1,6 +1,6 @@
 # ADR-0020: Topología de despliegue: Vercel (web, API y landing) y Supabase
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado (Supabase reemplazado por Neon en ADR-0034: proyectos, región de la base y escalamiento de la base)
 - **Fecha:** 2026-10-27
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-27

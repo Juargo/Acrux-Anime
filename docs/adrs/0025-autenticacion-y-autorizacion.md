@@ -1,6 +1,6 @@
 # ADR-0025: Autenticación y autorización
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado (Supabase Auth reemplazado por Neon Auth en ADR-0034: inicio de sesión, verificación del JWT, rol de curador y borrado del usuario)
 - **Fecha:** 2026-10-27
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-27. Se apoya en ADR-0006 (Supabase), ADR-0015 (solo Google en el MVP web) y ADR-0018 (verificación del JWT en la API).

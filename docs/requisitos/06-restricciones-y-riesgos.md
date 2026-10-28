@@ -36,7 +36,7 @@
 | RES-32 | Solo con conexión a internet. | ADR-0013 |
 | RES-33 | Exploración por nombre o por año, con filtros de género y tipo. | ADR-0017 |
 | RES-34 | La política de privacidad se publica en la landing. | ADR-0012 |
-| RES-35 | Stack, despliegue y arquitectura fijados en ADR-0019 a ADR-0030 (monolito modular, Vercel + Supabase en São Paulo, REST con OpenAPI, Prisma). | ADRs |
+| RES-35 | Stack, despliegue y arquitectura fijados en ADR-0019 a ADR-0030 y ADR-0034 (monolito modular, Vercel en São Paulo + Neon en Ohio, REST con OpenAPI, Prisma). | ADRs |
 
 ## Riesgos
 
