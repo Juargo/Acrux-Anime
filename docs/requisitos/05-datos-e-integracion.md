@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | RDI-01 | **AniList (catálogo)** | Títulos, portadas, año, géneros, formato y relaciones entre entradas. Se consulta desde el navegador; no se copia (ADR-0024). | Must | H2 |
 | RDI-02 | **AniList (cuenta del usuario)** | Si la vincula: leer su lista y escribir lo que marca en Acrux. | Should | — |
-| RDI-03 | **Google (Supabase Auth)** | Inicio de sesión. | Must | H2 |
+| RDI-03 | **Google (Neon Auth)** | Inicio de sesión. | Must | H2 |
 | RDI-04 | *Retirado.* Apple | Se retira con el login solo con Google (ADR-0015). | — | — |
 | RDI-05 | **Lemon Squeezy** | Venta de Plus, renovaciones, cancelaciones y pagos fallidos, mediante webhooks firmados. | Must | H4 |
 | RDI-06 | **Hoja para compartir del navegador** | Destino de la tarjeta (Instagram, TikTok, galería…); descarga como alternativa. | Must | H2 |
@@ -17,7 +17,7 @@
 
 | ID | Dato | Detalle | Personal | Tabla (ADR-0022) |
 |---|---|---|---|---|
-| RDI-10 | Cuenta | Identificador de la cuenta de Google y correo, en Supabase Auth. | Sí | `auth.users` |
+| RDI-10 | Cuenta | Identificador de la cuenta de Google y correo, en Neon Auth. | Sí | `neon_auth.user` |
 | RDI-11 | Perfil | Nombre visible, avatar, idioma, idioma de los títulos, tema, lista pública o privada, modo del contador. | Sí | `profile` |
 | RDI-12 | Vínculo con AniList | Cuenta de AniList vinculada y token cifrado. | Sí | `anilist_link` |
 | RDI-13 | Marcas | Por cada entrada marcada: id de AniList, id de MyAnimeList si existe, estado (visto o viendo) y fecha. | Sí | `mark` |

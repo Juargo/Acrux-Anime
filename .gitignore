@@ -21,3 +21,4 @@ coverage/
 # Pruebas E2E
 playwright-report/
 test-results/
+.neon

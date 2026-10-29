@@ -1,6 +1,6 @@
 # ADR-0006: Backend: Supabase
 
-- **Estado:** Aceptado (el catálogo propio en Postgres quedó reemplazado por el catálogo en vivo de ADR-0008; la Edge Function de borrado de cuenta, reemplazada por la API propia de ADR-0018; Supabase sigue como proveedor de auth y Postgres)
+- **Estado:** Reemplazado por ADR-0034 (Neon para Postgres y autenticación). Antes: el catálogo propio en Postgres quedó reemplazado por el catálogo en vivo de ADR-0008 y la Edge Function de borrado de cuenta, por la API propia de ADR-0018.
 - **Fecha:** 2026-10-10
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Reunión 001 (pendiente 9), Reunión 002 (D8)

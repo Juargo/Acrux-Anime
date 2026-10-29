@@ -2,14 +2,14 @@
 
 ## Roles
 
-La identidad es la cuenta de Google (Supabase Auth). AniList es un vínculo opcional, no un medio de inicio de sesión (ADR-0025). Esto reemplaza la nota de Obsidian que hacía depender el rol de usuario de un inicio de sesión con AniList.
+La identidad es la cuenta de Google (Neon Auth, ADR-0034). AniList es un vínculo opcional, no un medio de inicio de sesión (ADR-0025). Esto reemplaza la nota de Obsidian que hacía depender el rol de usuario de un inicio de sesión con AniList.
 
 | Rol | Quién es | Cómo accede |
 |---|---|---|
 | **Visitante** | Alguien que abre un perfil público o una tarjeta compartida | Sin cuenta, por enlace o QR |
 | **Usuario gratuito** | Fan con cuenta en Acrux | Google (OAuth con PKCE) |
 | **Usuario Plus** | Usuario gratuito con plan anual o vitalicio vigente | Google + compra en Lemon Squeezy |
-| **Curador** | El autor o colaboradores de confianza | Claim `app_metadata.role = 'curator'`, asignado solo desde Supabase |
+| **Curador** | El autor o colaboradores de confianza | Rol `curator` del usuario de Neon Auth, asignado solo desde la consola o la CLI de Neon (ADR-0034) |
 
 No hay rol de moderador: no hay reseñas ni foros.
 

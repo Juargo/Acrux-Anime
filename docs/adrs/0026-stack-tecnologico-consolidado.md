@@ -1,6 +1,6 @@
 # ADR-0026: Stack tecnológico consolidado
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado (filas de ORM, base de datos y autenticación reemplazadas por ADR-0034)
 - **Fecha:** 2026-10-27
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-27

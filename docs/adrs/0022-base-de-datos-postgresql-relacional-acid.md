@@ -1,6 +1,6 @@
 # ADR-0022: Base de datos: PostgreSQL relacional (ACID) en Supabase, con Prisma
 
-- **Estado:** Aceptado (retención de 4 semanas de los respaldos reemplazada por ADR-0032)
+- **Estado:** Aceptado (retención de 4 semanas de los respaldos reemplazada por ADR-0032; Supabase, su pooler y su Data API reemplazados por Neon en ADR-0034)
 - **Fecha:** 2026-10-27
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-27. Complementa ADR-0006 (Supabase) y ADR-0018 (Prisma).

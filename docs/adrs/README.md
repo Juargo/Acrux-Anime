@@ -23,7 +23,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0003](./0003-stack-tecnologico.md) | Stack tecnológico | Reemplazado por ADR-0026 | Reuniones 001, 002, 005 |
 | [0004](./0004-topologia-del-proyecto.md) | Topología del proyecto | Reemplazado por ADR-0019 (código) y ADR-0020 (despliegue) | Inicio del proyecto |
 | [0005](./0005-plataforma-mobile-primero.md) | Plataforma prioritaria: mobile primero, sin modo offline | Reemplazado por ADR-0013 | Reuniones 001, 003 |
-| [0006](./0006-backend-supabase.md) | Backend: Supabase | Aceptado (catálogo propio reemplazado por ADR-0008; Edge Function de borrado de cuenta reemplazada por ADR-0018) | Reunión 002 |
+| [0006](./0006-backend-supabase.md) | Backend: Supabase | Reemplazado por ADR-0034 | Reunión 002 |
 | [0007](./0007-autenticacion-google-y-apple.md) | Autenticación con Google y Apple, y borrado de cuenta | Aceptado (proveedores del MVP web reemplazados por ADR-0015; borrado de cuenta como Edge Function reemplazado por ADR-0018) | Reuniones 001, 002, 004 |
 | [0008](./0008-fuente-del-catalogo.md) | Fuente del catálogo: API oficial de MyAnimeList en vivo | Reemplazado por ADR-0024 | Reuniones 001–005, Sesión 2026-10-12 |
 | [0009](./0009-alcance-funcional-del-mvp.md) | Alcance funcional del MVP | Aceptado (ítem «versión web fuera del MVP» reemplazado por ADR-0013; ítems 1–3 reemplazados por ADR-0017) | Reuniones 001–003 |
@@ -37,13 +37,13 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0017](./0017-exploracion-del-catalogo-por-nombre-o-anio.md) | Exploración del catálogo: por nombre o por año, con filtros de género y tipo | Aceptado (operaciones de catálogo al navegador, ADR-0024) | Sesión 2026-10-12 |
 | [0018](./0018-api-propia-con-express-y-typescript.md) | API propia con Express y TypeScript como intermediaria con MyAnimeList | Aceptado (MAL reemplazado por ADR-0024; Render por ADR-0020) | Sesión 2026-10-12 |
 | [0019](./0019-estilo-de-arquitectura-monolito-modular-por-capas.md) | Estilo de arquitectura: monolito modular por capas | Aceptado | Sesión 2026-10-27 |
-| [0020](./0020-topologia-de-despliegue-vercel-y-supabase.md) | Topología de despliegue: Vercel (web, API y landing) y Supabase | Aceptado | Sesión 2026-10-27 |
+| [0020](./0020-topologia-de-despliegue-vercel-y-supabase.md) | Topología de despliegue: Vercel (web, API y landing) y Supabase | Aceptado (Supabase reemplazado por Neon en ADR-0034) | Sesión 2026-10-27 |
 | [0021](./0021-mantenibilidad-y-escalabilidad.md) | Mantenibilidad y escalabilidad | Aceptado | Sesión 2026-10-27 |
-| [0022](./0022-base-de-datos-postgresql-relacional-acid.md) | Base de datos: PostgreSQL relacional (ACID) en Supabase, con Prisma | Aceptado (retención de respaldos reemplazada por ADR-0032) | Sesión 2026-10-27 |
+| [0022](./0022-base-de-datos-postgresql-relacional-acid.md) | Base de datos: PostgreSQL relacional (ACID) en Supabase, con Prisma | Aceptado (retención de respaldos reemplazada por ADR-0032; Supabase reemplazado por Neon en ADR-0034) | Sesión 2026-10-27 |
 | [0023](./0023-estilo-de-api-rest-con-openapi.md) | Estilo de la API: REST con contrato OpenAPI, sin WebSocket | Aceptado | Sesión 2026-10-27 |
 | [0024](./0024-catalogo-anilist-desde-el-navegador.md) | Fuente del catálogo: AniList, consultada desde el navegador | Aceptado | Reunión 006, decisiones 2026-10-26, sesión 2026-10-27 |
-| [0025](./0025-autenticacion-y-autorizacion.md) | Autenticación y autorización | Aceptado | Sesión 2026-10-27 |
-| [0026](./0026-stack-tecnologico-consolidado.md) | Stack tecnológico consolidado | Aceptado | Sesión 2026-10-27 |
+| [0025](./0025-autenticacion-y-autorizacion.md) | Autenticación y autorización | Aceptado (Supabase Auth reemplazado por Neon Auth en ADR-0034) | Sesión 2026-10-27 |
+| [0026](./0026-stack-tecnologico-consolidado.md) | Stack tecnológico consolidado | Aceptado (base de datos, ORM y autenticación reemplazados por ADR-0034) | Sesión 2026-10-27 |
 | [0027](./0027-ci-cd.md) | CI/CD: GitHub Actions y despliegue en Vercel | Aceptado | Sesión 2026-10-27 |
 | [0028](./0028-seguridad-y-privacidad-by-design-y-by-default.md) | Seguridad y privacidad desde el diseño y por defecto | Aceptado (retención de respaldos reemplazada por ADR-0032) | Sesión 2026-10-27 |
 | [0029](./0029-estrategia-de-pruebas-y-criterios-de-aceptacion.md) | Estrategia de pruebas (pirámide) y criterios de aceptación en Gherkin | Aceptado | Sesión 2026-10-27 |
@@ -51,6 +51,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0031](./0031-validar-primero-sin-fecha-fija-y-solo-web.md) | Validar primero, sin fecha fija, y solo web | Aceptado | Decisión 2026-10-26, sesión 2026-10-27 |
 | [0032](./0032-retencion-de-respaldos-de-30-dias.md) | Retención de los respaldos: 30 días | Aceptado | Sesión 2026-10-27 |
 | [0033](./0033-lista-de-espera-con-buttondown.md) | Lista de espera con Buttondown | Aceptado | Sesión 2026-10-27 |
+| [0034](./0034-neon-para-postgres-y-autenticacion.md) | Neon para Postgres y autenticación, en lugar de Supabase | Aceptado | Sesión 2026-10-28 |
 
 ## Trazabilidad con las reuniones
 
