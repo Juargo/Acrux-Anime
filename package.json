@@ -1,1 +1,29 @@
-{"dependencies":{"@neon/config":"^1.9.5","@neon/env":"^1.6.6"}}
+{
+  "name": "acrux-anime",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.2.2",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "landing": "pnpm --filter @acrux/landing",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "biome ci .",
+    "format": "biome check --write ."
+  },
+  "dependencies": {
+    "@neon/config": "^1.0.0",
+    "@neon/env": "^1.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "@commitlint/cli": "^21.0.0",
+    "@commitlint/config-conventional": "^21.0.0",
+    "husky": "^9.1.0",
+    "lint-staged": "^17.0.0",
+    "typescript": "^6.0.0"
+  }
+}

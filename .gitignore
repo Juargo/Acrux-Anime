@@ -21,4 +21,6 @@ coverage/
 # Pruebas E2E
 playwright-report/
 test-results/
+
+# Estado local de la CLI de Neon (ADR-0034)
 .neon
