@@ -1,0 +1,38 @@
+# Weekly grouped updates (ADR-0027). pnpm-lock.yaml at the root covers every workspace.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    # Minor and patch together; majors one by one because they can break.
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # @astrojs/check only supports TypeScript ^5 || ^6. Remove once it supports 7.
+      - dependency-name: typescript
+        versions:
+          - ">=7.0.0"
+    commit-message:
+      prefix: chore
+      include: scope
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    ignore:
+      # gitleaks-action stays on v2 on purpose (see ci.yml).
+      - dependency-name: gitleaks/gitleaks-action
+        update-types:
+          - version-update:semver-major
+    commit-message:
+      prefix: ci
