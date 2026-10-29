@@ -48,7 +48,7 @@
 1. **Sin almacenamiento del catálogo:** la caché es solo en memoria (TanStack Query, sin persistencia en `localStorage` ni IndexedDB). El service worker de la PWA (ADR-0016) **no** cachea respuestas de AniList.
 2. **Solo se guardan identificadores:** la API guarda `anilist_id` y, si existe, `mal_id` (el `idMal` que entrega AniList), según RDI-13. Guardar `mal_id` mantiene abierto el plan B.
 3. **Consultas mínimas:** cada consulta pide solo los campos que usa la pantalla. La lista de vistos y la tarjeta usan **una consulta por lotes** (`Page.media(id_in: [...])`) en lugar de una por título.
-4. **Respeto del límite:** el cliente lee las cabeceras `X-RateLimit-Remaining` y `Retry-After`; ante un `429`, espera y reintenta con retroceso exponencial, y muestra el mensaje de RNF-21 sin perder lo marcado.
+4. **Respeto del límite:** ~~el cliente lee las cabeceras `X-RateLimit-Remaining` y `Retry-After`; ante un `429`, espera y reintenta con retroceso exponencial, y muestra el mensaje de RNF-21 sin perder lo marcado.~~ El cliente lee la cabecera `X-RateLimit-Remaining`; ante un `429`, espera hasta el instante de `X-RateLimit-Reset` (o, si falta, aplica retroceso exponencial) y reintenta, y muestra el mensaje de RNF-21 sin perder lo marcado. El navegador no puede leer `Retry-After` porque AniList no la expone por CORS. (Corregido el 2026-10-29; ver «Resultados del spike».)
 5. **Datos externos validados:** cada respuesta de AniList se valida con Zod antes de usarse (ADR-0028).
 6. **Agrupamiento en `packages/domain`:** el cálculo de la franquicia a partir de las relaciones (RDI-30) es una función pura del dominio (ADR-0019), que aplica primero las correcciones del curador (`GET /api/v1/franchise-overrides`, ADR-0023).
 7. **Filtros nativos:** a diferencia de MAL, AniList filtra por año (`seasonYear`), género (`genre_in`) y formato (`format_in`) en el servidor; los filtros de ADR-0017 dejan de calcularse en el cliente.
@@ -62,9 +62,24 @@
 - **Negativas / riesgos:**
   - **Dependencia dura de AniList:** si no autoriza el modelo de Acrux, la app se queda sin catálogo (R-01). El plan B es MyAnimeList; como MAL bloquea CORS y exige ocultar su Client ID, cambiar a MAL obligaría a volver a un proxy en la API.
   - Un usuario muy activo puede alcanzar el límite de 30 peticiones por minuto desde su navegador; se mitiga con consultas por lotes, caché en memoria y retroceso.
-  - Para generar la tarjeta en el navegador, las portadas del CDN de AniList deben servirse con CORS; si no, el canvas queda bloqueado (ver acciones derivadas).
+  - Para generar la tarjeta en el navegador, las portadas del CDN de AniList deben servirse con CORS; si no, el canvas queda bloqueado. El spike confirmó que sí se sirven con CORS (ver «Resultados del spike»).
+- **Resultados del spike (2026-10-28 y 2026-10-29, con `curl` y con Chromium y WebKit sin interfaz mediante Playwright, `html-to-image` 1.11.13):**
+
+  | Prueba | Resultado observado |
+  |---|---|
+  | CORS de `graphql.anilist.co`: preflight `OPTIONS` | `204` con `Access-Control-Allow-Origin: *`. |
+  | `POST` de GraphQL desde el navegador | Funciona. **El catálogo puede consultarse directo desde el navegador.** |
+  | Límite de peticiones | `X-RateLimit-Limit: 30`: **el límite vigente es 30 por minuto**, no 90. |
+  | Respuesta `429` (al llegar a la petición 30) | Incluye `Access-Control-Allow-Origin: *` (el navegador puede leerla), `Retry-After: 30` y `X-RateLimit-Reset` (época Unix). `X-RateLimit-Reset` solo aparece en el `429`. |
+  | Cabeceras expuestas por CORS | `Access-Control-Expose-Headers` incluye `X-RateLimit-Limit`, `X-RateLimit-Remaining` y `X-RateLimit-Reset`, pero **no `Retry-After`**: en el navegador se lee como `null`. Por eso se corrigió la regla 4. |
+  | Consulta por lotes `Page(perPage: 50) { media(id_in: [...]) }` | Funciona y devuelve `idMal` (por ejemplo, 101922 → 38000). |
+  | CDN de portadas `s4.anilist.co` (Cloudflare) | Refleja el `Origin` de la petición en `Access-Control-Allow-Origin` (probado con `app.acruxanime.com` y `localhost`) y se cachea por 31 días (`max-age=2678400`). |
+  | Tarjeta con `html-to-image` (`toPng`) y portada de AniList, en Chromium | Funciona; el canvas no queda bloqueado (`getImageData` es legible). PNG de unos 600 KB con `pixelRatio: 2`. |
+  | Lo mismo en WebKit (motor de Safari) | Funciona igual: la consulta por lotes responde `200`, el canvas no queda bloqueado y el PNG pesa unos 540 KB. |
+
+  **La tarjeta puede generarse en el cliente**; no hace falta un proxy de imágenes ni renderizar en el servidor.
 - **Acciones derivadas:**
-  - Spike: confirmar CORS de `graphql.anilist.co` y del CDN de imágenes de AniList, y el límite vigente.
+  - ~~Spike: confirmar CORS de `graphql.anilist.co` y del CDN de imágenes de AniList, y el límite vigente.~~ Hecho el 2026-10-29 (ver «Resultados del spike»).
   - Implementar el cliente GraphQL tipado con validación Zod y la política de reintentos.
   - Agregar `graphql.anilist.co` y el CDN de AniList a la CSP (ADR-0028).
   - Enviar los correos de autorización a AniList y MyAnimeList, incluida la consulta por el costo de la licencia comercial (R-02).
