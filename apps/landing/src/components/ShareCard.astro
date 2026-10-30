@@ -1,0 +1,188 @@
+---
+import type { Copy } from '../i18n';
+
+interface Props {
+  t: Copy['card'];
+}
+
+const { t } = Astro.props;
+---
+
+<!--
+  Mockup of the "Tarjeta para compartir · Clásica" (Figma 27:38) with its glow.
+  --u scales every measure: 1px on desktop (337.5 × 600) and 0.7333px on phones (247.5 × 440).
+-->
+<div class="sample">
+  <img class="sample__glow" src="/icons/brillo.svg" width="800" height="800" alt="" />
+  <div class="card" role="img" aria-label={t.label}>
+    <div class="card__user" aria-hidden="true">
+      <span class="card__avatar">C</span>
+      <span class="card__handle">@camila</span>
+      <img class="card__brand" src="/icons/marca.svg" width="28" height="28" alt="" />
+    </div>
+    <div class="card__total" aria-hidden="true">
+      <span class="card__number">63</span>
+      <span class="card__caption">{t.total}</span>
+    </div>
+    <div class="card__watching" aria-hidden="true">
+      <span class="card__caption">{t.watching}</span>
+      <div class="card__covers">
+        <span class="card__cover"></span>
+        <span class="card__cover"></span>
+        <span class="card__cover"></span>
+      </div>
+    </div>
+    <div class="card__footer" aria-hidden="true">
+      <span class="card__url">acruxanime.com/camila</span>
+      <span class="card__qr">QR</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .sample {
+    --u: 0.7333px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding-block: 20px;
+    overflow: hidden;
+  }
+
+  @media (min-width: 1024px) {
+    .sample {
+      --u: 1px;
+      overflow: visible;
+    }
+
+    .sample__glow {
+      width: 800px;
+      height: 800px;
+    }
+  }
+
+  .sample__glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* The SVG carries its blur margin: a 340px glow on phones, 520px on desktop. */
+    width: 540px;
+    height: 540px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: calc(337.5 * var(--u));
+    height: calc(600 * var(--u));
+    padding: calc(25 * var(--u));
+    overflow: hidden;
+    border: calc(2.5 * var(--u)) solid var(--color-accent-default);
+    border-radius: calc(30 * var(--u));
+    background:
+      linear-gradient(180deg, rgb(157 140 245 / 0.45) 0%, rgb(157 140 245 / 0) 60%),
+      var(--color-bg-surface);
+  }
+
+  .card__user,
+  .card__footer {
+    display: flex;
+    align-items: center;
+    gap: calc(10 * var(--u));
+  }
+
+  .card__avatar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: calc(45 * var(--u));
+    height: calc(45 * var(--u));
+    border-radius: 50%;
+    background: var(--color-accent-default);
+    color: var(--color-text-on-accent);
+    font-size: calc(20 * var(--u));
+    font-weight: 600;
+  }
+
+  .card__handle {
+    flex: 1;
+    font-size: calc(20 * var(--u));
+    font-weight: 600;
+    line-height: calc(30 * var(--u));
+  }
+
+  .card__brand {
+    width: calc(27.5 * var(--u));
+    height: calc(27.5 * var(--u));
+  }
+
+  .card__total {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(2.5 * var(--u));
+  }
+
+  .card__number {
+    color: var(--color-text-link);
+    font-family: var(--font-display);
+    font-size: calc(120 * var(--u));
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: calc(-2.4 * var(--u));
+  }
+
+  .card__caption {
+    color: var(--color-text-secondary);
+    font-size: calc(15 * var(--u));
+    font-weight: 600;
+    line-height: calc(20 * var(--u));
+    letter-spacing: calc(0.3 * var(--u));
+    text-transform: uppercase;
+  }
+
+  .card__watching {
+    display: flex;
+    flex-direction: column;
+    gap: calc(10 * var(--u));
+  }
+
+  .card__covers {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .card__cover {
+    width: calc(87.5 * var(--u));
+    height: calc(130 * var(--u));
+    border-radius: calc(10 * var(--u));
+    background:
+      linear-gradient(124deg, rgb(157 140 245 / 0.5) 0%, rgb(157 140 245 / 0) 83.333%),
+      var(--color-bg-raised);
+  }
+
+  .card__url {
+    flex: 1;
+    color: var(--color-text-secondary);
+    font-size: calc(15 * var(--u));
+    font-weight: 500;
+    line-height: calc(20 * var(--u));
+  }
+
+  .card__qr {
+    display: grid;
+    place-items: center;
+    width: calc(50 * var(--u));
+    height: calc(50 * var(--u));
+    border-radius: calc(7.5 * var(--u));
+    background: var(--color-text-primary);
+    color: var(--color-text-on-accent);
+    font-size: calc(15 * var(--u));
+    font-weight: 600;
+    letter-spacing: calc(0.3 * var(--u));
+  }
+</style>
