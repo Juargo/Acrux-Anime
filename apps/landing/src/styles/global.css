@@ -12,7 +12,9 @@
   --color-text-link: #c3b8ff;
   --color-text-on-accent: #0b0d1c;
   --color-accent-default: #9d8cf5;
+  --color-status-error: #ff7a7a;
 
+  --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 12px;
   --spacing-lg: 16px;

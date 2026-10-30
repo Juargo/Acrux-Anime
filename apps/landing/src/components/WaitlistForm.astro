@@ -1,6 +1,8 @@
 ---
 import type { Copy } from '../i18n';
 
+// "Formulario · Lista de espera" (Figma 72:350) with the D41 states: normal, sending,
+// invalid email, already registered, network error and success (ADR-0033).
 interface Props {
   id: string;
   t: Copy['form'];
@@ -8,40 +10,127 @@ interface Props {
 }
 
 const { id, t, privacyHref } = Astro.props;
-
-// Buttondown embed endpoint (ADR-0033). The username and the form states
-// (sending, invalid email, already registered, network error, success) come with #15.
-const username = import.meta.env.PUBLIC_BUTTONDOWN_USERNAME;
-const action = username
-  ? `https://buttondown.com/api/emails/embed-subscribe/${username}`
-  : undefined;
 ---
 
-<form class="waitlist" method="post" action={action}>
-  <label class="waitlist__label" for={`${id}-email`}>{t.label}</label>
-  <input
-    class="waitlist__input"
-    id={`${id}-email`}
-    name="email"
-    type="email"
-    autocomplete="email"
-    placeholder={t.placeholder}
-    required
-    aria-describedby={`${id}-note`}
-  />
-  <button class="waitlist__submit" type="submit">{t.submit}</button>
-  <p class="waitlist__note" id={`${id}-note`}>
-    {t.notePrefix}<a href={privacyHref}>{t.noteLink}</a>
-  </p>
-</form>
+<div class="waitlist" data-waitlist>
+  <form
+    class="waitlist__form"
+    method="post"
+    action="/api/waitlist"
+    novalidate
+    data-submit={t.submit}
+    data-sending={t.sending}
+    data-retry={t.retry}
+    data-invalid={t.invalid}
+    data-already={t.already}
+    data-error={t.error}
+    data-success-text={t.successText}
+  >
+    <label class="waitlist__label" for={`${id}-email`}>{t.label}</label>
+    <input
+      class="waitlist__input"
+      id={`${id}-email`}
+      name="email"
+      type="email"
+      autocomplete="email"
+      placeholder={t.placeholder}
+      required
+      aria-describedby={`${id}-message`}
+    />
+    <button class="waitlist__submit" type="submit">{t.submit}</button>
+    <p class="waitlist__message" id={`${id}-message`} aria-live="polite">
+      <span data-message></span>
+      <span data-note>{t.notePrefix}<a href={privacyHref}>{t.noteLink}</a></span>
+    </p>
+  </form>
+  <div class="waitlist__success" role="status" tabindex="-1" hidden>
+    <img src="/icons/check.svg" width="24" height="24" alt="" />
+    <div class="waitlist__success-text">
+      <p class="waitlist__success-title">{t.successTitle}</p>
+      <p class="waitlist__success-body" data-success-body></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { isValidEmail, type WaitlistStatus } from '../lib/waitlist';
+
+  type Shown = 'note' | 'invalid' | 'already' | 'error';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-waitlist]')) {
+    const form = root.querySelector('form');
+    const input = form?.querySelector('input');
+    const button = form?.querySelector('button');
+    const message = form?.querySelector<HTMLElement>('[data-message]');
+    const note = form?.querySelector<HTMLElement>('[data-note]');
+    const success = root.querySelector<HTMLElement>('.waitlist__success');
+    const successBody = root.querySelector<HTMLElement>('[data-success-body]');
+    if (!form || !input || !button || !message || !note || !success || !successBody) continue;
+    const copy = form.dataset;
+
+    const show = (shown: Shown) => {
+      note.hidden = shown !== 'note';
+      message.hidden = shown === 'note';
+      message.textContent = shown === 'note' ? '' : (copy[shown] ?? '');
+      message.classList.toggle('is-error', shown === 'invalid' || shown === 'error');
+      input.setAttribute('aria-invalid', String(shown === 'invalid'));
+      button.textContent = shown === 'error' ? (copy.retry ?? '') : (copy.submit ?? '');
+    };
+
+    show('note');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const email = input.value.trim();
+      if (!isValidEmail(email)) {
+        show('invalid');
+        input.focus();
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = copy.sending ?? '';
+      let status: WaitlistStatus;
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        status = ((await response.json()) as { status: WaitlistStatus }).status;
+      } catch {
+        status = 'error';
+      }
+      button.disabled = false;
+
+      if (status === 'ok') {
+        successBody.textContent = (copy.successText ?? '').replace('{email}', email);
+        form.hidden = true;
+        success.hidden = false;
+        success.focus();
+        // PostHog listens for this with analytics consent (#17); the email is never attached.
+        document.dispatchEvent(new CustomEvent('acrux:waitlist-joined'));
+        return;
+      }
+      show(status === 'invalid' ? 'invalid' : status === 'already' ? 'already' : 'error');
+    });
+
+    input.addEventListener('input', () => {
+      if (input.getAttribute('aria-invalid') === 'true') show('note');
+    });
+  }
+</script>
 
 <style>
   .waitlist {
+    width: 100%;
+    max-width: 440px;
+  }
+
+  .waitlist__form {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
-    width: 100%;
-    max-width: 440px;
   }
 
   .waitlist__label {
@@ -59,6 +148,11 @@ const action = username
     background: var(--color-bg-surface);
     color: var(--color-text-primary);
     font: inherit;
+  }
+
+  .waitlist__input[aria-invalid='true'] {
+    border: 2px solid var(--color-status-error);
+    padding-inline: calc(var(--spacing-md) - 1px);
   }
 
   .waitlist__input::placeholder {
@@ -82,14 +176,61 @@ const action = username
     background: var(--color-text-link);
   }
 
-  .waitlist__note {
+  .waitlist__submit:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .waitlist__submit:disabled:hover {
+    background: var(--color-accent-default);
+  }
+
+  .waitlist__message {
     color: var(--color-text-secondary);
     font-size: 12px;
     font-weight: 500;
     line-height: 16px;
   }
 
-  .waitlist__note a {
+  .waitlist__message a {
     color: inherit;
+  }
+
+  .waitlist__message .is-error {
+    color: var(--color-status-error);
+  }
+
+  .waitlist__success {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-raised);
+  }
+
+  .waitlist__form[hidden],
+  .waitlist__success[hidden] {
+    display: none;
+  }
+
+  .waitlist__success:focus {
+    outline: none;
+  }
+
+  .waitlist__success-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .waitlist__success-title {
+    font-weight: 600;
+  }
+
+  .waitlist__success-body {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 20px;
   }
 </style>
