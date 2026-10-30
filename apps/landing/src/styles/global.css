@@ -93,6 +93,14 @@ a {
   white-space: nowrap;
 }
 
+button.text-button {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .text-button:hover {
   text-decoration: underline;
 }
