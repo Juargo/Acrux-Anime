@@ -1,0 +1,36 @@
+---
+import type { Locale } from '@acrux/i18n';
+import { getCopy } from '../i18n';
+import '../styles/global.css';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getCopy(locale);
+const site = Astro.site ?? new URL('https://acruxanime.com');
+const canonical = new URL(Astro.url.pathname, site);
+---
+
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{t.meta.title}</title>
+    <meta name="description" content={t.meta.description} />
+    <meta name="theme-color" content="#0b0d1c" />
+    <link rel="icon" type="image/svg+xml" href="/icons/logo.svg" />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="es" href={new URL('/', site)} />
+    <link rel="alternate" hreflang="en" href={new URL('/en/', site)} />
+    <link rel="alternate" hreflang="x-default" href={new URL('/', site)} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={t.meta.title} />
+    <meta property="og:description" content={t.meta.description} />
+    <meta property="og:url" content={canonical} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

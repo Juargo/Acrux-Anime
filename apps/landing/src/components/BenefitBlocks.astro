@@ -1,0 +1,101 @@
+---
+// Section with "Bloque de beneficio" cards (Figma 72:373): "Así funciona" and "Por qué Acrux".
+interface Block {
+  icon: string;
+  title: string;
+  text: string;
+}
+
+interface Props {
+  id: string;
+  title: string;
+  lead?: string;
+  blocks: readonly Block[];
+}
+
+const { id, title, lead, blocks } = Astro.props;
+---
+
+<section class="benefits wrap" aria-labelledby={id}>
+  <header class="benefits__header">
+    <h2 class="section-title" id={id}>{title}</h2>
+    {lead && <p class="section-lead">{lead}</p>}
+  </header>
+  <ul class="benefits__list">
+    {
+      blocks.map((block) => (
+        <li class="benefit">
+          <span class="benefit__icon">
+            <img src={`/icons/${block.icon}.svg`} width="24" height="24" alt="" />
+          </span>
+          <h3 class="benefit__title">{block.title}</h3>
+          <p class="benefit__text">{block.text}</p>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .benefits {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    padding-block: 40px;
+  }
+
+  .benefits__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .benefits__list {
+    display: grid;
+    gap: var(--spacing-lg);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .benefit {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-surface);
+  }
+
+  .benefit__icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: var(--color-accent-default);
+  }
+
+  .benefit__title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 28px;
+  }
+
+  .benefit__text {
+    color: var(--color-text-secondary);
+  }
+
+  @media (min-width: 1024px) {
+    .benefits {
+      gap: var(--spacing-xl);
+      padding-block: 80px;
+    }
+
+    .benefits__list {
+      grid-template-columns: repeat(3, 1fr);
+      align-items: start;
+    }
+  }
+</style>
