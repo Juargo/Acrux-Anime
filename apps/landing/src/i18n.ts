@@ -84,6 +84,7 @@ const copy = {
       nav: 'Enlaces del sitio',
       privacy: { label: 'Política de privacidad', href: '/privacidad' },
       support: { label: 'Soporte', href: '/soporte' },
+      terms: { label: 'Términos de uso', href: '/terminos' },
       deleteAccount: { label: 'Borrar mi cuenta', href: '/soporte#borrar-cuenta' },
       attribution:
         '© 2026 Acrux · Datos del catálogo provistos por AniList. Acrux no está afiliada a AniList.',
@@ -170,6 +171,7 @@ const copy = {
       nav: 'Site links',
       privacy: { label: 'Privacy policy', href: '/en/privacy' },
       support: { label: 'Support', href: '/en/support' },
+      terms: { label: 'Terms of use', href: '/en/terms' },
       deleteAccount: { label: 'Delete my account', href: '/en/support#delete-account' },
       attribution:
         '© 2026 Acrux · Catalog data provided by AniList. Acrux is not affiliated with AniList.',

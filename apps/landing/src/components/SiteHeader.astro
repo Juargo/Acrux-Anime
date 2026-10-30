@@ -1,0 +1,44 @@
+---
+import type { Locale } from '@acrux/i18n';
+import { getCopy } from '../i18n';
+import Logo from './Logo.astro';
+
+// Header shared by the landing and the legal pages (Figma D40/D42).
+interface Props {
+  locale: Locale;
+  // The same page in the other locale. Defaults to the other landing.
+  otherHref?: string;
+}
+
+const { locale } = Astro.props;
+const t = getCopy(locale);
+const home = locale === 'es' ? '/' : '/en/';
+const otherHref = Astro.props.otherHref ?? t.otherLocale.href;
+---
+
+<header class="site-header wrap">
+  <a href={home} aria-label="Acrux"><Logo /></a>
+  <a class="text-button" href={otherHref} hreflang={t.otherLocale.lang} lang={t.otherLocale.lang}>
+    {t.otherLocale.label}
+  </a>
+</header>
+
+<style>
+  .site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 16px;
+  }
+
+  .site-header > a:first-child {
+    display: inline-flex;
+    text-decoration: none;
+  }
+
+  @media (min-width: 1024px) {
+    .site-header {
+      padding-block: 24px;
+    }
+  }
+</style>

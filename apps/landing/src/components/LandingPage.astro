@@ -3,8 +3,9 @@ import type { Locale } from '@acrux/i18n';
 import { getCopy } from '../i18n';
 import Landing from '../layouts/Landing.astro';
 import BenefitBlocks from './BenefitBlocks.astro';
-import Logo from './Logo.astro';
 import ShareCard from './ShareCard.astro';
+import SiteFooter from './SiteFooter.astro';
+import SiteHeader from './SiteHeader.astro';
 import WaitlistForm from './WaitlistForm.astro';
 
 // Validation landing (Figma D40 desktop, M40 phone). Issue #14.
@@ -14,16 +15,10 @@ interface Props {
 
 const { locale } = Astro.props;
 const t = getCopy(locale);
-const home = locale === 'es' ? '/' : '/en/';
 ---
 
 <Landing locale={locale}>
-  <header class="site-header wrap">
-    <a href={home} aria-label="Acrux"><Logo /></a>
-    <a class="text-button" href={t.otherLocale.href} hreflang={t.otherLocale.lang} lang={t.otherLocale.lang}>
-      {t.otherLocale.label}
-    </a>
-  </header>
+  <SiteHeader locale={locale} />
 
   <main>
     <section class="hero wrap" aria-labelledby="hero-title">
@@ -52,41 +47,10 @@ const home = locale === 'es' ? '/' : '/en/';
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="site-footer__inner wrap">
-      <div class="site-footer__row">
-        <Logo />
-        <nav aria-label={t.footer.nav}>
-          <ul class="site-footer__links">
-            <li><a class="text-button" href={t.footer.privacy.href}>{t.footer.privacy.label}</a></li>
-            <li><a class="text-button" href={t.footer.support.href}>{t.footer.support.label}</a></li>
-            <li><a class="text-button" href={t.footer.deleteAccount.href}>{t.footer.deleteAccount.label}</a></li>
-            <li class="site-footer__locale">
-              <a class="text-button" href={t.otherLocale.href} hreflang={t.otherLocale.lang} lang={t.otherLocale.lang}>
-                {t.otherLocale.label}
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-      <p class="site-footer__attribution">{t.footer.attribution}</p>
-    </div>
-  </footer>
+  <SiteFooter locale={locale} />
 </Landing>
 
 <style>
-  .site-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-block: 16px;
-  }
-
-  .site-header > a:first-child {
-    display: inline-flex;
-    text-decoration: none;
-  }
-
   .hero {
     display: flex;
     flex-direction: column;
@@ -146,50 +110,7 @@ const home = locale === 'es' ? '/' : '/en/';
     text-align: center;
   }
 
-  .site-footer {
-    border-top: 1px solid var(--color-border-default);
-  }
-
-  .site-footer__inner {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
-    padding-block: 32px;
-  }
-
-  .site-footer__row {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
-  }
-
-  .site-footer__links {
-    display: flex;
-    flex-wrap: wrap;
-    column-gap: 4px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  /* On phones the header already offers the language switch (M40). */
-  .site-footer__locale {
-    display: none;
-  }
-
-  .site-footer__attribution {
-    color: var(--color-text-secondary);
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 16px;
-  }
-
   @media (min-width: 1024px) {
-    .site-header {
-      padding-block: 24px;
-    }
-
     .hero {
       flex-direction: row;
       align-items: center;
@@ -215,24 +136,6 @@ const home = locale === 'es' ? '/' : '/en/';
 
     .final-cta__inner {
       padding-block: 96px;
-    }
-
-    .site-footer__inner {
-      padding-block: 40px;
-    }
-
-    .site-footer__row {
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .site-footer__links {
-      column-gap: var(--spacing-sm);
-    }
-
-    .site-footer__locale {
-      display: list-item;
     }
   }
 </style>

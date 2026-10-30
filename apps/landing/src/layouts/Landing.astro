@@ -5,10 +5,16 @@ import '../styles/global.css';
 
 interface Props {
   locale: Locale;
+  title?: string;
+  description?: string;
+  // Path of this page in each locale, for hreflang. Defaults to the landing.
+  alternates?: Record<Locale, string>;
 }
 
-const { locale } = Astro.props;
+const { locale, alternates = { es: '/', en: '/en/' } } = Astro.props;
 const t = getCopy(locale);
+const title = Astro.props.title ?? t.meta.title;
+const description = Astro.props.description ?? t.meta.description;
 const site = Astro.site ?? new URL('https://acruxanime.com');
 const canonical = new URL(Astro.url.pathname, site);
 ---
@@ -17,17 +23,17 @@ const canonical = new URL(Astro.url.pathname, site);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{t.meta.title}</title>
-    <meta name="description" content={t.meta.description} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
     <meta name="theme-color" content="#0b0d1c" />
     <link rel="icon" type="image/svg+xml" href="/icons/logo.svg" />
     <link rel="canonical" href={canonical} />
-    <link rel="alternate" hreflang="es" href={new URL('/', site)} />
-    <link rel="alternate" hreflang="en" href={new URL('/en/', site)} />
-    <link rel="alternate" hreflang="x-default" href={new URL('/', site)} />
+    <link rel="alternate" hreflang="es" href={new URL(alternates.es, site)} />
+    <link rel="alternate" hreflang="en" href={new URL(alternates.en, site)} />
+    <link rel="alternate" hreflang="x-default" href={new URL(alternates.es, site)} />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content={t.meta.title} />
-    <meta property="og:description" content={t.meta.description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
   </head>
   <body>

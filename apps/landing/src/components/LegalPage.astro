@@ -1,0 +1,108 @@
+---
+import type { Locale } from '@acrux/i18n';
+import Landing from '../layouts/Landing.astro';
+import { CONTACT_EMAIL, getLegalPage, type LegalPageKey, legalAlternates } from '../legal';
+import SiteFooter from './SiteFooter.astro';
+import SiteHeader from './SiteHeader.astro';
+
+// Privacy (Figma D42/M42), support (D43) and terms pages: one 720px column of sections.
+interface Props {
+  locale: Locale;
+  page: LegalPageKey;
+}
+
+const { locale, page } = Astro.props;
+const t = getLegalPage(locale, page);
+const alternates = legalAlternates(page);
+const otherHref = alternates[locale === 'es' ? 'en' : 'es'];
+---
+
+<Landing locale={locale} title={t.meta.title} description={t.meta.description} alternates={alternates}>
+  <SiteHeader locale={locale} otherHref={otherHref} />
+
+  <main class="legal wrap">
+    <article class="legal__column">
+      <header class="legal__section">
+        <h1 class="legal__title">{t.title}</h1>
+        {t.updated && <p class="legal__updated">{t.updated}</p>}
+      </header>
+      {
+        t.sections.map((section) => (
+          <section class="legal__section" id={section.id}>
+            <h2 class="legal__heading">{section.title}</h2>
+            {section.paragraphs.map((paragraph) => (
+              <p class="legal__text">
+                {paragraph.split('{email}').map((part, index) => (
+                  <>
+                    {index > 0 && <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>}
+                    {part}
+                  </>
+                ))}
+              </p>
+            ))}
+          </section>
+        ))
+      }
+    </article>
+  </main>
+
+  <SiteFooter locale={locale} otherHref={otherHref} />
+</Landing>
+
+<style>
+  .legal {
+    padding-block: 32px 48px;
+  }
+
+  .legal__column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+    max-width: 720px;
+    margin-inline: auto;
+    overflow-wrap: break-word;
+  }
+
+  .legal__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    scroll-margin-top: var(--spacing-xl);
+  }
+
+  .legal__title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 34px;
+    letter-spacing: -0.14px;
+  }
+
+  .legal__updated {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+  }
+
+  .legal__heading {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 28px;
+  }
+
+  .legal__text {
+    color: var(--color-text-secondary);
+  }
+
+  .legal__text a {
+    color: var(--color-text-link);
+  }
+
+  @media (min-width: 1024px) {
+    .legal {
+      padding-block: 48px 96px;
+    }
+  }
+</style>
