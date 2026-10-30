@@ -11,6 +11,7 @@
     "landing": "pnpm --filter @acrux/landing",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --if-present test",
     "lint": "biome ci .",
     "format": "biome check --write ."
   },

@@ -20,6 +20,14 @@ const copy = {
       submit: 'Únete a la beta',
       notePrefix: 'Te escribiremos solo para invitarte a la beta. ',
       noteLink: 'Lee la política de privacidad.',
+      sending: 'Enviando…',
+      retry: 'Reintentar',
+      invalid: 'Revisa tu correo: parece que le falta algo.',
+      already: 'Este correo ya está en la lista. Te avisaremos cuando abra la beta.',
+      error: 'No pudimos registrarte. Revisa tu conexión e inténtalo de nuevo.',
+      successTitle: '¡Casi listo! Confirma tu correo.',
+      successText:
+        'Te enviamos un enlace a {email}. Ábrelo para entrar a la lista de la beta. Si no lo ves, revisa la carpeta de spam.',
     },
     card: {
       label:
@@ -99,6 +107,14 @@ const copy = {
       submit: 'Join the beta',
       notePrefix: 'We will only email you to invite you to the beta. ',
       noteLink: 'Read the privacy policy.',
+      sending: 'Sending…',
+      retry: 'Try again',
+      invalid: 'Check your email: it looks like something is missing.',
+      already: 'This email is already on the list. We will let you know when the beta opens.',
+      error: 'We could not sign you up. Check your connection and try again.',
+      successTitle: 'Almost there! Confirm your email.',
+      successText:
+        'We sent a link to {email}. Open it to join the beta list. If you do not see it, check your spam folder.',
     },
     card: {
       label: 'Example share card: @camila, 63 completed anime and 3 currently watching.',
