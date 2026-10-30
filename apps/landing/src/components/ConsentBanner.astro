@@ -36,6 +36,8 @@ const t = getCopy(locale);
 
   const banner = document.querySelector<HTMLElement>('[data-consent-banner]');
   let posthog: PostHog | undefined;
+  // The current choice in this page view; every capture checks it.
+  let granted = false;
 
   function storage(): Storage | undefined {
     try {
@@ -46,11 +48,14 @@ const t = getCopy(locale);
   }
 
   async function startAnalytics(key: string) {
+    granted = true;
     if (posthog) {
       posthog.opt_in_capturing();
       return;
     }
     const { default: client } = await import('posthog-js');
+    // The visitor may have revoked while the SDK was loading.
+    if (!granted || posthog) return;
     client.init(key, {
       api_host: 'https://eu.i.posthog.com',
       person_profiles: 'identified_only',
@@ -69,13 +74,15 @@ const t = getCopy(locale);
     posthog = client;
   }
 
-  // Revoking stops capture and removes what PostHog stored on this device.
+  // Revoking stops capture and removes what PostHog stored on this device. The SDK's
+  // own opt-out flag (__ph_opt_in_out_*) is kept so the loaded client stays opted out.
   function stopAnalytics() {
+    granted = false;
     posthog?.opt_out_capturing();
     const store = storage();
     if (store) {
       for (const key of Object.keys(store)) {
-        if (key.startsWith('ph_') || key.startsWith('__ph_')) store.removeItem(key);
+        if (key.startsWith('ph_')) store.removeItem(key);
       }
     }
     const domain = location.hostname.replace(/^www\./, '');
@@ -113,7 +120,7 @@ const t = getCopy(locale);
 
     // Sent by the waitlist form on success; the email is never attached (ADR-0033).
     document.addEventListener('acrux:waitlist-joined', () => {
-      posthog?.capture('waitlist_joined', utmProperties(location.search));
+      if (granted) posthog?.capture('waitlist_joined', utmProperties(location.search));
     });
   }
 </script>
