@@ -1,4 +1,5 @@
 ---
+import { PUBLIC_POSTHOG_KEY } from 'astro:env/client';
 import type { Locale } from '@acrux/i18n';
 import { getCopy } from '../i18n';
 import Logo from './Logo.astro';
@@ -25,6 +26,15 @@ const otherHref = Astro.props.otherHref ?? t.otherLocale.href;
           <li><a class="text-button" href={t.footer.terms.href}>{t.footer.terms.label}</a></li>
           <li><a class="text-button" href={t.footer.support.href}>{t.footer.support.label}</a></li>
           <li><a class="text-button" href={t.footer.deleteAccount.href}>{t.footer.deleteAccount.label}</a></li>
+          {
+            PUBLIC_POSTHOG_KEY && (
+              <li>
+                <button class="text-button" type="button" data-analytics-preferences>
+                  {t.footer.analytics}
+                </button>
+              </li>
+            )
+          }
           <li class="site-footer__locale">
             <a class="text-button" href={otherHref} hreflang={t.otherLocale.lang} lang={t.otherLocale.lang}>
               {t.otherLocale.label}

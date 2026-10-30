@@ -1,0 +1,195 @@
+---
+import { PUBLIC_POSTHOG_KEY } from 'astro:env/client';
+import type { Locale } from '@acrux/i18n';
+import { getCopy } from '../i18n';
+
+// "Aviso de consentimiento" (Figma 72:351, placed in D40). PostHog loads only after
+// "Aceptar"; both choices carry the same visual weight (ADR-0028, ADR-0030, issue #17).
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getCopy(locale);
+---
+
+{
+  PUBLIC_POSTHOG_KEY && (
+    <section class="consent" aria-labelledby="consent-title" data-consent-banner hidden>
+      <p class="consent__title" id="consent-title">{t.consent.title}</p>
+      <p class="consent__text">{t.consent.text}</p>
+      <div class="consent__actions">
+        <a class="text-button" href={t.footer.privacy.href}>{t.consent.more}</a>
+        <div class="consent__buttons">
+          <button class="consent__button" type="button" data-consent="denied">{t.consent.decline}</button>
+          <button class="consent__button" type="button" data-consent="granted">{t.consent.accept}</button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<script>
+  import { PUBLIC_POSTHOG_KEY } from 'astro:env/client';
+  import type { PostHog } from 'posthog-js';
+  import { readConsent, utmProperties, writeConsent } from '../lib/consent';
+
+  const banner = document.querySelector<HTMLElement>('[data-consent-banner]');
+  let posthog: PostHog | undefined;
+  // The current choice in this page view; every capture checks it.
+  let granted = false;
+
+  function storage(): Storage | undefined {
+    try {
+      return window.localStorage;
+    } catch {
+      return undefined;
+    }
+  }
+
+  async function startAnalytics(key: string) {
+    granted = true;
+    if (posthog) {
+      posthog.opt_in_capturing();
+      return;
+    }
+    const { default: client } = await import('posthog-js');
+    // The visitor may have revoked while the SDK was loading.
+    if (!granted || posthog) return;
+    client.init(key, {
+      api_host: 'https://eu.i.posthog.com',
+      person_profiles: 'identified_only',
+      capture_pageview: true,
+      // No text fields, clicks, recordings or remote code (ADR-0028).
+      autocapture: false,
+      capture_heatmaps: false,
+      capture_dead_clicks: false,
+      capture_exceptions: false,
+      disable_session_recording: true,
+      disable_surveys: true,
+      disable_web_experiments: true,
+      disable_external_dependency_loading: true,
+      advanced_disable_flags: true,
+    });
+    posthog = client;
+  }
+
+  // Revoking stops capture and removes what PostHog stored on this device. The SDK's
+  // own opt-out flag (__ph_opt_in_out_*) is kept so the loaded client stays opted out.
+  function stopAnalytics() {
+    granted = false;
+    posthog?.opt_out_capturing();
+    const store = storage();
+    if (store) {
+      for (const key of Object.keys(store)) {
+        if (key.startsWith('ph_')) store.removeItem(key);
+      }
+    }
+    const domain = location.hostname.replace(/^www\./, '');
+    for (const cookie of document.cookie.split(';')) {
+      const name = cookie.split('=')[0]?.trim() ?? '';
+      if (!name.startsWith('ph_')) continue;
+      document.cookie = `${name}=; Max-Age=0; path=/`;
+      document.cookie = `${name}=; Max-Age=0; path=/; domain=.${domain}`;
+    }
+  }
+
+  if (banner && PUBLIC_POSTHOG_KEY) {
+    const key = PUBLIC_POSTHOG_KEY;
+    const store = storage();
+    const consent = store ? readConsent(store) : 'undecided';
+    if (consent === 'granted') void startAnalytics(key);
+    if (consent === 'undecided') banner.hidden = false;
+
+    for (const button of banner.querySelectorAll<HTMLButtonElement>('[data-consent]')) {
+      button.addEventListener('click', () => {
+        const choice = button.dataset.consent === 'granted' ? 'granted' : 'denied';
+        if (store) writeConsent(store, choice);
+        banner.hidden = true;
+        if (choice === 'granted') void startAnalytics(key);
+        else stopAnalytics();
+      });
+    }
+
+    for (const link of document.querySelectorAll('[data-analytics-preferences]')) {
+      link.addEventListener('click', () => {
+        banner.hidden = false;
+        banner.querySelector<HTMLButtonElement>('[data-consent]')?.focus();
+      });
+    }
+
+    // Sent by the waitlist form on success; the email is never attached (ADR-0033).
+    document.addEventListener('acrux:waitlist-joined', () => {
+      if (granted) posthog?.capture('waitlist_joined', utmProperties(location.search));
+    });
+  }
+</script>
+
+<style>
+  .consent {
+    position: fixed;
+    inset-inline: var(--spacing-lg);
+    bottom: var(--spacing-lg);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    max-width: 560px;
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-raised);
+    box-shadow: 0 8px 12px rgb(0 0 0 / 0.35);
+  }
+
+  .consent[hidden] {
+    display: none;
+  }
+
+  .consent__title {
+    font-weight: 600;
+  }
+
+  .consent__text {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .consent__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+  }
+
+  .consent__buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+  }
+
+  .consent__button {
+    min-height: 48px;
+    padding: 12px 20px;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .consent__button:hover {
+    border-color: var(--color-text-link);
+  }
+
+  @media (min-width: 1024px) {
+    .consent {
+      inset-inline: 32px auto;
+      bottom: 32px;
+      width: 560px;
+    }
+  }
+</style>

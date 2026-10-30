@@ -80,12 +80,20 @@ const copy = {
       title: 'Sé de los primeros en probarla',
       lead: 'Abrimos la beta por invitación a un grupo pequeño. Deja tu correo y te avisamos.',
     },
+    consent: {
+      title: '¿Nos ayudas a medir?',
+      text: 'Usamos analítica para saber si Acrux le sirve a más gente. Sin cookies hasta que aceptes, y puedes cambiarlo cuando quieras desde el pie de página.',
+      more: 'Más información',
+      decline: 'Rechazar',
+      accept: 'Aceptar',
+    },
     footer: {
       nav: 'Enlaces del sitio',
       privacy: { label: 'Política de privacidad', href: '/privacidad' },
       support: { label: 'Soporte', href: '/soporte' },
       terms: { label: 'Términos de uso', href: '/terminos' },
       deleteAccount: { label: 'Borrar mi cuenta', href: '/soporte#borrar-cuenta' },
+      analytics: 'Preferencias de analítica',
       attribution:
         '© 2026 Acrux · Datos del catálogo provistos por AniList. Acrux no está afiliada a AniList.',
     },
@@ -167,12 +175,20 @@ const copy = {
       title: 'Be among the first to try it',
       lead: 'We are opening the beta by invitation to a small group. Leave your email and we will let you know.',
     },
+    consent: {
+      title: 'Will you help us measure?',
+      text: 'We use analytics to learn whether Acrux is useful to more people. No cookies until you accept, and you can change it anytime from the footer.',
+      more: 'Learn more',
+      decline: 'Decline',
+      accept: 'Accept',
+    },
     footer: {
       nav: 'Site links',
       privacy: { label: 'Privacy policy', href: '/en/privacy' },
       support: { label: 'Support', href: '/en/support' },
       terms: { label: 'Terms of use', href: '/en/terms' },
       deleteAccount: { label: 'Delete my account', href: '/en/support#delete-account' },
+      analytics: 'Analytics preferences',
       attribution:
         '© 2026 Acrux · Catalog data provided by AniList. Acrux is not affiliated with AniList.',
     },

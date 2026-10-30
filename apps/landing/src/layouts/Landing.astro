@@ -1,5 +1,6 @@
 ---
 import type { Locale } from '@acrux/i18n';
+import ConsentBanner from '../components/ConsentBanner.astro';
 import { getCopy } from '../i18n';
 import '../styles/global.css';
 
@@ -38,5 +39,6 @@ const canonical = new URL(Astro.url.pathname, site);
   </head>
   <body>
     <slot />
+    <ConsentBanner locale={locale} />
   </body>
 </html>

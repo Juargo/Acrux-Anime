@@ -15,6 +15,8 @@ export default defineConfig({
   env: {
     schema: {
       BUTTONDOWN_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      // PostHog project key (EU cloud). It is public by design; without it analytics stays off.
+      PUBLIC_POSTHOG_KEY: envField.string({ context: 'client', access: 'public', optional: true }),
     },
   },
 });
