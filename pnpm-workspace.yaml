@@ -5,6 +5,7 @@ packages:
 # Paquetes con scripts de instalación permitidos (pnpm 11 los bloquea por defecto).
 allowBuilds:
   core-js: false
+  esbuild: true
   sharp: true
 
 # Defensas de instalación. pnpm 11 lee estos ajustes de este archivo, no de `.npmrc`.
