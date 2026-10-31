@@ -1,0 +1,124 @@
+// Initial model of ADR-0022 (issue #22). The catalog is not stored: only AniList and
+// MAL ids (RDI-13, RDI-20). user_id is the uuid of the Neon Auth user (ADR-0034).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ListVisibility {
+  private
+  public
+
+  @@map("list_visibility")
+}
+
+enum CounterMode {
+  franchise
+  entry
+
+  @@map("counter_mode")
+}
+
+enum MarkStatus {
+  seen
+  watching
+
+  @@map("mark_status")
+}
+
+enum Plan {
+  plus_annual
+  plus_lifetime
+
+  @@map("plan")
+}
+
+enum FranchiseRole {
+  core
+  extra
+  separate
+
+  @@map("franchise_role")
+}
+
+model Profile {
+  userId         String         @id @map("user_id") @db.Uuid
+  displayName    String         @map("display_name")
+  avatarUrl      String?        @map("avatar_url")
+  locale         String         @default("es")
+  // Private until the user decides to share it (ADR-0028).
+  listVisibility ListVisibility @default(private) @map("list_visibility")
+  counterMode    CounterMode    @default(franchise) @map("counter_mode")
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  marks       Mark[]
+  anilistLink AnilistLink?
+  entitlement Entitlement?
+
+  @@map("profile")
+}
+
+model Mark {
+  userId    String     @map("user_id") @db.Uuid
+  anilistId Int        @map("anilist_id")
+  malId     Int?       @map("mal_id")
+  status    MarkStatus
+  // Kept for the yearly summary (Wrapped).
+  markedAt  DateTime   @default(now()) @map("marked_at") @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@id([userId, anilistId])
+  @@map("mark")
+}
+
+model AnilistLink {
+  userId               String    @id @map("user_id") @db.Uuid
+  anilistUserId        Int       @unique @map("anilist_user_id")
+  // Encrypted by the API before it is stored (ADR-0025); never plain text.
+  accessTokenEncrypted Bytes     @map("access_token_encrypted")
+  tokenExpiresAt       DateTime? @map("token_expires_at") @db.Timestamptz(6)
+  linkedAt             DateTime  @default(now()) @map("linked_at") @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("anilist_link")
+}
+
+model Entitlement {
+  userId                 String    @id @map("user_id") @db.Uuid
+  plan                   Plan
+  // Null for the lifetime plan.
+  validUntil             DateTime? @map("valid_until") @db.Timestamptz(6)
+  lemonSqueezyCustomerId String?   @map("lemon_squeezy_customer_id")
+  updatedAt              DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("entitlement")
+}
+
+// Provider event ids already processed, so a webhook is never applied twice.
+model BillingEvent {
+  eventId    String   @id @map("event_id")
+  eventName  String   @map("event_name")
+  receivedAt DateTime @default(now()) @map("received_at") @db.Timestamptz(6)
+
+  @@map("billing_event")
+}
+
+// Curator corrections to the AniList relation graph; only the curator edits them.
+model FranchiseOverride {
+  anilistId       Int           @id @map("anilist_id")
+  franchiseRootId Int           @map("franchise_root_id")
+  role            FranchiseRole
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("franchise_override")
+}

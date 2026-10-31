@@ -1,0 +1,3 @@
+# False positive: a fictional user uuid in a test, named apiUser, matched generic-api-key.
+# The variable was renamed afterwards; this entry only covers that old commit.
+cc42087abb529f35ecfa6ca4b826e93074c1cffa:apps/api/src/db/migrations.test.ts:generic-api-key:138
