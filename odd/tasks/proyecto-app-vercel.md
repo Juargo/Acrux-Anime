@@ -29,3 +29,4 @@ Branch: `feat/proyecto-app-vercel` · Delivery: `ask-on-risk` · Test runner: Vi
 - L2: ADR-0031 note committed on `docs/h2-en-paralelo-a-la-validacion` (a81689b), not pushed yet.
 - L3: Vercel zero-config Express takes a whole project; this feature uses the Vite preset with an `api/` function that imports the Express app from `@acrux/api` instead.
 - L4: T1–T3 committed (b981b02). RED: `Cannot find module './app.js'`; GREEN: 2 Supertest tests. Lint, typecheck, test, build pass; `pnpm audit --audit-level=high` clean (2 moderate).
+- L5: Review (risk, reliability) approved without corrections and acknowledged. Vercel project `app` created by the stakeholder (prj_BsyuzU8S56toVXFCgKcW4HOyeeo2, root `apps/web`, Vite preset); set Node 22.x and enabled Git deployments (the API creation left them disabled). `DATABASE_URL` per environment moves to #22, when the API first uses the database.
