@@ -13,3 +13,14 @@ export interface Module {
   name: string;
   routes: RouteDefinition[];
 }
+
+declare global {
+  namespace Express {
+    interface Locals {
+      requestId: string;
+      // Set by the session middleware on private routes.
+      session: import('./session.js').Session;
+      userIdHash?: string;
+    }
+  }
+}
