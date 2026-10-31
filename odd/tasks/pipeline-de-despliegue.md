@@ -17,11 +17,13 @@ Branch: `ci/pipeline-de-despliegue` · Delivery: `ask-on-risk` · Test runner: a
 
 | ID | Specs | Route | Status | Evidence |
 |---|---|---|---|---|
-| T1 | S1, S2, S4, S6, S7 | inline | pending | `deploy.yml` (after CI via `workflow_run`), `weekly.yml`, `git.deploymentEnabled.main: false` |
-| T2 | S3, S5 | stakeholder (secrets) | pending | environment `deploy-production` with reviewer, `VERCEL_TOKEN`, `DATABASE_URL_UNPOOLED`, vars `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` |
+| T1 | S1, S2, S4, S6, S7 | inline | done (e8138e2) | `deploy.yml` (after CI via `workflow_run`), `weekly.yml`, `git.deploymentEnabled.main: false` |
+| T2 | S3, S5 | stakeholder (secrets) | done | environment `deploy-production` with reviewer, `VERCEL_TOKEN`, `DATABASE_URL_UNPOOLED`, vars `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` |
 | T3 | S6, S7 | after merge | pending | first deploy run; rollback proof |
 
 ## Log
 
 - L1 (2026-10-31, stakeholder): "si" to continuing with #24.
 - L2: The deploy job reuses CI through `workflow_run` instead of duplicating its steps; calling ci.yml with `workflow_call` would share its concurrency group with the caller. `vercel rollback` needs a target, so the job records the current production deployment (`vercel inspect app.acruxanime.com`) before deploying.
+- L3: actionlint clean on all workflows. Gentle AI review (risk, resilience) ran both lenses but STATUS stopped with `corrupted_or_unverifiable_authority` (terminal, no automatic continuation); manual check of trigger, secret scope, script injection and step order recorded instead.
+- L4 (2026-10-31): the stakeholder created a Vercel token scoped to the `app` project only (the UI offered project scopes) and ran `setup-deploy-env.sh`. Verified: environment `deploy-production` with required reviewer Juargo and protected branches only; secrets `VERCEL_TOKEN`, `DATABASE_URL_UNPOOLED` (Neon `production`); vars `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (prj_3fp2TvApAzFsHWFecSyqLGuSr4Vv).
