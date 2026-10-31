@@ -35,7 +35,7 @@
 
 | Hito | Qué se entrega | Condición para pasar al siguiente |
 |---|---|---|
-| **H1. Validación** | Entrevistas, encuesta y landing de prueba en `acruxanime.com` con lista de espera y medición en PostHog (ADR-0030). Correos de autorización a AniList y MyAnimeList. | Se cumplen los umbrales del plan de validación |
+| **H1. Validación** | Entrevistas, encuesta y landing de prueba en `acruxanime.com` con lista de espera y medición en PostHog (ADR-0030). Correos de autorización a AniList y MyAnimeList. | ~~Se cumplen los umbrales del plan de validación~~ Se cumplen los umbrales del plan de validación antes de invitar a los testers de H2. La construcción de H2 puede empezar mientras H1 sigue abierto. (Corregido el 2026-10-30, por decisión del stakeholder; ver «Notas».) |
 | **H2. Beta cerrada** | Web app en `app.acruxanime.com` para 30 a 50 testers de la lista de espera: login con Google, marcar franquicias, contador, tarjeta, perfil público y borrado de cuenta. **Sin cobro.** | Métricas RN-M1 a RN-M3 medidas y **autorización escrita de AniList** |
 | **H3. Lanzamiento público** | Apertura de la web app a todos, en español e inglés. | Licencia comercial de AniList, paso a Vercel Pro (ADR-0020) y Lemon Squeezy configurado |
 | **H4. Cobro de Plus** | Plan anual y vitalicio de Plus (ADR-0025). | — |
@@ -64,3 +64,7 @@ Sigue vigente el Scrum adaptado a un solo programador de ADR-0001, con sprints c
   - Actualizar los requisitos en Obsidian a «solo web» (incluidos login solo con Google y pagos con Lemon Squeezy).
   - Construir la landing de validación (H1) con la lista de espera y el plan de eventos de ADR-0030.
   - Enviar los correos de autorización a AniList y a MyAnimeList.
+
+## Notas
+
+- **2026-10-30:** el stakeholder decidió empezar a construir H2 (sprint 4: cimientos de la app) sin esperar a que se cierre H1. Al decidirlo, H1 tenía la landing en producción con medición en PostHog, la encuesta y las entrevistas preparadas pero sin publicar, la lista de espera sin la clave de Buttondown y la autorización de AniList (#6) sin respuesta. Los umbrales de H1 siguen siendo la condición para invitar a los testers de H2, y la autorización escrita de AniList sigue siendo condición para H3. El primer sprint de H2 prioriza tareas que no dependen de AniList, para no perder trabajo si la respuesta es negativa.
