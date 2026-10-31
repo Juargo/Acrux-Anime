@@ -71,7 +71,27 @@ jobs:
 
       - name: Deploy
         id: deploy
-        run: pnpm dlx "$VERCEL_CLI" deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        run: |
+          url=$(pnpm dlx "$VERCEL_CLI" deploy --prebuilt --prod --token="$VERCEL_TOKEN" | tail -1)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # After an Instant Rollback, Vercel stops assigning the production domain to new
+      # deployments until one is promoted. Promote explicitly and check the domain moved,
+      # so the smoke test never passes against the old deployment.
+      - name: Promote and confirm the production domain
+        env:
+          NEW_DEPLOYMENT: ${{ steps.deploy.outputs.url }}
+        run: |
+          pnpm dlx "$VERCEL_CLI" promote "$NEW_DEPLOYMENT" --yes --token="$VERCEL_TOKEN"
+          deployment_id() {
+            pnpm dlx "$VERCEL_CLI" inspect "$1" --token="$VERCEL_TOKEN" 2>&1 | grep -oE 'dpl_[A-Za-z0-9]+' | head -1
+          }
+          expected=$(deployment_id "$NEW_DEPLOYMENT")
+          current=$(deployment_id "$PRODUCTION_URL")
+          if [ -z "$expected" ] || [ "$expected" != "$current" ]; then
+            echo "Production domain is on '$current', expected '$expected'." >&2
+            exit 1
+          fi
 
       - name: Smoke test
         run: |
