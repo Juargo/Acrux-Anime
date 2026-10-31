@@ -1,0 +1,86 @@
+name: Deploy
+
+# Production of the `app` project (ADR-0027). Runs only after CI passes on a push to main:
+# migrations first, then the prebuilt deploy, then a smoke test that rolls back on failure.
+# Git deploys of main are off in apps/web/vercel.json, so this is the only way to production.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Migrate, deploy and smoke test
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    # Holds the production secrets and requires the stakeholder's approval.
+    environment:
+      name: deploy-production
+      url: https://app.acruxanime.com
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_CLI: vercel@50.37.0
+      PRODUCTION_URL: https://app.acruxanime.com
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Migrations are backwards compatible (ADR-0022), so they go before the code.
+      # If they fail, the job stops here and production keeps the previous code.
+      - name: Apply database migrations
+        env:
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+        run: pnpm --filter @acrux/api db:deploy
+
+      - name: Build
+        run: |
+          pnpm dlx "$VERCEL_CLI" pull --yes --environment=production --token="$VERCEL_TOKEN"
+          pnpm dlx "$VERCEL_CLI" build --prod --token="$VERCEL_TOKEN"
+
+      - name: Remember the current production deployment
+        id: previous
+        run: |
+          id=$(pnpm dlx "$VERCEL_CLI" inspect "$PRODUCTION_URL" --token="$VERCEL_TOKEN" 2>&1 \
+            | grep -oE 'dpl_[A-Za-z0-9]+' | head -1)
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy
+        id: deploy
+        run: pnpm dlx "$VERCEL_CLI" deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+      - name: Smoke test
+        run: |
+          curl -fsS --retry 5 --retry-all-errors --retry-delay 5 "$PRODUCTION_URL/api/health" \
+            | grep -q '"status":"ok"'
+          curl -fsS --retry 5 --retry-all-errors --retry-delay 5 -o /dev/null "$PRODUCTION_URL/"
+
+      - name: Roll back
+        if: failure() && steps.deploy.outcome == 'success' && steps.previous.outputs.id != ''
+        env:
+          PREVIOUS_DEPLOYMENT: ${{ steps.previous.outputs.id }}
+        run: pnpm dlx "$VERCEL_CLI" rollback "$PREVIOUS_DEPLOYMENT" --yes --token="$VERCEL_TOKEN"
