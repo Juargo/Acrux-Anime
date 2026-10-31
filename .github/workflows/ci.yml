@@ -42,6 +42,11 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: API contract and layers
+        run: |
+          pnpm --filter @acrux/api openapi:check
+          pnpm --filter @acrux/api depcruise
+
       - name: Build
         run: pnpm build
 
