@@ -64,34 +64,27 @@ jobs:
 
       - name: Remember the current production deployment
         id: previous
+        # Without it there is nothing to roll back to, so the job stops before deploying.
         run: |
-          id=$(pnpm dlx "$VERCEL_CLI" inspect "$PRODUCTION_URL" --token="$VERCEL_TOKEN" 2>&1 \
-            | grep -oE 'dpl_[A-Za-z0-9]+' | head -1)
+          id=$(.github/scripts/vercel-production.sh current)
+          test -n "$id"
           echo "id=$id" >> "$GITHUB_OUTPUT"
 
       - name: Deploy
         id: deploy
         run: |
           url=$(pnpm dlx "$VERCEL_CLI" deploy --prebuilt --prod --token="$VERCEL_TOKEN" | tail -1)
-          echo "url=$url" >> "$GITHUB_OUTPUT"
+          id=$(.github/scripts/vercel-production.sh deployment-id "$url")
+          test -n "$id"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
 
       # After an Instant Rollback, Vercel stops assigning the production domain to new
-      # deployments until one is promoted. Promote explicitly and check the domain moved,
-      # so the smoke test never passes against the old deployment.
+      # deployments until one is promoted. Promote explicitly and wait until production
+      # serves it, so the smoke test never passes against the old deployment.
       - name: Promote and confirm the production domain
         env:
-          NEW_DEPLOYMENT: ${{ steps.deploy.outputs.url }}
-        run: |
-          pnpm dlx "$VERCEL_CLI" promote "$NEW_DEPLOYMENT" --yes --token="$VERCEL_TOKEN"
-          deployment_id() {
-            pnpm dlx "$VERCEL_CLI" inspect "$1" --token="$VERCEL_TOKEN" 2>&1 | grep -oE 'dpl_[A-Za-z0-9]+' | head -1
-          }
-          expected=$(deployment_id "$NEW_DEPLOYMENT")
-          current=$(deployment_id "$PRODUCTION_URL")
-          if [ -z "$expected" ] || [ "$expected" != "$current" ]; then
-            echo "Production domain is on '$current', expected '$expected'." >&2
-            exit 1
-          fi
+          NEW_DEPLOYMENT: ${{ steps.deploy.outputs.id }}
+        run: .github/scripts/vercel-production.sh promote "$NEW_DEPLOYMENT"
 
       - name: Smoke test
         run: |
@@ -100,7 +93,7 @@ jobs:
           curl -fsS --retry 5 --retry-all-errors --retry-delay 5 -o /dev/null "$PRODUCTION_URL/"
 
       - name: Roll back
-        if: failure() && steps.deploy.outcome == 'success' && steps.previous.outputs.id != ''
+        if: failure() && steps.deploy.outcome != 'skipped' && steps.previous.outputs.id != ''
         env:
           PREVIOUS_DEPLOYMENT: ${{ steps.previous.outputs.id }}
-        run: pnpm dlx "$VERCEL_CLI" rollback "$PREVIOUS_DEPLOYMENT" --yes --token="$VERCEL_TOKEN"
+        run: .github/scripts/vercel-production.sh rollback "$PREVIOUS_DEPLOYMENT"
