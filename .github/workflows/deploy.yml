@@ -9,6 +9,11 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+    inputs:
+      simulate_smoke_failure:
+        description: Make the smoke test fail on purpose to prove the automatic rollback
+        type: boolean
+        default: false
 
 concurrency:
   group: deploy-production
@@ -87,7 +92,13 @@ jobs:
         run: .github/scripts/vercel-production.sh promote "$NEW_DEPLOYMENT"
 
       - name: Smoke test
+        env:
+          SIMULATE_FAILURE: ${{ inputs.simulate_smoke_failure }}
         run: |
+          if [ "$SIMULATE_FAILURE" = "true" ]; then
+            echo "Simulated smoke test failure (workflow_dispatch input)." >&2
+            exit 1
+          fi
           curl -fsS --retry 5 --retry-all-errors --retry-delay 5 "$PRODUCTION_URL/api/health" \
             | grep -q '"status":"ok"'
           curl -fsS --retry 5 --retry-all-errors --retry-delay 5 -o /dev/null "$PRODUCTION_URL/"
