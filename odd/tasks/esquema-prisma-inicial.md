@@ -18,8 +18,8 @@ Branch: `feat/esquema-prisma-inicial` · Delivery: `ask-on-risk` · Test runner:
 
 | ID | Specs | Route | Status | Evidence |
 |---|---|---|---|---|
-| T1 | S1, S2, S3, S5, S7, S8 | inline | pending | Prisma 7 schema + migration (tables, RLS, `acrux_api` grants), integration tests on Postgres 17 |
-| T2 | S4 | inline | pending | `prisma.config.ts` with the direct URL for migrations; docs for env vars |
+| T1 | S1, S2, S3, S5, S7, S8 | inline | done (cc42087) | Prisma 7 schema + migration (tables, RLS, `acrux_api` grants), integration tests on Postgres 17 |
+| T2 | S4 | inline | done (cc42087) | `prisma.config.ts` with the direct URL for migrations; docs for env vars |
 | T3 | S3, S6 | remote (needs authorization) | pending | `acrux_api` login + password on Neon `production` and `dev`, migration applied, Vercel env vars |
 
 ## Log
@@ -27,3 +27,4 @@ Branch: `feat/esquema-prisma-inicial` · Delivery: `ask-on-risk` · Test runner:
 - L1 (2026-10-31, stakeholder): "si" to starting #22 after closing #21.
 - L2: `neon_auth.user.id` is `uuid` per Neon's Supabase migration guide (to confirm in #28). Prisma `latest` is 8.0.0-rc.29, so the stable 7.10.1 is used.
 - L3 (design): Postgres applies RLS to every role that is not the table owner, so a policy-less table also blocks `acrux_api`. Roles created with the Neon API join `neon_superuser` (not least privilege), so `acrux_api` is created in SQL. Chosen: the migration creates `acrux_api` as `NOLOGIN` if missing, grants it DML on the app tables and adds one permissive policy per table **only for `acrux_api`**. Any other non-owner role (as the Data API roles would be) has no grants and no policy. Login and password are set per Neon branch outside the repo (T3).
+- L4: T1–T2 in cc42087. RED: `Could not find Prisma Schema`; GREEN: 14 integration tests on Postgres 17 (testcontainers). Lint, typecheck, all tests (35), build pass; audit high clean. New allowBuilds: @prisma/engines and prisma true; cpu-features, ssh2, protobufjs false.
