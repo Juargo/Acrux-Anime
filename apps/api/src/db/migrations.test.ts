@@ -135,7 +135,7 @@ describe('a role without grants', () => {
 
 describe('the acrux_api role', () => {
   let api: pg.Client;
-  const apiUser = '7a2b3c4d-5e6f-4a1b-8c2d-3e4f5a6b7c8d';
+  const otherUserId = '7a2b3c4d-5e6f-4a1b-8c2d-3e4f5a6b7c8d';
 
   beforeAll(async () => {
     api = await connectAs('acrux_api', 'api-test');
@@ -146,17 +146,19 @@ describe('the acrux_api role', () => {
   });
 
   it('reads, writes, updates and deletes application rows despite RLS', async () => {
-    await api.query(`INSERT INTO profile (user_id, display_name) VALUES ($1, 'Mateo')`, [apiUser]);
+    await api.query(`INSERT INTO profile (user_id, display_name) VALUES ($1, 'Mateo')`, [
+      otherUserId,
+    ]);
     await api.query(
       `INSERT INTO mark (user_id, anilist_id, status) VALUES ($1, 1535, 'watching')`,
-      [apiUser],
+      [otherUserId],
     );
-    await api.query(`UPDATE mark SET status = 'seen' WHERE user_id = $1`, [apiUser]);
-    const { rows } = await api.query('SELECT status FROM mark WHERE user_id = $1', [apiUser]);
+    await api.query(`UPDATE mark SET status = 'seen' WHERE user_id = $1`, [otherUserId]);
+    const { rows } = await api.query('SELECT status FROM mark WHERE user_id = $1', [otherUserId]);
     expect(rows).toEqual([{ status: 'seen' }]);
 
-    await api.query('DELETE FROM profile WHERE user_id = $1', [apiUser]);
-    const remaining = await api.query('SELECT 1 FROM mark WHERE user_id = $1', [apiUser]);
+    await api.query('DELETE FROM profile WHERE user_id = $1', [otherUserId]);
+    const remaining = await api.query('SELECT 1 FROM mark WHERE user_id = $1', [otherUserId]);
     expect(remaining.rowCount).toBe(0);
   });
 
