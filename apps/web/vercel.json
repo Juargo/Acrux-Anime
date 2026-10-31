@@ -1,6 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  },
   "buildCommand": "pnpm --filter @acrux/web... build",
   "regions": ["gru1"],
   "rewrites": [
