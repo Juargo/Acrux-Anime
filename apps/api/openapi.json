@@ -1,0 +1,54 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Acrux API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://app.acruxanime.com"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Availability check",
+        "security": [],
+        "tags": [
+          "system"
+        ],
+        "responses": {
+          "200": {
+            "description": "The API is up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "const": "ok"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "session": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

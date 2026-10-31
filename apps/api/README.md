@@ -9,6 +9,26 @@ API Express de Acrux, publicada como función de Vercel bajo `/api` (ADR-0018, A
 | `pnpm --filter @acrux/api dev` | API local en `http://localhost:3001` |
 | `pnpm --filter @acrux/api test` | Pruebas. Las de la base levantan Postgres 17 en Docker (testcontainers), así que Docker debe estar corriendo. |
 | `pnpm --filter @acrux/api db:deploy` | Aplica las migraciones pendientes con `DATABASE_URL_UNPOOLED` |
+| `pnpm --filter @acrux/api openapi:emit` | Regenera `openapi.json` a partir de las rutas. Hay que commitearlo; la CI lo verifica con `openapi:check`. |
+| `pnpm --filter @acrux/api depcruise` | Verifica las reglas de capas de ADR-0019 (también en CI) |
+
+## Rutas (ADR-0019, ADR-0023, ADR-0025)
+
+- Cada módulo de `src/modules/<módulo>` exporta sus rutas; `createApp(container)` las monta.
+- **Toda ruta es privada** salvo que declare `public: true`: sin un JWT válido de Neon Auth responde `401` (`auth.missing_token` o `auth.invalid_token`). Mientras falte `NEON_AUTH_BASE_URL`, las rutas privadas responden `503 auth.unavailable`.
+- Cada ruta declara `docs` (resumen y respuestas con Zod) para el contrato OpenAPI.
+- Los errores salen en `application/problem+json` con un `code` estable; para devolver uno, lanzá `new ProblemError(status, code, title)`.
+- Cada respuesta lleva `X-Request-Id`. El log por petición nunca recibe cabeceras ni cuerpos.
+
+## Variables de entorno
+
+| Variable | Uso |
+|---|---|
+| `DATABASE_URL` | Pooler de Neon con `acrux_api` (tiempo de ejecución) |
+| `DATABASE_URL_UNPOOLED` | Conexión directa con el rol propietario (solo migraciones, CI) |
+| `NEON_AUTH_BASE_URL` | Base de Neon Auth; el JWKS se lee de `<base>/.well-known/jwks.json` (#28) |
+| `NEON_AUTH_ISSUER` | Emisor esperado del JWT; por defecto, `NEON_AUTH_BASE_URL` |
+| `LOG_LEVEL` | Nivel de `pino` (por defecto `info`) |
 
 ## Base de datos (ADR-0022, ADR-0034)
 

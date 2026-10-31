@@ -7,7 +7,13 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!**/*.md", "!pnpm-lock.yaml", "!apps/landing/public/icons"]
+    "includes": [
+      "**",
+      "!**/*.md",
+      "!pnpm-lock.yaml",
+      "!apps/landing/public/icons",
+      "!apps/api/openapi.json"
+    ]
   },
   "formatter": {
     "enabled": true,
