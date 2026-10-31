@@ -20,10 +20,13 @@ Branch: `feat/esqueleto-api` · Delivery: `ask-on-risk` · Test runner: Vitest +
 
 | ID | Specs | Route | Status | Evidence |
 |---|---|---|---|---|
-| T1 | S1, S3, S4, S5, S10 | inline | pending | container, modules, route definitions, request id, logger, problem errors |
-| T2 | S2, S8, S9 | inline | pending | session middleware with `jose`, tests with a local JWKS |
-| T3 | S6, S7 | inline | pending | OpenAPI emit/check, dependency-cruiser, CI steps |
+| T1 | S1, S3, S4, S5, S10 | inline | done (1e7785c) | container, modules, route definitions, request id, logger, problem errors |
+| T2 | S2, S8, S9 | inline | done (2a8fbdd) | session middleware with `jose`, tests with a local JWKS |
+| T3 | S6, S7 | inline | done (6df4a8d, CI e5cbbc0) | OpenAPI emit/check, dependency-cruiser, CI steps |
 
 ## Log
 
 - L1 (2026-10-31, stakeholder): "si" to starting #23 with JWT verification tested against local keys and connected to Neon Auth in #28.
+- L2: T1 RED `Cannot find module './container.js'`; GREEN 25 tests. Logs never receive headers or bodies; pino `redact` (remove) as a second layer. The test helper first dropped the system module (404 on health): test bug, fixed.
+- L3: T2 RED `Cannot find module './session.js'`; GREEN 10 session tests with a local Ed25519 JWKS (missing/non-Bearer 401 `auth.missing_token`; foreign key, expired, wrong issuer, `alg: none`, non-uuid `sub` 401 `auth.invalid_token`; no `NEON_AUTH_BASE_URL` 503 `auth.unavailable`).
+- L4: T3 RED `Cannot find module './document.js'`; GREEN 4 OpenAPI tests. dependency-cruiser probed with temporary violating files: `routes-not-to-repositories` and `no-foreign-repositories` fire, a module's own repository is allowed. `openapi.json` excluded from Biome (generated). Totals: 39 API tests, lint, typecheck, build, audit high clean.
