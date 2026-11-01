@@ -1,6 +1,6 @@
 # ADR-0034: Neon para Postgres y autenticación, en lugar de Supabase
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado (destino de los respaldos reemplazado por Backblaze B2 en ADR-0035)
 - **Fecha:** 2026-10-28
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-28 («Voy a cambiar supabase por neon»; «Ahora usemos neon Auth»). Motivo declarado: falta de presupuesto para seguir usando Supabase.
