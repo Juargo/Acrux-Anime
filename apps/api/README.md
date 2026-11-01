@@ -36,7 +36,8 @@ API Express de Acrux, publicada como función de Vercel bajo `/api` (ADR-0018, A
   - `DATABASE_URL`: cadena **con pooler** de Neon y el rol `acrux_api`. La usa la API en tiempo de ejecución.
   - `DATABASE_URL_UNPOOLED`: cadena **directa** con el rol propietario. Solo la usan las migraciones, desde CI.
 - **Rol `acrux_api`:** lo crea la migración inicial **sin login**. En cada rama de Neon se le da login y contraseña una sola vez, con el rol propietario: `ALTER ROLE acrux_api WITH LOGIN PASSWORD '<secreto>';`. La contraseña solo vive en las variables de entorno de Vercel. No se crea con la consola ni con la API de Neon, porque así quedaría dentro de `neon_superuser`.
-- **RLS:** todas las tablas de `public` tienen RLS activado. La única política es `acrux_api_all`, solo para `acrux_api`. Cualquier otro rol que no sea el propietario no puede leer ni escribir.
+- **Rol `acrux_backup`:** solo lectura, para el respaldo semanal. Lo crea una migración **sin login** y con `BYPASSRLS`, porque `pg_dump` falla si RLS le oculta filas. El login solo se le da en `production`; ver [el runbook de respaldos](../../docs/runbooks/respaldos.md).
+- **RLS:** todas las tablas de `public` tienen RLS activado. La única política es `acrux_api_all`, solo para `acrux_api`. Fuera del propietario y de `acrux_backup`, que solo lee, ningún otro rol puede leer ni escribir.
 
 ### Al agregar una tabla nueva
 

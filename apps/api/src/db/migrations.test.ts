@@ -16,10 +16,12 @@ const APP_TABLES = [
   'franchise_override',
 ];
 const USER_ID = '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f70';
+const backupUserId = '8c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f';
 const apiDir = fileURLToPath(new URL('../..', import.meta.url));
 
 let container: StartedPostgreSqlContainer;
 let owner: pg.Client;
+let backupStartsWithLogin: boolean | undefined;
 
 function urlFor(user: string, password: string): string {
   const url = new URL(container.getConnectionUri());
@@ -52,6 +54,10 @@ beforeAll(async () => {
   });
   owner = new pg.Client({ connectionString: container.getConnectionUri() });
   await owner.connect();
+  const { rows } = await owner.query<{ rolcanlogin: boolean }>(
+    `SELECT rolcanlogin FROM pg_roles WHERE rolname = 'acrux_backup'`,
+  );
+  backupStartsWithLogin = rows[0]?.rolcanlogin;
   // Outside the repo, each Neon branch gives acrux_api a login and a secret password.
   await owner.query(`ALTER ROLE acrux_api WITH LOGIN PASSWORD 'api-test'`);
   // Stands for any other role, such as the ones the Neon Data API would use.
@@ -170,5 +176,66 @@ describe('the acrux_api role', () => {
 
   it('cannot read the migration history', async () => {
     expect(await sqlState(api.query('SELECT * FROM _prisma_migrations'))).toBe('42501');
+  });
+});
+
+describe('the acrux_backup role', () => {
+  let backup: pg.Client;
+
+  beforeAll(async () => {
+    // Outside the repo, production gives acrux_backup a login and a secret password.
+    await owner.query(`ALTER ROLE acrux_backup WITH LOGIN PASSWORD 'backup-test'`);
+    backup = await connectAs('acrux_backup', 'backup-test');
+  });
+
+  afterAll(async () => {
+    await backup?.end();
+  });
+
+  it('starts without login after the migrations', () => {
+    expect(backupStartsWithLogin).toBe(false);
+  });
+
+  it.each([...APP_TABLES, '_prisma_migrations'])('reads %s despite RLS', async (table) => {
+    expect(await sqlState(backup.query(`SELECT * FROM ${table}`))).toBeUndefined();
+  });
+
+  it('sees rows that RLS hides from a role without a policy', async () => {
+    await owner.query(`INSERT INTO profile (user_id, display_name) VALUES ($1, 'Lucía')`, [
+      backupUserId,
+    ]);
+    const { rows } = await backup.query('SELECT display_name FROM profile WHERE user_id = $1', [
+      backupUserId,
+    ]);
+    expect(rows).toEqual([{ display_name: 'Lucía' }]);
+  });
+
+  it('cannot write rows or change the schema', async () => {
+    expect(
+      await sqlState(
+        backup.query(`INSERT INTO profile (user_id, display_name) VALUES ($1, 'x')`, [
+          '00000000-0000-4000-8000-000000000002',
+        ]),
+      ),
+    ).toBe('42501');
+    expect(await sqlState(backup.query('DELETE FROM mark'))).toBe('42501');
+    expect(await sqlState(backup.query('CREATE TABLE intruder (id int)'))).toBe('42501');
+    expect(await sqlState(backup.query('DROP TABLE mark'))).toBe('42501');
+  });
+
+  it('dumps the schema and the data of every table', async () => {
+    const { exitCode, stdout } = await container.exec(
+      [
+        'pg_dump',
+        '--host=localhost',
+        '--username=acrux_backup',
+        `--dbname=${container.getDatabase()}`,
+      ],
+      { env: { PGPASSWORD: 'backup-test' } },
+    );
+    expect(exitCode).toBe(0);
+    for (const table of [...APP_TABLES, '_prisma_migrations']) {
+      expect(stdout).toContain(`COPY public.${table}`);
+    }
   });
 });

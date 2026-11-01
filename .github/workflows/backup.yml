@@ -1,0 +1,55 @@
+name: Backup
+
+# Weekly encrypted backup of production to a private R2 bucket (ADR-0022, ADR-0032,
+# ADR-0034). The repo is public, so the backup is never an Actions artifact. The
+# environment has no reviewers, because a scheduled job must not wait for a human, and
+# only main can use it. The private age key is not in the repo or in Actions.
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Dump, encrypt and upload
+    runs-on: ubuntu-24.04
+    environment: backup-production
+    timeout-minutes: 20
+    env:
+      # R2 rejects the checksums that recent AWS CLI versions send by default.
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+      AWS_DEFAULT_REGION: auto
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Neon runs PostgreSQL 18 and pg_dump refuses a server newer than itself.
+      - name: Install age and the PostgreSQL 18 client
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends age postgresql-client-18
+
+      - name: Back up production
+        env:
+          DATABASE_URL_BACKUP: ${{ secrets.DATABASE_URL_BACKUP }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AGE_RECIPIENT: ${{ vars.AGE_RECIPIENT }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          PG_DUMP: /usr/lib/postgresql/18/bin/pg_dump
+        run: .github/scripts/backup-database.sh
