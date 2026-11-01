@@ -17,11 +17,6 @@ key="acrux-$(date -u +%Y-%m-%dT%H%M%SZ).dump.age"
 "${PG_DUMP:-pg_dump}" --format=custom --dbname="$DATABASE_URL_BACKUP" \
   | age --recipient "$AGE_RECIPIENT" --output "$encrypted"
 
-if [ ! -s "$encrypted" ]; then
-  echo "The encrypted backup is empty." >&2
-  exit 1
-fi
-
 aws s3 cp --no-progress "$encrypted" "s3://$R2_BUCKET/$key" --endpoint-url "$R2_ENDPOINT"
 
 size="$(aws s3api head-object --bucket "$R2_BUCKET" --key "$key" \

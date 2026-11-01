@@ -11,7 +11,7 @@ Se hace una sola vez, y otra vez al rotar una clave.
 1. **Bucket:** en Cloudflare, R2 → *Create bucket*, con el nombre `acrux-respaldos` y sin acceso público. En *Settings* → *Object lifecycle rules*, agregar una regla que borre los objetos a los 30 días.
 2. **Token de R2:** R2 → *Manage API tokens* → *Create API token*, con *Object Read & Write* limitado a `acrux-respaldos`. Copiar el Access Key ID, el Secret Access Key y el endpoint `https://<cuenta>.r2.cloudflarestorage.com`.
 3. **Claves de `age`:** ejecutar `age-keygen`. La línea `# public key: age1...` es la clave pública. El archivo completo es la clave privada: va al gestor de contraseñas, no se guarda en el repositorio ni en una carpeta sincronizada.
-4. **Rol `acrux_backup`:** en el SQL Editor de Neon, sobre la rama `production`, con el rol propietario y una clave nueva generada con `openssl rand -base64 32`:
+4. **Rol `acrux_backup`:** en el SQL Editor de Neon, sobre la rama `production`, con el rol propietario y una clave nueva generada con `openssl rand -hex 32`. Va en hexadecimal porque una clave en base64 puede traer `/`, que rompe la URL de conexión y expone parte de la clave en los logs públicos del flujo:
 
    ```sql
    ALTER ROLE acrux_backup WITH LOGIN PASSWORD '<secreto>';
@@ -35,7 +35,7 @@ Se hace una sola vez, y otra vez al rotar una clave.
 gh run list --workflow backup.yml --limit 3
 ```
 
-Un fallo avisa por el correo normal de GitHub Actions. Para forzar un respaldo: `gh workflow run backup.yml`. GitHub desactiva los flujos programados tras 60 días sin actividad en el repositorio; si eso pasa, se reactiva con `gh workflow enable backup.yml`.
+Un fallo avisa por el correo normal de GitHub Actions y hay que atenderlo: la regla de expiración sigue borrando los respaldos antiguos aunque no lleguen nuevos, así que un mes de fallos deja el bucket vacío. Para forzar un respaldo: `gh workflow run backup.yml`. GitHub desactiva los flujos programados tras 60 días sin actividad en el repositorio; si eso pasa, se reactiva con `gh workflow enable backup.yml`.
 
 ## Restaurar
 
@@ -67,7 +67,7 @@ Se restaura siempre en una **rama temporal de Neon**, nunca directamente sobre `
 
 5. Borrar la rama temporal y `respaldo.dump.age`.
 
-Una restauración real sobre `production` es una decisión aparte: se apaga el despliegue, se decide la ventana de pérdida con los datos de la última semana y se registra lo ocurrido.
+Una restauración real sobre `production` es una decisión aparte: se apaga el despliegue, se decide la ventana de pérdida con los datos de la última semana y se registra lo ocurrido. Además, `--no-privileges` no restaura los permisos, así que hay que volver a aplicar los `GRANT` de `acrux_api` de las migraciones.
 
 ## Pruebas de restauración
 
