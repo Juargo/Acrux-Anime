@@ -52,6 +52,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0032](./0032-retencion-de-respaldos-de-30-dias.md) | Retención de los respaldos: 30 días | Aceptado | Sesión 2026-10-27 |
 | [0033](./0033-lista-de-espera-con-buttondown.md) | Lista de espera con Buttondown | Aceptado | Sesión 2026-10-27 |
 | [0034](./0034-neon-para-postgres-y-autenticacion.md) | Neon para Postgres y autenticación, en lugar de Supabase | Aceptado | Sesión 2026-10-28 |
+| [0035](./0035-respaldos-en-backblaze-b2.md) | Respaldos en Backblaze B2, en lugar de Cloudflare R2 | Aceptado | Sesión 2026-11-01 |
 
 ## Trazabilidad con las reuniones
 
@@ -87,6 +88,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Decisión 2026-10-26: sin fecha fija, primero validar; sesión 2026-10-27: solo web, sin apps nativas | 0031 (reemplaza 0014 y la fase nativa de 0013) |
 | Sesión 2026-10-27: respaldos con retención de 30 días (DD-32) | 0032 (reemplaza la retención de 0022 y 0028) |
 | Sesión 2026-10-27: lista de espera de la landing en Buttondown, con doble confirmación | 0033 (complementa 0028) |
+| Sesión 2026-11-01: respaldos en Backblaze B2, sin medio de pago | 0035 (reemplaza R2 en 0022, 0028 y 0034) |
 | Sesión 2026-10-27: repo público, región São Paulo, lista privada por defecto | 0027, 0020, 0028 |
 | Sesión 2026-10-27: monorepo con pnpm workspaces aceptado (solo web) | 0002 |
 | D13 | 0010 |

@@ -1,6 +1,6 @@
 # ADR-0028: Seguridad y privacidad desde el diseño y por defecto
 
-- **Estado:** Aceptado (plazo y retención de 4 semanas de los respaldos reemplazados por ADR-0032)
+- **Estado:** Aceptado (plazo y retención de 4 semanas de los respaldos reemplazados por ADR-0032; Cloudflare reemplazado por Backblaze en ADR-0035)
 - **Fecha:** 2026-10-27
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-27 (alcance: ley chilena + GDPR básico). Requisitos RNF-30 a RNF-36.
