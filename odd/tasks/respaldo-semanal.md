@@ -17,8 +17,8 @@ Branch: `feat/respaldo-semanal` · Delivery: `ask-on-risk` · Test runner: vites
 
 | ID | Specs | Route | Status | Evidence |
 |---|---|---|---|---|
-| T1 | S7 | stakeholder | pending | check on the Neon `dev` branch that the owner can create a `BYPASSRLS` role |
-| T2 | S7 | inline | written | migration and role tests green (25); removing BYPASSRLS fails the dump test. Risk: item 2. Blocked by T1 |
+| T1 | S7 | stakeholder | done | L5 |
+| T2 | S7 | inline | written | migration and role tests green (25); removing BYPASSRLS fails the dump test. Risk: item 2 |
 | T3 | S2, S4, S7 | inline | written | `backup.yml`, `backup-database.sh`; shellcheck, actionlint, stubbed run. Risk: items 2, 5 |
 | T4 | S3 | inline | written | `docs/runbooks/respaldos.md`; steps unproven until T6 |
 | T5 | S1, S7 | stakeholder (secrets) | pending | bucket, lifecycle rule, token, `age` keys, environment, role password |
@@ -30,3 +30,4 @@ Branch: `feat/respaldo-semanal` · Delivery: `ask-on-risk` · Test runner: vites
 - L2 (2026-11-01, stakeholder): "si" to the read-only role over reusing the owner credential or approving each week. `deploy-production` requires a reviewer, so a scheduled job there would wait for a human.
 - L3: Neon runs PostgreSQL 18 and `pg_dump` refuses a newer server, so the job installs the PGDG client 18. `pg_dump` turns `row_security` off and errors when RLS would hide rows, and every table has RLS, so the role needs `BYPASSRLS`. Neon documents that attribute on `neon_superuser`, not whether its members can grant it; T1 checks that first. If they cannot, the fallback is one read-only policy per table and `pg_dump --enable-row-security`.
 - L4: Stubbed run of `backup-database.sh`: success uploads one object; a failing `pg_dump` exits 7 with no upload, because the object is uploaded only after the pipeline ends. No committed test: the repo has no shell test runner, and the real proof is T6.
+- L5 (2026-11-01): the stakeholder ran the check in the Neon SQL Editor: `neondb_owner` has `rolbypassrls = t`, and `CREATE ROLE ... BYPASSRLS` plus `GRANT pg_read_all_data` both succeeded, so the migration stands and the fallback in L3 is not needed. The screenshot shows the compute, not the branch name; the role and attributes are the same on every branch.
