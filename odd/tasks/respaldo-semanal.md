@@ -20,9 +20,9 @@ Branch: `feat/respaldo-semanal` · Delivery: `ask-on-risk` · Test runner: vites
 | T1 | S7 | stakeholder | done | L5 |
 | T2 | S7 | inline | written | migration and role tests green (25); removing BYPASSRLS fails the dump test. Risk: item 2 |
 | T3 | S2, S4, S7 | inline | written | `backup.yml`, `backup-database.sh`; shellcheck, actionlint, stubbed run. Risk: items 2, 5 |
-| T4 | S3 | inline | written | `docs/runbooks/respaldos.md`; steps unproven until T6 |
-| T5 | S1, S7 | stakeholder (secrets) | pending | Backblaze DPA, bucket, lifecycle rule, application key, `age` keys, environment, role password |
-| T6 | S3, S5, S6 | after merge | pending | first backup run; restore proof |
+| T4 | S3 | inline | done | `docs/runbooks/respaldos.md`; steps proven and corrected in T6 |
+| T5 | S1, S7 | stakeholder (secrets) | done | Backblaze bucket, lifecycle rule and DPA reported done by the stakeholder; key, environment and role password proven by run 41347288117 (L8) |
+| T6 | S3, S5, S6 | after merge | done | run 41347288117 stored the backup; restore matched production (L9, L10) |
 
 ## Log
 
@@ -33,3 +33,6 @@ Branch: `feat/respaldo-semanal` · Delivery: `ask-on-risk` · Test runner: vites
 - L5 (2026-11-01): the stakeholder ran the check in the Neon SQL Editor: `neondb_owner` has `rolbypassrls = t`, and `CREATE ROLE ... BYPASSRLS` plus `GRANT pg_read_all_data` both succeeded, so the migration stands and the fallback in L3 is not needed. The screenshot shows the compute, not the branch name; the role and attributes are the same on every branch.
 - L6 (2026-11-01): native review declined by the stakeholder for this candidate, and for the two stale-base candidates of the stop hook. Independent verifier: one blocker, fixed here: `openssl rand -base64` can yield `/`, which breaks the libpq URI and prints part of the password in public logs, so the runbook uses `-hex`. Removed the empty-file check (`age` output is never empty). Advisories recorded, not fixed: a weekly cron cannot keep S5 strictly under 7 days at every moment, it is a point-in-time check; a size mismatch leaves the object in the bucket; the role can create temp tables and large objects through PUBLIC defaults, with no route into application tables. Tests still use Postgres 17; the verifier ran the restore on local Postgres 18.
 - L7 (2026-11-01, stakeholder): "Necesito una alternativa completamente gratuita por ahora", then "si, dale con Backblaze". Enabling R2 asks for a card or PayPal. ADR-0035 moves the backups to Backblaze B2, on branch `feat/respaldo-backblaze`. The lifecycle rule hides at 28 days and deletes one day later, because the rules do not run in real time. The privacy policy now names Backblaze; the stakeholder must accept its DPA before the first backup.
+- L8 (2026-11-01): `AGE_RECIPIENT` first held the public and the private key (137 characters). It was caught before any run and never printed; the stakeholder deleted it, regenerated the keys and set the public key only. First backup: run 41347288117 stored `acrux-2026-11-01T203147Z.dump.age` (17689 bytes). S5 is a point-in-time check (L6).
+- L9 (2026-11-01): the restore failed twice for procedure reasons, and the backup was fine. `--identity <(pbpaste)` read the copied command instead of the key. Then `pg_restore` ran against `neondb` of the temporary branch: 29 "already exists" errors, and the data load added 2 rows to `_prisma_migrations` there. Read-only checks showed `dev` intact and `restauracion` empty. The runbook now reads the key with `read -rs`, adds `--exit-on-error` and warns about the `neondb` default.
+- L10 (2026-11-01): restore into `restauracion` on `restauracion-20261101` finished without errors: `profile=0 mark=0 migrations=2`. The stakeholder reported production as 0, 0, 2. S3 and S6 hold for schema and migrations; production has no user rows yet, so row data was not compared. Native review of this feature did not run (declined each time).
