@@ -171,7 +171,8 @@ describe('handleWaitlistRequest rate limit', () => {
     expect(keys.join()).not.toContain('203.0.113.7');
   });
 
-  it('still signs up when the limit store fails', async () => {
+  it('still signs up when the limit store fails, and warns', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const fetch = buttondown(201);
     const limit = vi.fn(async () => {
       throw new Error('upstash is down');
@@ -179,5 +180,7 @@ describe('handleWaitlistRequest rate limit', () => {
     const response = await handleWaitlistRequest(fromIp('203.0.113.7'), { apiKey, fetch, limit });
     expect(response.status).toBe(200);
     expect(fetch).toHaveBeenCalledOnce();
+    expect(warn).toHaveBeenCalledWith('waitlist rate limit check failed', 'Error');
+    warn.mockRestore();
   });
 });

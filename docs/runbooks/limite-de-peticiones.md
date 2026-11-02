@@ -14,7 +14,7 @@ La API y la lista de espera de la landing cuentan las peticiones en Upstash Redi
 - **Algoritmo:** ventana fija, con un contador por clave y ventana creado y vencido en una sola transacción (`INCR` y `EXPIREAT`). Cerca del cambio de ventana se pueden aceptar hasta el doble de peticiones seguidas.
 - **IP:** sale de `x-vercel-forwarded-for`, que Vercel sobrescribe.
 - **Privacidad:** Upstash sólo recibe un hash SHA-256 de la IP o del usuario, que vence con su ventana. Un hash de una IP se puede revertir probando todas las direcciones; el vencimiento corto es lo que limita esa exposición.
-- **Fallos:** si Upstash falla, responde algo inesperado o tarda más de un segundo, la consulta se corta y la petición pasa. La API registra `rate limit check failed`; la landing no registra nada.
+- **Fallos:** si Upstash falla, responde algo inesperado o tarda más de un segundo, la consulta se corta y la petición pasa. La API registra `rate limit check failed` y la landing, `waitlist rate limit check failed`, en los logs de Vercel.
 
 ## Configuración inicial
 

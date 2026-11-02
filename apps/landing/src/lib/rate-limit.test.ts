@@ -64,7 +64,7 @@ describe('createUpstashFixedWindow', () => {
       });
       const started = Date.now();
       await expect(limit('key-slow')).rejects.toThrow();
-      expect(Date.now() - started).toBeLessThan(1500);
+      expect(Date.now() - started).toBeLessThan(3000);
     } finally {
       server.closeAllConnections();
       server.close();

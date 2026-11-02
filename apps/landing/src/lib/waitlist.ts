@@ -26,7 +26,8 @@ async function retryAfter(request: Request, limit: Limit | undefined): Promise<n
   try {
     const result = await limit(await clientIpKey(request));
     return result.allowed ? undefined : result.retryAfterSeconds;
-  } catch {
+  } catch (error) {
+    console.warn('waitlist rate limit check failed', (error as Error)?.name);
     return undefined;
   }
 }

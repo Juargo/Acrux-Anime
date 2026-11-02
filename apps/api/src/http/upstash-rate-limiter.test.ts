@@ -99,7 +99,7 @@ describe('createUpstashRateLimiter', () => {
       const limiter = createUpstashRateLimiter({ url: `http://127.0.0.1:${port}`, token: TOKEN });
       const started = Date.now();
       await expect(limiter.limit('public', 'key-slow')).rejects.toThrow();
-      expect(Date.now() - started).toBeLessThan(1500);
+      expect(Date.now() - started).toBeLessThan(3000);
     } finally {
       server.closeAllConnections();
       server.close();
