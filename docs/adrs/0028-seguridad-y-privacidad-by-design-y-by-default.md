@@ -1,6 +1,6 @@
 # ADR-0028: Seguridad y privacidad desde el diseño y por defecto
 
-- **Estado:** Aceptado (plazo y retención de 4 semanas de los respaldos reemplazados por ADR-0032; Cloudflare reemplazado por Backblaze en ADR-0035)
+- **Estado:** Aceptado (plazo y retención de 4 semanas de los respaldos reemplazados por ADR-0032; Cloudflare reemplazado por Backblaze en ADR-0035; almacén del límite de peticiones elegido el 2026-11-02, ver punto 6)
 - **Fecha:** 2026-10-27
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-27 (alcance: ley chilena + GDPR básico). Requisitos RNF-30 a RNF-36.
@@ -44,6 +44,7 @@ Acrux maneja datos personales (identidad de Google, nombre, avatar, lista), un t
    - `Content-Security-Policy`: `default-src 'self'`; `connect-src` limitado a la API, Supabase, `graphql.anilist.co`, PostHog y Sentry; `img-src` limitado al CDN de AniList, los avatares de Google y `data:`; `frame-ancestors 'none'`.
    - `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` y `Permissions-Policy` restrictiva.
 6. **Límite de peticiones** en la API por usuario y por IP. Las rutas de escritura y el perfil público se protegen primero.
+   - **Nota (2026-11-02, issue #27):** el almacén es **Upstash Redis**, en su capa gratuita. El firewall de Vercel admite una sola regla de límite por proyecto en Hobby y no informa cuándo se reinicia la ventana. Upstash permite un límite distinto por tipo de ruta y un `Retry-After` exacto; a cambio, suma un encargado del tratamiento. Ventana fija: escrituras, 30 por minuto por usuario; rutas públicas, 60 por minuto por IP; lista de espera, 5 cada 10 minutos por IP. Upstash sólo recibe un hash de la IP o del usuario, que vence con su ventana. Si Upstash falla o tarda más de un segundo, la petición pasa. Ver [`docs/runbooks/limite-de-peticiones.md`](../runbooks/limite-de-peticiones.md).
 7. **Cadena de suministro:** lockfile, Dependabot, `pnpm audit`, Semgrep y acciones fijadas por SHA (ADR-0027).
 
 ### Privacidad por defecto
@@ -57,6 +58,7 @@ Acrux maneja datos personales (identidad de Google, nombre, avatar, lista), un t
    - Supresión: `DELETE /api/v1/me` borra los datos de Acrux, la persona en PostHog y el vínculo con AniList (RDI-35). **Plazo:** inmediato en la base de datos; en los respaldos, al expirar estos (4 semanas). Responde la pregunta abierta de RNF-33.
    - Oposición: retirar el consentimiento de analítica en cualquier momento.
 5. **Encargados del tratamiento** (todos con acuerdo de procesamiento de datos y cláusulas contractuales tipo para transferencias internacionales): Supabase, Vercel, PostHog, Sentry, Lemon Squeezy y Cloudflare (respaldos). Se listan en la política de privacidad.
+   - **Nota (2026-11-02):** se suma Upstash, para el límite de peticiones (punto 6 de «Seguridad desde el diseño»).
 6. **Región:** base de datos y funciones en São Paulo (`sa-east-1` y `gru1`, ADR-0020). PostHog en su nube de la UE.
 7. **Respaldo cifrado** en un bucket privado, con retención de 4 semanas (ADR-0022); los datos borrados desaparecen de los respaldos cuando estos expiran, y la política de privacidad lo informa.
 
@@ -65,10 +67,10 @@ Acrux maneja datos personales (identidad de Google, nombre, avatar, lista), un t
 - **Positivas:** los controles forman parte del diseño desde el primer commit; cumplimiento razonable de la ley chilena y de GDPR sin costo adicional.
 - **Negativas / riesgos:**
   - Lista privada por defecto puede reducir la cantidad de perfiles públicos, el motor viral (RN-03). Se mitiga con la invitación al compartir.
-  - El límite de peticiones en funciones serverless necesita un almacén compartido (ver preguntas abiertas).
+  - ~~El límite de peticiones en funciones serverless necesita un almacén compartido (ver preguntas abiertas).~~ Resuelto el 2026-11-02 con Upstash.
 - **Acciones derivadas:**
   - Redactar la política de privacidad en la landing, con encargados, plazos y derechos (RES-34).
   - Configurar las cabeceras de seguridad en `vercel.json`.
   - Banner de consentimiento de analítica en la web y en la landing.
-  - Elegir el almacén del límite de peticiones al implementar la API: Upstash Redis (capa gratuita) o reglas del firewall de Vercel.
+  - ~~Elegir el almacén del límite de peticiones al implementar la API: Upstash Redis (capa gratuita) o reglas del firewall de Vercel.~~ Hecho el 2026-11-02: Upstash Redis.
 

@@ -58,6 +58,6 @@ Conflictos y vacíos detectados en la revisión del 2026-10-27. Ningún pendient
 | P-07 | **Requisito de edad.** La landing de Figma pide "Tengo 16 años o más"; ningún requisito ni ADR lo define. Se recoge como RF-09 (propuesta). | Figma D01/M01 | H2 |
 | P-08 | **Pantallas sin diseño:** "Acerca de" con la atribución a AniList (ADR-0024), aviso de consentimiento dentro de la app (el de la landing ya existe), celebración de hito (RF-34) y aviso de sincronización pendiente. Falta también el flujo 3 (compartir y perfil público) en la página de flujos. | ADR-0024, ADR-0028 vs Figma | H2 |
 | P-09 | **Autorización de AniList y MyAnimeList:** correos pendientes de envío. | ADR-0024, ADR-0031 | H2 |
-| P-10 | **Almacén del límite de peticiones de la API** sin elegir (Upstash Redis o firewall de Vercel). | ADR-0028 | H2 |
+| P-10 | ~~Almacén del límite de peticiones de la API sin elegir.~~ **Resuelto (2026-11-02):** Upstash Redis (ADR-0028, punto 6). | ADR-0028 | — |
 | P-11 | **Requisitos de Obsidian sin actualizar** a "solo web" (acción derivada de ADR-0031). Este directorio pasa a ser la fuente vigente. | ADR-0031 | — |
 | P-12 | ~~Lista de espera sin modelar.~~ **Resuelto (2026-10-27):** Buttondown con doble confirmación (ADR-0033). Sigue abierta la tabla de reportes de sagas (RDI-18), que no bloquea H1. | ADR-0022, ADR-0033 | — |
