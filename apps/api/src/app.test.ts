@@ -4,6 +4,7 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from './app.js';
 import { type Container, createContainer } from './container.js';
+import { noErrorReporter } from './http/error-reporter.js';
 import { ProblemError } from './http/problem.js';
 import type { Module } from './http/routes.js';
 
@@ -173,5 +174,75 @@ describe('logs', () => {
     expect(output).not.toContain('secret-session-token');
     expect(output).not.toContain('camila@correo.com');
     expect(output).not.toContain('anilist-token');
+  });
+});
+
+describe('telemetry environment', () => {
+  it('treats empty Sentry and Vercel values as not set', () => {
+    const container = createContainer({
+      SENTRY_DSN: '',
+      VERCEL_GIT_COMMIT_SHA: '',
+      VERCEL_ENV: '',
+    });
+    expect(container.errorReporter).toBe(noErrorReporter);
+  });
+});
+
+describe('error reporting', () => {
+  function appReporting(errorReporter: Container['errorReporter'], logger = captureLogs().logger) {
+    const base = createContainer({});
+    return createApp({
+      ...base,
+      logger,
+      errorReporter,
+      modules: [...base.modules, testModule],
+    });
+  }
+
+  it('reports an unhandled error with the request id of the response', async () => {
+    const reports: { error: unknown; requestId: string }[] = [];
+    const app = appReporting({
+      report: async (error, context) => {
+        reports.push({ error, requestId: context.requestId });
+      },
+    });
+    const response = await request(app).get('/api/v1/test/crash');
+    expect(response.status).toBe(500);
+    expect(reports).toHaveLength(1);
+    expect(reports[0]?.requestId).toBe(response.headers['x-request-id']);
+    expect(reports[0]?.error).toHaveProperty('message', 'database password is hunter2');
+  });
+
+  it('does not report expected errors', async () => {
+    const reports: unknown[] = [];
+    const app = appReporting({
+      report: async (error) => {
+        reports.push(error);
+      },
+    });
+    await request(app).get('/api/v1/test/conflict');
+    await request(app).get('/api/v1/nothing-here');
+    await request(app).post('/api/v1/test/echo').type('json').send('{"broken"');
+    const tooLarge = await request(app)
+      .post('/api/v1/test/echo')
+      .send({ text: 'x'.repeat(200_000) });
+    expect(tooLarge.status).toBe(500);
+    expect(reports).toEqual([]);
+  });
+
+  it('still answers 500 and logs a warning when reporting fails', async () => {
+    const { lines, logger } = captureLogs();
+    const app = appReporting(
+      {
+        report: async () => {
+          throw new Error('sentry is down');
+        },
+      },
+      logger,
+    );
+    const response = await request(app).get('/api/v1/test/crash');
+    expect(response.status).toBe(500);
+    expect(response.body).toMatchObject({ code: 'internal_error' });
+    expect(lines.join('\n')).toContain('error report failed');
   });
 });

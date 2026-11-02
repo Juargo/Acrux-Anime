@@ -24,7 +24,7 @@ export function createApp(container: Container): Express {
   }
 
   app.use(notFound);
-  app.use(errorHandler(container.logger));
+  app.use(errorHandler(container.logger, container.errorReporter));
   return app;
 }
 

@@ -1,5 +1,6 @@
 import type { ErrorRequestHandler, RequestHandler, Response } from 'express';
 import type { Logger } from 'pino';
+import type { ErrorReporter } from './error-reporter.js';
 
 // RFC 9457 errors with a stable `code` the web app maps to i18n messages (ADR-0023).
 export class ProblemError extends Error {
@@ -38,9 +39,15 @@ function isJsonSyntaxError(error: unknown): boolean {
   );
 }
 
+// Body parser failures carry a 4xx status; reporting them would let anyone spend the quota.
+function isClientError(error: unknown): boolean {
+  const status = (error as { status?: unknown } | null)?.status;
+  return typeof status === 'number' && status >= 400 && status < 500;
+}
+
 // Unknown errors become a 500 without their message; only the log keeps the detail.
-export function errorHandler(logger: Logger): ErrorRequestHandler {
-  return (error, _request, response, _next) => {
+export function errorHandler(logger: Logger, reporter: ErrorReporter): ErrorRequestHandler {
+  return async (error, _request, response, _next) => {
     if (error instanceof ProblemError) {
       sendProblem(response, error);
       return;
@@ -53,6 +60,16 @@ export function errorHandler(logger: Logger): ErrorRequestHandler {
       { requestId: response.locals.requestId, err: { name: error?.name, stack: error?.stack } },
       'unhandled error',
     );
+    if (!isClientError(error)) {
+      try {
+        await reporter.report(error, { requestId: response.locals.requestId });
+      } catch (reportError) {
+        logger.warn(
+          { requestId: response.locals.requestId, reason: (reportError as Error)?.name },
+          'error report failed',
+        );
+      }
+    }
     sendProblem(response, new ProblemError(500, 'internal_error', 'Internal Server Error'));
   };
 }
