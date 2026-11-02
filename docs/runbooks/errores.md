@@ -1,10 +1,10 @@
 # Seguimiento de errores con Sentry
 
-La SPA y la API envían a Sentry los errores inesperados (ADR-0030). Los errores previstos de la API, como un 404 o un `ProblemError`, no se envían; un cuerpo demasiado grande sí, porque responde 500. Sin `SENTRY_DSN` ni `VITE_SENTRY_DSN`, ningún SDK envía nada, como en desarrollo local.
+La SPA y la API envían a Sentry los errores inesperados (ADR-0030). Los errores previstos de la API, como un 404 o un `ProblemError`, no se envían, y tampoco los fallos causados por el cliente, como un cuerpo demasiado grande, aunque hoy respondan 500. Sin `SENTRY_DSN` ni `VITE_SENTRY_DSN`, ningún SDK envía nada, como en desarrollo local.
 
 ## Qué se envía
 
-- **API:** cada respuesta 500, repetida o no, con la etiqueta `requestId`, que coincide con `X-Request-Id` y con los logs. El evento se envía antes de responder, porque Vercel congela la función al terminar, con una espera máxima de 2 segundos.
+- **API:** cada respuesta 500, repetida o no, con la etiqueta `requestId`, que coincide con `X-Request-Id` y con los logs. El evento se envía antes de responder, porque Vercel congela la función al terminar, con una espera máxima de 2 segundos; si no llega a tiempo, el log registra `error report failed`.
 - **SPA:** errores no controlados y errores de React. Todavía no llevan `requestId`, porque la SPA aún no tiene cliente de API. Los errores repetidos seguidos se agrupan.
 - **Además:** el SDK suma conteos anónimos de sesiones de la API y de eventos descartados, sin datos personales.
 - **Nunca:** usuario, cookies, cabeceras, cuerpos, parámetros de URL ni migas de pan. El SDK 11 reemplazó `sendDefaultPii` por `dataCollection`, que **recolecta todo por defecto**, así que cada opción se apaga de forma explícita. `beforeSend` borra además la petición, `extra`, que guarda enteros los objetos lanzados, y `transaction`, que guarda la ruta cruda. También reemplaza correos, JWT, cabeceras `Bearer` y URL de Postgres en los mensajes; otros formatos pasan tal cual, así que un mensaje de error nunca debe incluir datos sensibles.
@@ -32,4 +32,4 @@ Crear una rama que **no se fusione**, con una ruta pública que lance un error, 
 
 ## Cuota
 
-El plan Developer incluye 5.000 errores al mes y un usuario. Si se acaba, Sentry descarta los eventos hasta el mes siguiente; los errores de la API siguen en los logs de Vercel.
+Los errores repetidos consumen cuota, porque cada `requestId` debe llegar. El plan Developer incluye 5.000 errores al mes y un usuario. Si se acaba, Sentry descarta los eventos hasta el mes siguiente; los errores de la API siguen en los logs de Vercel.

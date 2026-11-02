@@ -4,6 +4,7 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from './app.js';
 import { type Container, createContainer } from './container.js';
+import { noErrorReporter } from './http/error-reporter.js';
 import { ProblemError } from './http/problem.js';
 import type { Module } from './http/routes.js';
 
@@ -176,6 +177,17 @@ describe('logs', () => {
   });
 });
 
+describe('telemetry environment', () => {
+  it('treats empty Sentry and Vercel values as not set', () => {
+    const container = createContainer({
+      SENTRY_DSN: '',
+      VERCEL_GIT_COMMIT_SHA: '',
+      VERCEL_ENV: '',
+    });
+    expect(container.errorReporter).toBe(noErrorReporter);
+  });
+});
+
 describe('error reporting', () => {
   function appReporting(errorReporter: Container['errorReporter'], logger = captureLogs().logger) {
     const base = createContainer({});
@@ -211,6 +223,10 @@ describe('error reporting', () => {
     await request(app).get('/api/v1/test/conflict');
     await request(app).get('/api/v1/nothing-here');
     await request(app).post('/api/v1/test/echo').type('json').send('{"broken"');
+    const tooLarge = await request(app)
+      .post('/api/v1/test/echo')
+      .send({ text: 'x'.repeat(200_000) });
+    expect(tooLarge.status).toBe(500);
     expect(reports).toEqual([]);
   });
 

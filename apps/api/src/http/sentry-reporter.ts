@@ -46,14 +46,16 @@ export function createSentryReporter(
     },
     maxBreadcrumbs: 0,
     tracePropagationTargets: [],
-    // Dedupe would drop repeated errors, and each one must keep its own requestId.
-    integrations: (defaults) => defaults.filter((integration) => integration.name !== 'Dedupe'),
+    // Dedupe would drop repeated errors, and each one must keep its own requestId. The SDK's
+    // rejection handler would keep a failed process running instead of letting Node end it.
+    integrations: (defaults) =>
+      defaults.filter(({ name }) => name !== 'Dedupe' && name !== 'OnUnhandledRejection'),
     beforeSend: scrubEvent,
   });
   return {
     report: async (error, { requestId }) => {
       captureException(error, { tags: { requestId } });
-      await flush(FLUSH_TIMEOUT_MS);
+      if (!(await flush(FLUSH_TIMEOUT_MS))) throw new Error('Sentry event not delivered in time');
     },
   };
 }

@@ -85,6 +85,21 @@ describe('createSentryReporter', () => {
     expect(body).toContain('"requestId":"req-6"');
   });
 
+  it('rejects when the event could not be delivered in time', async () => {
+    const reporter = createSentryReporter({
+      dsn: DSN,
+      transport: () => ({ send: async () => ({}), flush: async () => false }),
+    });
+    await expect(reporter.report(new Error('boom'), { requestId: 'req-7' })).rejects.toThrow(
+      'not delivered',
+    );
+  });
+
+  it('leaves unhandled rejections to Node, so the process still ends', () => {
+    reporterWithFakeTransport();
+    expect(getClient()?.getIntegrationByName('OnUnhandledRejection')).toBeUndefined();
+  });
+
   it('sends neither the request, the user nor the server name', async () => {
     const { reporter, sent } = reporterWithFakeTransport();
     await reporter.report(new Error('boom'), { requestId: 'req-3' });
