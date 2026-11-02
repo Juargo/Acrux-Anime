@@ -13,7 +13,7 @@ La SPA y la API envían a Sentry los errores inesperados (ADR-0030). Los errores
 
 1. Crear la cuenta en sentry.io con el plan Developer y la **región de datos de la UE**. La región no se puede cambiar después.
 2. Aceptar el acuerdo de tratamiento de datos (ADR-0028).
-3. Crear un proyecto `acrux` para las dos aplicaciones y copiar su DSN.
+3. Crear un proyecto `acrux-anime` para las dos aplicaciones y copiar su DSN.
 4. En el proyecto, activar la opción que evita guardar direcciones IP y el depurador de datos del servidor.
 5. Comprobar que exista una regla de alerta que envíe un correo cuando aparece un problema nuevo.
 6. En el proyecto `app` de Vercel, para *Production* y *Preview*, crear `SENTRY_DSN` y `VITE_SENTRY_DSN` con el DSN. No es un secreto: viaja en el código de la SPA.
