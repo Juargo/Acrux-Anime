@@ -16,7 +16,7 @@ Branch: `feat/limite-de-peticiones` · Delivery: `ask-on-risk` · Test runner: v
 | ID | Specs | Route | Status | Evidence |
 |---|---|---|---|---|
 | T1 | S2, S3, S5 | inline | done | `rateLimit` route option, 429 with `Retry-After`, Upstash adapter tested against Redis behind the REST emulator; RED then GREEN, 72 API tests. Risk: items 2, 5 |
-| T2 | S2, S3, S5 | inline | pending | waitlist in the landing through Upstash. Risk: items 2, 5 |
+| T2 | S2, S3, S5 | inline | done | landing counter and 429 with `Retry-After`, form message in es and en; RED then GREEN, 24 landing tests, build. Risk: items 2, 5 |
 | T3 | S1, S4 | inline | pending | ADR-0028 note, privacy policy, requirements, runbook |
 | T4 | S2 | stakeholder (secrets) | pending | Upstash account, region, DPA, Vercel variables, firewall rule |
 | T5 | S5 | after setup | pending | limit exceeded on a preview |

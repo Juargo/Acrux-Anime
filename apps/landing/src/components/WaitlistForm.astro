@@ -23,6 +23,7 @@ const { id, t, privacyHref } = Astro.props;
     data-retry={t.retry}
     data-invalid={t.invalid}
     data-already={t.already}
+    data-limited={t.limited}
     data-error={t.error}
     data-success-text={t.successText}
   >
@@ -55,7 +56,7 @@ const { id, t, privacyHref } = Astro.props;
 <script>
   import { isValidEmail, type WaitlistStatus } from '../lib/waitlist';
 
-  type Shown = 'note' | 'invalid' | 'already' | 'error';
+  type Shown = 'note' | 'invalid' | 'already' | 'limited' | 'error';
 
   for (const root of document.querySelectorAll<HTMLElement>('[data-waitlist]')) {
     const form = root.querySelector('form');
@@ -72,7 +73,10 @@ const { id, t, privacyHref } = Astro.props;
       note.hidden = shown !== 'note';
       message.hidden = shown === 'note';
       message.textContent = shown === 'note' ? '' : (copy[shown] ?? '');
-      message.classList.toggle('is-error', shown === 'invalid' || shown === 'error');
+      message.classList.toggle(
+        'is-error',
+        shown === 'invalid' || shown === 'limited' || shown === 'error',
+      );
       input.setAttribute('aria-invalid', String(shown === 'invalid'));
       button.textContent = shown === 'error' ? (copy.retry ?? '') : (copy.submit ?? '');
     };
@@ -112,7 +116,9 @@ const { id, t, privacyHref } = Astro.props;
         document.dispatchEvent(new CustomEvent('acrux:waitlist-joined'));
         return;
       }
-      show(status === 'invalid' ? 'invalid' : status === 'already' ? 'already' : 'error');
+      show(
+        status === 'invalid' || status === 'already' || status === 'limited' ? status : 'error',
+      );
     });
 
     input.addEventListener('input', () => {

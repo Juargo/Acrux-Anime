@@ -131,3 +131,53 @@ describe('handleWaitlistRequest', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe('handleWaitlistRequest rate limit', () => {
+  function fromIp(ip: string, body: unknown = { email: 'camila@correo.com' }): Request {
+    return new Request('https://acruxanime.com/api/waitlist', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-vercel-forwarded-for': ip },
+      body: JSON.stringify(body),
+    });
+  }
+
+  it('answers 429 with Retry-After and never calls Buttondown once the limit is exceeded', async () => {
+    const fetch = buttondown(201);
+    const limit = vi.fn(async () => ({ allowed: false, retryAfterSeconds: 120 }));
+    const response = await handleWaitlistRequest(fromIp('203.0.113.7'), { apiKey, fetch, limit });
+    expect(response.status).toBe(429);
+    expect(response.headers.get('retry-after')).toBe('120');
+    expect(await response.json()).toEqual({ status: 'limited' });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('counts every attempt per client IP, without passing the IP on', async () => {
+    const keys: string[] = [];
+    const limit = vi.fn(async (key: string) => {
+      keys.push(key);
+      return { allowed: true, retryAfterSeconds: 0 };
+    });
+    const fetch = buttondown(201);
+    await handleWaitlistRequest(fromIp('203.0.113.7', { email: 'no-at-sign' }), {
+      apiKey,
+      fetch,
+      limit,
+    });
+    await handleWaitlistRequest(fromIp('203.0.113.7'), { apiKey, fetch, limit });
+    await handleWaitlistRequest(fromIp('198.51.100.9'), { apiKey, fetch, limit });
+    expect(keys).toHaveLength(3);
+    expect(keys[0]).toBe(keys[1]);
+    expect(keys[0]).not.toBe(keys[2]);
+    expect(keys.join()).not.toContain('203.0.113.7');
+  });
+
+  it('still signs up when the limit store fails', async () => {
+    const fetch = buttondown(201);
+    const limit = vi.fn(async () => {
+      throw new Error('upstash is down');
+    });
+    const response = await handleWaitlistRequest(fromIp('203.0.113.7'), { apiKey, fetch, limit });
+    expect(response.status).toBe(200);
+    expect(fetch).toHaveBeenCalledOnce();
+  });
+});

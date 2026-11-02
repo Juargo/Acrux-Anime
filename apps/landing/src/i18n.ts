@@ -24,6 +24,7 @@ const copy = {
       retry: 'Reintentar',
       invalid: 'Revisa tu correo: parece que le falta algo.',
       already: 'Este correo ya está en la lista. Te avisaremos cuando abra la beta.',
+      limited: 'Demasiados intentos. Vuelve a intentarlo en unos minutos.',
       error: 'No pudimos registrarte. Revisa tu conexión e inténtalo de nuevo.',
       successTitle: '¡Casi listo! Confirma tu correo.',
       successText:
@@ -120,6 +121,7 @@ const copy = {
       retry: 'Try again',
       invalid: 'Check your email: it looks like something is missing.',
       already: 'This email is already on the list. We will let you know when the beta opens.',
+      limited: 'Too many attempts. Try again in a few minutes.',
       error: 'We could not sign you up. Check your connection and try again.',
       successTitle: 'Almost there! Confirm your email.',
       successText:
