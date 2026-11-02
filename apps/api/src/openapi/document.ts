@@ -49,6 +49,13 @@ function operation(route: RouteDefinition): ZodOpenApiOperationObject {
       content: { 'application/problem+json': { schema: problem } },
     };
   }
+  if (route.rateLimit) {
+    responses['429'] = {
+      description: 'Too many requests; retry after the seconds in Retry-After',
+      headers: { 'Retry-After': { schema: { type: 'integer' } } },
+      content: { 'application/problem+json': { schema: problem } },
+    };
+  }
   const params = pathParams(route.path);
   return {
     summary: docs.summary,

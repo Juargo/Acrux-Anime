@@ -1,11 +1,35 @@
+import type { Limit } from './rate-limit';
+
 // Waitlist sign-up against Buttondown (ADR-0033). The API key lives only on the server.
 // The email is never logged or returned (ADR-0030).
 
-export type WaitlistStatus = 'ok' | 'already' | 'invalid' | 'error';
+export type WaitlistStatus = 'ok' | 'already' | 'invalid' | 'limited' | 'error';
 
 export interface WaitlistDeps {
   apiKey: string | undefined;
   fetch: typeof fetch;
+  // Per client IP (ADR-0028). Without it every attempt passes, as in local development.
+  limit?: Limit;
+}
+
+// Vercel overwrites this header, so a client cannot spoof it. Web Crypto keeps
+// `node:crypto` out of this module, which the browser script also imports.
+async function clientIpKey(request: Request): Promise<string> {
+  const ip = request.headers.get('x-vercel-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`ip:${ip}`));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+// A store outage must not block sign-ups.
+async function retryAfter(request: Request, limit: Limit | undefined): Promise<number | undefined> {
+  if (!limit) return undefined;
+  try {
+    const result = await limit(await clientIpKey(request));
+    return result.allowed ? undefined : result.retryAfterSeconds;
+  } catch (error) {
+    console.warn('waitlist rate limit check failed', (error as Error)?.name);
+    return undefined;
+  }
 }
 
 const BUTTONDOWN_SUBSCRIBERS_URL = 'https://api.buttondown.com/v1/subscribers';
@@ -49,6 +73,13 @@ export async function handleWaitlistRequest(
   request: Request,
   deps: WaitlistDeps,
 ): Promise<Response> {
+  const wait = await retryAfter(request, deps.limit);
+  if (wait !== undefined) {
+    return Response.json(
+      { status: 'limited' },
+      { status: 429, headers: { 'Retry-After': String(wait) } },
+    );
+  }
   const email = await readEmail(request);
   if (!email || !isValidEmail(email)) return reply('invalid', 400);
   if (!deps.apiKey) return reply('error', 502);

@@ -35,7 +35,7 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
           'Qué datos guarda Acrux, para qué los usa, con quién los comparte y cómo ejercer tus derechos.',
       },
       title: 'Política de privacidad',
-      updated: 'Última actualización: 1 de noviembre de 2026',
+      updated: 'Última actualización: 2 de noviembre de 2026',
       sections: [
         {
           title: 'Quién es responsable',
@@ -59,7 +59,7 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
         {
           title: 'Con quién los compartimos',
           paragraphs: [
-            'Solo con los servicios que hacen funcionar Acrux, bajo acuerdos de tratamiento de datos: Neon (base de datos e inicio de sesión), Vercel (servidores), PostHog (analítica), Sentry (errores), Lemon Squeezy (pagos), Backblaze (respaldos) y Buttondown (lista de espera). No vendemos tus datos.',
+            'Solo con los servicios que hacen funcionar Acrux, bajo acuerdos de tratamiento de datos: Neon (base de datos e inicio de sesión), Vercel (servidores), PostHog (analítica), Sentry (errores), Lemon Squeezy (pagos), Backblaze (respaldos), Upstash (límite de peticiones) y Buttondown (lista de espera). No vendemos tus datos.',
           ],
         },
         {
@@ -179,7 +179,7 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
           'What data Acrux keeps, why, who it shares it with and how to exercise your rights.',
       },
       title: 'Privacy policy',
-      updated: 'Last updated: November 1, 2026',
+      updated: 'Last updated: November 2, 2026',
       sections: [
         {
           title: 'Who is responsible',
@@ -203,7 +203,7 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
         {
           title: 'Who we share it with',
           paragraphs: [
-            'Only with the services that run Acrux, under data processing agreements: Neon (database and sign-in), Vercel (servers), PostHog (analytics), Sentry (errors), Lemon Squeezy (payments), Backblaze (backups) and Buttondown (waitlist). We do not sell your data.',
+            'Only with the services that run Acrux, under data processing agreements: Neon (database and sign-in), Vercel (servers), PostHog (analytics), Sentry (errors), Lemon Squeezy (payments), Backblaze (backups), Upstash (rate limiting) and Buttondown (waitlist). We do not sell your data.',
           ],
         },
         {

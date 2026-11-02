@@ -15,6 +15,17 @@ export default defineConfig({
   env: {
     schema: {
       BUTTONDOWN_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      // Upstash Redis for the waitlist rate limit (#27). Without both, every attempt passes.
+      UPSTASH_REDIS_REST_URL: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      UPSTASH_REDIS_REST_TOKEN: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
       // PostHog project key (EU cloud). It is public by design; without it analytics stays off.
       PUBLIC_POSTHOG_KEY: envField.string({ context: 'client', access: 'public', optional: true }),
     },
