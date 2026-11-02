@@ -1,7 +1,7 @@
 # Feature: error tracking with Sentry (issue #26)
 
 Objective: errors from the SPA and the API reach Sentry without personal data, API errors carry their `requestId`, and new issues alert by email.
-Branch: `feat/errores-sentry` · Delivery: `ask-on-risk` · Test runner: vitest in `apps/api`; `apps/web` has no runner, so it gets a build check and the preview proof.
+Branch: `feat/errores-sentry` · Delivery: `ask-on-risk` · Test runner: vitest in `apps/api`; vitest in `apps/web` too, plus a build check and the preview proof.
 
 ## Specs
 
@@ -27,3 +27,4 @@ Branch: `feat/errores-sentry` · Delivery: `ask-on-risk` · Test runner: vitest 
 - L2 (assumptions): one Sentry project for both apps, because the quota is shared and it keeps setup to one DSN. EU data region, matching PostHog in ADR-0028; the region cannot be changed later. The API is compiled by `tsc` without minifying, so its stack traces are readable without uploading maps; only the SPA uploads them. The SPA has no API client yet, so S3 applies to API events until one exists. The S6 error is provoked from a throwaway branch, so no failing route is merged.
 - L3 (2026-11-01): `sendDefaultPii` from S1 does not exist in SDK 11: `dataCollection` replaced it, and its defaults collect user data, cookies, headers and bodies. Both SDKs turn every option off, pinned by tests. The stack frames of an event quote source lines, so tests assemble their sample data at runtime.
 - L4 (2026-11-01): `apps/web` gains vitest, because the scrubbing must not depend on a preview check. Build check: no token gives no maps; a fake token gets a 401, the build still succeeds and no `.map` remains. A failed upload does not stop a deploy, on purpose. The SPA bundle is 404 kB (130 kB gzip).
+- L5 (2026-11-01): independent verifier, 3 blockers, all fixed here. B1: thrown non-Error objects reached `extra` unscrubbed in both SDKs. B2: the default Dedupe integration dropped repeated errors and their `requestId`. B3: custom React root handlers removed React's console output, even without a DSN. Also fixed from the advisories: `transaction` removed, `tracePropagationTargets` empty, runbook corrected. Recorded, not fixed: redaction covers four shapes only; oversized bodies report as 500; with a DSN an unhandled rejection no longer exits 1; cold import is slower by a few hundred ms. Verifier ran on Node 26, not 22. Unverified until T3/T4: env reaching `vercel build`, `VITE_VERCEL_ENV`, `VERCEL_GIT_COMMIT_SHA` at runtime, token scopes.

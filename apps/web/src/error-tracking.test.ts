@@ -39,6 +39,17 @@ describe('initErrorTracking', () => {
     expect(getClient()?.getIntegrationByName('BrowserSession')).toBeUndefined();
   });
 
+  it('sends nothing from a thrown object that is not an Error', async () => {
+    const sent = trackWithFakeTransport();
+    const email = ['ana', 'example.com'].join('@');
+    const secret = ['hun', 'ter2'].join('');
+    captureException({ email, password: secret });
+    await flush(1000);
+    const body = JSON.stringify(sent);
+    expect(body).not.toContain(email);
+    expect(body).not.toContain(secret);
+  });
+
   it('removes personal data and secrets from the event', async () => {
     const sent = trackWithFakeTransport();
     // Assembled at runtime: event stack frames may quote this source file.

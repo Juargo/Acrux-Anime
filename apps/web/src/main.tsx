@@ -16,7 +16,9 @@ const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');
 
 const reportReactError = reactErrorHandler();
+// Custom root handlers replace React's own logging, so it stays here.
 function onReactError(error: unknown, info: { componentStack?: string | undefined }) {
+  console.error(error);
   reportReactError(error, { componentStack: info.componentStack ?? null });
 }
 

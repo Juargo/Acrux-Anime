@@ -63,6 +63,28 @@ describe('createSentryReporter', () => {
     expect(body).toContain('[redacted]');
   });
 
+  it('sends nothing from a thrown object that is not an Error', async () => {
+    const { reporter, sent } = reporterWithFakeTransport();
+    const email = ['ana', 'example.com'].join('@');
+    const secret = ['hun', 'ter2'].join('');
+    await reporter.report({ email, password: secret, code: 'X' }, { requestId: 'req-4' });
+    const body = JSON.stringify(sent);
+    expect(body).toContain('"requestId":"req-4"');
+    expect(body).not.toContain(email);
+    expect(body).not.toContain(secret);
+  });
+
+  it('sends every occurrence of a repeated error with its own request id', async () => {
+    const { reporter, sent } = reporterWithFakeTransport();
+    // Built in one synchronous pass, so both errors share a stack and look identical.
+    await Promise.all(
+      ['req-5', 'req-6'].map((requestId) => reporter.report(new Error('same bug'), { requestId })),
+    );
+    const body = JSON.stringify(sent);
+    expect(body).toContain('"requestId":"req-5"');
+    expect(body).toContain('"requestId":"req-6"');
+  });
+
   it('sends neither the request, the user nor the server name', async () => {
     const { reporter, sent } = reporterWithFakeTransport();
     await reporter.report(new Error('boom'), { requestId: 'req-3' });

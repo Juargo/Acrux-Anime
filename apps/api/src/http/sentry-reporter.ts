@@ -21,6 +21,9 @@ function scrubEvent(event: ErrorEvent): ErrorEvent {
   delete event.request;
   delete event.user;
   delete event.server_name;
+  // Thrown objects land whole in `extra`, and `transaction` holds the raw URL path.
+  delete event.extra;
+  delete event.transaction;
   if (event.message) event.message = redact(event.message);
   for (const exception of event.exception?.values ?? []) {
     if (exception.value) exception.value = redact(exception.value);
@@ -42,6 +45,9 @@ export function createSentryReporter(
       urlQueryParams: false,
     },
     maxBreadcrumbs: 0,
+    tracePropagationTargets: [],
+    // Dedupe would drop repeated errors, and each one must keep its own requestId.
+    integrations: (defaults) => defaults.filter((integration) => integration.name !== 'Dedupe'),
     beforeSend: scrubEvent,
   });
   return {

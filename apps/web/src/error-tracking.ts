@@ -16,6 +16,9 @@ function redact(text: string): string {
 function scrubEvent(event: ErrorEvent): ErrorEvent {
   delete event.request;
   delete event.user;
+  // Thrown objects land whole in `extra`, and `transaction` can hold the raw URL path.
+  delete event.extra;
+  delete event.transaction;
   if (event.message) event.message = redact(event.message);
   for (const exception of event.exception?.values ?? []) {
     if (exception.value) exception.value = redact(exception.value);
@@ -40,6 +43,7 @@ export function initErrorTracking(
       urlQueryParams: false,
     },
     maxBreadcrumbs: 0,
+    tracePropagationTargets: [],
     integrations: (defaults) =>
       defaults.filter((integration) => integration.name !== 'BrowserSession'),
     beforeSend: scrubEvent,
