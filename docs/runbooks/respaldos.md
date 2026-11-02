@@ -51,15 +51,18 @@ Se restaura siempre en una **rama temporal de Neon**, nunca directamente sobre `
    aws s3 cp "s3://$B2_BUCKET/<objeto>" respaldo.dump.age --endpoint-url "$B2_ENDPOINT"
    ```
 
-2. En Neon, crear una rama desde `dev`, por ejemplo `restauracion-<fecha>`, con vencimiento. Como ya trae las tablas, crear en ella una base vacía con `CREATE DATABASE restauracion;` y tomar la cadena directa de esa base con el rol propietario.
-3. Descifrar y restaurar sin escribir los datos en disco:
+2. En Neon, crear una rama desde `dev`, por ejemplo `restauracion-<fecha>`, con vencimiento. Como ya trae las tablas, crear en ella una base vacía con `CREATE DATABASE restauracion;` y tomar la cadena directa de esa base con el rol propietario. *Connect* propone `neondb` por defecto: hay que elegir `restauracion`.
+3. Descifrar y restaurar sin escribir los datos en disco. `read -rs` pide la clave sin mostrarla, y `--exit-on-error` frena en el primer error; sin esa opción, `pg_restore` sigue y carga datos sobre una base que no estaba vacía:
 
    ```sh
-   age --decrypt --identity <clave-privada> respaldo.dump.age \
-     | pg_restore --no-owner --no-privileges --dbname "$URL_RAMA_TEMPORAL"
+   read -rs URL_RAMA_TEMPORAL
+   read -rs AGE_KEY
+   age --decrypt --identity <(printf '%s\n' "$AGE_KEY") respaldo.dump.age \
+     | pg_restore --no-owner --no-privileges --exit-on-error --dbname "$URL_RAMA_TEMPORAL"
+   unset AGE_KEY URL_RAMA_TEMPORAL
    ```
 
-4. Verificar que los conteos coincidan con la rama de origen y que las migraciones estén al día:
+4. Verificar que los conteos coincidan con la rama de origen y que las migraciones estén al día. El SQL Editor conserva la última rama abierta: hay que confirmar la rama y la base en cada consulta.
 
    ```sql
    SELECT count(*) FROM profile;
@@ -75,3 +78,4 @@ Una restauración real sobre `production` es una decisión aparte: se apaga el d
 
 | Fecha | Respaldo | Resultado |
 |---|---|---|
+| 2026-11-01 | `acrux-2026-11-01T203147Z.dump.age` | Correcto, sin errores. `restauracion` y `production` coinciden: 0 perfiles, 0 marcas, 2 migraciones. Prueba el esquema y las migraciones; todavía no hay filas de usuarios que comparar. |
