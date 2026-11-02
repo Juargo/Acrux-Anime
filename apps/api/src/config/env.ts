@@ -11,6 +11,9 @@ const envSchema = z.object({
   NEON_AUTH_ISSUER: z.string().min(1).optional(),
   // Sentry (#26). Without a DSN, errors stay in the logs only.
   SENTRY_DSN: z.preprocess(emptyAsUnset, z.url().optional()),
+  // Upstash Redis for rate limits (#27). Without both, every request passes.
+  UPSTASH_REDIS_REST_URL: z.preprocess(emptyAsUnset, z.url().optional()),
+  UPSTASH_REDIS_REST_TOKEN: z.preprocess(emptyAsUnset, z.string().optional()),
   // Set by Vercel on every deployment.
   VERCEL_ENV: z.preprocess(emptyAsUnset, z.string().default('development')),
   VERCEL_GIT_COMMIT_SHA: z.preprocess(emptyAsUnset, z.string().optional()),

@@ -42,7 +42,7 @@ const privateModule: Module = {
       method: 'get',
       path: '/api/v1/test/me',
       handler: (_request, response) => {
-        response.json({ userId: response.locals.session.userId });
+        response.json({ userId: response.locals.session?.userId });
       },
     },
   ],

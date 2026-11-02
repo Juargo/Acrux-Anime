@@ -2,9 +2,11 @@ import type { Logger } from 'pino';
 import { parseEnv } from './config/env.js';
 import { type ErrorReporter, noErrorReporter } from './http/error-reporter.js';
 import { createLogger } from './http/logger.js';
+import { noRateLimiter, type RateLimiter } from './http/rate-limit.js';
 import type { Module } from './http/routes.js';
 import { createSentryReporter } from './http/sentry-reporter.js';
 import { createNeonAuthVerifier, type SessionVerifier } from './http/session.js';
+import { createUpstashRateLimiter } from './http/upstash-rate-limiter.js';
 import { accountModule } from './modules/account/index.js';
 import { anilistLinkModule } from './modules/anilist-link/index.js';
 import { billingModule } from './modules/billing/index.js';
@@ -18,6 +20,7 @@ import { systemModule } from './modules/system/index.js';
 export interface Container {
   logger: Logger;
   errorReporter: ErrorReporter;
+  rateLimiter: RateLimiter;
   sessionVerifier: SessionVerifier | undefined;
   modules: Module[];
 }
@@ -33,6 +36,13 @@ export function createContainer(source: Record<string, string | undefined>): Con
           release: env.VERCEL_GIT_COMMIT_SHA,
         })
       : noErrorReporter,
+    rateLimiter:
+      env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
+        ? createUpstashRateLimiter({
+            url: env.UPSTASH_REDIS_REST_URL,
+            token: env.UPSTASH_REDIS_REST_TOKEN,
+          })
+        : noRateLimiter,
     sessionVerifier: env.NEON_AUTH_BASE_URL
       ? createNeonAuthVerifier(
           env.NEON_AUTH_BASE_URL,

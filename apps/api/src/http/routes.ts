@@ -1,5 +1,6 @@
 import type { RequestHandler } from 'express';
 import type { ZodType } from 'zod';
+import type { RateLimitPolicy } from './rate-limit.js';
 
 // What the OpenAPI contract says about a route (ADR-0023). The 401 of private routes is
 // added automatically.
@@ -14,6 +15,8 @@ export interface RouteDefinition {
   method: 'get' | 'post' | 'put' | 'patch' | 'delete';
   path: string;
   public?: boolean;
+  // Counted per user on private routes and per client IP on public ones (ADR-0028).
+  rateLimit?: RateLimitPolicy;
   docs?: RouteDocs;
   handler: RequestHandler;
 }
@@ -28,7 +31,7 @@ declare global {
     interface Locals {
       requestId: string;
       // Set by the session middleware on private routes.
-      session: import('./session.js').Session;
+      session?: import('./session.js').Session;
       userIdHash?: string;
     }
   }

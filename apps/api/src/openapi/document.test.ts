@@ -59,4 +59,24 @@ describe('OpenAPI document', () => {
     expect(openApiJsonDiverges(rendered, modules)).toBe(false);
     expect(openApiJsonDiverges(rendered.replace('Acrux', 'Other'), modules)).toBe(true);
   });
+
+  it('documents 429 on rate limited routes only', () => {
+    const limited: Module = {
+      name: 'limited',
+      routes: [
+        {
+          method: 'get',
+          path: '/api/v1/u/:handle',
+          public: true,
+          rateLimit: 'public',
+          handler: () => {},
+        },
+      ],
+    };
+    const document = buildOpenApiDocument([...modules, limited]);
+    const responses = document.paths?.['/api/v1/u/{handle}']?.get?.responses;
+    expect(JSON.stringify(responses?.['429'])).toContain('problem+json');
+    expect(JSON.stringify(responses?.['429'])).toContain('Retry-After');
+    expect(document.paths?.['/api/health']?.get?.responses?.['429']).toBeUndefined();
+  });
 });

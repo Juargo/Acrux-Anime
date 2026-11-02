@@ -1,6 +1,7 @@
 import express, { type Express } from 'express';
 import { type Container, createContainer } from './container.js';
 import { errorHandler, notFound } from './http/problem.js';
+import { rateLimit } from './http/rate-limit.js';
 import { requestId, requestLog } from './http/request-context.js';
 import { requireSession } from './http/session.js';
 
@@ -18,8 +19,11 @@ export function createApp(container: Container): Express {
   const session = requireSession(container.sessionVerifier);
   for (const module of container.modules) {
     for (const route of module.routes) {
-      if (route.public) app[route.method](route.path, route.handler);
-      else app[route.method](route.path, session, route.handler);
+      const limit = route.rateLimit
+        ? [rateLimit(route.rateLimit, container.rateLimiter, container.logger)]
+        : [];
+      if (route.public) app[route.method](route.path, ...limit, route.handler);
+      else app[route.method](route.path, session, ...limit, route.handler);
     }
   }
 

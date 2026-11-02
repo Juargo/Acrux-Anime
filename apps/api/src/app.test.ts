@@ -246,3 +246,122 @@ describe('error reporting', () => {
     expect(lines.join('\n')).toContain('error report failed');
   });
 });
+
+describe('rate limits', () => {
+  type Call = { policy: string; key: string };
+
+  function limiterAllowing(allowedCalls: number, retryAfterSeconds = 42) {
+    const calls: Call[] = [];
+    const limiter: Container['rateLimiter'] = {
+      limit: async (policy, key) => {
+        calls.push({ policy, key });
+        return { allowed: calls.length <= allowedCalls, retryAfterSeconds };
+      },
+    };
+    return { calls, limiter };
+  }
+
+  const limitedModule: Module = {
+    name: 'limited',
+    routes: [
+      {
+        method: 'get',
+        path: '/api/v1/test/public-limited',
+        public: true,
+        rateLimit: 'public',
+        handler: (_request, response) => {
+          response.json({ ok: true });
+        },
+      },
+      {
+        method: 'post',
+        path: '/api/v1/test/write',
+        rateLimit: 'write',
+        handler: (_request, response) => {
+          response.json({ ok: true });
+        },
+      },
+    ],
+  };
+
+  function appLimited(rateLimiter: Container['rateLimiter'], logger = captureLogs().logger) {
+    const base = createContainer({});
+    return createApp({
+      ...base,
+      logger,
+      rateLimiter,
+      sessionVerifier: async (token) => ({ userId: token }),
+      modules: [...base.modules, testModule, limitedModule],
+    });
+  }
+
+  it('answers 429 with Retry-After and a problem once the limit is exceeded', async () => {
+    const app = appLimited(limiterAllowing(1).limiter);
+    expect((await request(app).get('/api/v1/test/public-limited')).status).toBe(200);
+    const limited = await request(app).get('/api/v1/test/public-limited');
+    expect(limited.status).toBe(429);
+    expect(limited.headers['retry-after']).toBe('42');
+    expect(limited.headers['content-type']).toContain('application/problem+json');
+    expect(limited.body).toMatchObject({
+      status: 429,
+      code: 'rate_limited',
+      requestId: limited.headers['x-request-id'],
+    });
+  });
+
+  it('counts public routes per client IP, without storing the IP', async () => {
+    const { calls, limiter } = limiterAllowing(10);
+    const app = appLimited(limiter);
+    await request(app)
+      .get('/api/v1/test/public-limited')
+      .set('x-vercel-forwarded-for', '203.0.113.7');
+    await request(app)
+      .get('/api/v1/test/public-limited')
+      .set('x-vercel-forwarded-for', '203.0.113.7');
+    await request(app)
+      .get('/api/v1/test/public-limited')
+      .set('x-vercel-forwarded-for', '198.51.100.9');
+    expect(calls.map((call) => call.policy)).toEqual(['public', 'public', 'public']);
+    expect(calls[0]?.key).toBe(calls[1]?.key);
+    expect(calls[0]?.key).not.toBe(calls[2]?.key);
+    expect(JSON.stringify(calls)).not.toContain('203.0.113.7');
+  });
+
+  it('counts private routes per user, after the session check', async () => {
+    const { calls, limiter } = limiterAllowing(10);
+    const app = appLimited(limiter);
+    const missing = await request(app).post('/api/v1/test/write');
+    expect(missing.status).toBe(401);
+    expect(calls).toEqual([]);
+    await request(app).post('/api/v1/test/write').set('Authorization', 'Bearer user-a');
+    await request(app).post('/api/v1/test/write').set('Authorization', 'Bearer user-a');
+    await request(app).post('/api/v1/test/write').set('Authorization', 'Bearer user-b');
+    expect(calls.map((call) => call.policy)).toEqual(['write', 'write', 'write']);
+    expect(calls[0]?.key).toBe(calls[1]?.key);
+    expect(calls[0]?.key).not.toBe(calls[2]?.key);
+    expect(JSON.stringify(calls)).not.toContain('user-a');
+  });
+
+  it('lets the request through and logs a warning when the store fails', async () => {
+    const { lines, logger } = captureLogs();
+    const app = appLimited(
+      {
+        limit: async () => {
+          throw new Error('upstash is down');
+        },
+      },
+      logger,
+    );
+    const response = await request(app).get('/api/v1/test/public-limited');
+    expect(response.status).toBe(200);
+    expect(lines.join('\n')).toContain('rate limit check failed');
+  });
+
+  it('leaves routes without a limit alone', async () => {
+    const { calls, limiter } = limiterAllowing(0);
+    const app = appLimited(limiter);
+    expect((await request(app).get('/api/health')).status).toBe(200);
+    expect((await request(app).post('/api/v1/test/echo').send({})).status).toBe(200);
+    expect(calls).toEqual([]);
+  });
+});
