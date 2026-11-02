@@ -63,6 +63,11 @@ jobs:
         run: pnpm --filter @acrux/api db:deploy
 
       - name: Build
+        # With the token, the SPA build uploads its source maps to Sentry and removes them.
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
         run: |
           pnpm dlx "$VERCEL_CLI" pull --yes --environment=production --token="$VERCEL_TOKEN"
           pnpm dlx "$VERCEL_CLI" build --prod --token="$VERCEL_TOKEN"

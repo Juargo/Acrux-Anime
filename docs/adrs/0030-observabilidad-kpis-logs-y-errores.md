@@ -59,7 +59,8 @@ Los objetivos son iniciales (RNF sin metas numéricas, decisión del 26-oct-2026
 
 ### Errores
 
-- **Sentry** en la SPA y en la API, con `sendDefaultPii: false`, depuración de datos sensibles y *source maps* subidos desde CI.
+- **Sentry** en la SPA y en la API, con ~~`sendDefaultPii: false`~~, depuración de datos sensibles y *source maps* subidos desde CI.
+  - **Nota (2026-11-01, issue #26):** el SDK 11 reemplazó `sendDefaultPii` por `dataCollection`, que recolecta todo por defecto; cada opción se apaga de forma explícita. Los datos quedan en la región de la UE y sólo la SPA sube *source maps*, porque la API no se minifica. Ver [`docs/runbooks/errores.md`](../runbooks/errores.md).
 - Alertas por correo ante un problema nuevo o un aumento de la tasa de errores.
 
 ### Privacidad
