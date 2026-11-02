@@ -30,6 +30,8 @@ Si la subida falla, el despliegue continúa y sólo se pierden las trazas legibl
 
 Crear una rama que **no se fusione**, con una ruta pública que lance un error, abrirla en la vista previa y comprobar que el evento aparezca en Sentry con el mismo `requestId` de la respuesta y sin datos personales. Después, cerrar la rama.
 
+Prueba del 2026-11-02, rama `test/sentry-preview` (borrada): el error de la API llegó con `requestId`, entorno `preview`, versión del commit, prioridad alta, mensaje con `[redacted]` y 0 usuarios; la alerta llegó por correo. El error de la SPA también llegó redactado. La ubicación de *User* en el evento de la API es la de Vercel (`gru1`), que es quien lo envía. Sentry cita las líneas del código fuente en el stack, así que un dato escrito en el código aparece aunque el mensaje esté redactado.
+
 ## Cuota
 
 Los errores repetidos consumen cuota, porque cada `requestId` debe llegar. El plan Developer incluye 5.000 errores al mes y un usuario. Si se acaba, Sentry descarta los eventos hasta el mes siguiente; los errores de la API siguen en los logs de Vercel.
