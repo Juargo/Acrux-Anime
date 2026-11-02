@@ -6,6 +6,11 @@ const envSchema = z.object({
   NEON_AUTH_BASE_URL: z.url().optional(),
   // JWT issuer; defaults to NEON_AUTH_BASE_URL until #28 confirms the claim.
   NEON_AUTH_ISSUER: z.string().min(1).optional(),
+  // Sentry (#26). Without a DSN, errors stay in the logs only.
+  SENTRY_DSN: z.url().optional(),
+  // Set by Vercel on every deployment.
+  VERCEL_ENV: z.string().min(1).default('development'),
+  VERCEL_GIT_COMMIT_SHA: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

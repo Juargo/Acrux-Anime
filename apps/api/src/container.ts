@@ -1,7 +1,9 @@
 import type { Logger } from 'pino';
 import { parseEnv } from './config/env.js';
+import { type ErrorReporter, noErrorReporter } from './http/error-reporter.js';
 import { createLogger } from './http/logger.js';
 import type { Module } from './http/routes.js';
+import { createSentryReporter } from './http/sentry-reporter.js';
 import { createNeonAuthVerifier, type SessionVerifier } from './http/session.js';
 import { accountModule } from './modules/account/index.js';
 import { anilistLinkModule } from './modules/anilist-link/index.js';
@@ -15,6 +17,7 @@ import { systemModule } from './modules/system/index.js';
 // Composition root: builds every dependency once from the environment.
 export interface Container {
   logger: Logger;
+  errorReporter: ErrorReporter;
   sessionVerifier: SessionVerifier | undefined;
   modules: Module[];
 }
@@ -23,6 +26,13 @@ export function createContainer(source: Record<string, string | undefined>): Con
   const env = parseEnv(source);
   return {
     logger: createLogger(env.LOG_LEVEL),
+    errorReporter: env.SENTRY_DSN
+      ? createSentryReporter({
+          dsn: env.SENTRY_DSN,
+          environment: env.VERCEL_ENV,
+          release: env.VERCEL_GIT_COMMIT_SHA,
+        })
+      : noErrorReporter,
     sessionVerifier: env.NEON_AUTH_BASE_URL
       ? createNeonAuthVerifier(
           env.NEON_AUTH_BASE_URL,
