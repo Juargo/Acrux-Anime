@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../app.js';
 import { type Container, createContainer } from '../container.js';
 import type { Module } from './routes.js';
-import { createJwtVerifier, type SessionVerifier } from './session.js';
+import { createJwtVerifier, neonAuthIssuer, type SessionVerifier } from './session.js';
 
 // Neon Auth signs session JWTs (ADR-0034). Here a local key pair stands in for its JWKS;
 // the real <NEON_AUTH_BASE_URL>/.well-known/jwks.json is wired in #28.
@@ -153,5 +153,34 @@ describe('public routes', () => {
   it('do not ask for a session', async () => {
     const response = await request(createApp(appWith(verifier))).get('/api/health');
     expect(response.status).toBe(200);
+  });
+});
+
+describe('session claims', () => {
+  it('carries the Google name and avatar, and never the email', async () => {
+    const token = await signWith({
+      sub: USER_ID,
+      name: 'Camila',
+      image: 'https://lh3.googleusercontent.com/a/camila',
+      email: 'camila@correo.com',
+    });
+    expect(await verifier(token)).toEqual({
+      userId: USER_ID,
+      name: 'Camila',
+      image: 'https://lh3.googleusercontent.com/a/camila',
+    });
+  });
+
+  it('drops a missing name or an avatar that is not an https URL', async () => {
+    const token = await signWith({ sub: USER_ID, image: 'javascript:alert(1)' });
+    expect(await verifier(token)).toEqual({ userId: USER_ID });
+  });
+});
+
+describe('neonAuthIssuer', () => {
+  it('is the origin of the Neon Auth URL, without its path', () => {
+    expect(neonAuthIssuer('https://ep-x.neonauth.us-east-2.aws.neon.tech/neondb/auth')).toBe(
+      'https://ep-x.neonauth.us-east-2.aws.neon.tech',
+    );
   });
 });

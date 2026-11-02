@@ -1,18 +1,24 @@
 import type { Logger } from 'pino';
 import { parseEnv } from './config/env.js';
+import { createPrismaClient } from './db/client.js';
 import { type ErrorReporter, noErrorReporter } from './http/error-reporter.js';
 import { createLogger } from './http/logger.js';
 import { noRateLimiter, type RateLimiter } from './http/rate-limit.js';
 import type { Module } from './http/routes.js';
 import { createSentryReporter } from './http/sentry-reporter.js';
-import { createNeonAuthVerifier, type SessionVerifier } from './http/session.js';
+import { createNeonAuthVerifier, neonAuthIssuer, type SessionVerifier } from './http/session.js';
 import { createUpstashRateLimiter } from './http/upstash-rate-limiter.js';
 import { accountModule } from './modules/account/index.js';
 import { anilistLinkModule } from './modules/anilist-link/index.js';
 import { billingModule } from './modules/billing/index.js';
 import { franchisesModule } from './modules/franchises/index.js';
 import { marksModule } from './modules/marks/index.js';
-import { profileModule } from './modules/profile/index.js';
+import { createProfileModule } from './modules/profile/index.js';
+import { createProfileRepository } from './modules/profile/repositories/profile.repository.js';
+import {
+  createProfileService,
+  type ProfileService,
+} from './modules/profile/services/profile.service.js';
 import { publicProfileModule } from './modules/public-profile/index.js';
 import { systemModule } from './modules/system/index.js';
 
@@ -21,12 +27,16 @@ export interface Container {
   logger: Logger;
   errorReporter: ErrorReporter;
   rateLimiter: RateLimiter;
+  profileService: ProfileService | undefined;
   sessionVerifier: SessionVerifier | undefined;
   modules: Module[];
 }
 
 export function createContainer(source: Record<string, string | undefined>): Container {
   const env = parseEnv(source);
+  const profileService = env.DATABASE_URL
+    ? createProfileService(createProfileRepository(createPrismaClient(env.DATABASE_URL)))
+    : undefined;
   return {
     logger: createLogger(env.LOG_LEVEL),
     errorReporter: env.SENTRY_DSN
@@ -46,18 +56,24 @@ export function createContainer(source: Record<string, string | undefined>): Con
     sessionVerifier: env.NEON_AUTH_BASE_URL
       ? createNeonAuthVerifier(
           env.NEON_AUTH_BASE_URL,
-          env.NEON_AUTH_ISSUER ?? env.NEON_AUTH_BASE_URL,
+          env.NEON_AUTH_ISSUER ?? neonAuthIssuer(env.NEON_AUTH_BASE_URL),
         )
       : undefined,
-    modules: [
-      systemModule,
-      accountModule,
-      profileModule,
-      marksModule,
-      franchisesModule,
-      publicProfileModule,
-      billingModule,
-      anilistLinkModule,
-    ],
+    profileService,
+    modules: createModules(profileService),
   };
+}
+
+// The seven API modules of ADR-0019 plus the system module, in a stable order.
+export function createModules(profileService: ProfileService | undefined): Module[] {
+  return [
+    systemModule,
+    accountModule,
+    createProfileModule(profileService),
+    marksModule,
+    franchisesModule,
+    publicProfileModule,
+    billingModule,
+    anilistLinkModule,
+  ];
 }

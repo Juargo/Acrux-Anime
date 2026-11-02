@@ -7,11 +7,21 @@ import { ProblemError, sendProblem } from './problem.js';
 // before its signature, issuer and expiration are verified.
 export interface Session {
   userId: string;
+  // From the Google profile. The email claim is never read (ADR-0028).
+  name?: string;
+  image?: string;
 }
 
 export type SessionVerifier = (token: string) => Promise<Session>;
 
 const subject = z.uuid();
+const name = z.string().trim().min(1).max(100);
+const image = z.url({ protocol: /^https$/ });
+
+// Neon Auth signs with the origin of its URL as issuer, not the full URL (ADR-0034).
+export function neonAuthIssuer(baseUrl: string): string {
+  return new URL(baseUrl).origin;
+}
 
 export function createJwtVerifier(options: {
   jwks: JWTVerifyGetKey;
@@ -22,7 +32,12 @@ export function createJwtVerifier(options: {
       issuer: options.issuer,
       requiredClaims: ['sub', 'exp'],
     });
-    return { userId: subject.parse(payload.sub) };
+    const session: Session = { userId: subject.parse(payload.sub) };
+    const displayName = name.safeParse(payload.name);
+    if (displayName.success) session.name = displayName.data;
+    const avatar = image.safeParse(payload.image);
+    if (avatar.success) session.image = avatar.data;
+    return session;
   };
 }
 
