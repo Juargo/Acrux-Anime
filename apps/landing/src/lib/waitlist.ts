@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import type { Limit } from './rate-limit';
 
 // Waitlist sign-up against Buttondown (ADR-0033). The API key lives only on the server.
@@ -13,17 +12,19 @@ export interface WaitlistDeps {
   limit?: Limit;
 }
 
-// Vercel overwrites this header, so a client cannot spoof it.
-function clientIpKey(request: Request): string {
+// Vercel overwrites this header, so a client cannot spoof it. Web Crypto keeps
+// `node:crypto` out of this module, which the browser script also imports.
+async function clientIpKey(request: Request): Promise<string> {
   const ip = request.headers.get('x-vercel-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-  return createHash('sha256').update(`ip:${ip}`).digest('hex');
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`ip:${ip}`));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 // A store outage must not block sign-ups.
 async function retryAfter(request: Request, limit: Limit | undefined): Promise<number | undefined> {
   if (!limit) return undefined;
   try {
-    const result = await limit(clientIpKey(request));
+    const result = await limit(await clientIpKey(request));
     return result.allowed ? undefined : result.retryAfterSeconds;
   } catch {
     return undefined;

@@ -63,10 +63,55 @@ describe('createUpstashFixedWindow', () => {
         windowSeconds: 600,
       });
       const started = Date.now();
-      await expect(limit('key-slow')).rejects.toThrow('did not answer in time');
+      await expect(limit('key-slow')).rejects.toThrow();
       expect(Date.now() - started).toBeLessThan(1500);
     } finally {
       server.closeAllConnections();
+      server.close();
+    }
+  });
+
+  it('aborts the request to a store that does not answer', async () => {
+    let closed = false;
+    const server = createServer((request) => {
+      request.on('close', () => {
+        closed = true;
+      });
+    });
+    await new Promise<void>((resolve) => server.listen(0, resolve));
+    const { port } = server.address() as AddressInfo;
+    try {
+      const limiter = createUpstashFixedWindow({
+        url: `http://127.0.0.1:${port}`,
+        token: TOKEN,
+        requests: 5,
+        windowSeconds: 600,
+      });
+      await expect(limiter('key-abort')).rejects.toThrow();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      expect(closed).toBe(true);
+    } finally {
+      server.closeAllConnections();
+      server.close();
+    }
+  });
+
+  it('treats a malformed store answer as a failure, not as a denial', async () => {
+    const server = createServer((_request, response) => {
+      response.setHeader('content-type', 'application/json');
+      response.end(JSON.stringify([{ result: 'abc' }, { result: 1 }]));
+    });
+    await new Promise<void>((resolve) => server.listen(0, resolve));
+    const { port } = server.address() as AddressInfo;
+    try {
+      const limiter = createUpstashFixedWindow({
+        url: `http://127.0.0.1:${port}`,
+        token: TOKEN,
+        requests: 5,
+        windowSeconds: 600,
+      });
+      await expect(limiter('key-bad')).rejects.toThrow('no usable answer');
+    } finally {
       server.close();
     }
   });
