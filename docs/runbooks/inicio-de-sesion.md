@@ -6,9 +6,9 @@ La SPA inicia sesión con Google mediante Neon Auth (ADR-0034), es decir, Better
 
 1. **Ingreso:** la SPA llama a `signIn.social({ provider: 'google' })` de `@neon/auth`. Google vuelve a Neon Auth y Neon Auth vuelve a la SPA, que debe estar en la lista de dominios de confianza.
 2. **Token:** `getSession()` entrega el JWT en `session.token`. Dura 15 minutos y el SDK lo renueva solo.
-3. **API:** verifica la firma contra `<NEON_AUTH_BASE_URL>/.well-known/jwks.json`, el emisor (el origen de esa URL) y la expiración.
-4. **Perfil:** la primera llamada a `GET /api/v1/me` crea el perfil con el nombre y el avatar de Google, la lista privada y el conteo por franquicia. Las llamadas siguientes no lo sobrescriben. El correo nunca se guarda en `profile` ni se devuelve.
-5. **Salida:** el cierre de sesión borra la sesión en Neon Auth y la SPA deja de mostrar el perfil.
+3. **API:** verifica la firma contra `<NEON_AUTH_BASE_URL>/.well-known/jwks.json`, el emisor y la expiración. El emisor es el origen de esa URL, salvo que `NEON_AUTH_ISSUER` indique otro.
+4. **Perfil:** la primera llamada a `GET /api/v1/me` crea el perfil con el nombre y el avatar de Google, la lista privada y el conteo por franquicia. Del nombre se quitan los caracteres de control y se guardan hasta 100 caracteres; el avatar sólo se acepta si viene de `googleusercontent.com`. Si Google no manda nombre, el perfil queda con el nombre vacío hasta que el usuario lo edite (RF-07). Las llamadas siguientes no lo sobrescriben. El correo nunca se guarda en `profile` ni se devuelve.
+5. **Salida:** el cierre de sesión borra la sesión en Neon Auth y la SPA vuelve al ingreso. Si la llamada falla, la sesión sigue viva: la SPA lo avisa y deja reintentar.
 
 ## Configuración
 
@@ -25,6 +25,6 @@ Una sola instancia de Neon Auth, la de `production`, sirve a producción y a las
 
 ## Pendientes
 
-- **Dependencias:** `@neon/auth` 0.8.0 fija `better-auth` 1.7.6, con avisos de seguridad críticos. `pnpm-workspace.yaml` lo fuerza a 1.7.14. Cuando `@neon/auth` 0.8.2 salga de la cuarentena, después del 2026-11-06, hay que actualizarlo y quitar ese override.
+- **Dependencias:** `@neon/auth` 0.8.0 fija `better-auth` 1.7.6, con avisos de seguridad críticos. `pnpm-workspace.yaml` fuerza `better-auth`, `@better-auth/core` y `@better-auth/oauth-provider` a 1.7.14 y `better-call` a 1.4.4; por eso el lockfile tiene dos copias de `@better-auth/core`. Cuando `@neon/auth` 0.8.2 salga de la cuarentena, después del 2026-11-06, hay que actualizarlo y quitar ese override.
 - **Vista previa de prueba:** quitar su dominio de la lista de confianza al cerrar #28.
 - **Safari:** si la sesión se pierde en Safari de iPhone, sumar un proxy propio en `/api/auth/*` (ADR-0034).

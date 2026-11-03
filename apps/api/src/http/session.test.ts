@@ -177,6 +177,22 @@ describe('session claims', () => {
   });
 });
 
+describe('session claims from untrusted shapes', () => {
+  it('keeps the first 100 characters of a long name and strips control characters', async () => {
+    const token = await signWith({ sub: USER_ID, name: `  Cami\u0000la ${'x'.repeat(200)}` });
+    const session = await verifier(token);
+    expect(session.name).toHaveLength(100);
+    expect(session.name?.startsWith('Camila x')).toBe(true);
+  });
+
+  it('only accepts a Google avatar', async () => {
+    const google = await signWith({ sub: USER_ID, image: 'https://lh3.googleusercontent.com/a/x' });
+    expect((await verifier(google)).image).toBe('https://lh3.googleusercontent.com/a/x');
+    const other = await signWith({ sub: USER_ID, image: 'https://evil.example/a.png' });
+    expect((await verifier(other)).image).toBeUndefined();
+  });
+});
+
 describe('neonAuthIssuer', () => {
   it('is the origin of the Neon Auth URL, without its path', () => {
     expect(neonAuthIssuer('https://ep-x.neonauth.us-east-2.aws.neon.tech/neondb/auth')).toBe(

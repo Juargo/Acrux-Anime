@@ -15,8 +15,23 @@ export interface Session {
 export type SessionVerifier = (token: string) => Promise<Session>;
 
 const subject = z.uuid();
-const name = z.string().trim().min(1).max(100);
-const image = z.url({ protocol: /^https$/ });
+// Control characters (Postgres rejects NUL) are removed and long names are cut, so a
+// Google name never leaves the profile empty or breaks it.
+function withoutControlCharacters(value: string): string {
+  return Array.from(value)
+    .filter((char) => {
+      const code = char.charCodeAt(0);
+      return code > 31 && code !== 127;
+    })
+    .join('');
+}
+
+const name = z
+  .string()
+  .transform((value) => withoutControlCharacters(value).trim().slice(0, 100))
+  .pipe(z.string().min(1));
+// Google profile pictures only; the CSP allows no other avatar host.
+const image = z.url({ protocol: /^https$/, hostname: /(^|\.)googleusercontent\.com$/ });
 
 // Neon Auth signs with the origin of its URL as issuer, not the full URL (ADR-0034).
 export function neonAuthIssuer(baseUrl: string): string {

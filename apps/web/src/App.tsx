@@ -31,6 +31,7 @@ function SignedApp({ client }: { client: AuthClient }) {
   const [signingIn, setSigningIn] = useState(false);
   const [signInFailed, setSignInFailed] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [signOutFailed, setSignOutFailed] = useState(false);
 
   useEffect(() => {
     setMe(undefined);
@@ -65,11 +66,15 @@ function SignedApp({ client }: { client: AuthClient }) {
 
   async function signOut() {
     setSigningOut(true);
+    setSignOutFailed(false);
     try {
       await client.signOut();
-    } finally {
-      // Nothing of the profile stays on screen, whatever the network did.
+      // The session hook then reports no user and the sign-in screen returns.
       setMe(undefined);
+    } catch {
+      // The session is still alive on Neon Auth: stay, and say so.
+      setSignOutFailed(true);
+    } finally {
       setSigningOut(false);
     }
   }
@@ -89,5 +94,12 @@ function SignedApp({ client }: { client: AuthClient }) {
       </main>
     );
   }
-  return <Home profile={me.profile} onSignOut={signOut} signingOut={signingOut} />;
+  return (
+    <Home
+      profile={me.profile}
+      onSignOut={signOut}
+      signingOut={signingOut}
+      signOutFailed={signOutFailed}
+    />
+  );
 }

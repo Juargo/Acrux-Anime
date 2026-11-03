@@ -2,7 +2,12 @@ import { Logo } from '../components/Logo';
 import type { Profile } from '../profile-api';
 
 // Signed-in shell until the catalog lands (#31 onwards): who you are and how to leave.
-export function Home(props: { profile: Profile; onSignOut: () => void; signingOut: boolean }) {
+export function Home(props: {
+  profile: Profile;
+  onSignOut: () => void;
+  signingOut: boolean;
+  signOutFailed: boolean;
+}) {
   const { profile } = props;
   const initial = profile.displayName.trim().charAt(0).toUpperCase() || '?';
   return (
@@ -18,6 +23,11 @@ export function Home(props: { profile: Profile; onSignOut: () => void; signingOu
           Cerrar sesión
         </button>
       </header>
+      {props.signOutFailed && (
+        <p className="home__error" role="alert">
+          No pudimos cerrar tu sesión. Vuelve a intentarlo.
+        </p>
+      )}
       <section className="home__profile">
         {profile.avatarUrl ? (
           <img
