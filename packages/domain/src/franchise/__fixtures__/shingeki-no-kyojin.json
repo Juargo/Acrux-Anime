@@ -1,0 +1,816 @@
+{
+  "data": {
+    "Page": {
+      "media": [
+        {
+          "id": 16498,
+          "type": "ANIME",
+          "format": "TV",
+          "title": {
+            "romaji": "Shingeki no Kyojin"
+          },
+          "startDate": {
+            "year": 2013,
+            "month": 4,
+            "day": 7
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "ALTERNATIVE",
+                "node": {
+                  "id": 20691,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              },
+              {
+                "relationType": "ALTERNATIVE",
+                "node": {
+                  "id": 20692,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              },
+              {
+                "relationType": "SEQUEL",
+                "node": {
+                  "id": 20958,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SPIN_OFF",
+                "node": {
+                  "id": 21281,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SIDE_STORY",
+                "node": {
+                  "id": 18397,
+                  "type": "ANIME",
+                  "format": "OVA"
+                }
+              },
+              {
+                "relationType": "SUMMARY",
+                "node": {
+                  "id": 119113,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              },
+              {
+                "relationType": "PREQUEL",
+                "node": {
+                  "id": 20811,
+                  "type": "ANIME",
+                  "format": "OVA"
+                }
+              },
+              {
+                "relationType": "SIDE_STORY",
+                "node": {
+                  "id": 99634,
+                  "type": "ANIME",
+                  "format": "OVA"
+                }
+              },
+              {
+                "relationType": "OTHER",
+                "node": {
+                  "id": 19391,
+                  "type": "ANIME",
+                  "format": "SPECIAL"
+                }
+              },
+              {
+                "relationType": "CHARACTER",
+                "node": {
+                  "id": 143391,
+                  "type": "ANIME",
+                  "format": "ONA"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 18397,
+          "type": "ANIME",
+          "format": "OVA",
+          "title": {
+            "romaji": "Shingeki no Kyojin OVA"
+          },
+          "startDate": {
+            "year": 2013,
+            "month": 12,
+            "day": 9
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "PARENT",
+                "node": {
+                  "id": 16498,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 20691,
+          "type": "ANIME",
+          "format": "MOVIE",
+          "title": {
+            "romaji": "Shingeki no Kyojin Zenpen: Guren no Yumiya"
+          },
+          "startDate": {
+            "year": 2014,
+            "month": 11,
+            "day": 22
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "ALTERNATIVE",
+                "node": {
+                  "id": 16498,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SEQUEL",
+                "node": {
+                  "id": 20692,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              },
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 20692,
+          "type": "ANIME",
+          "format": "MOVIE",
+          "title": {
+            "romaji": "Shingeki no Kyojin Kouhen: Jiyuu no Tsubasa"
+          },
+          "startDate": {
+            "year": 2015,
+            "month": 6,
+            "day": 27
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "ALTERNATIVE",
+                "node": {
+                  "id": 16498,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "PREQUEL",
+                "node": {
+                  "id": 20691,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              },
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "OTHER",
+                "node": {
+                  "id": 123078,
+                  "type": "ANIME",
+                  "format": "ONA"
+                }
+              },
+              {
+                "relationType": "SEQUEL",
+                "node": {
+                  "id": 100465,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 20811,
+          "type": "ANIME",
+          "format": "OVA",
+          "title": {
+            "romaji": "Shingeki no Kyojin Gaiden: Kuinaki Sentaku"
+          },
+          "startDate": {
+            "year": 2014,
+            "month": 12,
+            "day": 9
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "SEQUEL",
+                "node": {
+                  "id": 16498,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "ALTERNATIVE",
+                "node": {
+                  "id": 85199,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 20958,
+          "type": "ANIME",
+          "format": "TV",
+          "title": {
+            "romaji": "Shingeki no Kyojin Season 2"
+          },
+          "startDate": {
+            "year": 2017,
+            "month": 4,
+            "day": 1
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "PREQUEL",
+                "node": {
+                  "id": 16498,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SEQUEL",
+                "node": {
+                  "id": 99147,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SUMMARY",
+                "node": {
+                  "id": 100465,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              },
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "OTHER",
+                "node": {
+                  "id": 110640,
+                  "type": "ANIME",
+                  "format": "SPECIAL"
+                }
+              },
+              {
+                "relationType": "SUMMARY",
+                "node": {
+                  "id": 119113,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 21281,
+          "type": "ANIME",
+          "format": "TV",
+          "title": {
+            "romaji": "Shingeki! Kyojin Chuugakkou"
+          },
+          "startDate": {
+            "year": 2015,
+            "month": 10,
+            "day": 4
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 66535,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "PARENT",
+                "node": {
+                  "id": 16498,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 99147,
+          "type": "ANIME",
+          "format": "TV",
+          "title": {
+            "romaji": "Shingeki no Kyojin Season 3"
+          },
+          "startDate": {
+            "year": 2018,
+            "month": 7,
+            "day": 23
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "PREQUEL",
+                "node": {
+                  "id": 20958,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "SEQUEL",
+                "node": {
+                  "id": 104578,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "OTHER",
+                "node": {
+                  "id": 108942,
+                  "type": "ANIME",
+                  "format": "SPECIAL"
+                }
+              },
+              {
+                "relationType": "SUMMARY",
+                "node": {
+                  "id": 119113,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              },
+              {
+                "relationType": "SIDE_STORY",
+                "node": {
+                  "id": 99634,
+                  "type": "ANIME",
+                  "format": "OVA"
+                }
+              },
+              {
+                "relationType": "OTHER",
+                "node": {
+                  "id": 150005,
+                  "type": "ANIME",
+                  "format": "MUSIC"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 99634,
+          "type": "ANIME",
+          "format": "OVA",
+          "title": {
+            "romaji": "Shingeki no Kyojin: LOST GIRLS"
+          },
+          "startDate": {
+            "year": 2017,
+            "month": 12,
+            "day": 8
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 93313,
+                  "type": "MANGA",
+                  "format": "NOVEL"
+                }
+              },
+              {
+                "relationType": "PARENT",
+                "node": {
+                  "id": 16498,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "PARENT",
+                "node": {
+                  "id": 99147,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "ALTERNATIVE",
+                "node": {
+                  "id": 95409,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 100465,
+          "type": "ANIME",
+          "format": "MOVIE",
+          "title": {
+            "romaji": "Shingeki no Kyojin Season 2: Kakusei no Houkou"
+          },
+          "startDate": {
+            "year": 2018,
+            "month": 1,
+            "day": 13
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "PARENT",
+                "node": {
+                  "id": 20958,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "PREQUEL",
+                "node": {
+                  "id": 20692,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 104578,
+          "type": "ANIME",
+          "format": "TV",
+          "title": {
+            "romaji": "Shingeki no Kyojin Season 3 Part 2"
+          },
+          "startDate": {
+            "year": 2019,
+            "month": 4,
+            "day": 29
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "PREQUEL",
+                "node": {
+                  "id": 99147,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SEQUEL",
+                "node": {
+                  "id": 110277,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SUMMARY",
+                "node": {
+                  "id": 119113,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              },
+              {
+                "relationType": "OTHER",
+                "node": {
+                  "id": 120257,
+                  "type": "ANIME",
+                  "format": "SPECIAL"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 110277,
+          "type": "ANIME",
+          "format": "TV",
+          "title": {
+            "romaji": "Shingeki no Kyojin: The Final Season"
+          },
+          "startDate": {
+            "year": 2020,
+            "month": 12,
+            "day": 7
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "PREQUEL",
+                "node": {
+                  "id": 104578,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "SEQUEL",
+                "node": {
+                  "id": 131681,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "OTHER",
+                "node": {
+                  "id": 139754,
+                  "type": "ANIME",
+                  "format": "SPECIAL"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 119113,
+          "type": "ANIME",
+          "format": "MOVIE",
+          "title": {
+            "romaji": "Shingeki no Kyojin: Chronicle"
+          },
+          "startDate": {
+            "year": 2020,
+            "month": 7,
+            "day": 17
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "PARENT",
+                "node": {
+                  "id": 16498,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "PARENT",
+                "node": {
+                  "id": 20958,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "PARENT",
+                "node": {
+                  "id": 99147,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "PARENT",
+                "node": {
+                  "id": 104578,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 131681,
+          "type": "ANIME",
+          "format": "TV",
+          "title": {
+            "romaji": "Shingeki no Kyojin: The Final Season Part 2"
+          },
+          "startDate": {
+            "year": 2022,
+            "month": 1,
+            "day": 10
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "PREQUEL",
+                "node": {
+                  "id": 110277,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "SEQUEL",
+                "node": {
+                  "id": 146984,
+                  "type": "ANIME",
+                  "format": "SPECIAL"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 146984,
+          "type": "ANIME",
+          "format": "SPECIAL",
+          "title": {
+            "romaji": "Shingeki no Kyojin: The Final Season - Kanketsu-hen Zenpen"
+          },
+          "startDate": {
+            "year": 2023,
+            "month": 3,
+            "day": 4
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "PREQUEL",
+                "node": {
+                  "id": 131681,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "SEQUEL",
+                "node": {
+                  "id": 162314,
+                  "type": "ANIME",
+                  "format": "SPECIAL"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 162314,
+          "type": "ANIME",
+          "format": "SPECIAL",
+          "title": {
+            "romaji": "Shingeki no Kyojin: The Final Season - Kanketsu-hen Kouhen"
+          },
+          "startDate": {
+            "year": 2023,
+            "month": 11,
+            "day": 5
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 53390,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "PREQUEL",
+                "node": {
+                  "id": 146984,
+                  "type": "ANIME",
+                  "format": "SPECIAL"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

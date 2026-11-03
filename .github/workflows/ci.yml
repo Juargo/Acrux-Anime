@@ -42,10 +42,11 @@ jobs:
       - name: Test
         run: pnpm test
 
-      - name: API contract and layers
+      - name: API contract and layers, pure domain
         run: |
           pnpm --filter @acrux/api openapi:check
           pnpm --filter @acrux/api depcruise
+          pnpm --filter @acrux/domain depcruise
 
       - name: Build
         run: pnpm build

@@ -1,0 +1,229 @@
+{
+  "data": {
+    "Page": {
+      "media": [
+        {
+          "id": 121,
+          "type": "ANIME",
+          "format": "TV",
+          "title": {
+            "romaji": "Hagane no Renkinjutsushi"
+          },
+          "startDate": {
+            "year": 2003,
+            "month": 10,
+            "day": 4
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "SEQUEL",
+                "node": {
+                  "id": 430,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              },
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 30025,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "SIDE_STORY",
+                "node": {
+                  "id": 908,
+                  "type": "ANIME",
+                  "format": "OVA"
+                }
+              },
+              {
+                "relationType": "SUMMARY",
+                "node": {
+                  "id": 664,
+                  "type": "ANIME",
+                  "format": "SPECIAL"
+                }
+              },
+              {
+                "relationType": "ALTERNATIVE",
+                "node": {
+                  "id": 5114,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 34658,
+                  "type": "MANGA",
+                  "format": "NOVEL"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 430,
+          "type": "ANIME",
+          "format": "MOVIE",
+          "title": {
+            "romaji": "Hagane no Renkinjutsushi: Shamballa wo Yuku Mono"
+          },
+          "startDate": {
+            "year": 2005,
+            "month": 7,
+            "day": 23
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "PREQUEL",
+                "node": {
+                  "id": 121,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SPIN_OFF",
+                "node": {
+                  "id": 908,
+                  "type": "ANIME",
+                  "format": "OVA"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 664,
+          "type": "ANIME",
+          "format": "SPECIAL",
+          "title": {
+            "romaji": "Hagane no Renkinjutsushi: Reflections"
+          },
+          "startDate": {
+            "year": 2005,
+            "month": 3,
+            "day": 19
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "PARENT",
+                "node": {
+                  "id": 121,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 908,
+          "type": "ANIME",
+          "format": "OVA",
+          "title": {
+            "romaji": "Hagane no Renkinjutsushi: PREMIUM COLLECTION"
+          },
+          "startDate": {
+            "year": 2006,
+            "month": 3,
+            "day": 29
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "PARENT",
+                "node": {
+                  "id": 430,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              },
+              {
+                "relationType": "PARENT",
+                "node": {
+                  "id": 121,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": 5114,
+          "type": "ANIME",
+          "format": "TV",
+          "title": {
+            "romaji": "Hagane no Renkinjutsushi: FULLMETAL ALCHEMIST"
+          },
+          "startDate": {
+            "year": 2009,
+            "month": 4,
+            "day": 5
+          },
+          "relations": {
+            "edges": [
+              {
+                "relationType": "SOURCE",
+                "node": {
+                  "id": 30025,
+                  "type": "MANGA",
+                  "format": "MANGA"
+                }
+              },
+              {
+                "relationType": "SIDE_STORY",
+                "node": {
+                  "id": 6421,
+                  "type": "ANIME",
+                  "format": "OVA"
+                }
+              },
+              {
+                "relationType": "SIDE_STORY",
+                "node": {
+                  "id": 9135,
+                  "type": "ANIME",
+                  "format": "MOVIE"
+                }
+              },
+              {
+                "relationType": "ALTERNATIVE",
+                "node": {
+                  "id": 121,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              },
+              {
+                "relationType": "SPIN_OFF",
+                "node": {
+                  "id": 7902,
+                  "type": "ANIME",
+                  "format": "SPECIAL"
+                }
+              },
+              {
+                "relationType": "CHARACTER",
+                "node": {
+                  "id": 195600,
+                  "type": "ANIME",
+                  "format": "TV"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

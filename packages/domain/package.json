@@ -1,0 +1,20 @@
+{
+  "name": "@acrux/domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run --coverage",
+    "depcruise": "depcruise src --config .dependency-cruiser.cjs"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "5.0.5",
+    "dependency-cruiser": "^18.7.0",
+    "typescript": "^6.0.0",
+    "vitest": "^5.0.5"
+  }
+}
