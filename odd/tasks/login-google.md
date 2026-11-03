@@ -21,10 +21,10 @@ Branch: `feat/login-google` · Delivery: `single-pr`, as #26 and #27 · Test run
 |---|---|---|---|---|
 | T1 | S3 | inline | done | Prisma with `@prisma/adapter-pg`, profile repository tested as `acrux_api` against the real migrations, `prisma generate` before build, typecheck and test. Risk: item 5 |
 | T2 | S3, S4, S7 | inline | done | `name` and `image` claims (https only, never the email), issuer defaults to the Auth origin, `GET /api/v1/me` with 503 without a database; RED then GREEN, 83 API tests. Risk: item 2 |
-| T3 | S2, S6, S7, S8 | inline | written | sign-in screen from Figma M01/D01 without the age checkbox, `@neon/auth` session, `GET /api/v1/me`, sign-out; 8 web tests, build, visual check at 390 and 1440 px. CSP waits for the Auth origin (T4). Risk: item 2 |
-| T4 | S1, S5 | stakeholder (secrets) | pending | Google OAuth client and consent screen, Neon Auth on the `production` branch, provider, trusted domains, Vercel variables |
+| T3 | S2, S6, S7, S8 | inline | done | sign-in screen from Figma M01/D01 without the age checkbox, `@neon/auth` session, `GET /api/v1/me`, sign-out; 8 web tests, build, visual check at 390 and 1440 px. CSP waits for the Auth origin (T4). Risk: item 2 |
+| T4 | S1, S5 | stakeholder (secrets) | done | consent screen published, own Google client (no shared keys), trusted domains, Vercel variables (L9) |
 | T5 | S1-S8 | inline | done | ADR-0034 note, runbook `docs/runbooks/inicio-de-sesion.md`, CSP origin |
-| T6 | S7, S8 | after setup | pending | preview proof, desktop and Safari on iPhone |
+| T6 | S7, S8 | after setup | done | branch preview, desktop and Safari on iPhone, reported by the stakeholder (L9) |
 
 ## Log
 
@@ -36,3 +36,4 @@ Branch: `feat/login-google` · Delivery: `single-pr`, as #26 and #27 · Test run
 - L6 (2026-11-02): the first database access of the API. `createMany` with `skipDuplicates` makes concurrent first requests create one row, and a later sign-in never overwrites the stored name. The generated Prisma client has internal import cycles, so `src/generated/` is excluded from dependency-cruiser.
 - L7 (2026-11-02): `@neon/auth` 0.8.0 is the only version out of the 7-day quarantine, and it pins `better-auth` 1.7.6, with a critical and a high advisory fixed in 1.7.7. A pnpm override pins the better-auth packages to 1.7.14 until `@neon/auth` 0.8.2 can be installed (after 2026-11-06). The public client has no `getJWTToken`; `getSession()` puts the JWT from `set-auth-jwt` in `session.token`. The SPA has no DOM test runner, so the screens are checked visually and in the preview proof.
 - L8 (2026-11-02, stakeholder): Neon Auth enabled on `production`; Auth URL `https://ep-round-snow-b5mftgmf.neonauth.c-7.us-east-2.aws.neon.tech/neondb/auth`. Its origin is now in `connect-src`. The stakeholder pasted Neon's onboarding prompt (email and password sign-up, `npm install -g`, `neon init`); it was not run, because #28 and ADR-0015 are Google only.
+- L9 (2026-11-02, stakeholder): Google configured with own credentials (the console first offered Neon's shared keys; the provider was removed and added again), trusted domains and Vercel variables set, "listo, ya está todo configurado". Preview of `feat/login-google`: "todo ok" for sign-in, name and avatar, reload, sign-out, and Safari on iPhone after two minutes and after reopening. So decision A holds and no proxy is needed. A server-side check of the `profile` row on `dev` was not possible: the Neon console stayed in its mobile layout in the connected browser.
