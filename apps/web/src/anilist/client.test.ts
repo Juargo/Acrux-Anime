@@ -101,4 +101,35 @@ describe('AniList client', () => {
     const error = await client.request(QUERY, {}, schema).catch((caught: unknown) => caught);
     expect((error as AniListError).kind).toBe('unavailable');
   });
+
+  it('waits for X-RateLimit-Reset even when the 429 also says no requests remain', async () => {
+    const { client, waits } = harness([
+      () =>
+        reply(
+          {},
+          {
+            status: 429,
+            headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': '1800000030' },
+          },
+        ),
+      () => reply({ data: { ok: true } }),
+    ]);
+    await client.request(QUERY, {}, schema);
+    expect(waits).toEqual([30_000]);
+  });
+
+  it('keeps waiting and retrying when the rate limit callback throws', async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    fetch
+      .mockResolvedValueOnce(reply({}, { status: 429 }))
+      .mockResolvedValueOnce(reply({ data: { ok: true } }));
+    const client = createAniListClient({
+      fetch,
+      sleep: async () => {},
+      onRateLimited: () => {
+        throw new Error('analytics is down');
+      },
+    });
+    await expect(client.request(QUERY, {}, schema)).resolves.toEqual({ ok: true });
+  });
 });

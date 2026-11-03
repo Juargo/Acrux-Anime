@@ -46,6 +46,30 @@ describe('queries', () => {
     expect(await fetchMediaByIds(createAniListClient({ fetch }), [])).toEqual([]);
     expect(fetch).not.toHaveBeenCalled();
   });
+
+  it('asks for a repeated id once and returns it wherever it was requested', async () => {
+    const bodies: { variables: { ids: number[] } }[] = [];
+    const fetch = vi.fn<typeof globalThis.fetch>(async (_url, init) => {
+      const body = JSON.parse(String(init?.body)) as { variables: { ids: number[] } };
+      bodies.push(body);
+      return Response.json({ data: { Page: { media: body.variables.ids.map(media) } } });
+    });
+    const result = await fetchMediaByIds(createAniListClient({ fetch }), [7, 7, 8, 7]);
+    expect(bodies.map((body) => body.variables.ids)).toEqual([[7, 8]]);
+    expect(result.map((item) => item.id)).toEqual([7, 7, 8, 7]);
+  });
+
+  it('rejects a cover that is not an https URL', async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>(async () =>
+      Response.json({
+        data: { Page: { media: [{ ...media(1), coverImage: { large: 'javascript:alert(1)' } }] } },
+      }),
+    );
+    const error = await fetchMediaByIds(createAniListClient({ fetch }), [1]).catch(
+      (caught: unknown) => caught,
+    );
+    expect((error as AniListError).kind).toBe('invalid-response');
+  });
 });
 
 describe('anilistErrorMessage', () => {

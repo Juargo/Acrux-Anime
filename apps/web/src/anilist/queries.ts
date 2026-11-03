@@ -29,7 +29,7 @@ const mediaSchema = z.object({
     english: z.string().nullable(),
     native: z.string().nullable(),
   }),
-  coverImage: z.object({ large: z.url().nullable() }),
+  coverImage: z.object({ large: z.url({ protocol: /^https$/ }).nullable() }),
   format: z.string().nullable(),
   seasonYear: z.number().int().nullable(),
 });
@@ -38,11 +38,13 @@ export type Media = z.infer<typeof mediaSchema>;
 
 const pageSchema = z.object({ Page: z.object({ media: z.array(mediaSchema) }) });
 
-// One request per 50 ids, for lists and the share card; the answer keeps the given order.
+// One request per 50 distinct ids, for lists and the share card; the answer keeps the
+// given order, repeats included.
 export async function fetchMediaByIds(client: AniListClient, ids: number[]): Promise<Media[]> {
+  const unique = [...new Set(ids)];
   const batches: number[][] = [];
-  for (let start = 0; start < ids.length; start += BATCH_SIZE) {
-    batches.push(ids.slice(start, start + BATCH_SIZE));
+  for (let start = 0; start < unique.length; start += BATCH_SIZE) {
+    batches.push(unique.slice(start, start + BATCH_SIZE));
   }
   const found = new Map<number, Media>();
   for (const batch of batches) {

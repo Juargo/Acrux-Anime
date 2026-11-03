@@ -56,7 +56,7 @@
    - **Nota (2026-11-03, issue #29):** reglas 1, 3, 4, 5 y 8 implementadas en `apps/web/src/anilist/`.
      - **Caché:** TanStack Query sin persistencia.
      - **Lotes:** de 50 identificadores.
-     - **Límite:** espera hasta `X-RateLimit-Reset` y, si falta, retroceso de 1, 2 y 4 segundos. Con `X-RateLimit-Remaining` en 0, la consulta siguiente espera al próximo minuto.
+     - **Límite:** espera hasta `X-RateLimit-Reset` y, si falta, retroceso de 1, 2 y 4 segundos. Si una respuesta exitosa trae `X-RateLimit-Remaining` en 0, la consulta siguiente espera 60 segundos.
      - **Validación:** Zod.
      - **Mensajes:** de RNF-21.
      - **Pendientes:** el evento `anilist_rate_limited` se envía desde `onRateLimited` cuando PostHog llegue a la app (#46), y la regla del service worker se aplica con la PWA (#44).

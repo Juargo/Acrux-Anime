@@ -66,16 +66,21 @@ export function createAniListClient(options: AniListClientOptions = {}): AniList
       for (let attempt = 0; ; attempt++) {
         if (pausedUntil > now()) await sleep(pausedUntil - now());
         const response = await send(query, variables);
-        if (response.headers.get('x-ratelimit-remaining') === '0') {
-          pausedUntil = now() + WINDOW_MS;
-        }
         if (response.status === 429) {
-          options.onRateLimited?.({ attempt: attempt + 1 });
+          // The 429 already says how long to wait: its reset wins over the window pause.
+          try {
+            options.onRateLimited?.({ attempt: attempt + 1 });
+          } catch {
+            // Analytics must never break a catalog query.
+          }
           if (attempt >= MAX_RETRIES) {
             throw new AniListError('rate-limited', 'AniList is limiting requests');
           }
           await sleep(resetDelay(response, now()) ?? FIRST_BACKOFF_MS * 2 ** attempt);
           continue;
+        }
+        if (response.headers.get('x-ratelimit-remaining') === '0') {
+          pausedUntil = now() + WINDOW_MS;
         }
         if (response.status >= 500) {
           throw new AniListError('unavailable', `AniList answered ${response.status}`);
