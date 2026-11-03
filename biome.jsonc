@@ -12,6 +12,7 @@
       "!**/*.md",
       "!pnpm-lock.yaml",
       "!apps/landing/public/icons",
+      "!apps/web/public/icons",
       "!apps/api/openapi.json"
     ]
   },
