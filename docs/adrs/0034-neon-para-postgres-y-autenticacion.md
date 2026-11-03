@@ -47,6 +47,12 @@
 3. La API **verifica la firma del JWT** con `jose` contra el JWKS de Neon Auth (`<NEON_AUTH_BASE_URL>/.well-known/jwks.json`), además del emisor (`iss`) y la expiración. No confía en ningún dato del token sin verificarlo.
 4. El `sub` del token (el `id` en `neon_auth.user`) es el `user_id` en todas las tablas de `public` (ADR-0022).
 5. **Curador:** se asigna como rol del usuario de Neon Auth, solo desde la consola o la CLI de Neon (`neon neon-auth user set-role`). El usuario no puede cambiarlo. El *middleware* `requireRole('curator')` sigue igual; si el rol no viene en el JWT, la API lo lee de `neon_auth.user`.
+   - **Nota (2026-11-02, issue #28):**
+     - **SDK:** `@neon/auth`, porque los paquetes `@neondatabase/*` quedaron como betas antiguas.
+     - **JWT:** el emisor es el *origen* de `NEON_AUTH_BASE_URL`, sin la ruta, y la API lo calcula así. El token dura 15 minutos y trae `name` e `image`, que la API usa para crear el perfil.
+     - **Modo directo:** la SPA habla directo con Neon Auth, con cookies de otro sitio. Una prueba en Safari de iPhone decide si hace falta un proxy en `/api/auth/*`.
+     - **Configuración:** Google y los dominios de confianza se configuran por rama en la consola, no en `neon.ts`.
+     - Ver [`docs/runbooks/inicio-de-sesion.md`](../runbooks/inicio-de-sesion.md).
 6. **Borrado de cuenta:** `DELETE /api/v1/me` borra en una transacción los datos de `public` y luego el usuario de Neon Auth con la API administrativa de Neon. La credencial administrativa solo existe en el servidor (ADR-0007, ADR-0018).
 
 ### Filas actualizadas del stack (ADR-0026)
