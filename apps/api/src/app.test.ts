@@ -397,6 +397,9 @@ describe('GET /api/v1/me', () => {
         };
       },
       ensureProfile: async () => {},
+      update: async () => {
+        throw new Error('not used');
+      },
     });
     const response = await request(app).get('/api/v1/me').set('Authorization', 'Bearer token');
     expect(response.status).toBe(200);
@@ -419,6 +422,94 @@ describe('GET /api/v1/me', () => {
   it('answers 503 when the database is not configured', async () => {
     const app = appWithProfiles(undefined);
     const response = await request(app).get('/api/v1/me').set('Authorization', 'Bearer token');
+    expect(response.status).toBe(503);
+    expect(response.body).toMatchObject({ code: 'profile.unavailable' });
+  });
+});
+
+describe('PATCH /api/v1/me', () => {
+  const USER = '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f70';
+  const auth = { Authorization: 'Bearer token' };
+
+  function fakeProfiles() {
+    const calls: unknown[] = [];
+    const service: NonNullable<Container['profileService']> = {
+      me: async () => {
+        throw new Error('not used');
+      },
+      ensureProfile: async () => {},
+      update: async (session, changes) => {
+        calls.push({ session, changes });
+        return {
+          displayName: 'Camila',
+          avatarUrl: null,
+          locale: 'es',
+          listVisibility: 'private',
+          counterMode: changes.counterMode,
+        };
+      },
+    };
+    return { calls, service };
+  }
+
+  function appWithProfiles(profileService: Container['profileService']) {
+    const base = createContainer({});
+    return createApp({
+      ...base,
+      profileService,
+      sessionVerifier: async () => ({ userId: USER, name: 'Camila' }),
+      modules: createModules(profileService, undefined),
+    });
+  }
+
+  it('saves the counter mode of the session user and returns the profile', async () => {
+    const { calls, service } = fakeProfiles();
+    const response = await request(appWithProfiles(service))
+      .patch('/api/v1/me')
+      .set(auth)
+      .send({ counterMode: 'entry' });
+    expect(response.status).toBe(200);
+    expect(response.headers['cache-control']).toBe('private, no-store');
+    expect(response.body).toEqual({
+      displayName: 'Camila',
+      avatarUrl: null,
+      locale: 'es',
+      listVisibility: 'private',
+      counterMode: 'entry',
+    });
+    expect(calls).toEqual([
+      { session: { userId: USER, name: 'Camila' }, changes: { counterMode: 'entry' } },
+    ]);
+  });
+
+  it.each([
+    ['an unknown mode', { counterMode: 'episode' }],
+    ['an empty body', {}],
+    ['a field it does not change yet', { counterMode: 'entry', displayName: 'Cami' }],
+  ])('rejects %s with 400 and changes nothing', async (_case, body) => {
+    const { calls, service } = fakeProfiles();
+    const response = await request(appWithProfiles(service))
+      .patch('/api/v1/me')
+      .set(auth)
+      .send(body);
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({ code: 'profile.invalid_body' });
+    expect(calls).toEqual([]);
+  });
+
+  it('requires a session', async () => {
+    const { service } = fakeProfiles();
+    const response = await request(appWithProfiles(service))
+      .patch('/api/v1/me')
+      .send({ counterMode: 'entry' });
+    expect(response.status).toBe(401);
+  });
+
+  it('answers 503 when the database is not configured', async () => {
+    const response = await request(appWithProfiles(undefined))
+      .patch('/api/v1/me')
+      .set(auth)
+      .send({ counterMode: 'entry' });
     expect(response.status).toBe(503);
     expect(response.body).toMatchObject({ code: 'profile.unavailable' });
   });

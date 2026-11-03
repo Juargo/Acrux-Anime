@@ -69,4 +69,18 @@ describe('profile repository', () => {
     expect(results.every((profile) => profile.displayName === 'Camila')).toBe(true);
     expect(await prisma.profile.count({ where: { userId } })).toBe(1);
   });
+
+  it('saves the counter mode and keeps it on later sign-ins', async () => {
+    const profiles = createProfileRepository(prisma);
+    const userId = '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f74';
+    const updated = await profiles.update(
+      userId,
+      { displayName: 'Camila', avatarUrl: null },
+      { counterMode: 'entry' },
+    );
+    expect(updated.counterMode).toBe('entry');
+    const again = await profiles.findOrCreate(userId, { displayName: 'Camila', avatarUrl: null });
+    expect(again).toMatchObject({ displayName: 'Camila', counterMode: 'entry' });
+    expect(await prisma.profile.count({ where: { userId } })).toBe(1);
+  });
 });
