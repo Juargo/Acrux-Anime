@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fetchMarks, MarksError, saveMarks } from './marks-api';
+import { deleteMark, fetchMarks, MarksError, putMark, saveMarks } from './marks-api';
 
 const token = async () => 'jwt';
 const mark = {
@@ -43,6 +43,36 @@ describe('marks API client', () => {
       method: 'POST',
       headers: { Authorization: 'Bearer jwt', 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'seen', entries: [{ anilistId: 16498, malId: 16498 }] }),
+    });
+  });
+
+  it('marks one entry with its status and MAL id', async () => {
+    const fetchFn = respond(200, mark);
+
+    expect(await putMark(token, 16498, { status: 'seen', malId: 16498 }, fetchFn)).toEqual(mark);
+    expect(fetchFn).toHaveBeenCalledWith('/api/v1/me/marks/16498', {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer jwt', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'seen', malId: 16498 }),
+    });
+  });
+
+  it('unmarks one entry, answered with no content', async () => {
+    const fetchFn = respond(204);
+
+    await expect(deleteMark(token, 16498, fetchFn)).resolves.toBeUndefined();
+    expect(fetchFn).toHaveBeenCalledWith('/api/v1/me/marks/16498', {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer jwt' },
+    });
+  });
+
+  it('fails the same way on one entry as on a batch', async () => {
+    await expect(
+      putMark(token, 1, { status: 'watching' }, respond(503, { requestId: 'req-2' })),
+    ).rejects.toMatchObject({ kind: 'failed', requestId: 'req-2' });
+    await expect(deleteMark(token, 1, respond(401, {}))).rejects.toMatchObject({
+      kind: 'signed-out',
     });
   });
 

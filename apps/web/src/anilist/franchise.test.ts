@@ -11,7 +11,7 @@ function node(id: number, year: number, extra: Partial<RelatedMedia> = {}): Rela
     format: 'TV',
     isAdult: false,
     title: { romaji: `Entry ${id}`, english: null, native: null },
-    coverImage: { large: null },
+    coverImage: { large: `https://img.anili.st/media/${id}.jpg` },
     startDate: { year, month: 1, day: 1 },
     ...extra,
   };
@@ -38,9 +38,11 @@ const edges: Record<number, [string, number][]> = {
   9: [['PARENT', 1]],
 };
 
-function media(id: number): CatalogMedia {
+function media(id: number): CatalogMedia & { episodes: number; genres: string[] } {
   return {
     ...node(id, years[id] ?? 2000),
+    episodes: 12,
+    genres: ['Action', 'Supernatural'],
     relations: {
       edges: (edges[id] ?? []).map(([relationType, target]) => ({
         relationType,
@@ -74,6 +76,48 @@ describe('fetchFranchise', () => {
     expect(franchise.extras).toEqual([{ anilistId: 9, malId: 1009 }]);
     // Seed 3, then 2 and 4, then 1: one batch per hop, never the side story or the spin-off.
     expect(request.mock.calls.map(([, variables]) => variables.ids)).toEqual([[3], [2, 4], [1]]);
+  });
+
+  it('describes the franchise for its detail: entries, genres and related franchises', async () => {
+    const { client } = fakeClient();
+
+    const { detail } = await fetchFranchise(client, [2]);
+
+    expect(detail?.franchise.rootId).toBe(1);
+    expect(detail?.title).toBe('Entry 1');
+    expect(detail?.coverUrl).toBe('https://img.anili.st/media/1.jpg');
+    expect(detail?.genres).toEqual(['Action', 'Supernatural']);
+    expect(detail?.core.map((entry) => entry.anilistId)).toEqual([1, 2, 3, 4]);
+    expect(detail?.core[0]).toEqual({
+      anilistId: 1,
+      malId: 1001,
+      title: 'Entry 1',
+      format: 'TV',
+      year: 2013,
+      episodes: 12,
+      coverUrl: 'https://img.anili.st/media/1.jpg',
+    });
+    // Extras are one hop away: AniList's relation node carries no episode count.
+    expect(detail?.extras).toEqual([
+      {
+        anilistId: 9,
+        malId: 1009,
+        title: 'Entry 9',
+        format: 'TV',
+        year: 2014,
+        episodes: null,
+        coverUrl: 'https://img.anili.st/media/9.jpg',
+      },
+    ]);
+    expect(detail?.related).toEqual([
+      { rootId: 7, title: 'Entry 7', coverUrl: 'https://img.anili.st/media/7.jpg' },
+    ]);
+  });
+
+  it('has no detail when AniList does not know the id', async () => {
+    const { client } = fakeClient();
+
+    expect(await fetchFranchise(client, [404])).toEqual({ core: [], extras: [], detail: null });
   });
 
   it('asks only for anime that is not adult (ADR-0024 rule 8)', () => {

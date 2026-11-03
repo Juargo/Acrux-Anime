@@ -6,6 +6,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import { App } from './App';
 import { createQueryClient } from './anilist/query-client';
 import { initErrorTracking } from './error-tracking';
+import { signedInRoutes } from './routes/signed-in-routes';
 import './styles.css';
 
 initErrorTracking({
@@ -14,7 +15,7 @@ initErrorTracking({
 });
 
 const queryClient = createQueryClient();
-const router = createBrowserRouter([{ path: '/', element: <App /> }]);
+const router = createBrowserRouter([{ path: '/', element: <App />, children: signedInRoutes }]);
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');

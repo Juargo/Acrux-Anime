@@ -47,6 +47,7 @@ async function call(
     const problem = (await response.json().catch(() => ({}))) as { requestId?: string };
     throw new MarksError('failed', problem.requestId);
   }
+  if (response.status === 204) return undefined;
   return response.json();
 }
 
@@ -75,4 +76,32 @@ export async function saveMarks(
     fetchFn,
   )) as { items: MarkDto[] };
   return body.items;
+}
+
+// RF-20: one entry at a time from the franchise detail.
+export async function putMark(
+  getToken: GetToken,
+  anilistId: number,
+  mark: { status: 'seen' | 'watching'; malId?: number | null },
+  fetchFn: typeof fetch = fetch,
+): Promise<MarkDto> {
+  return (await call(
+    getToken,
+    `/api/v1/me/marks/${anilistId}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mark),
+    },
+    fetchFn,
+  )) as MarkDto;
+}
+
+// The API answers 204 whether or not the entry was marked.
+export async function deleteMark(
+  getToken: GetToken,
+  anilistId: number,
+  fetchFn: typeof fetch = fetch,
+): Promise<void> {
+  await call(getToken, `/api/v1/me/marks/${anilistId}`, { method: 'DELETE' }, fetchFn);
 }

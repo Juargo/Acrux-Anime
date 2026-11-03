@@ -172,6 +172,8 @@ const GENRE_LABELS: Record<string, string> = {
   Thriller: 'Suspenso',
 };
 
+export const genreLabel = (genre: string) => GENRE_LABELS[genre] ?? genre;
+
 const ADULT_GENRES = new Set(['Hentai']);
 
 const genresSchema = z.object({ GenreCollection: z.array(z.string()) });
@@ -185,6 +187,6 @@ export async function fetchGenres(client: AniListClient): Promise<GenreOption[]>
   const data = await client.request(GENRES, {}, genresSchema);
   return data.GenreCollection.filter((genre) => !ADULT_GENRES.has(genre)).map((genre) => ({
     value: genre,
-    label: GENRE_LABELS[genre] ?? genre,
+    label: genreLabel(genre),
   }));
 }

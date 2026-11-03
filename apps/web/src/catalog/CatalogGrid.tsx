@@ -1,5 +1,6 @@
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useRef } from 'react';
+import { Link } from 'react-router';
 import { useWindowWidth } from './hooks';
 import type { CatalogItem } from './items';
 
@@ -18,13 +19,14 @@ function columnsFor(width: number): number {
 /**
  * Presentational: a virtualized grid of franchise covers (Figma M03 28:122, D03 32:652).
  * Only the rows near the viewport are in the DOM; reaching the last row asks for more.
+ * A card opens the franchise detail; its ✓ button marks the franchise in one tap (L2).
  */
 export function CatalogGrid(props: {
   items: CatalogItem[];
   hasMore: boolean;
   loadingMore: boolean;
   onLoadMore: () => void;
-  // One tap marks the franchise as seen, or unmarks a seen one (RNF-01).
+  // One tap on ✓ marks the franchise as seen, or unmarks a seen one (RNF-01).
   onToggle?: ((item: CatalogItem) => void) | undefined;
   pendingRootId?: number | undefined;
 }) {
@@ -70,21 +72,25 @@ export function CatalogGrid(props: {
               }px)`,
             }}
           >
-            {onToggle ? (
+            <Link className="catalog-card__link" to={`/franquicia/${item.rootId}`}>
+              <CardContent item={item} />
+              {item.dimmed && !onToggle && <span className="visually-hidden"> (vista)</span>}
+            </Link>
+            {onToggle && (
               <button
-                className="catalog-card__button"
+                className="catalog-card__mark"
                 type="button"
+                aria-label={
+                  item.dimmed
+                    ? `Quitar «${item.title}» de vistas`
+                    : `Marcar «${item.title}» como vista`
+                }
                 aria-pressed={item.dimmed}
                 disabled={item.rootId === pendingRootId}
                 onClick={() => onToggle(item)}
               >
-                <CardContent item={item} />
+                <span aria-hidden="true">✓</span>
               </button>
-            ) : (
-              <>
-                <CardContent item={item} />
-                {item.dimmed && <span className="visually-hidden"> (vista)</span>}
-              </>
             )}
           </li>
         )),

@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { type CatalogQuery, fetchCatalogPage, fetchGenres } from './catalog';
 import { type AniListClient, createAniListClient } from './client';
+import { fetchFranchise } from './franchise';
 import { fetchMediaByIds } from './queries';
 
 // One client per tab, so the X-RateLimit-Remaining pause covers every query.
@@ -32,5 +33,14 @@ export function useGenres(enabled: boolean, client: AniListClient = defaultClien
     queryFn: () => fetchGenres(client),
     staleTime: Number.POSITIVE_INFINITY,
     enabled,
+  });
+}
+
+// The franchise detail (RF-16) builds the whole franchise from any of its entries.
+export function useFranchise(anilistId: number, client: AniListClient = defaultClient) {
+  return useQuery({
+    queryKey: ['anilist', 'franchise', anilistId],
+    queryFn: () => fetchFranchise(client, [anilistId]),
+    enabled: Number.isInteger(anilistId) && anilistId > 0,
   });
 }
