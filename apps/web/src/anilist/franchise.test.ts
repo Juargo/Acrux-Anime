@@ -81,7 +81,7 @@ describe('fetchFranchise', () => {
     expect(FRANCHISE_MEDIA).toContain('type: ANIME');
   });
 
-  it('stops after a bounded number of requests on very long chains', async () => {
+  it('fails instead of saving part of a core when the chain outgrows the request bound', async () => {
     const request = vi.fn(async (_query: string, variables: Record<string, unknown>, schema) => {
       const ids = variables.ids as number[];
       return schema.parse({
@@ -94,9 +94,33 @@ describe('fetchFranchise', () => {
       });
     });
 
+    await expect(fetchFranchise({ request } as unknown as AniListClient, [1])).rejects.toThrow(
+      'incomplete',
+    );
+    expect(request).toHaveBeenCalledTimes(20);
+  });
+
+  it('follows a long linear chain such as Monogatari to its end', async () => {
+    const last = 18;
+    const request = vi.fn(async (_query: string, variables: Record<string, unknown>, schema) => {
+      const ids = variables.ids as number[];
+      return schema.parse({
+        Page: {
+          media: ids.map((id) => ({
+            ...node(id, 2000 + id),
+            relations: {
+              edges: [
+                ...(id > 1 ? [{ relationType: 'PREQUEL', node: node(id - 1, 1999 + id) }] : []),
+                ...(id < last ? [{ relationType: 'SEQUEL', node: node(id + 1, 2001 + id) }] : []),
+              ],
+            },
+          })),
+        },
+      });
+    });
+
     const franchise = await fetchFranchise({ request } as unknown as AniListClient, [1]);
 
-    expect(request).toHaveBeenCalledTimes(10);
-    expect(franchise.core.length).toBeGreaterThanOrEqual(10);
+    expect(franchise.core).toHaveLength(last);
   });
 });

@@ -169,6 +169,56 @@ describe('marking from the catalog', () => {
     expect(onFranchiseMarked).toHaveBeenCalledWith({ status: null, coreSize: 3 });
   });
 
+  it('a failed tap rolls back only its own franchise, not another one saved meanwhile', async () => {
+    const twoSagas = {
+      request: vi.fn(async (query: string, variables: Record<string, unknown>, schema) => {
+        if (query === CATALOG_PAGE) {
+          return schema.parse({
+            Page: { pageInfo: { hasNextPage: false }, media: [media(16498), media(5114)] },
+          });
+        }
+        return schema.parse({ Page: { media: (variables.ids as number[]).map(media) } });
+      }),
+    } as unknown as AniListClient;
+    let failFirst: (error: Error) => void = () => {};
+    const fetchFn = vi.fn(async (_path: string, init?: RequestInit) => {
+      if (init?.method !== 'POST') return json({ items: [], nextCursor: null });
+      const body = JSON.parse(init.body as string) as { entries: { anilistId: number }[] };
+      if (body.entries[0]?.anilistId === 16498) {
+        return new Promise<Response>((_resolve, reject) => {
+          failFirst = reject;
+        });
+      }
+      return json({ items: [seen(5114)] });
+    });
+    render(
+      <QueryClientProvider
+        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      >
+        <CatalogScreen
+          client={twoSagas}
+          getToken={async () => 'jwt'}
+          fetchFn={fetchFn as unknown as typeof fetch}
+        />
+      </QueryClientProvider>,
+    );
+
+    await userEvent.click(await card());
+    await waitFor(() =>
+      expect(fetchFn.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(true),
+    );
+    const other = await screen.findByRole('button', { name: 'Season 5114' });
+    await userEvent.click(other);
+    await waitFor(() => expect(other.getAttribute('aria-pressed')).toBe('true'));
+    failFirst(new TypeError('Failed to fetch'));
+
+    expect((await screen.findByRole('alert')).textContent).toContain('No pudimos guardar');
+    expect((await card()).getAttribute('aria-pressed')).toBe('false');
+    expect(
+      (await screen.findByRole('button', { name: 'Season 5114' })).getAttribute('aria-pressed'),
+    ).toBe('true');
+  });
+
   it('shows the catalog without marking when there is no session', async () => {
     const queryClient = new QueryClient();
     render(

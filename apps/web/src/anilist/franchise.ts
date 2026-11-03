@@ -23,8 +23,9 @@ export const FRANCHISE_MEDIA = `
 `;
 
 const BATCH_SIZE = 50;
-// Ten batches cover sagas of hundreds of entries and bound the cost against the rate limit.
-const MAX_REQUESTS = 10;
+// Each request follows one hop, so this bounds the length of a sequel chain: twenty covers
+// the longest linear sagas while staying under AniList's 30 requests a minute.
+const MAX_REQUESTS = 20;
 const CORE_RELATIONS = new Set(['SEQUEL', 'PREQUEL']);
 
 const pageSchema = z.object({ Page: z.object({ media: z.array(catalogMediaSchema) }) });
@@ -66,6 +67,9 @@ export async function fetchFranchise(
     }
     frontier = [...next];
   }
+
+  // RDI-31 marks the whole core: never save part of one.
+  if (frontier.length > 0) throw new Error('Franchise incomplete: the sequel chain is too long');
 
   const { entries, known } = catalogEntries([...fetched.values()]);
   const seed = seedIds[0];

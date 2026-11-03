@@ -92,8 +92,14 @@ export function useFranchiseMarks(options: {
       );
       return { previous };
     },
-    onError: (_error, _item, context) => {
-      queryClient.setQueryData(MARKS_KEY, context?.previous);
+    // Only this franchise goes back: another tap may have saved meanwhile.
+    onError: (_error, item, context) => {
+      const touched = new Set(item.entryIds);
+      const before = (context?.previous ?? []).filter((mark) => touched.has(mark.anilistId));
+      queryClient.setQueryData<MarkDto[]>(MARKS_KEY, (current = []) => [
+        ...current.filter((mark) => !touched.has(mark.anilistId)),
+        ...before,
+      ]);
       setMessage({ kind: 'alert', text: SAVE_FAILED });
     },
     onSuccess: (result, item) => {
