@@ -29,7 +29,7 @@ const countLabel = (label: string, count: number) => (count > 0 ? `${label} · $
  */
 export function CatalogScreen({ client = defaultClient }: { client?: AniListClient }) {
   const [input, setInput] = useState('');
-  const search = useDebounced(input, SEARCH_DEBOUNCE_MS);
+  const search = useDebounced(input.trim(), SEARCH_DEBOUNCE_MS);
   const [filters, setFilters] = useState(defaultFilters);
   const [sheetOpen, setSheetOpen] = useState(false);
   const online = useOnline();
@@ -53,7 +53,7 @@ export function CatalogScreen({ client = defaultClient }: { client?: AniListClie
     void fetchNextPage();
   }, [fetchNextPage]);
   const closeSheet = useCallback(() => setSheetOpen(false), []);
-  const searching = search.trim() !== '';
+  const searching = search !== '';
 
   return (
     <section className="catalog" aria-label="Explorar">
@@ -111,7 +111,7 @@ export function CatalogScreen({ client = defaultClient }: { client?: AniListClie
       ) : items.length === 0 ? (
         <p className="catalog__state">
           {searching
-            ? `No encontramos animes para «${search.trim()}».`
+            ? `No encontramos animes para «${search}».`
             : 'No encontramos animes con estos filtros.'}
         </p>
       ) : (
@@ -127,7 +127,7 @@ export function CatalogScreen({ client = defaultClient }: { client?: AniListClie
               Cargando más…
             </p>
           )}
-          {catalog.isFetchNextPageError && (
+          {catalog.isFetchNextPageError && !catalog.isFetchingNextPage && (
             <div className="catalog__notice" role="alert">
               <p>{anilistErrorMessage(catalog.error)}</p>
               <button className="button button--secondary" type="button" onClick={loadMore}>
@@ -142,6 +142,7 @@ export function CatalogScreen({ client = defaultClient }: { client?: AniListClie
         <FilterSheet
           initial={filters}
           currentYear={new Date().getFullYear()}
+          searching={searching}
           genres={genres.data}
           onApply={(next) => {
             setFilters(next);

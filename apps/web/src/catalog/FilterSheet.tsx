@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { FORMAT_FILTERS, type GenreOption } from '../anilist/catalog';
 
 export interface Filters {
@@ -19,16 +19,26 @@ const toggle = (values: string[], value: string) =>
 export function FilterSheet(props: {
   initial: Filters;
   currentYear: number;
+  // A search covers every year (ADR-0017), so the year waits until the search is cleared.
+  searching: boolean;
   genres: GenreOption[] | undefined;
   onApply: (filters: Filters) => void;
   onClear: () => void;
   onClose: () => void;
 }) {
-  const { currentYear, genres, onApply, onClear, onClose } = props;
+  const { currentYear, searching, genres, onApply, onClear, onClose } = props;
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState(props.initial);
   const titleId = useId();
   const yearId = useId();
   const years = Array.from({ length: currentYear - FIRST_YEAR + 1 }, (_, i) => currentYear - i);
+
+  // Focus goes into the sheet and, when it closes, back to whatever opened it.
+  useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialogRef.current?.focus();
+    return () => opener?.focus();
+  }, []);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -46,7 +56,14 @@ export function FilterSheet(props: {
         aria-label="Cerrar filtros"
         onClick={onClose}
       />
-      <div className="sheet" role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <div
+        ref={dialogRef}
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+      >
         <h2 className="sheet__title" id={titleId}>
           Filtrar
         </h2>
@@ -56,6 +73,7 @@ export function FilterSheet(props: {
         </label>
         <select
           id={yearId}
+          disabled={searching}
           className="sheet__select"
           value={draft.year}
           onChange={(event) => setDraft({ ...draft, year: Number(event.target.value) })}
@@ -66,6 +84,7 @@ export function FilterSheet(props: {
             </option>
           ))}
         </select>
+        {searching && <p className="sheet__hint">La búsqueda cubre todos los años.</p>}
 
         <h3 className="sheet__label">Género</h3>
         <div className="chips">

@@ -130,6 +130,34 @@ describe('CatalogScreen', () => {
     expect(within(sheet).queryByRole('button', { name: 'Hentai' })).toBeNull();
   });
 
+  it('moves focus into the filter sheet and back to the chip that opened it', async () => {
+    const { client } = fakeClient(() => ({ media: [] }));
+    renderScreen(client);
+    const chip = screen.getByRole('button', { name: 'Tipo' });
+
+    await userEvent.click(chip);
+    const sheet = screen.getByRole('dialog', { name: 'Filtrar' });
+    expect(sheet.contains(document.activeElement)).toBe(true);
+    await userEvent.keyboard('{Escape}');
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(chip);
+  });
+
+  it('disables the year while searching, since a search covers every year', async () => {
+    const { client, calls } = fakeClient(() => ({ media: [] }));
+    renderScreen(client);
+
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar anime' }), ' frieren ');
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ search: 'frieren' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Todos los años' }));
+
+    const year = within(screen.getByRole('dialog', { name: 'Filtrar' })).getByLabelText(
+      'Año de estreno',
+    );
+    expect(year).toHaveProperty('disabled', true);
+  });
+
   it('clears the filters back to the current year', async () => {
     const { client, calls } = fakeClient(() => ({ media: [] }));
     renderScreen(client);
