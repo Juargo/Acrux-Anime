@@ -1,7 +1,7 @@
 import { type Franchise, groupFranchises } from '@acrux/domain';
 import { z } from 'zod';
 import { catalogEntries, displayTitle } from '../catalog/items';
-import { catalogMediaSchema, MEDIA_FIELDS, type RelatedMedia } from './catalog';
+import { type CatalogMedia, catalogMediaSchema, MEDIA_FIELDS, type RelatedMedia } from './catalog';
 import type { AniListClient } from './client';
 
 // The catalog only knows one hop of relations. Marking a franchise (RDI-31) needs its whole
@@ -80,19 +80,24 @@ export interface FullFranchise {
   detail: FranchiseDetail | null;
 }
 
-export async function fetchFranchise(
+// Follows sequels and prequels from the seeds, one id_in batch per hop, for at most
+// `maxRequests` requests. `pending` holds the ids it found but had no request left for.
+async function crawl(
   client: AniListClient,
   seedIds: readonly number[],
-): Promise<FullFranchise> {
+  maxRequests: number,
+): Promise<{ fetched: Map<number, FranchiseMedia>; requested: number[]; pending: number[] }> {
   const fetched = new Map<number, FranchiseMedia>();
+  const requested: number[] = [];
   let frontier = [...new Set(seedIds)];
-  for (let requests = 0; frontier.length > 0 && requests < MAX_REQUESTS; requests += 1) {
+  for (let requests = 0; frontier.length > 0 && requests < maxRequests; requests += 1) {
     const batch = frontier.slice(0, BATCH_SIZE);
     const data = await client.request(
       FRANCHISE_MEDIA,
       { ids: batch, perPage: BATCH_SIZE },
       pageSchema,
     );
+    requested.push(...batch);
     for (const media of data.Page.media) fetched.set(media.id, media);
     const next = new Set(frontier.slice(BATCH_SIZE));
     for (const media of data.Page.media) {
@@ -107,9 +112,29 @@ export async function fetchFranchise(
     }
     frontier = [...next];
   }
+  return { fetched, requested, pending: frontier };
+}
+
+/**
+ * The franchises of many entries at once, for the total counter (RDI-32): the media of every
+ * crawled id, the ids it asked AniList for (known or not) and the ids left for a later call.
+ */
+export async function crawlFranchises(
+  client: AniListClient,
+  seedIds: readonly number[],
+): Promise<{ media: CatalogMedia[]; requested: number[]; pending: number[] }> {
+  const { fetched, requested, pending } = await crawl(client, seedIds, MAX_REQUESTS);
+  return { media: [...fetched.values()], requested, pending };
+}
+
+export async function fetchFranchise(
+  client: AniListClient,
+  seedIds: readonly number[],
+): Promise<FullFranchise> {
+  const { fetched, pending } = await crawl(client, seedIds, MAX_REQUESTS);
 
   // RDI-31 marks the whole core: never save part of one.
-  if (frontier.length > 0) throw new Error('Franchise incomplete: the sequel chain is too long');
+  if (pending.length > 0) throw new Error('Franchise incomplete: the sequel chain is too long');
 
   const { entries, known } = catalogEntries([...fetched.values()]);
   const seed = seedIds[0];

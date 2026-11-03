@@ -14,8 +14,8 @@ Branch: `feat/contador-total` · Delivery: `single-pr` · Test runner: vitest (`
 
 | ID | Specs | Route | Status | Evidence |
 |---|---|---|---|---|
-| T1 | S2 | inline | pending | |
-| T2 | S1–S4 | inline | pending | |
+| T1 | S2 | inline | done | `0e6a4e9`: `PATCH /api/v1/me` with a strict `{counterMode}` body, profile created first if missing, `Cache-Control: private, no-store`, 400 `profile.invalid_body`, 503 without a database; OpenAPI regenerated; runbook updated. RED 6 route tests, then GREEN; api 142 tests (repository on Testcontainers). Risk: none (a new route) |
+| T2 | S1–S4 | inline | done | `counter/` (TotalCounter container, CounterView, useTotalCounter), `crawlFranchises` sharing the crawl of `fetchFranchise`, `useMarks` shared by the catalog and the counter, `saveCounterMode`, counter in the sticky bar of Home in place of the logo (Figma M03), `docs/criterios/RF-25.feature`. RED then GREEN: 3 client, 2 crawl, 5 counter tests incl. `@CA-RF25-01`; web 97, typecheck, lint, build green. Risk: item 3 (shared crawl of `fetchFranchise` and the marks query) |
 
 Route evidence: one feature in two dependent deliveries (API, then SPA); no writer trigger holds (not parallel, parent context fresh).
 
@@ -24,3 +24,4 @@ Route evidence: one feature in two dependent deliveries (API, then SPA); no writ
 - L1 (2026-11-03, stakeholder): "sigamos con #34".
 - L2 (2026-11-03, stakeholder): "En el contador (Recomendado)" — the switch sits next to the counter, since the Perfil y ajustes screen (M16, "Contar por · Franquicias") does not exist yet; its row will reuse the same PATCH.
 - L3 (2026-11-03, assumptions): `PATCH /api/v1/me` accepts only `counterMode` for now (strict body; the other ADR-0023 fields arrive with #37, #39 and #43) and returns the profile. The franchise counter needs the franchises of every seen mark, so the SPA crawls AniList from the seen ids in `id_in` batches (the crawl of `fetchFranchise`), caches what it fetched and only crawls ids it does not know yet. Labels: "N animes" with "sagas completas" or "entradas vistas" (Figma M12); the switch is a two-option control "Franquicias" / "Entradas". The event is a typed callback, as `franchise_marked` (PostHog in the SPA arrives with #46). A failed PATCH rolls the switch back and says so.
+- L4 (2026-11-03): T2 notes. The counter replaces the logo in the bar, as in M03. By franchise it shows "— animes" until the first crawl lands; an entry marked meanwhile counts once its franchise is crawled (one more AniList batch). A crawl that reaches the 20-request bound keeps the ids it could not follow and continues from them on the next render, so a long chain never stops half way. The event callback is not wired to a sender yet, as `franchise_marked` (#46).

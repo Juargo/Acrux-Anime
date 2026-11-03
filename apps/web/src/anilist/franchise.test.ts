@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { CatalogMedia, RelatedMedia } from './catalog';
 import type { AniListClient } from './client';
-import { FRANCHISE_MEDIA, fetchFranchise } from './franchise';
+import { crawlFranchises, FRANCHISE_MEDIA, fetchFranchise } from './franchise';
 
 function node(id: number, year: number, extra: Partial<RelatedMedia> = {}): RelatedMedia {
   return {
@@ -166,5 +166,39 @@ describe('fetchFranchise', () => {
     const franchise = await fetchFranchise({ request } as unknown as AniListClient, [1]);
 
     expect(franchise.core).toHaveLength(last);
+  });
+});
+
+describe('crawlFranchises', () => {
+  it('crawls every seed in one batch per hop and returns what it asked for', async () => {
+    const { client, request } = fakeClient();
+    const result = await crawlFranchises(client, [4, 9]);
+    expect(request.mock.calls.map(([, variables]) => variables.ids)).toEqual([
+      [4, 9],
+      [3],
+      [2],
+      [1],
+    ]);
+    expect(result.media.map((item) => item.id).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 9]);
+    expect(result.requested.sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 9]);
+    expect(result.pending).toEqual([]);
+  });
+
+  it('returns the ids still to crawl instead of failing when it reaches the request bound', async () => {
+    const request = vi.fn(async (_query: string, variables: Record<string, unknown>, schema) => {
+      const ids = variables.ids as number[];
+      return schema.parse({
+        Page: {
+          media: ids.map((id) => ({
+            ...node(id, 2000 + (id % 20)),
+            relations: { edges: [{ relationType: 'SEQUEL', node: node(id + 1, 2001) }] },
+          })),
+        },
+      });
+    });
+    const result = await crawlFranchises({ request } as unknown as AniListClient, [1]);
+    expect(request).toHaveBeenCalledTimes(20);
+    expect(result.media).toHaveLength(20);
+    expect(result.pending).toEqual([21]);
   });
 });

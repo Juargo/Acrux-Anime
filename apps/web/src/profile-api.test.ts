@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fetchMe } from './profile-api';
+import { fetchMe, saveCounterMode } from './profile-api';
 
 const profile = {
   displayName: 'Camila',
@@ -43,5 +43,33 @@ describe('fetchMe', () => {
       status: 'error',
       requestId: 'req-9',
     });
+  });
+});
+
+describe('saveCounterMode', () => {
+  it('sends the mode with PATCH and the session token, and returns the profile', async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>(async () =>
+      Response.json({ ...profile, counterMode: 'entry' }),
+    );
+    const saved = await saveCounterMode(async () => 'jwt-token', 'entry', fetch);
+    expect(saved.counterMode).toBe('entry');
+    expect(fetch).toHaveBeenCalledWith('/api/v1/me', {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer jwt-token', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ counterMode: 'entry' }),
+    });
+  });
+
+  it('fails without a token, without calling the API', async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    await expect(saveCounterMode(async () => null, 'entry', fetch)).rejects.toThrow();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('fails when the API does not save it', async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>(async () =>
+      Response.json({ status: 503, code: 'profile.unavailable' }, { status: 503 }),
+    );
+    await expect(saveCounterMode(async () => 'jwt-token', 'entry', fetch)).rejects.toThrow();
   });
 });
