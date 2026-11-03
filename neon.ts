@@ -2,7 +2,9 @@ import { defineConfig } from '@neon/config/v1';
 
 export default defineConfig({
   // Declare your Neon services here
-  auth: false,
+  // Neon Auth (ADR-0034, #28). Google and the trusted domains are set per branch in the
+  // console: they cannot live in this file (docs/runbooks/inicio-de-sesion.md).
+  auth: true,
   // ADR-0022, ADR-0034: the API is the only way into the database
   dataApi: false,
   // Branch policy: per-branch tuning
