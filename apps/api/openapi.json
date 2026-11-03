@@ -113,6 +113,104 @@
             "description": "The database is not configured"
           }
         }
+      },
+      "patch": {
+        "summary": "Change the profile of the signed-in user; only the counter mode for now",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "profile"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "counterMode": {
+                    "type": "string",
+                    "enum": [
+                      "franchise",
+                      "entry"
+                    ]
+                  }
+                },
+                "required": [
+                  "counterMode"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The profile after the change",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "displayName": {
+                      "type": "string"
+                    },
+                    "avatarUrl": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "locale": {
+                      "type": "string"
+                    },
+                    "listVisibility": {
+                      "type": "string",
+                      "enum": [
+                        "private",
+                        "public"
+                      ]
+                    },
+                    "counterMode": {
+                      "type": "string",
+                      "enum": [
+                        "franchise",
+                        "entry"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "displayName",
+                    "avatarUrl",
+                    "locale",
+                    "listVisibility",
+                    "counterMode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The body is not a known change"
+          },
+          "401": {
+            "description": "Missing, invalid or expired session",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
       }
     },
     "/api/v1/me/marks": {

@@ -28,6 +28,18 @@ function upsert(marks: MarkDto[], written: MarkDto[]): MarkDto[] {
   return [...marks.filter((mark) => !ids.has(mark.anilistId)), ...written];
 }
 
+// The user's marks, shared by the catalog, the detail and the total counter.
+export function useMarks(
+  getToken: (() => Promise<string | null>) | undefined,
+  fetchFn: typeof fetch,
+) {
+  return useQuery({
+    queryKey: MARKS_KEY,
+    queryFn: () => fetchMarks(getToken as () => Promise<string | null>, fetchFn),
+    enabled: getToken !== undefined,
+  });
+}
+
 /**
  * The user's marks and the one-tap toggle of a catalog franchise (RF-20, RNF-01): seen marks
  * the whole core in one batch (RDI-31); a seen franchise unmarks its core and extras. The card
@@ -43,11 +55,7 @@ export function useFranchiseMarks(options: {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState<MarkMessage | null>(null);
 
-  const marks = useQuery({
-    queryKey: MARKS_KEY,
-    queryFn: () => fetchMarks(getToken as () => Promise<string | null>, fetchFn),
-    enabled: getToken !== undefined,
-  });
+  const marks = useMarks(getToken, fetchFn);
 
   const toggle = useMutation({
     mutationFn: async (item: CatalogItem) => {

@@ -1,24 +1,35 @@
 import { Outlet } from 'react-router';
-import { Logo } from '../components/Logo';
+import type { AniListClient } from '../anilist/client';
+import { type CounterModeChangedEvent, TotalCounter } from '../counter/TotalCounter';
 import type { Profile } from '../profile-api';
 import type { SignedInContext } from './signed-in-context';
 
-// Signed-in layout: who you are and how to leave in the bar; the catalog (#31) or a franchise
-// detail (#32) below it.
+// Signed-in layout: the total counter (#34), who you are and how to leave in the bar fixed at
+// the top (Figma M03); the catalog (#31) or a franchise detail (#32) below it.
 export function Home(props: {
   profile: Profile;
   onSignOut: () => void;
   signingOut: boolean;
   signOutFailed: boolean;
   getToken: () => Promise<string | null>;
+  // Tests inject AniList and the API; the screens below get the same ones.
+  client?: AniListClient | undefined;
+  fetchFn?: typeof fetch | undefined;
+  onCounterModeChanged?: ((event: CounterModeChangedEvent) => void) | undefined;
 }) {
-  const { profile } = props;
+  const { profile, getToken, client, fetchFn } = props;
   const name = profile.displayName || 'Sin nombre';
   const initial = profile.displayName.trim().charAt(0).toUpperCase() || '?';
   return (
     <main className="home">
       <header className="home__bar">
-        <Logo />
+        <TotalCounter
+          initialMode={profile.counterMode}
+          getToken={getToken}
+          client={client}
+          fetchFn={fetchFn}
+          onCounterModeChanged={props.onCounterModeChanged}
+        />
         <div className="home__account">
           {profile.avatarUrl ? (
             <img
@@ -49,7 +60,7 @@ export function Home(props: {
           No pudimos cerrar tu sesión. Vuelve a intentarlo.
         </p>
       )}
-      <Outlet context={{ getToken: props.getToken } satisfies SignedInContext} />
+      <Outlet context={{ getToken, client, fetchFn } satisfies SignedInContext} />
     </main>
   );
 }
