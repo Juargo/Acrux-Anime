@@ -7,8 +7,11 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   // Neon Auth (#28). Without it, private routes answer 503 auth.unavailable.
   NEON_AUTH_BASE_URL: z.url().optional(),
-  // JWT issuer; defaults to NEON_AUTH_BASE_URL until #28 confirms the claim.
+  // JWT issuer; defaults to the origin of NEON_AUTH_BASE_URL (#28).
   NEON_AUTH_ISSUER: z.string().min(1).optional(),
+  // Pooled Neon connection with the acrux_api role (ADR-0034). Without it, /api/v1/me
+  // answers 503.
+  DATABASE_URL: z.preprocess(emptyAsUnset, z.url().optional()),
   // Sentry (#26). Without a DSN, errors stay in the logs only.
   SENTRY_DSN: z.preprocess(emptyAsUnset, z.url().optional()),
   // Upstash Redis for rate limits (#27). Without both, every request passes.

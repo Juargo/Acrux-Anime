@@ -7,11 +7,36 @@ import { ProblemError, sendProblem } from './problem.js';
 // before its signature, issuer and expiration are verified.
 export interface Session {
   userId: string;
+  // From the Google profile. The email claim is never read (ADR-0028).
+  name?: string;
+  image?: string;
 }
 
 export type SessionVerifier = (token: string) => Promise<Session>;
 
 const subject = z.uuid();
+// Control characters (Postgres rejects NUL) are removed and long names are cut, so a
+// Google name never leaves the profile empty or breaks it.
+function withoutControlCharacters(value: string): string {
+  return Array.from(value)
+    .filter((char) => {
+      const code = char.charCodeAt(0);
+      return code > 31 && code !== 127;
+    })
+    .join('');
+}
+
+const name = z
+  .string()
+  .transform((value) => withoutControlCharacters(value).trim().slice(0, 100))
+  .pipe(z.string().min(1));
+// Google profile pictures only; the CSP allows no other avatar host.
+const image = z.url({ protocol: /^https$/, hostname: /(^|\.)googleusercontent\.com$/ });
+
+// Neon Auth signs with the origin of its URL as issuer, not the full URL (ADR-0034).
+export function neonAuthIssuer(baseUrl: string): string {
+  return new URL(baseUrl).origin;
+}
 
 export function createJwtVerifier(options: {
   jwks: JWTVerifyGetKey;
@@ -22,7 +47,12 @@ export function createJwtVerifier(options: {
       issuer: options.issuer,
       requiredClaims: ['sub', 'exp'],
     });
-    return { userId: subject.parse(payload.sub) };
+    const session: Session = { userId: subject.parse(payload.sub) };
+    const displayName = name.safeParse(payload.name);
+    if (displayName.success) session.name = displayName.data;
+    const avatar = image.safeParse(payload.image);
+    if (avatar.success) session.image = avatar.data;
+    return session;
   };
 }
 

@@ -21,5 +21,11 @@ blockExoticSubdeps: true
 
 # Parches de dependencias transitivas con vulnerabilidades altas (pnpm audit).
 overrides:
+  # @neon/auth 0.8.0 pins better-auth 1.7.6, with critical advisories fixed in 1.7.7.
+  # Remove these once @neon/auth 0.8.2 (better-auth ~1.7.12) leaves the quarantine (#28).
+  better-auth: 1.7.14
+  "@better-auth/core": 1.7.14
+  "@better-auth/oauth-provider": 1.7.14
+  better-call: 1.4.4
   "@vercel/routing-utils>path-to-regexp": ^6.3.0
   "@vercel/cli-config>zod": ^4.6.6

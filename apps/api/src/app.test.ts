@@ -3,7 +3,7 @@ import pino from 'pino';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from './app.js';
-import { type Container, createContainer } from './container.js';
+import { type Container, createContainer, createModules } from './container.js';
 import { noErrorReporter } from './http/error-reporter.js';
 import { ProblemError } from './http/problem.js';
 import type { Module } from './http/routes.js';
@@ -363,5 +363,62 @@ describe('rate limits', () => {
     expect((await request(app).get('/api/health')).status).toBe(200);
     expect((await request(app).post('/api/v1/test/echo').send({})).status).toBe(200);
     expect(calls).toEqual([]);
+  });
+});
+
+describe('GET /api/v1/me', () => {
+  const USER = '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f70';
+
+  function appWithProfiles(profileService: Container['profileService']) {
+    const base = createContainer({});
+    return createApp({
+      ...base,
+      profileService,
+      sessionVerifier: async () => ({
+        userId: USER,
+        name: 'Camila',
+        image: 'https://lh3.googleusercontent.com/a/camila',
+      }),
+      modules: createModules(profileService),
+    });
+  }
+
+  it('creates the profile from the Google name and avatar and returns it without the email', async () => {
+    const calls: unknown[] = [];
+    const app = appWithProfiles({
+      me: async (session) => {
+        calls.push(session);
+        return {
+          displayName: session.name ?? '',
+          avatarUrl: session.image ?? null,
+          locale: 'es',
+          listVisibility: 'private',
+          counterMode: 'franchise',
+        };
+      },
+    });
+    const response = await request(app).get('/api/v1/me').set('Authorization', 'Bearer token');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      displayName: 'Camila',
+      avatarUrl: 'https://lh3.googleusercontent.com/a/camila',
+      locale: 'es',
+      listVisibility: 'private',
+      counterMode: 'franchise',
+    });
+    expect(calls).toHaveLength(1);
+  });
+
+  it('requires a session', async () => {
+    const app = appWithProfiles(undefined);
+    const response = await request(app).get('/api/v1/me');
+    expect(response.status).toBe(401);
+  });
+
+  it('answers 503 when the database is not configured', async () => {
+    const app = appWithProfiles(undefined);
+    const response = await request(app).get('/api/v1/me').set('Authorization', 'Bearer token');
+    expect(response.status).toBe(503);
+    expect(response.body).toMatchObject({ code: 'profile.unavailable' });
   });
 });

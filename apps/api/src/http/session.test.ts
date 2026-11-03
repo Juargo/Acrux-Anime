@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../app.js';
 import { type Container, createContainer } from '../container.js';
 import type { Module } from './routes.js';
-import { createJwtVerifier, type SessionVerifier } from './session.js';
+import { createJwtVerifier, neonAuthIssuer, type SessionVerifier } from './session.js';
 
 // Neon Auth signs session JWTs (ADR-0034). Here a local key pair stands in for its JWKS;
 // the real <NEON_AUTH_BASE_URL>/.well-known/jwks.json is wired in #28.
@@ -153,5 +153,50 @@ describe('public routes', () => {
   it('do not ask for a session', async () => {
     const response = await request(createApp(appWith(verifier))).get('/api/health');
     expect(response.status).toBe(200);
+  });
+});
+
+describe('session claims', () => {
+  it('carries the Google name and avatar, and never the email', async () => {
+    const token = await signWith({
+      sub: USER_ID,
+      name: 'Camila',
+      image: 'https://lh3.googleusercontent.com/a/camila',
+      email: 'camila@correo.com',
+    });
+    expect(await verifier(token)).toEqual({
+      userId: USER_ID,
+      name: 'Camila',
+      image: 'https://lh3.googleusercontent.com/a/camila',
+    });
+  });
+
+  it('drops a missing name or an avatar that is not an https URL', async () => {
+    const token = await signWith({ sub: USER_ID, image: 'javascript:alert(1)' });
+    expect(await verifier(token)).toEqual({ userId: USER_ID });
+  });
+});
+
+describe('session claims from untrusted shapes', () => {
+  it('keeps the first 100 characters of a long name and strips control characters', async () => {
+    const token = await signWith({ sub: USER_ID, name: `  Cami\u0000la ${'x'.repeat(200)}` });
+    const session = await verifier(token);
+    expect(session.name).toHaveLength(100);
+    expect(session.name?.startsWith('Camila x')).toBe(true);
+  });
+
+  it('only accepts a Google avatar', async () => {
+    const google = await signWith({ sub: USER_ID, image: 'https://lh3.googleusercontent.com/a/x' });
+    expect((await verifier(google)).image).toBe('https://lh3.googleusercontent.com/a/x');
+    const other = await signWith({ sub: USER_ID, image: 'https://evil.example/a.png' });
+    expect((await verifier(other)).image).toBeUndefined();
+  });
+});
+
+describe('neonAuthIssuer', () => {
+  it('is the origin of the Neon Auth URL, without its path', () => {
+    expect(neonAuthIssuer('https://ep-x.neonauth.us-east-2.aws.neon.tech/neondb/auth')).toBe(
+      'https://ep-x.neonauth.us-east-2.aws.neon.tech',
+    );
   });
 });
