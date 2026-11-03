@@ -1,8 +1,10 @@
-import { CatalogScreen } from '../catalog/CatalogScreen';
+import { Outlet } from 'react-router';
 import { Logo } from '../components/Logo';
 import type { Profile } from '../profile-api';
+import type { SignedInContext } from './signed-in-context';
 
-// Signed-in home: the catalog (#31), with who you are and how to leave in the bar.
+// Signed-in layout: who you are and how to leave in the bar; the catalog (#31) or a franchise
+// detail (#32) below it.
 export function Home(props: {
   profile: Profile;
   onSignOut: () => void;
@@ -47,8 +49,7 @@ export function Home(props: {
           No pudimos cerrar tu sesión. Vuelve a intentarlo.
         </p>
       )}
-      <h1 className="visually-hidden">Explorar</h1>
-      <CatalogScreen getToken={props.getToken} />
+      <Outlet context={{ getToken: props.getToken } satisfies SignedInContext} />
     </main>
   );
 }

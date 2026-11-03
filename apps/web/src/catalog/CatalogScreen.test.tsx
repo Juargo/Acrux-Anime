@@ -2,6 +2,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CATALOG_PAGE, type CatalogMedia, GENRES } from '../anilist/catalog';
 import { type AniListClient, AniListError } from '../anilist/client';
@@ -55,7 +56,9 @@ function renderScreen(client: AniListClient) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
-      <CatalogScreen client={client} />
+      <MemoryRouter>
+        <CatalogScreen client={client} />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }

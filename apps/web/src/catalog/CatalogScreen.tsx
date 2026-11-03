@@ -29,11 +29,11 @@ export function CatalogScreen({
   fetchFn = fetch,
   onFranchiseMarked,
 }: {
-  client?: AniListClient;
+  client?: AniListClient | undefined;
   // Without a session the catalog still browses, but cards cannot be marked.
-  getToken?: () => Promise<string | null>;
-  fetchFn?: typeof fetch;
-  onFranchiseMarked?: (event: FranchiseMarkedEvent) => void;
+  getToken?: (() => Promise<string | null>) | undefined;
+  fetchFn?: typeof fetch | undefined;
+  onFranchiseMarked?: ((event: FranchiseMarkedEvent) => void) | undefined;
 }) {
   const [input, setInput] = useState('');
   const search = useDebounced(input.trim(), SEARCH_DEBOUNCE_MS);

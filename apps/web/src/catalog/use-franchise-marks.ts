@@ -5,7 +5,7 @@ import { type FranchiseEntry, fetchFranchise } from '../anilist/franchise';
 import { fetchMarks, type MarkDto, saveMarks } from '../marks-api';
 import type { CatalogItem } from './items';
 
-const MARKS_KEY = ['me', 'marks'] as const;
+export const MARKS_KEY = ['me', 'marks'] as const;
 
 // ADR-0030: no personal data; the sender arrives with PostHog in the SPA (#46).
 export type FranchiseMarkedEvent = { status: 'seen' | null; coreSize: number };
@@ -15,7 +15,7 @@ export interface MarkMessage {
   text: string;
 }
 
-const SAVE_FAILED =
+export const SAVE_FAILED =
   'No pudimos guardar tu marca. Vuelve a intentarlo; lo que ya marcaste sigue guardado.';
 
 function uniqueEntries(entries: FranchiseEntry[]): FranchiseEntry[] {

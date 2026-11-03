@@ -2,6 +2,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CATALOG_PAGE, type CatalogMedia, type RelatedMedia } from '../anilist/catalog';
 import type { AniListClient } from '../anilist/client';
@@ -75,12 +76,14 @@ function renderScreen(api: Api, onFranchiseMarked = vi.fn()) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
-      <CatalogScreen
-        client={anilist}
-        getToken={async () => 'jwt'}
-        fetchFn={fetchFn as unknown as typeof fetch}
-        onFranchiseMarked={onFranchiseMarked}
-      />
+      <MemoryRouter>
+        <CatalogScreen
+          client={anilist}
+          getToken={async () => 'jwt'}
+          fetchFn={fetchFn as unknown as typeof fetch}
+          onFranchiseMarked={onFranchiseMarked}
+        />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
   return { fetchFn, onFranchiseMarked };
@@ -94,7 +97,8 @@ const batchBodies = (fetchFn: ReturnType<typeof vi.fn>) =>
     .filter(([path]) => path === '/api/v1/me/marks:batch')
     .map(([, init]) => JSON.parse((init as RequestInit).body as string));
 
-const card = () => screen.findByRole('button', { name: 'Shingeki no Kyojin' });
+// The ✓ button over the cover: «Marcar … como vista», then «Quitar … de vistas».
+const card = () => screen.findByRole('button', { name: /«Shingeki no Kyojin»/ });
 
 describe('marking from the catalog', () => {
   it('@CA-RF20-01 one tap marks the whole core as seen and dims the franchise', async () => {
@@ -195,11 +199,13 @@ describe('marking from the catalog', () => {
       <QueryClientProvider
         client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
       >
-        <CatalogScreen
-          client={twoSagas}
-          getToken={async () => 'jwt'}
-          fetchFn={fetchFn as unknown as typeof fetch}
-        />
+        <MemoryRouter>
+          <CatalogScreen
+            client={twoSagas}
+            getToken={async () => 'jwt'}
+            fetchFn={fetchFn as unknown as typeof fetch}
+          />
+        </MemoryRouter>
       </QueryClientProvider>,
     );
 
@@ -207,7 +213,7 @@ describe('marking from the catalog', () => {
     await waitFor(() =>
       expect(fetchFn.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(true),
     );
-    const other = await screen.findByRole('button', { name: 'Season 5114' });
+    const other = await screen.findByRole('button', { name: /«Season 5114»/ });
     await userEvent.click(other);
     await waitFor(() => expect(other.getAttribute('aria-pressed')).toBe('true'));
     failFirst(new TypeError('Failed to fetch'));
@@ -215,7 +221,7 @@ describe('marking from the catalog', () => {
     expect((await screen.findByRole('alert')).textContent).toContain('No pudimos guardar');
     expect((await card()).getAttribute('aria-pressed')).toBe('false');
     expect(
-      (await screen.findByRole('button', { name: 'Season 5114' })).getAttribute('aria-pressed'),
+      (await screen.findByRole('button', { name: /«Season 5114»/ })).getAttribute('aria-pressed'),
     ).toBe('true');
   });
 
@@ -223,11 +229,13 @@ describe('marking from the catalog', () => {
     const queryClient = new QueryClient();
     render(
       <QueryClientProvider client={queryClient}>
-        <CatalogScreen client={anilist} />
+        <MemoryRouter>
+          <CatalogScreen client={anilist} />
+        </MemoryRouter>
       </QueryClientProvider>,
     );
 
-    expect(await screen.findByText('Shingeki no Kyojin')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Shingeki no Kyojin' })).toBeNull();
+    expect(await screen.findByRole('link', { name: 'Shingeki no Kyojin' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Shingeki no Kyojin/ })).toBeNull();
   });
 });
