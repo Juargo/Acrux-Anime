@@ -114,6 +114,358 @@
           }
         }
       }
+    },
+    "/api/v1/me/marks": {
+      "get": {
+        "summary": "Marks of the signed-in user, ordered by anilistId",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "marks"
+        ],
+        "responses": {
+          "200": {
+            "description": "Every mark; nextCursor stays null until pagination arrives",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Mark"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired session",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/me/marks/{anilistId}": {
+      "put": {
+        "summary": "Mark one entry; the same status again keeps markedAt",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "marks"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "anilistId",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "seen",
+                      "watching"
+                    ]
+                  },
+                  "malId": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483647
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The stored mark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mark"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid anilistId, unknown fields or an invalid body"
+          },
+          "401": {
+            "description": "Missing, invalid or expired session",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unmark one entry; also 204 when it was not marked",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "marks"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "anilistId",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Not marked anymore"
+          },
+          "400": {
+            "description": "The anilistId is not a positive integer"
+          },
+          "401": {
+            "description": "Missing, invalid or expired session",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/me/marks:batch": {
+      "post": {
+        "summary": "Mark or unmark 1 to 200 distinct entries in one transaction",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "marks"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "seen",
+                          "watching"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "entries": {
+                    "minItems": 1,
+                    "maxItems": 200,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "anilistId": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 2147483647
+                        },
+                        "malId": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 2147483647
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "anilistId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "status",
+                  "entries"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The marks written; empty when the status is null",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Mark"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown fields, repeated entries or an invalid body"
+          },
+          "401": {
+            "description": "Missing, invalid or expired session",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -148,6 +500,47 @@
           "status",
           "code",
           "requestId"
+        ],
+        "additionalProperties": false
+      },
+      "Mark": {
+        "type": "object",
+        "properties": {
+          "anilistId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "malId": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2147483647
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "seen",
+              "watching"
+            ]
+          },
+          "markedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          }
+        },
+        "required": [
+          "anilistId",
+          "malId",
+          "status",
+          "markedAt"
         ],
         "additionalProperties": false
       }

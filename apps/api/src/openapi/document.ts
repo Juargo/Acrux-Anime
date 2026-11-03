@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { type ZodType, z } from 'zod';
 import {
   createDocument,
   type ZodOpenApiObject,
@@ -20,14 +20,18 @@ const problem = z
   })
   .meta({ id: 'Problem' });
 
+// `\:` (written '\\:' in a string) is a literal colon in an Express path, as in the
+// marks batch route; it is not a parameter.
+const PARAM = /(?<!\\):(\w+)/g;
+
 function toOpenApiPath(path: string): string {
-  return path.replace(/:(\w+)/g, '{$1}');
+  return path.replace(PARAM, '{$1}').replaceAll('\\:', ':');
 }
 
-function pathParams(path: string) {
-  const names = [...path.matchAll(/:(\w+)/g)].map((match) => match[1] as string);
+function pathParams(path: string, schemas: Record<string, ZodType> = {}) {
+  const names = [...path.matchAll(PARAM)].map((match) => match[1] as string);
   return names.length > 0
-    ? z.object(Object.fromEntries(names.map((name) => [name, z.string()])))
+    ? z.object(Object.fromEntries(names.map((name) => [name, schemas[name] ?? z.string()])))
     : undefined;
 }
 
@@ -56,11 +60,19 @@ function operation(route: RouteDefinition): ZodOpenApiOperationObject {
       content: { 'application/problem+json': { schema: problem } },
     };
   }
-  const params = pathParams(route.path);
+  const params = pathParams(route.path, docs.params);
   return {
     summary: docs.summary,
     security: route.public ? [] : [{ session: [] }],
     ...(params ? { requestParams: { path: params } } : {}),
+    ...(docs.requestBody
+      ? {
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: docs.requestBody } },
+          },
+        }
+      : {}),
     responses: responses as ZodOpenApiOperationObject['responses'],
   };
 }

@@ -519,6 +519,36 @@ a {
   -webkit-line-clamp: 2;
 }
 
+.catalog-card__button {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.catalog-card__button:disabled {
+  cursor: progress;
+}
+
+.catalog__message {
+  margin-bottom: 16px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.catalog__message[role="alert"] {
+  color: var(--color-status-error);
+}
+
 /* RF-23: a seen franchise is dimmed. */
 .catalog-card--seen {
   opacity: 0.45;

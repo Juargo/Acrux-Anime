@@ -100,6 +100,7 @@ function SignedApp({ client }: { client: AuthClient }) {
       onSignOut={signOut}
       signingOut={signingOut}
       signOutFailed={signOutFailed}
+      getToken={() => sessionToken(client)}
     />
   );
 }

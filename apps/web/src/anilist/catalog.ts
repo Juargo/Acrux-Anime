@@ -34,8 +34,9 @@ export interface CatalogQuery {
   formats: string[];
 }
 
-const MEDIA_FIELDS = `
+export const MEDIA_FIELDS = `
   id
+  idMal
   type
   format
   isAdult
@@ -82,6 +83,7 @@ export const GENRES = 'query Genres { GenreCollection }';
 
 const relatedMediaSchema = z.object({
   id: z.number().int(),
+  idMal: z.number().int().nullable(),
   type: z.string().nullable(),
   format: z.string().nullable(),
   isAdult: z.boolean().nullable(),
@@ -98,7 +100,7 @@ const relatedMediaSchema = z.object({
   }),
 });
 
-const catalogMediaSchema = relatedMediaSchema.extend({
+export const catalogMediaSchema = relatedMediaSchema.extend({
   relations: z.object({
     edges: z.array(z.object({ relationType: z.string(), node: relatedMediaSchema })),
   }),

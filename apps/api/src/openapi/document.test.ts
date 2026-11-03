@@ -79,4 +79,42 @@ describe('OpenAPI document', () => {
     expect(JSON.stringify(responses?.['429'])).toContain('Retry-After');
     expect(document.paths?.['/api/health']?.get?.responses?.['429']).toBeUndefined();
   });
+
+  it('documents a JSON body, typed path params and a literal colon in the path', () => {
+    const batch: Module = {
+      name: 'batch',
+      routes: [
+        {
+          method: 'post',
+          path: '/api/v1/test/items\\:batch',
+          docs: {
+            summary: 'Batch',
+            requestBody: z.strictObject({ ids: z.array(z.int()) }),
+            responses: { 200: { description: 'Done' } },
+          },
+          handler: () => {},
+        },
+        {
+          method: 'put',
+          path: '/api/v1/test/items/:id/:slug',
+          docs: { summary: 'Item', params: { id: z.int() }, responses: {} },
+          handler: () => {},
+        },
+      ],
+    };
+    const document = buildOpenApiDocument([...modules, batch]);
+    const post = document.paths?.['/api/v1/test/items:batch']?.post;
+    expect(post?.parameters).toBeUndefined();
+    expect(JSON.stringify(post?.requestBody)).toContain('"additionalProperties":false');
+    const put = document.paths?.['/api/v1/test/items/{id}/{slug}']?.put;
+    expect(put?.parameters).toEqual([
+      {
+        in: 'path',
+        name: 'id',
+        schema: { type: 'integer', maximum: 9007199254740991, minimum: -9007199254740991 },
+        required: true,
+      },
+      { in: 'path', name: 'slug', schema: { type: 'string' }, required: true },
+    ]);
+  });
 });

@@ -8,6 +8,7 @@ export function Home(props: {
   onSignOut: () => void;
   signingOut: boolean;
   signOutFailed: boolean;
+  getToken: () => Promise<string | null>;
 }) {
   const { profile } = props;
   const name = profile.displayName || 'Sin nombre';
@@ -47,7 +48,7 @@ export function Home(props: {
         </p>
       )}
       <h1 className="visually-hidden">Explorar</h1>
-      <CatalogScreen />
+      <CatalogScreen getToken={props.getToken} />
     </main>
   );
 }

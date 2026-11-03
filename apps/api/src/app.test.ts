@@ -379,7 +379,7 @@ describe('GET /api/v1/me', () => {
         name: 'Camila',
         image: 'https://lh3.googleusercontent.com/a/camila',
       }),
-      modules: createModules(profileService),
+      modules: createModules(profileService, undefined),
     });
   }
 
@@ -396,6 +396,7 @@ describe('GET /api/v1/me', () => {
           counterMode: 'franchise',
         };
       },
+      ensureProfile: async () => {},
     });
     const response = await request(app).get('/api/v1/me').set('Authorization', 'Bearer token');
     expect(response.status).toBe(200);
@@ -420,5 +421,321 @@ describe('GET /api/v1/me', () => {
     const response = await request(app).get('/api/v1/me').set('Authorization', 'Bearer token');
     expect(response.status).toBe(503);
     expect(response.body).toMatchObject({ code: 'profile.unavailable' });
+  });
+});
+
+describe('/api/v1/me/marks', () => {
+  const USER = '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f70';
+  const MARKED_AT = new Date('2026-11-03T12:00:00.000Z');
+  type Call = { method: string; args: unknown[] };
+
+  function fakeMarks() {
+    const calls: Call[] = [];
+    const service: NonNullable<Container['marksService']> = {
+      list: async (...args) => {
+        calls.push({ method: 'list', args });
+        return [
+          { anilistId: 16498, malId: 16498, status: 'seen', markedAt: MARKED_AT },
+          { anilistId: 20958, malId: null, status: 'watching', markedAt: MARKED_AT },
+        ];
+      },
+      put: async (...args) => {
+        calls.push({ method: 'put', args });
+        const [, anilistId, input] = args;
+        return { anilistId, malId: input.malId ?? null, status: input.status, markedAt: MARKED_AT };
+      },
+      remove: async (...args) => {
+        calls.push({ method: 'remove', args });
+      },
+      batch: async (...args) => {
+        calls.push({ method: 'batch', args });
+        const [, input] = args;
+        const status = input.status;
+        if (status === null) return [];
+        return input.entries.map((entry) => ({
+          anilistId: entry.anilistId,
+          malId: entry.malId ?? null,
+          status,
+          markedAt: MARKED_AT,
+        }));
+      },
+    };
+    return { calls, service };
+  }
+
+  function appWithMarks(
+    marksService: Container['marksService'],
+    rateLimiter: Container['rateLimiter'] = createContainer({}).rateLimiter,
+  ) {
+    const base = createContainer({});
+    return createApp({
+      ...base,
+      logger: captureLogs().logger,
+      rateLimiter,
+      marksService,
+      sessionVerifier: async () => ({ userId: USER, name: 'Camila' }),
+      modules: createModules(undefined, marksService),
+    });
+  }
+
+  const auth = { Authorization: 'Bearer token' };
+
+  describe('GET', () => {
+    it('lists the marks of the session user with ISO dates and a null cursor', async () => {
+      const { calls, service } = fakeMarks();
+      const response = await request(appWithMarks(service)).get('/api/v1/me/marks').set(auth);
+      expect(response.status).toBe(200);
+      expect(response.headers['cache-control']).toBe('private, no-store');
+      expect(response.body).toEqual({
+        items: [
+          { anilistId: 16498, malId: 16498, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
+          {
+            anilistId: 20958,
+            malId: null,
+            status: 'watching',
+            markedAt: '2026-11-03T12:00:00.000Z',
+          },
+        ],
+        nextCursor: null,
+      });
+      expect(calls).toEqual([{ method: 'list', args: [{ userId: USER, name: 'Camila' }] }]);
+    });
+  });
+
+  describe('PUT', () => {
+    it('stores the mark and returns it', async () => {
+      const { calls, service } = fakeMarks();
+      const response = await request(appWithMarks(service))
+        .put('/api/v1/me/marks/16498')
+        .set(auth)
+        .send({ status: 'seen', malId: 16498 });
+      expect(response.status).toBe(200);
+      expect(response.headers['cache-control']).toBe('private, no-store');
+      expect(response.body).toEqual({
+        anilistId: 16498,
+        malId: 16498,
+        status: 'seen',
+        markedAt: '2026-11-03T12:00:00.000Z',
+      });
+      expect(calls).toEqual([
+        {
+          method: 'put',
+          args: [{ userId: USER, name: 'Camila' }, 16498, { status: 'seen', malId: 16498 }],
+        },
+      ]);
+    });
+
+    it('accepts a body without malId and with a null malId', async () => {
+      const { calls, service } = fakeMarks();
+      const app = appWithMarks(service);
+      const withoutMalId = await request(app)
+        .put('/api/v1/me/marks/1')
+        .set(auth)
+        .send({ status: 'watching' });
+      const nullMalId = await request(app)
+        .put('/api/v1/me/marks/1')
+        .set(auth)
+        .send({ status: 'watching', malId: null });
+      expect(withoutMalId.status).toBe(200);
+      expect(nullMalId.status).toBe(200);
+      expect(calls.map((call) => call.args[2])).toEqual([
+        { status: 'watching' },
+        { status: 'watching', malId: null },
+      ]);
+    });
+
+    it.each(['0', '-1', 'abc', '1.5', '1e3', '2147483648'])(
+      'answers 400 for the anilistId %s',
+      async (id) => {
+        const { calls, service } = fakeMarks();
+        const response = await request(appWithMarks(service))
+          .put(`/api/v1/me/marks/${id}`)
+          .set(auth)
+          .send({ status: 'seen' });
+        expect(response.status).toBe(400);
+        expect(response.headers['content-type']).toContain('application/problem+json');
+        expect(response.headers['cache-control']).toBe('private, no-store');
+        expect(response.body).toMatchObject({ code: 'marks.invalid_anilist_id' });
+        expect(calls).toEqual([]);
+      },
+    );
+
+    it.each([
+      ['an unknown status', { status: 'dropped' }],
+      ['a missing status', {}],
+      ['a null status', { status: null }],
+      ['an unknown field', { status: 'seen', score: 10 }],
+      ['a malId that is not a positive integer', { status: 'seen', malId: 'x' }],
+      ['a zero malId', { status: 'seen', malId: 0 }],
+    ])('answers 400 for %s', async (_case, body) => {
+      const { calls, service } = fakeMarks();
+      const response = await request(appWithMarks(service))
+        .put('/api/v1/me/marks/16498')
+        .set(auth)
+        .send(body);
+      expect(response.status).toBe(400);
+      expect(response.headers['content-type']).toContain('application/problem+json');
+      expect(response.body).toMatchObject({ code: 'marks.invalid_body' });
+      expect(calls).toEqual([]);
+    });
+
+    it('answers 400 without a body', async () => {
+      const { service } = fakeMarks();
+      const response = await request(appWithMarks(service)).put('/api/v1/me/marks/16498').set(auth);
+      expect(response.status).toBe(400);
+      expect(response.body).toMatchObject({ code: 'marks.invalid_body' });
+    });
+  });
+
+  describe('DELETE', () => {
+    it('removes the mark and answers 204', async () => {
+      const { calls, service } = fakeMarks();
+      const response = await request(appWithMarks(service))
+        .delete('/api/v1/me/marks/16498')
+        .set(auth);
+      expect(response.status).toBe(204);
+      expect(response.headers['cache-control']).toBe('private, no-store');
+      expect(response.text).toBe('');
+      expect(calls).toEqual([
+        { method: 'remove', args: [{ userId: USER, name: 'Camila' }, 16498] },
+      ]);
+    });
+
+    it('answers 400 for an invalid anilistId', async () => {
+      const { calls, service } = fakeMarks();
+      const response = await request(appWithMarks(service))
+        .delete('/api/v1/me/marks/abc')
+        .set(auth);
+      expect(response.status).toBe(400);
+      expect(response.body).toMatchObject({ code: 'marks.invalid_anilist_id' });
+      expect(calls).toEqual([]);
+    });
+  });
+
+  describe('POST :batch', () => {
+    const entries = (count: number) =>
+      Array.from({ length: count }, (_, index) => ({ anilistId: index + 1 }));
+
+    it('writes every entry and returns the marks', async () => {
+      const { calls, service } = fakeMarks();
+      const response = await request(appWithMarks(service))
+        .post('/api/v1/me/marks:batch')
+        .set(auth)
+        .send({
+          status: 'seen',
+          entries: [{ anilistId: 16498, malId: 16498 }, { anilistId: 20958 }],
+        });
+      expect(response.status).toBe(200);
+      expect(response.headers['cache-control']).toBe('private, no-store');
+      expect(response.body).toEqual({
+        items: [
+          { anilistId: 16498, malId: 16498, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
+          { anilistId: 20958, malId: null, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
+        ],
+      });
+      expect(calls).toEqual([
+        {
+          method: 'batch',
+          args: [
+            { userId: USER, name: 'Camila' },
+            { status: 'seen', entries: [{ anilistId: 16498, malId: 16498 }, { anilistId: 20958 }] },
+          ],
+        },
+      ]);
+    });
+
+    it('removes the marks with a null status and returns no items', async () => {
+      const { calls, service } = fakeMarks();
+      const response = await request(appWithMarks(service))
+        .post('/api/v1/me/marks:batch')
+        .set(auth)
+        .send({ status: null, entries: [{ anilistId: 16498 }] });
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ items: [] });
+      expect(calls[0]?.args[1]).toEqual({ status: null, entries: [{ anilistId: 16498 }] });
+    });
+
+    it('accepts 200 entries', async () => {
+      const { service } = fakeMarks();
+      const response = await request(appWithMarks(service))
+        .post('/api/v1/me/marks:batch')
+        .set(auth)
+        .send({ status: 'seen', entries: entries(200) });
+      expect(response.status).toBe(200);
+      expect(response.body.items).toHaveLength(200);
+    });
+
+    it.each([
+      ['no entries', { status: 'seen', entries: [] }],
+      ['201 entries', { status: 'seen', entries: entries(201) }],
+      ['a repeated entry', { status: 'seen', entries: [{ anilistId: 7 }, { anilistId: 7 }] }],
+      ['a missing status', { entries: [{ anilistId: 7 }] }],
+      ['an unknown status', { status: 'dropped', entries: [{ anilistId: 7 }] }],
+      ['an unknown field', { status: 'seen', entries: [{ anilistId: 7 }], all: true }],
+      ['an unknown entry field', { status: 'seen', entries: [{ anilistId: 7, title: 'x' }] }],
+      ['a zero anilistId', { status: 'seen', entries: [{ anilistId: 0 }] }],
+      ['a string anilistId', { status: 'seen', entries: [{ anilistId: '7' }] }],
+      ['an anilistId over int4', { status: 'seen', entries: [{ anilistId: 2147483648 }] }],
+      ['a fractional malId', { status: 'seen', entries: [{ anilistId: 7, malId: 1.5 }] }],
+    ])('answers 400 for %s', async (_case, body) => {
+      const { calls, service } = fakeMarks();
+      const response = await request(appWithMarks(service))
+        .post('/api/v1/me/marks:batch')
+        .set(auth)
+        .send(body);
+      expect(response.status).toBe(400);
+      expect(response.headers['content-type']).toContain('application/problem+json');
+      expect(response.body).toMatchObject({ code: 'marks.invalid_body' });
+      expect(calls).toEqual([]);
+    });
+  });
+
+  it('requires a session on the four routes', async () => {
+    const app = appWithMarks(fakeMarks().service);
+    const responses = await Promise.all([
+      request(app).get('/api/v1/me/marks'),
+      request(app).put('/api/v1/me/marks/1').send({ status: 'seen' }),
+      request(app).delete('/api/v1/me/marks/1'),
+      request(app)
+        .post('/api/v1/me/marks:batch')
+        .send({ status: 'seen', entries: [{ anilistId: 1 }] }),
+    ]);
+    expect(responses.map((response) => response.status)).toEqual([401, 401, 401, 401]);
+  });
+
+  it('answers 503 on the four routes when the database is not configured', async () => {
+    const app = appWithMarks(undefined);
+    const responses = await Promise.all([
+      request(app).get('/api/v1/me/marks').set(auth),
+      request(app).put('/api/v1/me/marks/1').set(auth).send({ status: 'seen' }),
+      request(app).delete('/api/v1/me/marks/1').set(auth),
+      request(app)
+        .post('/api/v1/me/marks:batch')
+        .set(auth)
+        .send({ status: 'seen', entries: [{ anilistId: 1 }] }),
+    ]);
+    for (const response of responses) {
+      expect(response.status).toBe(503);
+      expect(response.body).toMatchObject({ code: 'marks.unavailable' });
+    }
+  });
+
+  it('counts the writes with the write limit and leaves the read alone', async () => {
+    const policies: string[] = [];
+    const app = appWithMarks(fakeMarks().service, {
+      limit: async (policy) => {
+        policies.push(policy);
+        return { allowed: true, retryAfterSeconds: 0 };
+      },
+    });
+    await request(app).get('/api/v1/me/marks').set(auth);
+    expect(policies).toEqual([]);
+    await request(app).put('/api/v1/me/marks/1').set(auth).send({ status: 'seen' });
+    await request(app).delete('/api/v1/me/marks/1').set(auth);
+    await request(app)
+      .post('/api/v1/me/marks:batch')
+      .set(auth)
+      .send({ status: 'seen', entries: [{ anilistId: 1 }] });
+    expect(policies).toEqual(['write', 'write', 'write']);
   });
 });
