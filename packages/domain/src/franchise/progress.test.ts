@@ -84,6 +84,22 @@ describe('franchiseProgress', () => {
     });
   });
 
+  it('stays complete when the user starts watching a season released after completing it', () => {
+    const marks = [
+      ...[1, 2, 3, 4].map((id) => seen(id, '2021-06-01T00:00:00Z')),
+      watching(5, '2023-03-10T00:00:00Z'),
+    ];
+
+    expect(franchiseProgress(franchise, marks, NOW)).toEqual({
+      state: 'watching',
+      seenCore: 4,
+      releasedCore: 5,
+      complete: true,
+      hasNewEntries: true,
+    });
+    expect(countCompleteFranchises([franchise], marks, NOW)).toBe(1);
+  });
+
   it('is not complete when a season released before the latest mark is missing', () => {
     const marks = [seen(1, '2021-06-01T00:00:00Z'), seen(2), seen(3)];
 

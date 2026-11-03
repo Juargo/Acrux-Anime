@@ -37,7 +37,10 @@ export function franchiseProgress(
 
   const released = joinedBy(time(now));
   const releasedCore = new Set([...released.map((member) => member.id), ...seen]).size;
-  const cutoff = Math.max(...coreMarks.map((mark) => time(mark.markedAt)));
+  // Only seen marks move the cutoff: starting a season released afterwards must not undo it.
+  const cutoff = Math.max(
+    ...coreMarks.filter((mark) => mark.status === 'seen').map((mark) => time(mark.markedAt)),
+  );
   const complete = seen.size > 0 && joinedBy(cutoff).every((member) => seen.has(member.id));
 
   let state: FranchiseState = 'unmarked';

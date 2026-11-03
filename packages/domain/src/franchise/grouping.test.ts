@@ -249,6 +249,34 @@ describe('groupFranchises', () => {
       expect(coreIds(byRoot(franchises, 3))).toEqual([2, 3]);
     });
 
+    it('does not let the order of relations decide between two curator roots', () => {
+      const catalog = (relations: [RelationType, number][]) => [
+        entry(1, '2010-01-01'),
+        entry(2, '2011-01-01'),
+        entry(3, '2009-01-01', relations),
+        entry(4, '2012-01-01'),
+        entry(5, '2013-01-01'),
+      ];
+      const overrides = [override(4, 'core', 1), override(5, 'core', 2)];
+      const forward = groupFranchises(
+        catalog([
+          ['PREQUEL', 1],
+          ['PREQUEL', 2],
+        ]),
+        overrides,
+      );
+      const backward = groupFranchises(
+        catalog([
+          ['PREQUEL', 2],
+          ['PREQUEL', 1],
+        ]),
+        overrides,
+      );
+
+      expect(backward).toEqual(forward);
+      expect(coreIds(byRoot(forward, 1))).toEqual([3, 1, 4]);
+    });
+
     it('ignores overrides for entries outside the catalog or ignored by format', () => {
       const franchises = groupFranchises(
         [entry(1, '2010-01-01'), entry(2, '2011-01-01', [], { format: 'MUSIC' })],

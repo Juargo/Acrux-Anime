@@ -99,7 +99,9 @@ export function groupFranchises(
   }
   for (const entry of catalog.values()) {
     if (forcedExtra(entry.id)) continue;
-    for (const relation of entry.relations) {
+    // Sorted, so the order AniList lists relations in never decides between curator roots.
+    const sorted = [...entry.relations].sort((a, b) => a.id - b.id);
+    for (const relation of sorted) {
       if (
         CORE_RELATIONS.has(relation.type) &&
         catalog.has(relation.id) &&
