@@ -1,4 +1,3 @@
-import type { Mark } from '@acrux/domain';
 import { useCallback, useMemo, useState } from 'react';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient, useCatalog, useGenres } from '../anilist/hooks';
@@ -7,12 +6,9 @@ import { CatalogGrid } from './CatalogGrid';
 import { FilterSheet, type Filters } from './FilterSheet';
 import { useDebounced, useOnline } from './hooks';
 import { toCatalogItems } from './items';
+import { type FranchiseMarkedEvent, useFranchiseMarks } from './use-franchise-marks';
 
 const SEARCH_DEBOUNCE_MS = 300;
-
-// The API does not serve marks yet (GET /api/v1/me/marks, #33 and #35): nothing is dimmed
-// until then, but the grid already dims what franchiseProgress reports as seen (RF-23).
-const NO_MARKS: Mark[] = [];
 
 // The current year is computed at run time (ADR-0017).
 const defaultFilters = (): Filters => ({
@@ -27,7 +23,18 @@ const countLabel = (label: string, count: number) => (count > 0 ? `${label} · $
  * Container: owns the search, the filters and the AniList queries of the catalog
  * (ADR-0017, ADR-0024). Search by name covers every year; otherwise it browses a year.
  */
-export function CatalogScreen({ client = defaultClient }: { client?: AniListClient }) {
+export function CatalogScreen({
+  client = defaultClient,
+  getToken,
+  fetchFn = fetch,
+  onFranchiseMarked,
+}: {
+  client?: AniListClient;
+  // Without a session the catalog still browses, but cards cannot be marked.
+  getToken?: () => Promise<string | null>;
+  fetchFn?: typeof fetch;
+  onFranchiseMarked?: (event: FranchiseMarkedEvent) => void;
+}) {
   const [input, setInput] = useState('');
   const search = useDebounced(input.trim(), SEARCH_DEBOUNCE_MS);
   const [filters, setFilters] = useState(defaultFilters);
@@ -37,15 +44,16 @@ export function CatalogScreen({ client = defaultClient }: { client?: AniListClie
   const query = useMemo(() => ({ search, ...filters }), [search, filters]);
   const catalog = useCatalog(query, client);
   const genres = useGenres(sheetOpen, client);
+  const marking = useFranchiseMarks({ client, getToken, fetchFn, onFranchiseMarked });
 
   const items = useMemo(
     () =>
       toCatalogItems(
         catalog.data?.pages.flatMap((page) => page.media) ?? [],
-        NO_MARKS,
+        marking.marks,
         new Date().toISOString(),
       ),
-    [catalog.data],
+    [catalog.data, marking.marks],
   );
 
   const { fetchNextPage } = catalog;
@@ -88,6 +96,12 @@ export function CatalogScreen({ client = defaultClient }: { client?: AniListClie
         </button>
       </div>
 
+      {marking.message && (
+        <p className="catalog__message" role={marking.message.kind}>
+          {marking.message.text}
+        </p>
+      )}
+
       {!online ? (
         <p className="catalog__notice" role="alert">
           Estás sin conexión. El catálogo se carga cuando vuelvas a conectarte; lo que marcaste
@@ -121,6 +135,8 @@ export function CatalogScreen({ client = defaultClient }: { client?: AniListClie
             hasMore={catalog.hasNextPage && !catalog.isFetchNextPageError}
             loadingMore={catalog.isFetchingNextPage}
             onLoadMore={loadMore}
+            onToggle={marking.canMark ? marking.toggle : undefined}
+            pendingRootId={marking.pendingRootId}
           />
           {catalog.isFetchingNextPage && (
             <p className="catalog__state" role="status">

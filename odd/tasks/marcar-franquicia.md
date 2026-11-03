@@ -1,0 +1,37 @@
+# Feature: mark a franchise as seen, and unmark it (issue #33)
+
+Objective: the API stores, reads and removes the user's marks, one entry or a whole core in one transaction, isolated per user; in the catalog one tap marks a franchise as seen (whole core) with an optimistic update and rollback, and a second tap unmarks it.
+Branch: `feat/marcar-franquicia` · Delivery: `single-pr` · Test runner: vitest (`apps/api` with supertest and Postgres in testcontainers; `apps/web` with Testing Library on jsdom).
+
+## Specs
+
+- S1 (issue #33): "`PUT`/`DELETE /api/v1/me/marks/{anilistId}` y `POST /api/v1/me/marks:batch` en una transacción". ADR-0023: "`PUT` y `DELETE` son idempotentes por definición"; "se rechazan los campos desconocidos"; "las respuestas de usuario llevan `Cache-Control: private, no-store`". RDI-31: "Marcar una franquicia como vista marca todas las entradas de su núcleo, en una sola transacción."
+- S2 (issue #33): "Guardar `anilist_id`, `mal_id` (si existe), estado y `marked_at`". RDI-13: "Por cada entrada marcada: id de AniList, id de MyAnimeList si existe, estado (visto o viendo) y fecha."
+- S3 (issue #33): "Actualización optimista en la SPA con reversión si falla". RNF-11: "Marcar y actualizar el contador se percibe instantáneo (actualización optimista)." RNF-01: "Marcar una franquicia requiere un solo clic o toque desde el catálogo." Figma Flujo 2B (16:312): "Clic o toque: todas las entradas del núcleo pasan a Vista" (DD-02, RDI-31).
+- S4 (issue #33): "Pruebas de aislamiento: el usuario B no puede leer ni modificar las marcas del usuario A". ADR-0029 rule 2: "por cada ruta `/me/*`, una prueba en la que el usuario B intenta leer o modificar los datos del usuario A y debe fallar."
+- S5 (issue #33): "Evento `franchise_marked`". ADR-0030: "Las propiedades nunca incluyen datos personales: ni correo, ni nombre, ni el texto de búsqueda."
+- S6 (acceptance, @CA-RF20-01): "Dado que inicié sesión y mi contador por franquicias está en 12 / Y la franquicia "Shingeki no Kyojin" no está marcada / Cuando toco "Visto" en la franquicia "Shingeki no Kyojin" / Entonces el contador muestra 13 / Y todas las entradas del núcleo de la franquicia quedan marcadas como vistas / Y la franquicia se muestra atenuada en el catálogo". The counter step closes with #34 (L3).
+- S7 (acceptance, @CA-RF20-02): "Dado que inicié sesión y mi contador por franquicias está en 12 / Y la API no responde / Cuando toco "Visto" en la franquicia "Shingeki no Kyojin" / Entonces veo un mensaje que indica que no se pudo guardar / Y el contador vuelve a mostrar 12". The counter step closes with #34 (L3).
+- S8 (contract, designed here because ADR-0023 lists the routes without bodies; assumption approved with the scope in L3):
+  - `GET /api/v1/me/marks` → 200 `{ "items": [{ "anilistId", "malId" (number or null), "status" ("seen" | "watching"), "markedAt" (ISO) }], "nextCursor": null }`, ordered by `anilistId`; #35 adds cursor pagination without changing the shape.
+  - `PUT /api/v1/me/marks/{anilistId}` body `{ "status": "seen" | "watching", "malId"?: number | null }` → 200 with the mark. Same status again keeps `markedAt`; a new status sets it to now.
+  - `DELETE /api/v1/me/marks/{anilistId}` → 204, also when there was no mark.
+  - `POST /api/v1/me/marks:batch` body `{ "status": "seen" | "watching" | null, "entries": [{ "anilistId", "malId"?: number | null }] }`, 1 to 200 distinct entries, one transaction; `null` removes those marks → 200 `{ "items": [marks written, empty when removing] }`.
+  - `anilistId` is a positive integer; unknown fields, bad ids or bodies → 400 problem+json. Writes use the `write` rate limit. All four set `Cache-Control: private, no-store`. A missing profile row is created first, as `GET /api/v1/me` does.
+
+## Tasks
+
+| ID | Specs | Route | Status | Evidence |
+|---|---|---|---|---|
+| T1 | S1, S2, S4, S8 | delegated (writer) | done | marks module (repository with mandatory `userId`, one-statement `unnest` upsert, service with `ensureProfile`), four routes with `Cache-Control: private, no-store` and `write` rate limit, OpenAPI request bodies and the literal `:batch`; RED 35 route tests, then GREEN; 14 Postgres tests incl. `@CA-RF20-01` and isolation (B cannot read, delete, batch-remove or overwrite A's marks); `docs/criterios/RF-20.feature`. Risk: item 2 |
+| T2 | S3, S5, S6, S7 | inline | done | `marks-api.ts`, `anilist/franchise.ts` (SEQUEL/PREQUEL crawl, at most 10 requests), `use-franchise-marks.ts` (optimistic toggle with rollback), cards as toggle buttons, token threaded from `App`; RED then GREEN: 5 client, 3 crawl, 4 marking tests incl. `@CA-RF20-01`, `@CA-RF20-02`. Seam check: domain 31, api 135, web 67, landing 26; typecheck, openapi:check, depcruise, build green |
+
+Route evidence: T1 (API module, OpenAPI, isolation tests on Postgres) and T2 (SPA) have disjoint edit surfaces and run in parallel against the S8 contract; T1 goes to a writer for parallelism and the long-session context backstop; T2 stays inline.
+
+## Log
+
+- L1 (2026-11-03, stakeholder): "si" (start #32), then "#33 primero (Recomendado)" when #32 turned out to need the marks API.
+- L2 (2026-11-03): Figma Flujo 2B (16:312) decides: tap marks the whole core as Vista (DD-02); the entries menu ⋯ or long press marks one entry as Viendo or Vista (DD-07, DD-14), its screen M10 is marked "Falta"; unmarking warns "Tu total baja a 47" (DD-16); "Viendo de nuevo" keeps counting (DD-15); the franchise total counts "Vista + Nueva temporada + Viendo de nuevo".
+- L3 (2026-11-03, stakeholder): "Aprobado (Recomendado)" for this scope: the full marks API (S8) and, in the catalog, tap to mark as seen and tap again to unmark. Out of scope: the visible counter (#34; the counter steps of S6 and S7 close there), Viendo per entry and "Viendo de nuevo" (need screen M10 and a data model where an entry can be seen and rewatched).
+- L4 (2026-11-03, assumptions): before saving, the SPA builds the whole core by following SEQUEL/PREQUEL relations on AniList in `id_in` batches, because the catalog only knows one hop; the card dims at once from the core it already knows and rolls back if the crawl or the save fails. Unmarking removes the marks of the franchise's core and extras; without a counter (#34) the message names the franchise instead of the new total. `franchise_marked` is an optional callback with `{ status, coreSize }` until PostHog reaches the SPA (#46), as #29 did with `onRateLimited`.
+- L5 (2026-11-03): T1 writer notes. The batch upsert is one SQL statement (`INSERT … SELECT FROM unnest(…) ON CONFLICT (user_id, anilist_id)`), atomic without 200 round trips from gru1 to Ohio; `markedAt` uses the database's `now()` and only changes with the status; PUT without `malId` keeps the stored one, `malId: null` clears it; GET and DELETE do not create a profile row. Error codes: `marks.invalid_anilist_id`, `marks.invalid_body` (400), `marks.unavailable` (503). The rollback test fails before any write (an id over int4), so atomicity rests on the single statement. Request logs show the route as `/api/v1/me/marks\:batch`. Parent spot check: the raw SQL is a Prisma tagged template (parameterized) and the diff stayed inside the allowed surfaces.

@@ -11,6 +11,7 @@ function related(id: number, year: number, extra: Partial<RelatedMedia> = {}): R
     id,
     type: 'ANIME',
     format: 'TV',
+    idMal: null,
     isAdult: false,
     title: { romaji: `Romaji ${id}`, english: `English ${id}`, native: null },
     coverImage: { large: cover(id) },
@@ -45,7 +46,14 @@ describe('toCatalogItems', () => {
     );
 
     expect(items).toEqual([
-      { rootId: 154587, title: 'English 154587', coverUrl: cover(154587), dimmed: false },
+      {
+        rootId: 154587,
+        title: 'English 154587',
+        coverUrl: cover(154587),
+        dimmed: false,
+        coreIds: expect.any(Array),
+        entryIds: expect.any(Array),
+      },
     ]);
   });
 
@@ -53,7 +61,14 @@ describe('toCatalogItems', () => {
     const items = toCatalogItems([hit(20958, 2017, [['PREQUEL', related(16498, 2013)]])], [], NOW);
 
     expect(items).toEqual([
-      { rootId: 16498, title: 'English 16498', coverUrl: cover(16498), dimmed: false },
+      {
+        rootId: 16498,
+        title: 'English 16498',
+        coverUrl: cover(16498),
+        dimmed: false,
+        coreIds: expect.any(Array),
+        entryIds: expect.any(Array),
+      },
     ]);
   });
 
@@ -104,7 +119,14 @@ describe('toCatalogItems', () => {
     );
 
     expect(items).toEqual([
-      { rootId: 10, title: 'English 10', coverUrl: cover(10), dimmed: false },
+      {
+        rootId: 10,
+        title: 'English 10',
+        coverUrl: cover(10),
+        dimmed: false,
+        coreIds: expect.any(Array),
+        entryIds: expect.any(Array),
+      },
     ]);
   });
 
@@ -143,5 +165,22 @@ describe('toCatalogItems', () => {
       { rootId: 3, dimmed: true },
       { rootId: 4, dimmed: false },
     ]);
+  });
+});
+
+describe('toCatalogItems ids', () => {
+  it('keeps the known core and extras of each item for marking', () => {
+    const [item] = toCatalogItems(
+      [
+        hit(1, 2020, [
+          ['SEQUEL', related(2, 2021)],
+          ['SIDE_STORY', related(3, 2021)],
+        ]),
+      ],
+      [],
+      NOW,
+    );
+
+    expect(item).toMatchObject({ coreIds: [1, 2], entryIds: [1, 2, 3] });
   });
 });

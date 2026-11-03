@@ -16,6 +16,7 @@ function media(id: number, title: string, year: number, prequel?: CatalogMedia):
     id,
     type: 'ANIME',
     format: 'TV',
+    idMal: null,
     isAdult: false,
     title: { romaji: title, english: null, native: null },
     coverImage: { large: cover(id) },

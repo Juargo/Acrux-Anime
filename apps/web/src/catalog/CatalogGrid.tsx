@@ -24,8 +24,11 @@ export function CatalogGrid(props: {
   hasMore: boolean;
   loadingMore: boolean;
   onLoadMore: () => void;
+  // One tap marks the franchise as seen, or unmarks a seen one (RNF-01).
+  onToggle?: ((item: CatalogItem) => void) | undefined;
+  pendingRootId?: number | undefined;
 }) {
-  const { items, hasMore, loadingMore, onLoadMore } = props;
+  const { items, hasMore, loadingMore, onLoadMore, onToggle, pendingRootId } = props;
   const listRef = useRef<HTMLUListElement>(null);
   const width = useWindowWidth();
   const columns = columnsFor(width);
@@ -67,22 +70,45 @@ export function CatalogGrid(props: {
               }px)`,
             }}
           >
-            {item.coverUrl ? (
-              <img
-                className="catalog-card__cover"
-                src={item.coverUrl}
-                alt=""
-                loading="lazy"
-                decoding="async"
-              />
+            {onToggle ? (
+              <button
+                className="catalog-card__button"
+                type="button"
+                aria-pressed={item.dimmed}
+                disabled={item.rootId === pendingRootId}
+                onClick={() => onToggle(item)}
+              >
+                <CardContent item={item} />
+              </button>
             ) : (
-              <span className="catalog-card__cover catalog-card__cover--empty" />
+              <>
+                <CardContent item={item} />
+                {item.dimmed && <span className="visually-hidden"> (vista)</span>}
+              </>
             )}
-            <span className="catalog-card__title">{item.title}</span>
-            {item.dimmed && <span className="visually-hidden"> (vista)</span>}
           </li>
         )),
       )}
     </ul>
+  );
+}
+
+// The cover is decorative: the title names the card.
+function CardContent({ item }: { item: CatalogItem }) {
+  return (
+    <>
+      {item.coverUrl ? (
+        <img
+          className="catalog-card__cover"
+          src={item.coverUrl}
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <span className="catalog-card__cover catalog-card__cover--empty" />
+      )}
+      <span className="catalog-card__title">{item.title}</span>
+    </>
   );
 }
