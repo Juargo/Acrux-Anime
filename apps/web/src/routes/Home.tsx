@@ -1,7 +1,8 @@
+import { CatalogScreen } from '../catalog/CatalogScreen';
 import { Logo } from '../components/Logo';
 import type { Profile } from '../profile-api';
 
-// Signed-in shell until the catalog lands (#31 onwards): who you are and how to leave.
+// Signed-in home: the catalog (#31), with who you are and how to leave in the bar.
 export function Home(props: {
   profile: Profile;
   onSignOut: () => void;
@@ -9,45 +10,44 @@ export function Home(props: {
   signOutFailed: boolean;
 }) {
   const { profile } = props;
+  const name = profile.displayName || 'Sin nombre';
   const initial = profile.displayName.trim().charAt(0).toUpperCase() || '?';
   return (
     <main className="home">
       <header className="home__bar">
         <Logo />
-        <button
-          className="button button--secondary"
-          type="button"
-          onClick={props.onSignOut}
-          disabled={props.signingOut}
-        >
-          Cerrar sesión
-        </button>
+        <div className="home__account">
+          {profile.avatarUrl ? (
+            <img
+              className="home__avatar"
+              src={profile.avatarUrl}
+              alt={name}
+              width={40}
+              height={40}
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <span className="home__avatar home__avatar--initial" role="img" aria-label={name}>
+              {initial}
+            </span>
+          )}
+          <button
+            className="button button--secondary"
+            type="button"
+            onClick={props.onSignOut}
+            disabled={props.signingOut}
+          >
+            Cerrar sesión
+          </button>
+        </div>
       </header>
       {props.signOutFailed && (
         <p className="home__error" role="alert">
           No pudimos cerrar tu sesión. Vuelve a intentarlo.
         </p>
       )}
-      <section className="home__profile">
-        {profile.avatarUrl ? (
-          <img
-            className="home__avatar"
-            src={profile.avatarUrl}
-            alt=""
-            width={64}
-            height={64}
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <span className="home__avatar home__avatar--initial">{initial}</span>
-        )}
-        <div>
-          <h1 className="home__name">{profile.displayName || 'Sin nombre'}</h1>
-          <p className="home__meta">
-            {profile.listVisibility === 'private' ? 'Tu lista es privada' : 'Tu lista es pública'}
-          </p>
-        </div>
-      </section>
+      <h1 className="visually-hidden">Explorar</h1>
+      <CatalogScreen />
     </main>
   );
 }
