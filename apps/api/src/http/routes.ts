@@ -6,6 +6,10 @@ import type { RateLimitPolicy } from './rate-limit.js';
 // added automatically.
 export interface RouteDocs {
   summary: string;
+  // Path parameters with a schema; the others are documented as strings.
+  params?: Record<string, ZodType>;
+  // JSON request body.
+  requestBody?: ZodType;
   responses: Record<number, { description: string; schema?: ZodType }>;
 }
 
