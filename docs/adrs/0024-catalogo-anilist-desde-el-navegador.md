@@ -53,6 +53,13 @@
 6. **Agrupamiento en `packages/domain`:** el cálculo de la franquicia a partir de las relaciones (RDI-30) es una función pura del dominio (ADR-0019), que aplica primero las correcciones del curador (`GET /api/v1/franchise-overrides`, ADR-0023).
 7. **Filtros nativos:** a diferencia de MAL, AniList filtra por año (`seasonYear`), género (`genre_in`) y formato (`format_in`) en el servidor; los filtros de ADR-0017 dejan de calcularse en el cliente.
 8. **Contenido adulto excluido** (`isAdult: false`) en todas las consultas.
+   - **Nota (2026-11-03, issue #29):** reglas 1, 3, 4, 5 y 8 implementadas en `apps/web/src/anilist/`.
+     - **Caché:** TanStack Query sin persistencia.
+     - **Lotes:** de 50 identificadores.
+     - **Límite:** espera hasta `X-RateLimit-Reset` y, si falta, retroceso de 1, 2 y 4 segundos. Con `X-RateLimit-Remaining` en 0, la consulta siguiente espera al próximo minuto.
+     - **Validación:** Zod.
+     - **Mensajes:** de RNF-21.
+     - **Pendientes:** el evento `anilist_rate_limited` se envía desde `onRateLimited` cuando PostHog llegue a la app (#46), y la regla del service worker se aplica con la PWA (#44).
 9. **Atribución a AniList** en la pantalla «Acerca de» y en la landing. «AniList» no aparece en el nombre de la app (RES-24).
 10. **Plus no se cobra sin autorización y licencia de AniList** (R-01, RES-21). La validación y la beta funcionan sin ingresos.
 
