@@ -17,9 +17,9 @@ Branch: `feat/tarjeta-compartir` · Delivery: `single-pr` · Test runner: vitest
 
 | ID | Specs | Route | Status | Evidence |
 |---|---|---|---|---|
-| T1 | S1, S4 | inline | pending | `ShareCard` with props (the sign-in sample reuses it) and `shareCardContent` (total and label by counter mode, name, avatar, up to 3 covers). |
-| T2 | S2, S3, S5 | inline | pending | `html-to-image` 1.11.13, `cardImage` (1080 × 1920 PNG) and `shareOrDownload` (Web Share with files, else download); CSP `connect-src` for the cover and avatar hosts. |
-| T3 | S1, S3, S5, S6 | inline | pending | `/tarjeta` route: M05 step and M07 preview, "Tarjeta" in `MainNav`, events through the signed-in context, `docs/criterios/RF-30.feature`. |
+| T1 | S1, S4 | inline | done | `70bd56a`: `ShareCard` with props (the sign-in sample reuses it) and `shareCardContent` (total and label by counter mode, name, avatar, up to 3 covers). RED 8 tests, then GREEN; web 118. Risk: none |
+| T2 | S2, S3, S5 | inline | done | `27ef9cd`: `html-to-image` ^1.11.13, `cardImage` (pixelRatio 1080/324, no referrer) and `shareOrDownload` (Web Share with files; download when it cannot, when asked or when sharing fails; nothing on AbortError); CSP `connect-src` plus ADR-0028. RED 6 tests, then GREEN; `cardImage` has no jsdom test (no canvas). Risk: items 2 (CSP widened) and 5 (new dependency) |
+| T3 | S1, S3, S5, S6 | inline | done | `18aa45c`: `CardScreen` (M05 step, M07 preview, image made on entering the preview so the share sheet opens within the tap), `/tarjeta`, "Tarjeta" in `MainNav`, `profile` and the card events in the signed-in context, `docs/criterios/RF-30.feature`. RED 12 screen tests (incl. `@CA-RF30-01`), then GREEN; the nav test of Mi lista now expects Tarjeta. Web 136, typecheck, lint, build green. Risk: none |
 
 Route evidence: one feature in dependent deliveries (card, image and sharing, then the screen); no writer trigger holds.
 
@@ -28,3 +28,4 @@ Route evidence: one feature in dependent deliveries (card, image and sharing, th
 - L1 (2026-11-04, stakeholder): "Tarjeta" (start #36 after #35 merged).
 - L2 (2026-11-04, stakeholder): "Card first, QR with #37 (Recommended)".
 - L3 (2026-11-04, assumptions): The entry is the "Tarjeta" tab of the bar; the M04 invitation over the catalog waits, since nothing defines when it shows. M06 (name and avatar) belongs to #39: the card uses the profile's name and avatar, or the initial. Only the "Clásica" style; Neón and Manga are Plus. The card shows the display name where Figma has "@jorge" (no handle until #37) and "acrux.app" with the Acrux mark where Figma has the profile URL and the QR. M05 lists the franchises in Viendo (as "Mi lista"), up to 3 checked by default, at most 3 on the card; its search filters that list; choosing only changes the card, not the marks; "Saltar" keeps the default choice; with nothing in Viendo the step is skipped and the card has no "VIENDO AHORA". The total follows the counter mode: "ANIMES COMPLETOS" by franchises, "ENTRADAS VISTAS" by entries. Spike check (2026-11-04): `s4.anilist.co` and `lh3.googleusercontent.com` answer with `Access-Control-Allow-Origin`, so the avatar embeds too; `html-to-image` fetches images, so both hosts go to `connect-src`.
+- L4 (2026-11-04): T1–T3 done. Native assessment of `main...HEAD`: high (item 2 named). Next: independent verifier, then the native review consent, PR and preview check (CSP and the image on iOS Safari and Android Chrome).
