@@ -191,4 +191,17 @@ describe('profile repository', () => {
     });
     expect(await profiles.findByHandle('nadie_aqui')).toBeNull();
   });
+
+  it('keeps giving handles when the numbered ones of a name run out', async () => {
+    const profiles = createProfileRepository(prisma);
+    const handles: string[] = [];
+    for (let index = 0; index < 60; index += 1) {
+      const userId = `7a1c2a3e-8b7d-4c1e-9a2f-${String(900 + index).padStart(12, '0')}`;
+      handles.push(
+        (await profiles.findOrCreate(userId, { displayName: '李', avatarUrl: null })).handle,
+      );
+    }
+    expect(new Set(handles).size).toBe(60);
+    expect(handles.every((handle) => /^usuario\d*$/.test(handle))).toBe(true);
+  }, 60_000);
 });

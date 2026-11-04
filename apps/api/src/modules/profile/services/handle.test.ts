@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { handleBase, handleCandidates, isHandle } from './handle.js';
+import { handleBase, handleCandidates, isHandle, randomCandidate } from './handle.js';
 
 describe('handleBase', () => {
   it('lowercases the display name and drops accents and spaces', () => {
     expect(handleBase('Jorge')).toBe('jorge');
     expect(handleBase('José Ñúñez')).toBe('josenunez');
     expect(handleBase('  Ana_María 99 ')).toBe('ana_maria99');
+  });
+
+  it('spells out letters without a decomposition and folds fullwidth ones', () => {
+    expect(handleBase('Łukasz')).toBe('lukasz');
+    expect(handleBase('Œuvre Ærø')).toBe('oeuvreaero');
+    expect(handleBase('Straße')).toBe('strasse');
+    expect(handleBase('Ｊｏｒｇｅ')).toBe('jorge');
   });
 
   it('keeps only a-z, 0-9 and _ and cuts at 20 characters', () => {
@@ -33,6 +40,14 @@ describe('handleCandidates', () => {
       'abcdefghijklmnopqrst',
       'abcdefghijklmnopqrs2',
     ]);
+  });
+});
+
+describe('randomCandidate', () => {
+  it('appends a random number to the base, within 20 characters', () => {
+    expect(randomCandidate('usuario', () => 0.25)).toBe('usuario250000');
+    expect(randomCandidate('abcdefghijklmnopqrst', () => 0.5)).toBe('abcdefghijklmn500000');
+    expect(isHandle(randomCandidate('abcdefghijklmnopqrst', Math.random))).toBe(true);
   });
 });
 

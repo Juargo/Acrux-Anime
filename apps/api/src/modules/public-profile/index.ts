@@ -30,7 +30,9 @@ function start(service: PublicProfileService | undefined, response: Response) {
 }
 
 // Behind Vercel the Host is the public domain; the page and the image are always https.
-const originOf = (host: string | undefined) => `https://${host ?? 'app.acruxanime.com'}`;
+// Anything that is not a plain host name falls back to production, never into the HTML.
+const originOf = (host: string | undefined) =>
+  `https://${host && /^[a-z0-9.-]+(:\d{1,5})?$/i.test(host) ? host : 'app.acruxanime.com'}`;
 
 const handleOf = (params: Record<string, unknown>) =>
   typeof params.handle === 'string' ? params.handle : '';

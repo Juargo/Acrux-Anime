@@ -238,6 +238,13 @@ describe('GET /@{handle} for link previews', () => {
     expect(response.text).toContain('48 animes completos');
   });
 
+  it('ignores a Host header that is not a host name', async () => {
+    const response = await request(app()).get('/@camila').set('Host', 'evil.com"><script>');
+    expect(response.status).toBe(200);
+    expect(response.text).not.toContain('evil.com');
+    expect(response.text).toContain('content="https://app.acruxanime.com/@camila"');
+  });
+
   it('escapes the display name', async () => {
     const user = '7b1c2a3e-8b7d-4c1e-9a2f-0000000000d4';
     await profiles.update(user, { displayName: 'Zoro <script>"x"', avatarUrl: null }, {});

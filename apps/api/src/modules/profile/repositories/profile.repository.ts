@@ -1,5 +1,5 @@
 import { Prisma, type PrismaClient } from '../../../generated/prisma/client.js';
-import { handleBase, handleCandidates } from '../services/handle.js';
+import { handleBase, handleCandidates, randomCandidate } from '../services/handle.js';
 
 type CounterMode = 'franchise' | 'entry';
 type ListVisibility = 'private' | 'public';
@@ -88,9 +88,11 @@ export function createProfileRepository(prisma: PrismaClient): ProfileRepository
     prisma.profile.createMany({ data: [{ userId, ...initial }], skipDuplicates: true });
 
   // The first free candidate of the display name; the unique index settles races, so a
-  // clash only means trying again with the handles taken by then.
+  // clash only means trying again with the handles taken by then. Once the numbered
+  // candidates are all taken, random ones are tried instead.
   async function assignHandle(userId: string, displayName: string): Promise<string> {
-    const candidates = handleCandidates(handleBase(displayName), BATCH);
+    const base = handleBase(displayName);
+    let candidates = handleCandidates(base, BATCH);
     for (let attempt = 0; attempt < ATTEMPTS; attempt += 1) {
       const taken = new Set(
         (
@@ -101,7 +103,10 @@ export function createProfileRepository(prisma: PrismaClient): ProfileRepository
         ).map((row) => row.handle),
       );
       const free = candidates.find((candidate) => !taken.has(candidate));
-      if (!free) break;
+      if (!free) {
+        candidates = Array.from({ length: BATCH }, () => randomCandidate(base));
+        continue;
+      }
       try {
         await prisma.profile.updateMany({
           where: { userId, handle: null },
