@@ -19,6 +19,8 @@ export function useTotalCounter(options: {
   const marked = useMarkedFranchises({ ...rest, crawl: mode === 'franchise' });
   if (!marked.marks) return undefined;
   if (mode === 'entry') return countSeenEntries(marked.marks);
+  // Nothing seen counts 0 without waiting for AniList (watching marks are crawled for the list).
+  if (!marked.marks.some((mark) => mark.status === 'seen')) return 0;
   if (!marked.ready) return undefined;
   return countCompleteFranchises(marked.franchises, marked.marks, new Date().toISOString());
 }

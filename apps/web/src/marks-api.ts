@@ -68,8 +68,10 @@ export async function fetchMarks(
       nextCursor: string | null;
     };
     marks.push(...body.items);
-    // A cursor that does not move on would page forever.
-    if (body.nextCursor !== null && body.nextCursor === cursor) throw new MarksError('failed');
+    // The cursor only moves forward (anilistId order); anything else would page forever.
+    if (body.nextCursor !== null && cursor !== null && Number(body.nextCursor) <= Number(cursor)) {
+      throw new MarksError('failed');
+    }
     cursor = body.nextCursor;
   } while (cursor);
   return marks;
