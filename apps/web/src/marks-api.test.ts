@@ -24,9 +24,35 @@ describe('marks API client', () => {
     const fetchFn = respond(200, { items: [mark], nextCursor: null });
 
     expect(await fetchMarks(token, fetchFn)).toEqual([mark]);
-    expect(fetchFn).toHaveBeenCalledWith('/api/v1/me/marks', {
+    expect(fetchFn).toHaveBeenCalledWith('/api/v1/me/marks?limit=1000', {
       headers: { Authorization: 'Bearer jwt' },
     });
+  });
+
+  it('reads every page, following nextCursor', async () => {
+    const pages: Record<string, unknown> = {
+      '/api/v1/me/marks?limit=1000': { items: [mark], nextCursor: '16498' },
+      '/api/v1/me/marks?limit=1000&cursor=16498': {
+        items: [{ ...mark, anilistId: 20958 }],
+        nextCursor: null,
+      },
+    };
+    const fetchFn = vi.fn(async (url: string) => Response.json(pages[url]));
+    const marks = await fetchMarks(token, fetchFn as unknown as typeof fetch);
+    expect(marks.map((item) => item.anilistId)).toEqual([16498, 20958]);
+    expect(fetchFn.mock.calls.map(([url]) => url)).toEqual(Object.keys(pages));
+  });
+
+  it('fails instead of paging forever when the cursor goes back', async () => {
+    const pages: Record<string, unknown> = {
+      '/api/v1/me/marks?limit=1000': { items: [mark], nextCursor: '20' },
+      '/api/v1/me/marks?limit=1000&cursor=20': { items: [mark], nextCursor: '10' },
+    };
+    const fetchFn = vi.fn(async (url: string) => Response.json(pages[url]));
+    await expect(fetchMarks(token, fetchFn as unknown as typeof fetch)).rejects.toMatchObject({
+      kind: 'failed',
+    });
+    expect(fetchFn).toHaveBeenCalledTimes(2);
   });
 
   it('marks a whole core in one batch request', async () => {

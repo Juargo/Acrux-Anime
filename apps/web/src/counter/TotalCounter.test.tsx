@@ -85,7 +85,7 @@ function fakeApi(marks: MarkDto[], options: { failPatch?: boolean } = {}) {
     counterMode,
   });
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
-    if (url === '/api/v1/me/marks') return json({ items: marks, nextCursor: null });
+    if (url.startsWith('/api/v1/me/marks?')) return json({ items: marks, nextCursor: null });
     if (url === '/api/v1/me' && init?.method === 'PATCH') {
       if (options.failPatch) return json({ status: 503, code: 'profile.unavailable' }, 503);
       counterMode = JSON.parse(init.body as string).counterMode;
@@ -214,5 +214,24 @@ describe('TotalCounter', () => {
     expect(option(counter, 'Franquicias').getAttribute('aria-pressed')).toBe('true');
     expect(within(counter).getByText('1 anime')).toBeTruthy();
     expect(events).toEqual([]);
+  });
+  it('shows 0 at once by franchise when nothing is seen, even with AniList down', async () => {
+    const request = vi.fn(async () => {
+      throw new Error('AniList is down');
+    });
+    const fetchFn = fakeApi([{ ...seen(1), status: 'watching' }]);
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <TotalCounter
+          initialMode="franchise"
+          getToken={async () => 'jwt'}
+          client={{ request } as unknown as AniListClient}
+          fetchFn={fetchFn}
+        />
+      </QueryClientProvider>,
+    );
+    const counter = screen.getByRole('region', { name: 'Contador total' });
+    expect(await within(counter).findByText('0 animes')).toBeTruthy();
   });
 });

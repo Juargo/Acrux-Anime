@@ -2,16 +2,18 @@ import type { Session } from '../../../http/session.js';
 import type { ProfileService } from '../../profile/services/profile.service.js';
 import type {
   MarkEntry,
+  MarkPage,
+  MarkPageQuery,
   MarkStatus,
   MarksRepository,
   MarkView,
 } from '../repositories/marks.repository.js';
 
-export type { MarkEntry, MarkStatus, MarkView };
+export type { MarkEntry, MarkPage, MarkPageQuery, MarkStatus, MarkView };
 
 export interface MarksService {
-  // Ordered by anilistId.
-  list(session: Session): Promise<MarkView[]>;
+  // One page, ordered by anilistId.
+  list(session: Session, page: MarkPageQuery): Promise<MarkPage>;
   put(
     session: Session,
     anilistId: number,
@@ -36,7 +38,7 @@ export function createMarksService(
     return marks.upsert(session.userId, status, entries);
   };
   return {
-    list: (session) => marks.list(session.userId),
+    list: (session, page) => marks.list(session.userId, page),
     put: async (session, anilistId, { status, malId }) => {
       const [mark] = await write(session, status, [{ anilistId, malId }]);
       if (!mark) throw new Error('mark upsert returned no row');

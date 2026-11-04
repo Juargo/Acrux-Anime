@@ -215,7 +215,7 @@
     },
     "/api/v1/me/marks": {
       "get": {
-        "summary": "Marks of the signed-in user, ordered by anilistId",
+        "summary": "Marks of the signed-in user, ordered by anilistId, one page at a time",
         "security": [
           {
             "session": []
@@ -224,9 +224,31 @@
         "tags": [
           "marks"
         ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "description": "The nextCursor of the previous page; leave it out for the first",
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            },
+            "description": "The nextCursor of the previous page; leave it out for the first"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "description": "Marks per page, 1 to 1000; 500 by default",
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            },
+            "description": "Marks per page, 1 to 1000; 500 by default"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Every mark; nextCursor stays null until pagination arrives",
+            "description": "One page of marks; nextCursor is null on the last page",
             "content": {
               "application/json": {
                 "schema": {
@@ -239,7 +261,10 @@
                       }
                     },
                     "nextCursor": {
-                      "type": "null"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "required": [
@@ -250,6 +275,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "The cursor or the limit is not a valid positive integer"
           },
           "401": {
             "description": "Missing, invalid or expired session",

@@ -64,7 +64,14 @@ function operation(route: RouteDefinition): ZodOpenApiOperationObject {
   return {
     summary: docs.summary,
     security: route.public ? [] : [{ session: [] }],
-    ...(params ? { requestParams: { path: params } } : {}),
+    ...(params || docs.query
+      ? {
+          requestParams: {
+            ...(params ? { path: params } : {}),
+            ...(docs.query ? { query: z.object(docs.query) } : {}),
+          },
+        }
+      : {}),
     ...(docs.requestBody
       ? {
           requestBody: {

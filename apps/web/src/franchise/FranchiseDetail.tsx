@@ -6,7 +6,7 @@ import type { FranchiseDetail, FranchiseEntryDetail } from '../anilist/franchise
 import type { EntryMarkChange } from './use-entry-marks';
 
 // Figma M09 names formats short: "TV · 24 ep. · 2020", "Película · 2021".
-const FORMAT_LABELS: Record<string, string> = {
+export const FORMAT_LABELS: Record<string, string> = {
   TV: 'TV',
   TV_SHORT: 'TV corto',
   MOVIE: 'Película',

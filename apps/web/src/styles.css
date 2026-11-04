@@ -368,7 +368,241 @@ a {
 .home {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 16px;
+  /* Room for the navigation bar at the bottom. */
+  padding: 24px 16px calc(88px + env(safe-area-inset-bottom));
+}
+
+.main-nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+}
+
+.main-nav__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 72px;
+  padding: 4px 8px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.main-nav__link[aria-current="page"] {
+  color: var(--color-accent-default);
+}
+
+/* D12: the bar becomes a sidebar on wide screens. */
+@media (min-width: 1024px) {
+  .home {
+    padding: 24px 32px 24px calc(240px + 32px);
+    max-width: none;
+  }
+
+  .home__bar {
+    margin: -24px -32px 0;
+    padding: 16px 32px 12px;
+  }
+
+  .main-nav {
+    top: 0;
+    right: auto;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 4px;
+    width: 240px;
+    padding: 88px 12px 24px;
+    border-top: 0;
+    border-right: 1px solid var(--color-border-default);
+  }
+
+  .main-nav__link {
+    flex-direction: row;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+
+  .main-nav__link[aria-current="page"] {
+    background: var(--color-bg-raised);
+  }
+}
+
+.my-list__title {
+  margin: 16px 0;
+  font-size: 28px;
+  line-height: 34px;
+}
+
+.my-list__stats {
+  display: flex;
+  gap: 24px;
+  margin: 0 0 20px;
+  padding: 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 16px;
+  background: var(--color-bg-surface);
+}
+
+.my-list__stats div {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.my-list__stats dt {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.my-list__stats dd {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 34px;
+}
+
+.my-list__stats div:first-child dd {
+  color: var(--color-accent-default);
+}
+
+.my-list__tabs {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.my-list__tab {
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.my-list__tab[aria-selected="true"] {
+  border-bottom-color: var(--color-accent-default);
+  color: var(--color-accent-default);
+}
+
+.my-list__rows {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 1024px) {
+  .my-list__rows {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.list-row__cover {
+  flex: none;
+  width: 40px;
+  height: 56px;
+  border-radius: 6px;
+  background: var(--color-bg-raised);
+  object-fit: cover;
+}
+
+.list-row__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.list-row__title {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-row__detail {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.list-row__badge {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--color-text-on-accent);
+  font-size: 13px;
+}
+
+.list-row__badge--seen {
+  background: var(--color-status-seen);
+}
+
+.list-row__badge--watching {
+  background: var(--color-accent-default);
+}
+
+.my-list__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 16px;
+  text-align: center;
+}
+
+.my-list__empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-bg-raised);
+  font-size: 22px;
+}
+
+.my-list__empty-title {
+  margin: 8px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.my-list__empty-text {
+  margin: 0 0 8px;
+  color: var(--color-text-secondary);
 }
 
 .home__bar {

@@ -8,6 +8,8 @@ export interface RouteDocs {
   summary: string;
   // Path parameters with a schema; the others are documented as strings.
   params?: Record<string, ZodType>;
+  // Query parameters, all optional strings as they arrive.
+  query?: Record<string, ZodType>;
   // JSON request body.
   requestBody?: ZodType;
   responses: Record<number, { description: string; schema?: ZodType }>;

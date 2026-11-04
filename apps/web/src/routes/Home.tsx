@@ -2,6 +2,7 @@ import { Outlet } from 'react-router';
 import type { AniListClient } from '../anilist/client';
 import { type CounterModeChangedEvent, TotalCounter } from '../counter/TotalCounter';
 import type { Profile } from '../profile-api';
+import { MainNav } from './MainNav';
 import type { SignedInContext } from './signed-in-context';
 
 // Signed-in layout: the total counter (#34), who you are and how to leave in the bar fixed at
@@ -60,7 +61,12 @@ export function Home(props: {
           No pudimos cerrar tu sesión. Vuelve a intentarlo.
         </p>
       )}
-      <Outlet context={{ getToken, client, fetchFn } satisfies SignedInContext} />
+      <Outlet
+        context={
+          { getToken, client, fetchFn, counterMode: profile.counterMode } satisfies SignedInContext
+        }
+      />
+      <MainNav />
     </main>
   );
 }

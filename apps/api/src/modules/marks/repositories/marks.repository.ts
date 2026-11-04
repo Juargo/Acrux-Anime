@@ -15,10 +15,23 @@ export interface MarkEntry {
   malId?: number | null | undefined;
 }
 
+// One page of marks: the ones after `after` (an anilistId), at most `limit`.
+export interface MarkPageQuery {
+  after?: number | undefined;
+  limit: number;
+}
+
+export interface MarkPage {
+  items: MarkView[];
+  // The anilistId to continue after, or null on the last page.
+  nextCursor: number | null;
+}
+
 // Prisma connects as acrux_api, which RLS does not restrict in practice: every query
 // takes the user id from the session and filters by it (ADR-0028).
 export interface MarksRepository {
-  list(userId: string): Promise<MarkView[]>;
+  // Ordered by anilistId.
+  list(userId: string, page: MarkPageQuery): Promise<MarkPage>;
   // One statement, so the entries are written all together or not at all. The same
   // status keeps markedAt; a new status sets it to now(). The profile must exist.
   upsert(userId: string, status: MarkStatus, entries: MarkEntry[]): Promise<MarkView[]>;
@@ -29,12 +42,20 @@ const byAnilistId = (a: MarkView, b: MarkView) => a.anilistId - b.anilistId;
 
 export function createMarksRepository(prisma: PrismaClient): MarksRepository {
   return {
-    list: (userId) =>
-      prisma.mark.findMany({
-        where: { userId },
+    list: async (userId, { after, limit }) => {
+      // One row more than the page tells whether another page follows.
+      const rows = await prisma.mark.findMany({
+        where: { userId, ...(after === undefined ? {} : { anilistId: { gt: after } }) },
         orderBy: { anilistId: 'asc' },
+        take: limit + 1,
         select: { anilistId: true, malId: true, status: true, markedAt: true },
-      }),
+      });
+      const items = rows.slice(0, limit);
+      return {
+        items,
+        nextCursor: rows.length > limit ? (items.at(-1)?.anilistId ?? null) : null,
+      };
+    },
 
     upsert: async (userId, status, entries) => {
       const anilistIds = entries.map((entry) => entry.anilistId);
