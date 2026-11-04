@@ -27,6 +27,9 @@ export class MarksError extends Error {
 
 type GetToken = () => Promise<string | null>;
 
+// The largest page the API serves.
+const PAGE_SIZE = 1000;
+
 async function call(
   getToken: GetToken,
   path: string,
@@ -55,8 +58,21 @@ export async function fetchMarks(
   getToken: GetToken,
   fetchFn: typeof fetch = fetch,
 ): Promise<MarkDto[]> {
-  const body = (await call(getToken, '/api/v1/me/marks', {}, fetchFn)) as { items: MarkDto[] };
-  return body.items;
+  const marks: MarkDto[] = [];
+  let cursor: string | null = null;
+  // The API pages by anilistId (#35); the counter and the list need every mark.
+  do {
+    const path: string = `/api/v1/me/marks?limit=${PAGE_SIZE}${cursor ? `&cursor=${cursor}` : ''}`;
+    const body = (await call(getToken, path, {}, fetchFn)) as {
+      items: MarkDto[];
+      nextCursor: string | null;
+    };
+    marks.push(...body.items);
+    // A cursor that does not move on would page forever.
+    if (body.nextCursor !== null && body.nextCursor === cursor) throw new MarksError('failed');
+    cursor = body.nextCursor;
+  } while (cursor);
+  return marks;
 }
 
 // RDI-31: a whole core in one transaction.

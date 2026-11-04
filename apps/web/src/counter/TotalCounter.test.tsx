@@ -85,7 +85,7 @@ function fakeApi(marks: MarkDto[], options: { failPatch?: boolean } = {}) {
     counterMode,
   });
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
-    if (url === '/api/v1/me/marks') return json({ items: marks, nextCursor: null });
+    if (url.startsWith('/api/v1/me/marks?')) return json({ items: marks, nextCursor: null });
     if (url === '/api/v1/me' && init?.method === 'PATCH') {
       if (options.failPatch) return json({ status: 503, code: 'profile.unavailable' }, 503);
       counterMode = JSON.parse(init.body as string).counterMode;

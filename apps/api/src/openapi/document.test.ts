@@ -117,4 +117,16 @@ describe('OpenAPI document', () => {
       { in: 'path', name: 'slug', schema: { type: 'string' }, required: true },
     ]);
   });
+  it('documents the optional cursor and limit of the marks list', () => {
+    const document = buildOpenApiDocument(modules);
+    const parameters = document.paths?.['/api/v1/me/marks']?.get?.parameters ?? [];
+    expect(
+      parameters.map((parameter) =>
+        'in' in parameter ? [parameter.in, parameter.name, parameter.required ?? false] : [],
+      ),
+    ).toEqual([
+      ['query', 'cursor', false],
+      ['query', 'limit', false],
+    ]);
+  });
 });

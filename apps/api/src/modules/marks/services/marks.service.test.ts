@@ -63,7 +63,7 @@ describe('marks service on Postgres', () => {
       markedAt: expect.any(Date),
     });
     expect(await prisma.profile.count({ where: { userId: user.userId } })).toBe(1);
-    expect(await marks.list(user)).toEqual([mark]);
+    expect((await marks.list(user, { limit: 500 })).items).toEqual([mark]);
   });
 
   it('keeps markedAt when the same status is sent again and renews it on a new status', async () => {
@@ -93,11 +93,26 @@ describe('marks service on Postgres', () => {
     await marks.put(user, 30, { status: 'seen' });
     await marks.put(user, 4, { status: 'seen' });
     await marks.put(user, 17, { status: 'watching' });
-    expect((await marks.list(user)).map((mark) => mark.anilistId)).toEqual([4, 17, 30]);
+    const page = await marks.list(user, { limit: 500 });
+    expect(page.items.map((mark) => mark.anilistId)).toEqual([4, 17, 30]);
+    expect(page.nextCursor).toBeNull();
+  });
+
+  it('pages the marks after the cursor, with the last anilistId as the next cursor', async () => {
+    const user = newUser();
+    for (const id of [30, 4, 17]) await marks.put(user, id, { status: 'seen' });
+    const first = await marks.list(user, { limit: 2 });
+    expect(first.items.map((mark) => mark.anilistId)).toEqual([4, 17]);
+    expect(first.nextCursor).toBe(17);
+    const second = await marks.list(user, { after: 17, limit: 2 });
+    expect(second.items.map((mark) => mark.anilistId)).toEqual([30]);
+    expect(second.nextCursor).toBeNull();
+    const exact = await marks.list(user, { limit: 3 });
+    expect(exact.nextCursor).toBeNull();
   });
 
   it('returns an empty list for a user without a profile', async () => {
-    expect(await marks.list(newUser())).toEqual([]);
+    expect((await marks.list(newUser(), { limit: 500 })).items).toEqual([]);
   });
 
   it('deletes a mark and deleting it again is not an error', async () => {
@@ -106,7 +121,7 @@ describe('marks service on Postgres', () => {
     await marks.remove(user, 5);
     await marks.remove(user, 5);
     await marks.remove(newUser(), 5);
-    expect(await marks.list(user)).toEqual([]);
+    expect((await marks.list(user, { limit: 500 })).items).toEqual([]);
   });
 
   it('@CA-RF20-01 marks every entry of a core as seen in one batch', async () => {
@@ -122,7 +137,7 @@ describe('marks service on Postgres', () => {
       [99147, 'seen'],
     ]);
     expect(written[0]?.malId).toBe(16498);
-    expect(await marks.list(user)).toEqual(written);
+    expect((await marks.list(user, { limit: 500 })).items).toEqual(written);
   });
 
   it('keeps markedAt in a batch for entries that already had the same status', async () => {
@@ -148,7 +163,7 @@ describe('marks service on Postgres', () => {
         entries: [{ anilistId: 9 }, { anilistId: 10 }, { anilistId: 2 ** 40 }],
       }),
     ).rejects.toThrow();
-    const list = await marks.list(user);
+    const list = (await marks.list(user, { limit: 500 })).items;
     expect(list.map((mark) => [mark.anilistId, mark.status])).toEqual([[9, 'watching']]);
   });
 
@@ -161,7 +176,9 @@ describe('marks service on Postgres', () => {
     expect(
       await marks.batch(user, { status: null, entries: [{ anilistId: 11 }, { anilistId: 12 }] }),
     ).toEqual([]);
-    expect((await marks.list(user)).map((mark) => mark.anilistId)).toEqual([13]);
+    expect((await marks.list(user, { limit: 500 })).items.map((mark) => mark.anilistId)).toEqual([
+      13,
+    ]);
   });
 });
 

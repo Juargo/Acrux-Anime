@@ -525,10 +525,13 @@ describe('/api/v1/me/marks', () => {
     const service: NonNullable<Container['marksService']> = {
       list: async (...args) => {
         calls.push({ method: 'list', args });
-        return [
-          { anilistId: 16498, malId: 16498, status: 'seen', markedAt: MARKED_AT },
-          { anilistId: 20958, malId: null, status: 'watching', markedAt: MARKED_AT },
-        ];
+        return {
+          items: [
+            { anilistId: 16498, malId: 16498, status: 'seen', markedAt: MARKED_AT },
+            { anilistId: 20958, malId: null, status: 'watching', markedAt: MARKED_AT },
+          ],
+          nextCursor: args[1].after === undefined ? null : 20958,
+        };
       },
       put: async (...args) => {
         calls.push({ method: 'put', args });
@@ -589,7 +592,45 @@ describe('/api/v1/me/marks', () => {
         ],
         nextCursor: null,
       });
-      expect(calls).toEqual([{ method: 'list', args: [{ userId: USER, name: 'Camila' }] }]);
+      expect(calls).toEqual([
+        { method: 'list', args: [{ userId: USER, name: 'Camila' }, { limit: 500 }] },
+      ]);
+    });
+
+    it('pages from the cursor with the limit and returns the next cursor as a string', async () => {
+      const { calls, service } = fakeMarks();
+      const response = await request(appWithMarks(service))
+        .get('/api/v1/me/marks?cursor=16000&limit=2')
+        .set(auth);
+      expect(response.status).toBe(200);
+      expect(response.body.nextCursor).toBe('20958');
+      expect(calls).toEqual([
+        {
+          method: 'list',
+          args: [
+            { userId: USER, name: 'Camila' },
+            { after: 16000, limit: 2 },
+          ],
+        },
+      ]);
+    });
+
+    it.each([
+      ['a cursor that is not a positive integer', 'cursor=abc'],
+      ['a zero cursor', 'cursor=0'],
+      ['a cursor past int4', 'cursor=2147483648'],
+      ['a zero limit', 'limit=0'],
+      ['a limit over 1000', 'limit=1001'],
+      ['a limit that is not an integer', 'limit=1e3'],
+      ['a repeated cursor', 'cursor=1&cursor=2'],
+    ])('answers 400 for %s', async (_case, query) => {
+      const { calls, service } = fakeMarks();
+      const response = await request(appWithMarks(service))
+        .get(`/api/v1/me/marks?${query}`)
+        .set(auth);
+      expect(response.status).toBe(400);
+      expect(response.body).toMatchObject({ code: 'marks.invalid_query' });
+      expect(calls).toEqual([]);
     });
   });
 
