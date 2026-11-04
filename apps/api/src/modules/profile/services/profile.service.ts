@@ -10,7 +10,7 @@ export interface ProfileService {
   me(session: Session): Promise<ProfileView>;
   // Same find-or-create as `me`, for modules whose rows reference the profile.
   ensureProfile(session: Session): Promise<void>;
-  // PATCH /api/v1/me: only the counter mode for now (RF-25).
+  // PATCH /api/v1/me: counter mode, list visibility, shown counter and first card shared.
   update(session: Session, changes: ProfileChanges): Promise<ProfileView>;
 }
 

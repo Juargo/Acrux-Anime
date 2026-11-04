@@ -5,16 +5,31 @@ import type { Module } from '../../http/routes.js';
 import type { Session } from '../../http/session.js';
 import type { ProfileService } from './services/profile.service.js';
 
+const counterMode = z.enum(['franchise', 'entry']);
+
 const profileSchema = z.object({
   displayName: z.string(),
   avatarUrl: z.string().nullable(),
   locale: z.string(),
   listVisibility: z.enum(['private', 'public']),
-  counterMode: z.enum(['franchise', 'entry']),
+  counterMode,
+  handle: z.string().describe('The @handle of the public link, assigned once (#37)'),
+  shownTotal: z.number().int().nullable().describe('The last counter the owner saw'),
+  shownMode: counterMode.nullable(),
+  cardShared: z.boolean().describe('Whether a card was ever shared (#36)'),
 });
 
-// Only the counter mode for now (RF-25); the other fields of ADR-0023 come with their issues.
-const patchBody = z.strictObject({ counterMode: profileSchema.shape.counterMode });
+// The counter mode (RF-25), the visibility of the list (RF-42), the counter the owner sees,
+// shown to visitors (#37), and the first card shared (#36). Name and avatar come with #39.
+const patchBody = z
+  .strictObject({
+    counterMode,
+    listVisibility: profileSchema.shape.listVisibility,
+    shown: z.strictObject({ total: z.number().int().min(0).max(1_000_000), mode: counterMode }),
+    cardShared: z.literal(true),
+  })
+  .partial()
+  .refine((body) => Object.keys(body).length > 0, 'At least one change');
 
 function session(profiles: ProfileService | undefined, response: Response) {
   const current: Session | undefined = response.locals.session;
@@ -48,7 +63,8 @@ export function createProfileModule(profiles: ProfileService | undefined): Modul
         method: 'patch',
         path: '/api/v1/me',
         docs: {
-          summary: 'Change the profile of the signed-in user; only the counter mode for now',
+          summary:
+            'Change the counter mode, the list visibility, the shown counter or the first share',
           requestBody: patchBody,
           responses: {
             200: { description: 'The profile after the change', schema: profileSchema },

@@ -394,6 +394,10 @@ describe('GET /api/v1/me', () => {
           locale: 'es',
           listVisibility: 'private',
           counterMode: 'franchise',
+          handle: 'camila',
+          shownTotal: null,
+          shownMode: null,
+          cardShared: false,
         };
       },
       ensureProfile: async () => {},
@@ -409,6 +413,10 @@ describe('GET /api/v1/me', () => {
       locale: 'es',
       listVisibility: 'private',
       counterMode: 'franchise',
+      handle: 'camila',
+      shownTotal: null,
+      shownMode: null,
+      cardShared: false,
     });
     expect(calls).toHaveLength(1);
   });
@@ -444,8 +452,12 @@ describe('PATCH /api/v1/me', () => {
           displayName: 'Camila',
           avatarUrl: null,
           locale: 'es',
-          listVisibility: 'private',
-          counterMode: changes.counterMode,
+          listVisibility: changes.listVisibility ?? 'private',
+          counterMode: changes.counterMode ?? 'franchise',
+          handle: 'camila',
+          shownTotal: changes.shown?.total ?? null,
+          shownMode: changes.shown?.mode ?? null,
+          cardShared: changes.cardShared ?? false,
         };
       },
     };
@@ -476,9 +488,42 @@ describe('PATCH /api/v1/me', () => {
       locale: 'es',
       listVisibility: 'private',
       counterMode: 'entry',
+      handle: 'camila',
+      shownTotal: null,
+      shownMode: null,
+      cardShared: false,
     });
     expect(calls).toEqual([
       { session: { userId: USER, name: 'Camila' }, changes: { counterMode: 'entry' } },
+    ]);
+  });
+
+  it('saves the visibility of the list, the shown counter and the first card shared', async () => {
+    const { calls, service } = fakeProfiles();
+    const response = await request(appWithProfiles(service))
+      .patch('/api/v1/me')
+      .set(auth)
+      .send({
+        listVisibility: 'public',
+        shown: { total: 48, mode: 'franchise' },
+        cardShared: true,
+      });
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      listVisibility: 'public',
+      shownTotal: 48,
+      shownMode: 'franchise',
+      cardShared: true,
+    });
+    expect(calls).toEqual([
+      {
+        session: { userId: USER, name: 'Camila' },
+        changes: {
+          listVisibility: 'public',
+          shown: { total: 48, mode: 'franchise' },
+          cardShared: true,
+        },
+      },
     ]);
   });
 
@@ -486,6 +531,12 @@ describe('PATCH /api/v1/me', () => {
     ['an unknown mode', { counterMode: 'episode' }],
     ['an empty body', {}],
     ['a field it does not change yet', { counterMode: 'entry', displayName: 'Cami' }],
+    ['an unknown visibility', { listVisibility: 'friends' }],
+    ['a negative shown total', { shown: { total: -1, mode: 'entry' } }],
+    ['a fractional shown total', { shown: { total: 1.5, mode: 'entry' } }],
+    ['a shown counter without its mode', { shown: { total: 3 } }],
+    ['cardShared false', { cardShared: false }],
+    ['a handle', { handle: 'otra' }],
   ])('rejects %s with 400 and changes nothing', async (_case, body) => {
     const { calls, service } = fakeProfiles();
     const response = await request(appWithProfiles(service))

@@ -85,6 +85,41 @@
                         "franchise",
                         "entry"
                       ]
+                    },
+                    "handle": {
+                      "type": "string",
+                      "description": "The @handle of the public link, assigned once (#37)"
+                    },
+                    "shownTotal": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "The last counter the owner saw"
+                    },
+                    "shownMode": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "franchise",
+                            "entry"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "cardShared": {
+                      "type": "boolean",
+                      "description": "Whether a card was ever shared (#36)"
                     }
                   },
                   "required": [
@@ -92,7 +127,11 @@
                     "avatarUrl",
                     "locale",
                     "listVisibility",
-                    "counterMode"
+                    "counterMode",
+                    "handle",
+                    "shownTotal",
+                    "shownMode",
+                    "cardShared"
                   ],
                   "additionalProperties": false
                 }
@@ -115,7 +154,7 @@
         }
       },
       "patch": {
-        "summary": "Change the profile of the signed-in user; only the counter mode for now",
+        "summary": "Change the counter mode, the list visibility, the shown counter or the first share",
         "security": [
           {
             "session": []
@@ -137,11 +176,41 @@
                       "franchise",
                       "entry"
                     ]
+                  },
+                  "listVisibility": {
+                    "type": "string",
+                    "enum": [
+                      "private",
+                      "public"
+                    ]
+                  },
+                  "shown": {
+                    "type": "object",
+                    "properties": {
+                      "total": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000
+                      },
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "franchise",
+                          "entry"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "total",
+                      "mode"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "cardShared": {
+                    "type": "boolean",
+                    "const": true
                   }
                 },
-                "required": [
-                  "counterMode"
-                ],
                 "additionalProperties": false
               }
             }
@@ -180,6 +249,41 @@
                         "franchise",
                         "entry"
                       ]
+                    },
+                    "handle": {
+                      "type": "string",
+                      "description": "The @handle of the public link, assigned once (#37)"
+                    },
+                    "shownTotal": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "The last counter the owner saw"
+                    },
+                    "shownMode": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "franchise",
+                            "entry"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "cardShared": {
+                      "type": "boolean",
+                      "description": "Whether a card was ever shared (#36)"
                     }
                   },
                   "required": [
@@ -187,7 +291,11 @@
                     "avatarUrl",
                     "locale",
                     "listVisibility",
-                    "counterMode"
+                    "counterMode",
+                    "handle",
+                    "shownTotal",
+                    "shownMode",
+                    "cardShared"
                   ],
                   "additionalProperties": false
                 }
