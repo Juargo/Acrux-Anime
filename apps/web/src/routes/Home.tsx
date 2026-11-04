@@ -2,6 +2,7 @@ import { Outlet } from 'react-router';
 import type { AniListClient } from '../anilist/client';
 import type { CardGeneratedEvent, CardSharedEvent } from '../card/CardScreen';
 import { type CounterModeChangedEvent, TotalCounter } from '../counter/TotalCounter';
+import type { ListMadePublicEvent } from '../profile/PrivacyScreen';
 import type { Profile } from '../profile-api';
 import { MainNav } from './MainNav';
 import type { SignedInContext } from './signed-in-context';
@@ -20,6 +21,7 @@ export function Home(props: {
   onCounterModeChanged?: ((event: CounterModeChangedEvent) => void) | undefined;
   onCardGenerated?: ((event: CardGeneratedEvent) => void) | undefined;
   onCardShared?: ((event: CardSharedEvent) => void) | undefined;
+  onListMadePublic?: ((event: ListMadePublicEvent) => void) | undefined;
 }) {
   const { profile, getToken, client, fetchFn } = props;
   const name = profile.displayName || 'Sin nombre';
@@ -76,9 +78,10 @@ export function Home(props: {
             client,
             fetchFn,
             counterMode: profile.counterMode,
-            profile: { displayName: profile.displayName, avatarUrl: profile.avatarUrl },
+            profile,
             onCardGenerated: props.onCardGenerated,
             onCardShared: props.onCardShared,
+            onListMadePublic: props.onListMadePublic,
           } satisfies SignedInContext
         }
       />

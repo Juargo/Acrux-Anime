@@ -138,7 +138,17 @@ function renderAt(
     client,
     fetchFn: fetchFn as unknown as typeof fetch,
     counterMode: 'franchise',
-    profile: { displayName: 'Camila', avatarUrl: null },
+    profile: {
+      displayName: 'Camila',
+      avatarUrl: null,
+      locale: 'es',
+      listVisibility: 'private',
+      counterMode: 'franchise',
+      handle: 'camila',
+      shownTotal: null,
+      shownMode: null,
+      cardShared: false,
+    },
   };
   const router = createMemoryRouter(
     [{ path: '/', element: <Outlet context={context} />, children: signedInRoutes }],
