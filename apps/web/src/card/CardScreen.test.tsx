@@ -298,7 +298,10 @@ describe('CardScreen', () => {
         (screen.getByRole('button', { name: 'Compartir' }) as HTMLButtonElement).disabled,
       ).toBe(false),
     );
-    expect(cardImage).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(cardImage).mock.calls.map((call) => call[1])).toEqual([
+      { retry: false },
+      { retry: true },
+    ]);
   });
 
   it('is in the navigation bar', async () => {

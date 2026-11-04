@@ -141,13 +141,12 @@ export function CardScreen({
   const contentKey = content ? JSON.stringify(content) : null;
   const coverCount = content?.covers.length ?? 0;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: attempt makes the image again on "Reintentar".
   useEffect(() => {
     if (step !== 'preview' || !contentKey || !cardRef.current) return;
     let cancelled = false;
     setImage(null);
     setFailed(false);
-    cardImage(cardRef.current).then(
+    cardImage(cardRef.current, { retry: attempt > 0 }).then(
       (blob) => {
         if (cancelled) return;
         setImage(blob);
