@@ -6,6 +6,20 @@ export interface Profile {
   locale: string;
   listVisibility: 'private' | 'public';
   counterMode: 'franchise' | 'entry';
+  // The @handle of the public link (#37).
+  handle: string;
+  // The last counter the owner saw, shown to visitors and in the preview image (#37).
+  shownTotal: number | null;
+  shownMode: 'franchise' | 'entry' | null;
+  // Whether a card was ever shared (#36).
+  cardShared: boolean;
+}
+
+export interface ProfileChanges {
+  counterMode?: Profile['counterMode'];
+  listVisibility?: Profile['listVisibility'];
+  shown?: { total: number; mode: Profile['counterMode'] };
+  cardShared?: true;
 }
 
 export type MeResult =
@@ -28,10 +42,10 @@ export async function fetchMe(
   return { status: 'ok', profile: (await response.json()) as Profile };
 }
 
-// PATCH /api/v1/me: saves how the total counter counts (RF-25).
-export async function saveCounterMode(
+// PATCH /api/v1/me with any of its changes; returns the profile after them.
+export async function patchMe(
   getToken: () => Promise<string | null>,
-  counterMode: Profile['counterMode'],
+  changes: ProfileChanges,
   fetchFn: typeof fetch = fetch,
 ): Promise<Profile> {
   const token = await getToken();
@@ -39,8 +53,17 @@ export async function saveCounterMode(
   const response = await fetchFn('/api/v1/me', {
     method: 'PATCH',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ counterMode }),
+    body: JSON.stringify(changes),
   });
-  if (!response.ok) throw new Error(`Saving the counter mode failed with ${response.status}`);
+  if (!response.ok) throw new Error(`Saving the profile failed with ${response.status}`);
   return (await response.json()) as Profile;
+}
+
+// Saves how the total counter counts (RF-25).
+export function saveCounterMode(
+  getToken: () => Promise<string | null>,
+  counterMode: Profile['counterMode'],
+  fetchFn: typeof fetch = fetch,
+): Promise<Profile> {
+  return patchMe(getToken, { counterMode }, fetchFn);
 }

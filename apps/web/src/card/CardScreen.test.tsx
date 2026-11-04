@@ -80,27 +80,48 @@ const mark = (anilistId: number, status: MarkDto['status'], day = 10): MarkDto =
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-function renderCard(marks: MarkDto[], profile: Partial<Profile> = {}) {
-  const fetchFn = vi.fn(async (url: string) => {
+const BASE: Profile = {
+  displayName: 'Camila',
+  avatarUrl: null,
+  locale: 'es',
+  listVisibility: 'private',
+  counterMode: 'franchise',
+  handle: 'camila',
+  shownTotal: null,
+  shownMode: null,
+  cardShared: false,
+};
+
+function renderCard(
+  marks: MarkDto[],
+  profile: Partial<Profile> = {},
+  options: { failPatch?: boolean } = {},
+) {
+  const patches: Record<string, unknown>[] = [];
+  let saved: Record<string, unknown> = {};
+  const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
     if (url.startsWith('/api/v1/me/marks?')) return json({ items: marks, nextCursor: null });
+    if (url === '/api/v1/me' && init?.method === 'PATCH') {
+      const body = JSON.parse(init.body as string);
+      // The header counter saves the shown total on its own (#37).
+      if ('shown' in body) return json({ status: 503 }, 503);
+      patches.push(body);
+      if (options.failPatch) return json({ status: 503 }, 503);
+      saved = { ...saved, ...body };
+      return json({ ...BASE, ...profile, ...saved });
+    }
     throw new Error(`Unexpected request ${url}`);
   });
   const onCardGenerated = vi.fn();
   const onCardShared = vi.fn();
+  const onListMadePublic = vi.fn();
   const router = createMemoryRouter(
     [
       {
         path: '/',
         element: (
           <Home
-            profile={{
-              displayName: 'Camila',
-              avatarUrl: null,
-              locale: 'es',
-              listVisibility: 'private',
-              counterMode: 'franchise',
-              ...profile,
-            }}
+            profile={{ ...BASE, ...profile }}
             onSignOut={() => {}}
             signingOut={false}
             signOutFailed={false}
@@ -109,6 +130,7 @@ function renderCard(marks: MarkDto[], profile: Partial<Profile> = {}) {
             fetchFn={fetchFn as unknown as typeof fetch}
             onCardGenerated={onCardGenerated}
             onCardShared={onCardShared}
+            onListMadePublic={onListMadePublic}
           />
         ),
         children: signedInRoutes,
@@ -122,7 +144,7 @@ function renderCard(marks: MarkDto[], profile: Partial<Profile> = {}) {
       <RouterProvider router={router} />
     </QueryClientProvider>,
   );
-  return { onCardGenerated, onCardShared };
+  return { onCardGenerated, onCardShared, onListMadePublic, patches };
 }
 
 const card = () => screen.getByRole('figure', { name: 'Vista previa de tu tarjeta' });
@@ -309,5 +331,106 @@ describe('CardScreen', () => {
     const link = await screen.findByRole('link', { name: 'Tarjeta' });
     expect(link.getAttribute('href')).toBe('/tarjeta');
     expect(link.getAttribute('aria-current')).toBe('page');
+  });
+
+  describe('the link to the public profile (#37)', () => {
+    async function shareOnce(user: ReturnType<typeof userEvent.setup>) {
+      const share = await screen.findByRole('button', { name: 'Compartir' });
+      await vi.waitFor(() => expect((share as HTMLButtonElement).disabled).toBe(false));
+      await user.click(share);
+    }
+
+    it('carries the link to my profile and its QR (RF-32)', async () => {
+      renderCard([mark(20, 'seen')]);
+      await screen.findByRole('heading', { name: 'Tu tarjeta' });
+      within(card()).getByText(`${window.location.host}/@camila`);
+      const qr = card().querySelector('.share-card__qr svg');
+      expect(qr?.getAttribute('aria-hidden')).toBe('true');
+      expect(qr?.querySelector('path')?.getAttribute('d')).toMatch(/^M/);
+    });
+
+    it('links to who sees my list', async () => {
+      renderCard([mark(20, 'seen')]);
+      const link = await screen.findByRole('link', { name: /¿Quién ve tu lista\?/ });
+      expect(link.getAttribute('href')).toBe('/privacidad');
+      expect(link.textContent).toContain('Privada');
+    });
+
+    it('@CA-RF30-02 offers to make my private list public when I share my first card', async () => {
+      const user = userEvent.setup();
+      const { patches, onListMadePublic } = renderCard([mark(20, 'seen')]);
+
+      await shareOnce(user);
+
+      await screen.findByRole('heading', { name: '¿Hacemos pública tu lista?' });
+      screen.getByText(
+        'Así, quien escanee tu QR verá lo que estás viendo y tus sagas más recientes.',
+      );
+      await vi.waitFor(() => expect(patches).toEqual([{ cardShared: true }]));
+
+      await user.click(screen.getByRole('button', { name: 'Hacer pública' }));
+
+      await screen.findByText('Listo, tu lista es pública.');
+      expect(patches).toEqual([{ cardShared: true }, { listVisibility: 'public' }]);
+      expect(onListMadePublic).toHaveBeenCalledWith({ source: 'first_share' });
+      expect(screen.getByRole('link', { name: /¿Quién ve tu lista\?/ }).textContent).toContain(
+        'Pública',
+      );
+    });
+
+    it('closes the offer with "Ahora no", keeping the list private', async () => {
+      const user = userEvent.setup();
+      const { patches } = renderCard([mark(20, 'seen')]);
+
+      await shareOnce(user);
+      await user.click(await screen.findByRole('button', { name: 'Ahora no' }));
+
+      expect(screen.queryByRole('heading', { name: '¿Hacemos pública tu lista?' })).toBeNull();
+      expect(patches).toEqual([{ cardShared: true }]);
+    });
+
+    it('does not offer it again after the first card', async () => {
+      const user = userEvent.setup();
+      const { patches } = renderCard([mark(20, 'seen')], { cardShared: true });
+
+      await shareOnce(user);
+
+      await vi.waitFor(() => expect(shareOrDownload).toHaveBeenCalledOnce());
+      expect(screen.queryByRole('heading', { name: '¿Hacemos pública tu lista?' })).toBeNull();
+      expect(patches).toEqual([]);
+    });
+
+    it('does not offer it for a public list, but remembers the first card', async () => {
+      const user = userEvent.setup();
+      const { patches } = renderCard([mark(20, 'seen')], { listVisibility: 'public' });
+
+      await shareOnce(user);
+
+      await vi.waitFor(() => expect(patches).toEqual([{ cardShared: true }]));
+      expect(screen.queryByRole('heading', { name: '¿Hacemos pública tu lista?' })).toBeNull();
+    });
+
+    it('does not count a closed share sheet as the first card', async () => {
+      const user = userEvent.setup();
+      vi.mocked(shareOrDownload).mockResolvedValue('cancelled');
+      const { patches } = renderCard([mark(20, 'seen')]);
+
+      await shareOnce(user);
+
+      expect(screen.queryByRole('heading', { name: '¿Hacemos pública tu lista?' })).toBeNull();
+      expect(patches).toEqual([]);
+    });
+
+    it('says so when making the list public fails', async () => {
+      const user = userEvent.setup();
+      renderCard([mark(20, 'seen')], {}, { failPatch: true });
+
+      await shareOnce(user);
+      await user.click(await screen.findByRole('button', { name: 'Hacer pública' }));
+
+      expect((await screen.findByRole('alert')).textContent).toContain(
+        'No pudimos guardar. Vuelve a intentarlo.',
+      );
+    });
   });
 });

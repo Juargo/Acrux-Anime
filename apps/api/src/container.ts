@@ -21,7 +21,11 @@ import {
   createProfileService,
   type ProfileService,
 } from './modules/profile/services/profile.service.js';
-import { publicProfileModule } from './modules/public-profile/index.js';
+import { createPublicProfileModule } from './modules/public-profile/index.js';
+import {
+  createPublicProfileService,
+  type PublicProfileService,
+} from './modules/public-profile/services/public-profile.service.js';
 import { systemModule } from './modules/system/index.js';
 
 // Composition root: builds every dependency once from the environment.
@@ -38,10 +42,16 @@ export interface Container {
 export function createContainer(source: Record<string, string | undefined>): Container {
   const env = parseEnv(source);
   const prisma = env.DATABASE_URL ? createPrismaClient(env.DATABASE_URL) : undefined;
-  const profileService = prisma ? createProfileService(createProfileRepository(prisma)) : undefined;
+  const profileRepository = prisma ? createProfileRepository(prisma) : undefined;
+  const profileService = profileRepository ? createProfileService(profileRepository) : undefined;
+  const marksRepository = prisma ? createMarksRepository(prisma) : undefined;
   const marksService =
-    prisma && profileService
-      ? createMarksService(createMarksRepository(prisma), profileService)
+    marksRepository && profileService
+      ? createMarksService(marksRepository, profileService)
+      : undefined;
+  const publicProfileService =
+    profileService && marksService
+      ? createPublicProfileService(profileService, marksService)
       : undefined;
   return {
     logger: createLogger(env.LOG_LEVEL),
@@ -67,7 +77,7 @@ export function createContainer(source: Record<string, string | undefined>): Con
       : undefined,
     profileService,
     marksService,
-    modules: createModules(profileService, marksService),
+    modules: createModules(profileService, marksService, publicProfileService),
   };
 }
 
@@ -75,6 +85,7 @@ export function createContainer(source: Record<string, string | undefined>): Con
 export function createModules(
   profileService: ProfileService | undefined,
   marksService: MarksService | undefined,
+  publicProfileService?: PublicProfileService,
 ): Module[] {
   return [
     systemModule,
@@ -82,7 +93,7 @@ export function createModules(
     createProfileModule(profileService),
     createMarksModule(marksService),
     franchisesModule,
-    publicProfileModule,
+    createPublicProfileModule(publicProfileService),
     billingModule,
     anilistLinkModule,
   ];

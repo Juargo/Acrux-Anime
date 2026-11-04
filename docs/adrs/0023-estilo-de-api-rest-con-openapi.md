@@ -37,7 +37,9 @@ El catálogo no pasa por la API: el navegador consulta AniList (ADR-0024), que e
 | `DELETE /api/v1/me/marks/{anilistId}` | Usuario | Desmarca una entrada |
 | `POST /api/v1/me/marks:batch` | Usuario | Marca o desmarca todo el núcleo de una franquicia en una transacción (RDI-31) |
 | `GET /api/v1/franchise-overrides` | Usuario | Correcciones del curador (RDI-15) |
-| `GET /api/v1/profiles/{handle}` | **Público** | Perfil público; responde 404 si la lista es privada (RNF-31) |
+| `GET /api/v1/profiles/{handle}` | **Público** | Resumen del perfil público (nombre, avatar, handle y total), también con la lista privada; 404 si el handle no existe (#37) |
+| `GET /api/v1/profiles/{handle}/marks` | **Público** | Marcas de una lista pública, por páginas; 404 si la lista es privada o el handle no existe (RNF-31) |
+| `GET /api/v1/profiles/{handle}/og.png` | **Público** | Imagen Open Graph: nombre, avatar y total |
 | `POST /api/v1/anilist/link`, `DELETE /api/v1/anilist/link` | Usuario | Vincular y desvincular AniList (ADR-0025) |
 | `POST /api/v1/billing/checkout` | Usuario | Crea el checkout de Lemon Squeezy |
 | `POST /api/v1/webhooks/lemon-squeezy` | **Firma HMAC** | Eventos de pago |
@@ -50,7 +52,7 @@ El catálogo no pasa por la API: el navegador consulta AniList (ADR-0024), que e
 - **Idempotencia:** `PUT` y `DELETE` son idempotentes por definición; los webhooks se deduplican por `event_id` (ADR-0022).
 - **Validación de toda entrada y salida con Zod**; se rechazan los campos desconocidos.
 - **Paginación por cursor** en las listas que puedan crecer (marcas).
-- **Caché:** las respuestas de usuario llevan `Cache-Control: private, no-store`; el perfil público, `public, s-maxage` corto.
+- **Caché:** las respuestas de usuario llevan `Cache-Control: private, no-store`; el perfil público y su lista, `no-store` para que pasar la lista a privada la oculte de inmediato (RF-42); solo la imagen Open Graph lleva `public, s-maxage` corto (decisión del 2026-11-04 en #37).
 - Cada respuesta lleva un `X-Request-Id` que se registra en los logs (ADR-0030).
 
 ## Consecuencias

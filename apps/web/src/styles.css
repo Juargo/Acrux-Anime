@@ -1311,3 +1311,311 @@ label.sheet__label {
   justify-content: center;
   margin: 0;
 }
+
+/* Figma M14/M15 · Perfil público (#37). */
+.public-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 720px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 16px 16px 160px;
+}
+
+.public-profile__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.public-profile__summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.public-profile__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 48px;
+  object-fit: cover;
+}
+
+.public-profile__avatar--initial {
+  background: var(--color-accent-default);
+  color: var(--color-text-on-accent);
+  font-size: 40px;
+  font-weight: 600;
+}
+
+.public-profile__name {
+  margin: 8px 0 0;
+  font-size: 24px;
+  line-height: 30px;
+}
+
+.public-profile__handle {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.public-profile__total {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 16px 0 0;
+}
+
+.public-profile__count {
+  color: var(--color-text-link);
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 60px;
+}
+
+.public-profile__label {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.26px;
+}
+
+.public-profile__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.public-profile__covers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.public-profile__cover {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.public-profile__cover img,
+.public-profile__cover-empty {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 110 / 156;
+  border-radius: 12px;
+  background: var(--color-bg-raised);
+  object-fit: cover;
+}
+
+.public-profile__cover-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-profile__empty {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.public-profile__private {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 16px;
+  background: var(--color-bg-surface);
+  text-align: center;
+}
+
+.public-profile__private-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.public-profile__private-text {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.public-profile__missing {
+  padding: 48px 0;
+  text-align: center;
+}
+
+.public-profile__cta {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-top: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+}
+
+.public-profile__cta p {
+  margin: 0;
+  font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+  .public-profile__covers {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .public-profile__cta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+  }
+}
+
+/* Figma M17 · Privacidad de tu lista (#37). */
+.privacy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px 0;
+}
+
+.privacy .card-preview__back {
+  align-self: flex-start;
+  text-decoration: none;
+}
+
+.privacy__options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.privacy__option {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 16px;
+  background: var(--color-bg-surface);
+  cursor: pointer;
+}
+
+.privacy__option:has(input:checked) {
+  border-color: var(--color-accent-default);
+}
+
+.privacy__option input {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--color-accent-default);
+}
+
+.privacy__option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.privacy__option-label {
+  font-weight: 600;
+}
+
+.privacy__option-detail,
+.privacy__note {
+  color: var(--color-text-secondary);
+}
+
+.privacy__label {
+  margin: 8px 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.privacy__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--color-bg-raised);
+  text-align: center;
+}
+
+.privacy__note {
+  margin: 0;
+}
+
+.privacy__link {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--color-text-link);
+}
+
+.privacy__status {
+  padding: 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+}
+
+/* The first card shared with a private list (#36, ADR-0028) and the privacy row of M07. */
+.card-offer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-accent-default);
+  border-radius: 16px;
+  background: var(--color-bg-surface);
+}
+
+.card-offer__title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.card-preview__privacy {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.card-preview__privacy span {
+  color: var(--color-text-secondary);
+}
+
+.share-card__qr svg {
+  display: block;
+}

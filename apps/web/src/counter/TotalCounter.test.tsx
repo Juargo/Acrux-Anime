@@ -83,12 +83,17 @@ function fakeApi(marks: MarkDto[], options: { failPatch?: boolean } = {}) {
     locale: 'es',
     listVisibility: 'private',
     counterMode,
+    handle: 'camila',
+    shownTotal: null,
+    shownMode: null,
+    cardShared: false,
   });
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
     if (url.startsWith('/api/v1/me/marks?')) return json({ items: marks, nextCursor: null });
     if (url === '/api/v1/me' && init?.method === 'PATCH') {
       if (options.failPatch) return json({ status: 503, code: 'profile.unavailable' }, 503);
-      counterMode = JSON.parse(init.body as string).counterMode;
+      const body = JSON.parse(init.body as string);
+      counterMode = body.counterMode ?? counterMode;
       return json(profile());
     }
     if (url === '/api/v1/me') return json(profile());
@@ -101,6 +106,7 @@ function renderCounter(options: {
   marks: MarkDto[];
   fetchFn?: typeof fetch;
   initialMode?: Profile['counterMode'];
+  initialShown?: { total: number; mode: Profile['counterMode'] } | null;
   onCounterModeChanged?: (event: CounterModeChangedEvent) => void;
 }) {
   const { client, request } = fakeAniList();
@@ -114,6 +120,7 @@ function renderCounter(options: {
         client={client}
         fetchFn={fetchFn}
         onCounterModeChanged={options.onCounterModeChanged}
+        initialShown={options.initialShown ?? null}
       />
     </QueryClientProvider>,
   );
@@ -233,5 +240,52 @@ describe('TotalCounter', () => {
     );
     const counter = screen.getByRole('region', { name: 'Contador total' });
     expect(await within(counter).findByText('0 animes')).toBeTruthy();
+  });
+
+  describe('the counter shown to visitors (#37)', () => {
+    const shownPatches = (fetchFn: ReturnType<typeof fakeApi>) =>
+      fetchFn.mock.calls
+        .filter(([url, init]) => url === '/api/v1/me' && init?.method === 'PATCH')
+        .map(([, init]) => JSON.parse((init as RequestInit).body as string))
+        .filter((body) => 'shown' in body);
+
+    it('saves the total the owner sees, once, and again when it changes', async () => {
+      const user = userEvent.setup();
+      const fetchFn = fakeApi([seen(1), seen(2), seen(3), seen(4)]);
+      const { counter } = renderCounter({ marks: [], fetchFn });
+
+      expect(await within(counter).findByText('1 anime')).toBeTruthy();
+      await waitFor(() =>
+        expect(shownPatches(fetchFn)).toEqual([{ shown: { total: 1, mode: 'franchise' } }]),
+      );
+
+      await user.click(option(counter, 'Entradas'));
+      await waitFor(() =>
+        expect(shownPatches(fetchFn)).toEqual([
+          { shown: { total: 1, mode: 'franchise' } },
+          { shown: { total: 4, mode: 'entry' } },
+        ]),
+      );
+    });
+
+    it('does not save a total the profile already has', async () => {
+      const fetchFn = fakeApi([seen(20)]);
+      const { counter } = renderCounter({
+        marks: [],
+        fetchFn,
+        initialShown: { total: 1, mode: 'franchise' },
+      });
+      expect(await within(counter).findByText('1 anime')).toBeTruthy();
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(shownPatches(fetchFn)).toEqual([]);
+    });
+
+    it('keeps counting, without an error, when saving the shown total fails', async () => {
+      const fetchFn = fakeApi([seen(20)], { failPatch: true });
+      const { counter } = renderCounter({ marks: [], fetchFn });
+      expect(await within(counter).findByText('1 anime')).toBeTruthy();
+      await waitFor(() => expect(shownPatches(fetchFn)).toHaveLength(1));
+      expect(within(counter).queryByRole('alert')).toBeNull();
+    });
   });
 });

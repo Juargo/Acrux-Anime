@@ -44,6 +44,73 @@ export interface MarkedFranchises {
   retry: () => void;
 }
 
+export interface CrawledFranchises {
+  // The franchises of every crawled id, grouped as the catalog does.
+  franchises: Franchise[];
+  // Media behind each known id, for titles and covers (id_in batches to AniList).
+  known: Map<number, RelatedMedia>;
+  // False while the given marks wait for their first crawl.
+  ready: boolean;
+  failed: boolean;
+  retry: () => void;
+}
+
+/**
+ * The franchises behind some marks, crawled from AniList once and kept under `storeKey`
+ * for the session; later calls only ask for the ids not known yet.
+ */
+export function useCrawledFranchises(options: {
+  client: AniListClient;
+  marks: MarkDto[] | undefined;
+  crawl: boolean;
+  storeKey: readonly unknown[];
+}): CrawledFranchises {
+  const { client, marks, storeKey } = options;
+  const queryClient = useQueryClient();
+  const store =
+    useQuery({
+      queryKey: storeKey,
+      queryFn: empty,
+      initialData: empty,
+      staleTime: Number.POSITIVE_INFINITY,
+      gcTime: Number.POSITIVE_INFINITY,
+    }).data ?? empty();
+
+  const missing = useMemo(() => {
+    const wanted = new Set([...(marks ?? []).map((mark) => mark.anilistId), ...store.pending]);
+    return [...wanted].filter((id) => !store.requested.has(id)).sort((a, b) => a - b);
+  }, [marks, store]);
+
+  const crawl = useQuery({
+    queryKey: [...storeKey, 'crawl', missing],
+    queryFn: () => crawlFranchises(client, missing),
+    enabled: options.crawl && missing.length > 0,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+
+  useEffect(() => {
+    const result = crawl.data;
+    if (result)
+      queryClient.setQueryData<Crawled>(storeKey, (previous) => merge(previous ?? empty(), result));
+  }, [crawl.data, queryClient, storeKey]);
+
+  const grouped = useMemo(() => {
+    const { entries, known } = catalogEntries([...store.media.values()]);
+    return { franchises: groupFranchises(entries, []), known };
+  }, [store.media]);
+
+  const ready = marks !== undefined && !(store.requested.size === 0 && missing.length > 0);
+  return {
+    franchises: grouped.franchises,
+    known: grouped.known,
+    ready,
+    failed: crawl.isError && !ready,
+    retry: () => {
+      if (crawl.isError) void crawl.refetch();
+    },
+  };
+}
+
 /**
  * The user's marks and the franchises behind them (RDI-32, RF-27): crawled from AniList once,
  * then only the marked ids not known yet. `crawl: false` reads the marks alone.
@@ -55,52 +122,22 @@ export function useMarkedFranchises(options: {
   crawl: boolean;
 }): MarkedFranchises {
   const { client, getToken, fetchFn } = options;
-  const queryClient = useQueryClient();
   const marks = useMarks(getToken, fetchFn);
-  const store =
-    useQuery({
-      queryKey: STORE_KEY,
-      queryFn: empty,
-      initialData: empty,
-      staleTime: Number.POSITIVE_INFINITY,
-      gcTime: Number.POSITIVE_INFINITY,
-    }).data ?? empty();
-
-  const missing = useMemo(() => {
-    const wanted = new Set([...(marks.data ?? []).map((mark) => mark.anilistId), ...store.pending]);
-    return [...wanted].filter((id) => !store.requested.has(id)).sort((a, b) => a - b);
-  }, [marks.data, store]);
-
-  const crawl = useQuery({
-    queryKey: ['anilist', 'marked-franchises', 'crawl', missing],
-    queryFn: () => crawlFranchises(client, missing),
-    enabled: options.crawl && missing.length > 0,
-    staleTime: Number.POSITIVE_INFINITY,
+  const crawled = useCrawledFranchises({
+    client,
+    marks: marks.data,
+    crawl: options.crawl,
+    storeKey: STORE_KEY,
   });
-
-  useEffect(() => {
-    const result = crawl.data;
-    if (result)
-      queryClient.setQueryData<Crawled>(STORE_KEY, (previous) =>
-        merge(previous ?? empty(), result),
-      );
-  }, [crawl.data, queryClient]);
-
-  const grouped = useMemo(() => {
-    const { entries, known } = catalogEntries([...store.media.values()]);
-    return { franchises: groupFranchises(entries, []), known };
-  }, [store.media]);
-
-  const ready = marks.data !== undefined && !(store.requested.size === 0 && missing.length > 0);
   return {
     marks: marks.data,
-    franchises: grouped.franchises,
-    known: grouped.known,
-    ready,
-    failed: (marks.isError && !marks.data) || (crawl.isError && !ready),
+    franchises: crawled.franchises,
+    known: crawled.known,
+    ready: crawled.ready,
+    failed: (marks.isError && !marks.data) || crawled.failed,
     retry: () => {
       if (marks.isError) void marks.refetch();
-      if (crawl.isError) void crawl.refetch();
+      crawled.retry();
     },
   };
 }

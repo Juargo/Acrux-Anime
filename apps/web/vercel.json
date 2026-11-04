@@ -14,6 +14,17 @@
       "destination": "/api"
     },
     {
+      "source": "/@:handle",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|facebookcatalog|meta-externalagent|WhatsApp/|Twitterbot|Discordbot|TelegramBot|Slackbot|Slack-ImgProxy|LinkedInBot|Googlebot|Google-InspectionTool|bingbot|YandexBot|Pinterestbot|Applebot|redditbot|Iframely|Embedly|SkypeUriPreview|vkShare|Mastodon/).*"
+        }
+      ],
+      "destination": "/api"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }

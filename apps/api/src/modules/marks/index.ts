@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { ProblemError } from '../../http/problem.js';
 import type { Module } from '../../http/routes.js';
 import type { Session } from '../../http/session.js';
-import type { MarksService, MarkView } from './services/marks.service.js';
+import type { MarkPage, MarkPageQuery, MarksService, MarkView } from './services/marks.service.js';
 
 // Contract of the marks API (issue #33, S8 of odd/tasks/marcar-franquicia.md).
 const INT4_MAX = 2_147_483_647;
@@ -55,6 +55,38 @@ function parseQueryInt(value: unknown, max: number): number | undefined {
   return parsed;
 }
 
+// ?cursor=&limit= of a page of marks, shared with the public profile (#37).
+export function parsePage(query: Record<string, unknown>): MarkPageQuery {
+  const after = parseQueryInt(query.cursor, INT4_MAX);
+  const limit = parseQueryInt(query.limit, MAX_PAGE) ?? DEFAULT_PAGE;
+  return after === undefined ? { limit } : { after, limit };
+}
+
+export const pageQueryDocs = {
+  cursor: z
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .optional()
+    .meta({ description: 'The nextCursor of the previous page; leave it out for the first' }),
+  limit: z
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .optional()
+    .meta({ description: `Marks per page, 1 to ${MAX_PAGE}; ${DEFAULT_PAGE} by default` }),
+};
+
+export const markPageSchema = z.object({
+  items: z.array(markSchema),
+  nextCursor: z.string().nullable(),
+});
+
+export function pageToJson(page: MarkPage) {
+  return {
+    items: page.items.map(toJson),
+    nextCursor: page.nextCursor === null ? null : String(page.nextCursor),
+  };
+}
+
 function parseBody<T>(schema: z.ZodType<T>, body: unknown): T {
   const result = schema.safeParse(body);
   if (!result.success) throw new ProblemError(400, 'marks.invalid_body', 'Invalid marks body');
@@ -85,26 +117,11 @@ export function createMarksModule(service: MarksService | undefined): Module {
         path: '/api/v1/me/marks',
         docs: {
           summary: 'Marks of the signed-in user, ordered by anilistId, one page at a time',
-          query: {
-            cursor: z
-              .string()
-              .regex(/^[1-9]\d*$/)
-              .optional()
-              .meta({
-                description: 'The nextCursor of the previous page; leave it out for the first',
-              }),
-            limit: z
-              .string()
-              .regex(/^[1-9]\d*$/)
-              .optional()
-              .meta({
-                description: `Marks per page, 1 to ${MAX_PAGE}; ${DEFAULT_PAGE} by default`,
-              }),
-          },
+          query: pageQueryDocs,
           responses: {
             200: {
               description: 'One page of marks; nextCursor is null on the last page',
-              schema: z.object({ items: z.array(markSchema), nextCursor: z.string().nullable() }),
+              schema: markPageSchema,
             },
             400: { description: 'The cursor or the limit is not a valid positive integer' },
             503: unavailable,
@@ -112,16 +129,7 @@ export function createMarksModule(service: MarksService | undefined): Module {
         },
         handler: async (request, response) => {
           const { marks, session } = start(service, response);
-          const after = parseQueryInt(request.query.cursor, INT4_MAX);
-          const limit = parseQueryInt(request.query.limit, MAX_PAGE) ?? DEFAULT_PAGE;
-          const page = await marks.list(
-            session,
-            after === undefined ? { limit } : { after, limit },
-          );
-          response.json({
-            items: page.items.map(toJson),
-            nextCursor: page.nextCursor === null ? null : String(page.nextCursor),
-          });
+          response.json(pageToJson(await marks.list(session, parsePage(request.query))));
         },
       },
       {

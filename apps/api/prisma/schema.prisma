@@ -54,6 +54,13 @@ model Profile {
   // Private until the user decides to share it (ADR-0028).
   listVisibility ListVisibility @default(private) @map("list_visibility")
   counterMode    CounterMode    @default(franchise) @map("counter_mode")
+  // The @handle of the public link (#37), assigned on the profile's first request after it.
+  handle         String?        @unique @db.VarChar(20)
+  // The owner's last counter, for the public profile and its preview image (#37).
+  shownTotal     Int?           @map("shown_total")
+  shownMode      CounterMode?   @map("shown_mode")
+  // The first card shared, to offer making the list public only then (#36).
+  cardSharedAt   DateTime?      @map("card_shared_at") @db.Timestamptz(6)
   createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 

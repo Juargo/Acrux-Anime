@@ -47,6 +47,10 @@ describe('profile repository', () => {
       locale: 'es',
       listVisibility: 'private',
       counterMode: 'franchise',
+      handle: 'camila',
+      shownTotal: null,
+      shownMode: null,
+      cardShared: false,
     });
   });
 
@@ -83,4 +87,121 @@ describe('profile repository', () => {
     expect(again).toMatchObject({ displayName: 'Camila', counterMode: 'entry' });
     expect(await prisma.profile.count({ where: { userId } })).toBe(1);
   });
+
+  it('gives the next profile with the same name the next free handle', async () => {
+    const profiles = createProfileRepository(prisma);
+    const first = await profiles.findOrCreate('7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f01', {
+      displayName: 'José Núñez',
+      avatarUrl: null,
+    });
+    const second = await profiles.findOrCreate('7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f02', {
+      displayName: 'Jose Nunez',
+      avatarUrl: null,
+    });
+    expect([first.handle, second.handle]).toEqual(['josenunez', 'josenunez2']);
+  });
+
+  it('keeps the handle on later sign-ins, even if Google changed the name', async () => {
+    const profiles = createProfileRepository(prisma);
+    const userId = '7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f03';
+    await profiles.findOrCreate(userId, { displayName: 'Rin', avatarUrl: null });
+    const again = await profiles.findOrCreate(userId, {
+      displayName: 'Rin Tohsaka',
+      avatarUrl: null,
+    });
+    expect(again.handle).toBe('rin');
+  });
+
+  it('assigns a handle to a profile created before handles existed', async () => {
+    const profiles = createProfileRepository(prisma);
+    const userId = '7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f04';
+    await prisma.profile.create({ data: { userId, displayName: 'Mikasa' } });
+    const profile = await profiles.findOrCreate(userId, {
+      displayName: 'Ignored',
+      avatarUrl: null,
+    });
+    expect(profile.handle).toBe('mikasa');
+  });
+
+  it('gives different handles to profiles with the same name created together', async () => {
+    const profiles = createProfileRepository(prisma);
+    const ids = Array.from(
+      { length: 5 },
+      (_, index) => `7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f1${index}`,
+    );
+    const created = await Promise.all(
+      ids.map((userId) => profiles.findOrCreate(userId, { displayName: 'Levi', avatarUrl: null })),
+    );
+    expect(new Set(created.map((profile) => profile.handle)).size).toBe(5);
+    expect(created.map((profile) => profile.handle).sort()).toEqual([
+      'levi',
+      'levi2',
+      'levi3',
+      'levi4',
+      'levi5',
+    ]);
+  });
+
+  it('saves the visibility, the shown counter and the first card shared', async () => {
+    const profiles = createProfileRepository(prisma);
+    const userId = '7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f05';
+    const initial = { displayName: 'Nami', avatarUrl: null };
+    await profiles.update(userId, initial, {
+      listVisibility: 'public',
+      shown: { total: 48, mode: 'franchise' },
+      cardShared: true,
+    });
+    const again = await profiles.findOrCreate(userId, initial);
+    expect(again).toMatchObject({
+      listVisibility: 'public',
+      shownTotal: 48,
+      shownMode: 'franchise',
+      cardShared: true,
+      counterMode: 'franchise',
+    });
+  });
+
+  it('keeps the first card shared date when another card is shared', async () => {
+    const profiles = createProfileRepository(prisma);
+    const userId = '7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f06';
+    const initial = { displayName: 'Robin', avatarUrl: null };
+    await profiles.update(userId, initial, { cardShared: true });
+    const first = await prisma.profile.findUniqueOrThrow({ where: { userId } });
+    await profiles.update(userId, initial, { cardShared: true });
+    const second = await prisma.profile.findUniqueOrThrow({ where: { userId } });
+    expect(second.cardSharedAt).toEqual(first.cardSharedAt);
+  });
+
+  it('finds a profile by its handle for visitors, and nothing for an unknown one', async () => {
+    const profiles = createProfileRepository(prisma);
+    const userId = '7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f07';
+    await profiles.update(
+      userId,
+      { displayName: 'Usopp', avatarUrl: 'https://lh3.googleusercontent.com/a/usopp' },
+      { shown: { total: 12, mode: 'entry' } },
+    );
+    expect(await profiles.findByHandle('usopp')).toEqual({
+      userId,
+      handle: 'usopp',
+      displayName: 'Usopp',
+      avatarUrl: 'https://lh3.googleusercontent.com/a/usopp',
+      listVisibility: 'private',
+      shownTotal: 12,
+      shownMode: 'entry',
+    });
+    expect(await profiles.findByHandle('nadie_aqui')).toBeNull();
+  });
+
+  it('keeps giving handles when the numbered ones of a name run out', async () => {
+    const profiles = createProfileRepository(prisma);
+    const handles: string[] = [];
+    for (let index = 0; index < 60; index += 1) {
+      const userId = `7a1c2a3e-8b7d-4c1e-9a2f-${String(900 + index).padStart(12, '0')}`;
+      handles.push(
+        (await profiles.findOrCreate(userId, { displayName: '李', avatarUrl: null })).handle,
+      );
+    }
+    expect(new Set(handles).size).toBe(60);
+    expect(handles.every((handle) => /^usuario\d*$/.test(handle))).toBe(true);
+  }, 60_000);
 });
