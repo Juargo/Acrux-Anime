@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fetchMe, saveCounterMode } from './profile-api';
+import { fetchMe, patchMe, saveCounterMode } from './profile-api';
 
 const profile = {
   displayName: 'Camila',
@@ -7,6 +7,10 @@ const profile = {
   locale: 'es',
   listVisibility: 'private',
   counterMode: 'franchise',
+  handle: 'camila',
+  shownTotal: null,
+  shownMode: null,
+  cardShared: false,
 };
 
 describe('fetchMe', () => {
@@ -71,5 +75,32 @@ describe('saveCounterMode', () => {
       Response.json({ status: 503, code: 'profile.unavailable' }, { status: 503 }),
     );
     await expect(saveCounterMode(async () => 'jwt-token', 'entry', fetch)).rejects.toThrow();
+  });
+});
+
+describe('patchMe', () => {
+  it('sends the changes with PATCH and the session token, and returns the profile', async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>(async () =>
+      Response.json({ ...profile, listVisibility: 'public', cardShared: true }),
+    );
+    const changes = { listVisibility: 'public', cardShared: true } as const;
+    const saved = await patchMe(async () => 'jwt-token', changes, fetch);
+    expect(saved).toMatchObject({ listVisibility: 'public', cardShared: true });
+    expect(fetch).toHaveBeenCalledWith('/api/v1/me', {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer jwt-token', 'Content-Type': 'application/json' },
+      body: JSON.stringify(changes),
+    });
+  });
+
+  it('fails without a session or when the API refuses', async () => {
+    await expect(patchMe(async () => null, { cardShared: true }, vi.fn())).rejects.toThrow();
+    await expect(
+      patchMe(
+        async () => 'jwt',
+        { cardShared: true },
+        async () => new Response(null, { status: 400 }),
+      ),
+    ).rejects.toThrow();
   });
 });

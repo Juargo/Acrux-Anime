@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
-import { saveCounterMode } from '../profile-api';
+import { patchMe, saveCounterMode } from '../profile-api';
 import { useCounterMode } from './use-counter-mode';
 import { type CounterMode, useTotalCounter } from './use-total-counter';
 
@@ -70,8 +70,11 @@ export function TotalCounter({
   client = defaultClient,
   fetchFn = fetch,
   onCounterModeChanged,
+  initialShown = null,
 }: {
   initialMode: CounterMode;
+  // The total already saved in the profile, so the same one is not saved again.
+  initialShown?: { total: number; mode: CounterMode } | null | undefined;
   getToken: () => Promise<string | null>;
   client?: AniListClient | undefined;
   fetchFn?: typeof fetch | undefined;
@@ -81,6 +84,18 @@ export function TotalCounter({
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const value = useTotalCounter({ mode, client, getToken, fetchFn });
+
+  // The public profile and its preview image show the owner's last counter (#37): saved
+  // whenever it changes, quietly; a failure is retried on the next change.
+  const savedRef = useRef(initialShown);
+  useEffect(() => {
+    const saved = savedRef.current;
+    if (value === undefined || (saved?.total === value && saved.mode === mode)) return;
+    savedRef.current = { total: value, mode };
+    patchMe(getToken, { shown: { total: value, mode } }, fetchFn).catch(() => {
+      savedRef.current = saved;
+    });
+  }, [value, mode, getToken, fetchFn]);
 
   async function change(next: CounterMode) {
     const previous = mode;

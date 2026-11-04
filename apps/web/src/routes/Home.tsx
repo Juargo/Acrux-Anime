@@ -33,6 +33,11 @@ export function Home(props: {
           client={client}
           fetchFn={fetchFn}
           onCounterModeChanged={props.onCounterModeChanged}
+          initialShown={
+            profile.shownTotal !== null && profile.shownMode !== null
+              ? { total: profile.shownTotal, mode: profile.shownMode }
+              : null
+          }
         />
         <div className="home__account">
           {profile.avatarUrl ? (

@@ -99,6 +99,10 @@ function renderCard(marks: MarkDto[], profile: Partial<Profile> = {}) {
               locale: 'es',
               listVisibility: 'private',
               counterMode: 'franchise',
+              handle: 'camila',
+              shownTotal: null,
+              shownMode: null,
+              cardShared: false,
               ...profile,
             }}
             onSignOut={() => {}}

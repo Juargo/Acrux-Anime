@@ -91,6 +91,10 @@ function renderList(marks: MarkDto[] | 'fail') {
     locale: 'es',
     listVisibility: 'private' as const,
     counterMode: 'franchise' as const,
+    handle: 'camila',
+    shownTotal: null,
+    shownMode: null,
+    cardShared: false,
   };
   const router = createMemoryRouter(
     [
