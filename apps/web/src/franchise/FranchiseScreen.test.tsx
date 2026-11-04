@@ -137,6 +137,7 @@ function renderAt(
     getToken: async () => 'jwt',
     client,
     fetchFn: fetchFn as unknown as typeof fetch,
+    counterMode: 'franchise',
   };
   const router = createMemoryRouter(
     [{ path: '/', element: <Outlet context={context} />, children: signedInRoutes }],

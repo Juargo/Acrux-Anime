@@ -39,6 +39,9 @@ export interface MarkedFranchises {
   known: Map<number, RelatedMedia>;
   // False while marked entries wait for their first crawl.
   ready: boolean;
+  // Loading the marks, or the first crawl, failed.
+  failed: boolean;
+  retry: () => void;
 }
 
 /**
@@ -88,10 +91,16 @@ export function useMarkedFranchises(options: {
     return { franchises: groupFranchises(entries, []), known };
   }, [store.media]);
 
+  const ready = marks.data !== undefined && !(store.requested.size === 0 && missing.length > 0);
   return {
     marks: marks.data,
     franchises: grouped.franchises,
     known: grouped.known,
-    ready: marks.data !== undefined && !(store.requested.size === 0 && missing.length > 0),
+    ready,
+    failed: (marks.isError && !marks.data) || (crawl.isError && !ready),
+    retry: () => {
+      if (marks.isError) void marks.refetch();
+      if (crawl.isError) void crawl.refetch();
+    },
   };
 }
