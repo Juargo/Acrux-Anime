@@ -141,10 +141,15 @@ a {
   font-size: 19.2px;
   font-weight: 600;
   line-height: 28.8px;
+  object-fit: cover;
 }
 
 .share-card__handle {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 19.2px;
   font-weight: 600;
   line-height: 28.8px;
@@ -192,6 +197,7 @@ a {
   background:
     linear-gradient(124deg, rgb(157 140 245 / 0.5) 0%, rgb(157 140 245 / 0) 83.333%),
     var(--color-bg-raised);
+  object-fit: cover;
 }
 
 .share-card__url {
