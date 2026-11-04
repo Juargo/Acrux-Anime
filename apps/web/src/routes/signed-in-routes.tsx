@@ -1,4 +1,5 @@
 import { type RouteObject, useParams } from 'react-router';
+import { CardScreen } from '../card/CardScreen';
 import { CatalogScreen } from '../catalog/CatalogScreen';
 import { FranchiseScreen } from '../franchise/FranchiseScreen';
 import { MyListScreen } from '../my-list/MyListScreen';
@@ -25,9 +26,14 @@ function MyListPage() {
   return <MyListScreen {...useSignedIn()} />;
 }
 
+function CardPage() {
+  return <CardScreen {...useSignedIn()} />;
+}
+
 // Screens behind the session gate of App, inside the signed-in layout (routes/Home.tsx).
 export const signedInRoutes: RouteObject[] = [
   { index: true, element: <CatalogPage /> },
   { path: 'franquicia/:anilistId', element: <FranchisePage /> },
   { path: 'mi-lista', element: <MyListPage /> },
+  { path: 'tarjeta', element: <CardPage /> },
 ];

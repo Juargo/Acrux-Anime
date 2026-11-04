@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router';
 
-// Figma M03/M12: the bar at the bottom on phones, the sidebar of D12 on wide screens. Tarjeta
-// (#36) and Perfil (#39) join when they exist (S5 of odd/tasks/mi-lista.md).
+// Figma M03/M12: the bar at the bottom on phones, the sidebar of D12 on wide screens. Perfil
+// (#39) joins when it exists (S5 of odd/tasks/mi-lista.md).
 const ITEMS = [
   {
     to: '/',
@@ -12,6 +12,11 @@ const ITEMS = [
     to: '/mi-lista',
     label: 'Mi lista',
     icon: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
+  },
+  {
+    to: '/tarjeta',
+    label: 'Tarjeta',
+    icon: 'M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 18h2',
   },
 ];
 
