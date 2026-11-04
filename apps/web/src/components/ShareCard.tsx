@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { QrCode } from './QrCode';
 
 export interface ShareCardProps {
   // Who shares it: the display name, or "@handle" on the sample.
@@ -10,8 +11,8 @@ export interface ShareCardProps {
   // Up to three covers under "VIENDO AHORA"; null draws an empty slot. No section when empty.
   covers: { id: string; title: string; coverUrl: string | null }[];
   url: string;
-  // The QR to the public profile joins with #37; only the sample draws its placeholder.
-  qr?: boolean;
+  // The QR to the public profile (RF-32): a URL draws it, true draws the sample's placeholder.
+  qr?: string | boolean;
   hidden?: boolean;
 }
 
@@ -74,7 +75,12 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
       )}
       <div className="share-card__footer">
         <span className="share-card__url">{url}</span>
-        {qr && <span className="share-card__qr">QR</span>}
+        {qr === true && <span className="share-card__qr">QR</span>}
+        {typeof qr === 'string' && (
+          <span className="share-card__qr">
+            <QrCode value={qr} size={40} />
+          </span>
+        )}
       </div>
     </div>
   );

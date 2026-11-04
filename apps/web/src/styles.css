@@ -1584,3 +1584,38 @@ label.sheet__label {
   border-radius: 12px;
   background: var(--color-bg-surface);
 }
+
+/* The first card shared with a private list (#36, ADR-0028) and the privacy row of M07. */
+.card-offer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-accent-default);
+  border-radius: 16px;
+  background: var(--color-bg-surface);
+}
+
+.card-offer__title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.card-preview__privacy {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.card-preview__privacy span {
+  color: var(--color-text-secondary);
+}
+
+.share-card__qr svg {
+  display: block;
+}

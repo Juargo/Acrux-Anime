@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
 import { ShareCard } from '../components/ShareCard';
@@ -6,6 +7,8 @@ import { useCounterMode } from '../counter/use-counter-mode';
 import { useMarkedFranchises } from '../counter/use-marked-franchises';
 import type { CounterMode } from '../counter/use-total-counter';
 import { type ListRow, myList } from '../my-list/items';
+import type { ListMadePublicEvent } from '../profile/PrivacyScreen';
+import { useOwnProfile } from '../profile/use-own-profile';
 import type { Profile } from '../profile-api';
 import { defaultChoice, MAX_COVERS, shareCardContent } from './content';
 import { cardImage } from './image';
@@ -90,6 +93,49 @@ function WatchingStep(props: {
   );
 }
 
+/** Presentational: the offer after the first card shared with a private list (#36, ADR-0028). */
+function FirstShareOffer(props: {
+  state: 'open' | 'saving' | 'done' | 'failed';
+  onAccept: () => void;
+  onClose: () => void;
+}) {
+  if (props.state === 'done') {
+    return (
+      <p className="privacy__status" role="status">
+        Listo, tu lista es pública.
+      </p>
+    );
+  }
+  return (
+    <section className="card-offer" aria-labelledby="card-offer-title">
+      <h2 className="card-offer__title" id="card-offer-title">
+        ¿Hacemos pública tu lista?
+      </h2>
+      <p className="card-step__text">
+        Así, quien escanee tu QR verá lo que estás viendo y tus sagas más recientes.
+      </p>
+      {props.state === 'failed' && (
+        <p className="counter__error" role="alert">
+          No pudimos guardar. Vuelve a intentarlo.
+        </p>
+      )}
+      <div className="card-step__actions">
+        <button className="button button--secondary" type="button" onClick={props.onClose}>
+          Ahora no
+        </button>
+        <button
+          className="button button--primary"
+          type="button"
+          disabled={props.state === 'saving'}
+          onClick={props.onAccept}
+        >
+          Hacer pública
+        </button>
+      </div>
+    </section>
+  );
+}
+
 /**
  * Container: "Tarjeta" (RF-30, RF-31, Figma M05 and M07). Asks what the user is watching, then
  * renders the 9:16 card, makes its PNG at once (so the share sheet opens within the tap) and
@@ -100,18 +146,23 @@ export function CardScreen({
   client = defaultClient,
   fetchFn = fetch,
   counterMode,
-  profile,
+  profile: initial,
   onCardGenerated,
   onCardShared,
+  onListMadePublic,
 }: {
   getToken: () => Promise<string | null>;
   client?: AniListClient | undefined;
   fetchFn?: typeof fetch | undefined;
   counterMode: CounterMode;
-  profile: Pick<Profile, 'displayName' | 'avatarUrl'>;
+  profile: Profile;
   onCardGenerated?: ((event: CardGeneratedEvent) => void) | undefined;
   onCardShared?: ((event: CardSharedEvent) => void) | undefined;
+  onListMadePublic?: ((event: ListMadePublicEvent) => void) | undefined;
 }) {
+  const [profile, saveProfile] = useOwnProfile({ initial, getToken, fetchFn });
+  // null: no offer; open while the first card's offer waits for an answer (@CA-RF30-02).
+  const [offer, setOffer] = useState<'open' | 'saving' | 'done' | 'failed' | null>(null);
   const [mode] = useCounterMode(counterMode);
   const marked = useMarkedFranchises({ client, getToken, fetchFn, crawl: true });
   const { marks, franchises, known, ready } = marked;
@@ -168,9 +219,25 @@ export function CardScreen({
       const outcome = await shareOrDownload(image, { download });
       if (outcome !== 'cancelled') {
         onCardShared?.({ method: outcome === 'shared' ? 'share' : 'download' });
+        if (!profile.cardShared) {
+          // The first card: with a private list, the QR would only show the total (#36).
+          if (profile.listVisibility === 'private') setOffer('open');
+          saveProfile({ cardShared: true }).catch(() => {});
+        }
       }
     } finally {
       setSharing(false);
+    }
+  }
+
+  async function makePublic() {
+    setOffer('saving');
+    try {
+      await saveProfile({ listVisibility: 'public' });
+      setOffer('done');
+      onListMadePublic?.({ source: 'first_share' });
+    } catch {
+      setOffer('failed');
     }
   }
 
@@ -233,7 +300,8 @@ export function CardScreen({
           total={content.total}
           label={content.label}
           covers={content.covers}
-          url="acrux.app"
+          url={`${window.location.host}/@${profile.handle}`}
+          qr={`${window.location.origin}/@${profile.handle}`}
         />
       </figure>
       {failed ? (
@@ -272,6 +340,13 @@ export function CardScreen({
           Descargar imagen
         </button>
       </div>
+      {offer && (
+        <FirstShareOffer state={offer} onAccept={makePublic} onClose={() => setOffer(null)} />
+      )}
+      <Link className="card-preview__privacy" to="/privacidad">
+        ¿Quién ve tu lista?{' '}
+        <span>{profile.listVisibility === 'public' ? 'Pública' : 'Privada'} ›</span>
+      </Link>
     </section>
   );
 }
