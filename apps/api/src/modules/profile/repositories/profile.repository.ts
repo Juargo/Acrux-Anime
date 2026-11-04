@@ -1,5 +1,5 @@
 import { Prisma, type PrismaClient } from '../../../generated/prisma/client.js';
-import { handleBase, handleCandidates, randomCandidate } from '../services/handle.js';
+import { handleBase, handleCandidates, randomCandidate } from '../domain/handle.js';
 
 type CounterMode = 'franchise' | 'entry';
 type ListVisibility = 'private' | 'public';

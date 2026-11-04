@@ -4,7 +4,7 @@ import { ProblemError } from '../../http/problem.js';
 import type { Module } from '../../http/routes.js';
 import { markPageSchema, pageQueryDocs, pageToJson, parsePage } from '../marks/index.js';
 import { notFoundPage, profileImage, sharePage } from './og.js';
-import type { PublicProfileService } from './public-profile.service.js';
+import type { PublicProfileService } from './services/public-profile.service.js';
 
 const counterMode = z.enum(['franchise', 'entry']);
 const summarySchema = z

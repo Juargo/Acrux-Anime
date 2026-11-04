@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { Resvg } from '@resvg/resvg-js';
 import satori from 'satori';
-import type { PublicProfileView } from './public-profile.service.js';
+import type { PublicProfileView } from './services/public-profile.service.js';
 
 // The engine of @vercel/og (satori, then resvg), used directly: @vercel/og 1.0 cannot load in
 // plain Node ESM. Outfit, the display font of the app (SIL OFL, assets/fonts).

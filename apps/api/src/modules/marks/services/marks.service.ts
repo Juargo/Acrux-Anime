@@ -14,6 +14,8 @@ export type { MarkEntry, MarkPage, MarkPageQuery, MarkStatus, MarkView };
 export interface MarksService {
   // One page, ordered by anilistId.
   list(session: Session, page: MarkPageQuery): Promise<MarkPage>;
+  // Any user's marks, for the public profile (#37), which checks first that the list is public.
+  listOf(userId: string, page: MarkPageQuery): Promise<MarkPage>;
   put(
     session: Session,
     anilistId: number,
@@ -39,6 +41,7 @@ export function createMarksService(
   };
   return {
     list: (session, page) => marks.list(session.userId, page),
+    listOf: (userId, page) => marks.list(userId, page),
     put: async (session, anilistId, { status, malId }) => {
       const [mark] = await write(session, status, [{ anilistId, malId }]);
       if (!mark) throw new Error('mark upsert returned no row');

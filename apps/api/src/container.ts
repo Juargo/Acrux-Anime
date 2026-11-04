@@ -25,7 +25,7 @@ import { createPublicProfileModule } from './modules/public-profile/index.js';
 import {
   createPublicProfileService,
   type PublicProfileService,
-} from './modules/public-profile/public-profile.service.js';
+} from './modules/public-profile/services/public-profile.service.js';
 import { systemModule } from './modules/system/index.js';
 
 // Composition root: builds every dependency once from the environment.
@@ -50,8 +50,8 @@ export function createContainer(source: Record<string, string | undefined>): Con
       ? createMarksService(marksRepository, profileService)
       : undefined;
   const publicProfileService =
-    profileRepository && marksRepository
-      ? createPublicProfileService(profileRepository, marksRepository)
+    profileService && marksService
+      ? createPublicProfileService(profileService, marksService)
       : undefined;
   return {
     logger: createLogger(env.LOG_LEVEL),

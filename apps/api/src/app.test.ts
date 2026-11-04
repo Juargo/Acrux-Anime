@@ -401,6 +401,7 @@ describe('GET /api/v1/me', () => {
         };
       },
       ensureProfile: async () => {},
+      findByHandle: async () => null,
       update: async () => {
         throw new Error('not used');
       },
@@ -446,6 +447,7 @@ describe('PATCH /api/v1/me', () => {
         throw new Error('not used');
       },
       ensureProfile: async () => {},
+      findByHandle: async () => null,
       update: async (session, changes) => {
         calls.push({ session, changes });
         return {
@@ -574,6 +576,9 @@ describe('/api/v1/me/marks', () => {
   function fakeMarks() {
     const calls: Call[] = [];
     const service: NonNullable<Container['marksService']> = {
+      listOf: async () => {
+        throw new Error('not used');
+      },
       list: async (...args) => {
         calls.push({ method: 'list', args });
         return {

@@ -16,7 +16,10 @@ import {
   type ProfileRepository,
 } from '../profile/repositories/profile.repository.js';
 import { createProfileService } from '../profile/services/profile.service.js';
-import { createPublicProfileService, type PublicProfileService } from './public-profile.service.js';
+import {
+  createPublicProfileService,
+  type PublicProfileService,
+} from './services/public-profile.service.js';
 
 // Runs against the real migrations, connected as acrux_api like the API in production.
 const apiDir = fileURLToPath(new URL('../../..', import.meta.url));
@@ -46,7 +49,7 @@ beforeAll(async () => {
   prisma = createPrismaClient(url.toString());
   profiles = createProfileRepository(prisma);
   marks = createMarksService(createMarksRepository(prisma), createProfileService(profiles));
-  publicProfiles = createPublicProfileService(profiles, createMarksRepository(prisma));
+  publicProfiles = createPublicProfileService(createProfileService(profiles), marks);
 
   await profiles.update(
     OPEN,
