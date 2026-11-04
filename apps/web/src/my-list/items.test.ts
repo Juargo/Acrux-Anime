@@ -55,14 +55,14 @@ describe('myList', () => {
     const list = myList([sagaA, sagaB], marks, known, 'franchise', NOW);
     expect(list.seen).toEqual([
       {
-        key: 'franchise-20',
+        id: 'franchise-20',
         href: '/franquicia/20',
         title: 'Saga B',
         coverUrl: 'https://img.anili.st/media/20.jpg',
         detail: '1 de 1 · marcada el 12 de oct.',
       },
       {
-        key: 'franchise-1',
+        id: 'franchise-1',
         href: '/franquicia/1',
         title: 'Saga A',
         coverUrl: 'https://img.anili.st/media/1.jpg',

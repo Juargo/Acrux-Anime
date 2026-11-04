@@ -12,7 +12,7 @@ import { FORMAT_LABELS } from '../franchise/FranchiseDetail';
 
 // One row of Figma M12: cover, title and "8 de 8 · marcada el 12 de oct.".
 export interface ListRow {
-  key: string;
+  id: string;
   href: string;
   title: string;
   coverUrl: string | null;
@@ -80,7 +80,7 @@ export function myList(
       .sort()
       .at(-1) as string;
     const row = (): Sortable => ({
-      key: `franchise-${franchise.rootId}`,
+      id: `franchise-${franchise.rootId}`,
       href: `/franquicia/${franchise.rootId}`,
       title: franchise.title,
       coverUrl: coverOf(franchise.rootId),
@@ -99,7 +99,7 @@ export function myList(
     const media = known.get(mark.anilistId);
     const format = media?.format ? (FORMAT_LABELS[media.format] ?? media.format) : null;
     return {
-      key: `entry-${mark.anilistId}`,
+      id: `entry-${mark.anilistId}`,
       href: `/franquicia/${mark.anilistId}`,
       title: media ? displayTitle(media) : `Entrada ${mark.anilistId}`,
       coverUrl: coverOf(mark.anilistId),

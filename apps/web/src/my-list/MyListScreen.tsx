@@ -36,7 +36,7 @@ function Rows({ rows, tab }: { rows: ListRow[]; tab: Tab }) {
   return (
     <ul className="my-list__rows">
       {rows.map((row) => (
-        <li key={row.key}>
+        <li key={row.id}>
           <Link className="list-row" to={row.href}>
             {row.coverUrl ? (
               <img className="list-row__cover" src={row.coverUrl} alt="" width={40} height={56} />
