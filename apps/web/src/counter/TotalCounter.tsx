@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
 import { saveCounterMode } from '../profile-api';
+import { useCounterMode } from './use-counter-mode';
 import { type CounterMode, useTotalCounter } from './use-total-counter';
 
 // ADR-0030: no personal data; the sender arrives with PostHog in the SPA (#46).
@@ -76,7 +77,7 @@ export function TotalCounter({
   fetchFn?: typeof fetch | undefined;
   onCounterModeChanged?: ((event: CounterModeChangedEvent) => void) | undefined;
 }) {
-  const [mode, setMode] = useState(initialMode);
+  const [mode, setMode] = useCounterMode(initialMode);
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const value = useTotalCounter({ mode, client, getToken, fetchFn });

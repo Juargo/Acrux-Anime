@@ -16,8 +16,8 @@ Branch: `feat/mi-lista` · Delivery: `single-pr` · Test runner: vitest (`apps/a
 | ID | Specs | Route | Status | Evidence |
 |---|---|---|---|---|
 | T1 | S2 | inline | done | T1 commit: `?cursor=&limit=` (default 500, max 1000, 400 `marks.invalid_query`, repeated params rejected), `nextCursor` as a string, query parameters in the OpenAPI generator, `fetchMarks` reads every page (1000 each) and stops on a cursor that does not move. RED 9 route tests + 1 client test, then GREEN; api 152, web 98. Risk: item 3 (the GET contract now pages; its only consumer, the SPA, reads every page in the same commit) |
-| T2 | S3, S5 | inline | pending | |
-| T3 | S1, S4 | inline | pending | |
+| T2 | S3 | inline | done | `useMarkedFranchises` keeps the crawl in the query cache (one crawl for the counter and the list, from every marked id) and `useCounterMode` shares the mode; `useTotalCounter` reads from them. Counter tests unchanged and green; web 98. Risk: none (internal refactor, covered by the counter tests) |
+| T3 | S1, S4, S5 | inline | pending | |
 
 Route evidence: one feature in dependent deliveries (API paging, shared marked-franchises store and navigation, then the screen); no writer trigger holds.
 
