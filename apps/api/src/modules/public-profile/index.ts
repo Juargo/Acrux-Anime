@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ProblemError } from '../../http/problem.js';
 import type { Module } from '../../http/routes.js';
 import { markPageSchema, pageQueryDocs, pageToJson, parsePage } from '../marks/index.js';
+import { notFoundPage, profileImage, sharePage } from './og.js';
 import type { PublicProfileService } from './public-profile.service.js';
 
 const counterMode = z.enum(['franchise', 'entry']);
@@ -27,6 +28,9 @@ function start(service: PublicProfileService | undefined, response: Response) {
   if (!service) throw new ProblemError(503, 'profiles.unavailable', 'Profiles are not available');
   return service;
 }
+
+// Behind Vercel the Host is the public domain; the page and the image are always https.
+const originOf = (host: string | undefined) => `https://${host ?? 'app.acruxanime.com'}`;
 
 const handleOf = (params: Record<string, unknown>) =>
   typeof params.handle === 'string' ? params.handle : '';
@@ -87,6 +91,53 @@ export function createPublicProfileModule(service: PublicProfileService | undefi
           );
           if (!page) throw notFound();
           response.json(pageToJson(page));
+        },
+      },
+      {
+        method: 'get',
+        path: '/api/v1/profiles/:handle/og.png',
+        public: true,
+        rateLimit: 'public',
+        docs: {
+          summary: 'Preview image of a profile for social networks: name, avatar and total',
+          params: { handle: handleParam },
+          responses: {
+            200: { description: 'A 1200 × 630 PNG, cached at the CDN for 5 minutes' },
+            404: { description: 'No profile has this handle' },
+            503: { description: 'The database is not configured' },
+          },
+        },
+        handler: async (request, response) => {
+          const summary = await start(service, response).summary(handleOf(request.params));
+          if (!summary) throw notFound();
+          const png = await profileImage(summary);
+          // Only name, avatar and total, the same for private and public lists (L2).
+          response.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300');
+          response.type('png').send(png);
+        },
+      },
+      {
+        // apps/web/vercel.json sends crawlers of /@handle here; people get the SPA.
+        method: 'get',
+        path: '/@:handle',
+        public: true,
+        rateLimit: 'public',
+        docs: {
+          summary: 'Open Graph page of a profile for link previews (crawlers only)',
+          params: { handle: handleParam },
+          responses: {
+            200: { description: 'An HTML page with the Open Graph tags of the profile' },
+            404: { description: 'No profile has this handle' },
+            503: { description: 'The database is not configured' },
+          },
+        },
+        handler: async (request, response) => {
+          const summary = await start(service, response).summary(handleOf(request.params));
+          if (!summary) {
+            response.status(404).type('html').send(notFoundPage);
+            return;
+          }
+          response.type('html').send(sharePage(summary, originOf(request.get('host'))));
         },
       },
     ],

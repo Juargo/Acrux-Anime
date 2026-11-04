@@ -173,6 +173,8 @@ describe('public profile routes', () => {
     ).toEqual([
       ['get', '/api/v1/profiles/:handle', true, 'public'],
       ['get', '/api/v1/profiles/:handle/marks', true, 'public'],
+      ['get', '/api/v1/profiles/:handle/og.png', true, 'public'],
+      ['get', '/@:handle', true, 'public'],
     ]);
   });
 
@@ -187,5 +189,75 @@ describe('public profile routes', () => {
     ).get('/api/v1/profiles/camila');
     expect(response.status).toBe(503);
     expect(response.body).toMatchObject({ code: 'profiles.unavailable' });
+  });
+});
+
+describe('GET /api/v1/profiles/{handle}/og.png', () => {
+  it('draws the preview image of a profile, cached for a short while', async () => {
+    const response = await request(app())
+      .get('/api/v1/profiles/camila/og.png')
+      .buffer(true)
+      .parse((res, done) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk: Buffer) => chunks.push(chunk));
+        res.on('end', () => done(null, Buffer.concat(chunks)));
+      });
+    expect(response.status).toBe(200);
+    expect(response.headers['content-type']).toBe('image/png');
+    expect(response.headers['cache-control']).toBe('public, max-age=0, s-maxage=300');
+    const png = response.body as Buffer;
+    expect(png.subarray(1, 4).toString()).toBe('PNG');
+    // 1200 × 630, the size social networks expect.
+    expect(png.readUInt32BE(16)).toBe(1200);
+    expect(png.readUInt32BE(20)).toBe(630);
+  }, 30_000);
+
+  it('answers 404 for an unknown handle, without caching it', async () => {
+    const response = await request(app()).get('/api/v1/profiles/nadie_aqui/og.png');
+    expect(response.status).toBe(404);
+    expect(response.headers['cache-control']).toBe('no-store');
+  });
+});
+
+describe('GET /@{handle} for link previews', () => {
+  it('gives crawlers the Open Graph tags of the profile', async () => {
+    const response = await request(app()).get('/@camila').set('Host', 'app.acruxanime.com');
+    expect(response.status).toBe(200);
+    expect(response.headers['content-type']).toMatch(/^text\/html/);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.text).toContain(
+      '<meta property="og:title" content="Camila (@camila) en Acrux">',
+    );
+    expect(response.text).toContain(
+      '<meta property="og:image" content="https://app.acruxanime.com/api/v1/profiles/camila/og.png">',
+    );
+    expect(response.text).toContain(
+      '<meta property="og:url" content="https://app.acruxanime.com/@camila">',
+    );
+    expect(response.text).toContain('<meta name="twitter:card" content="summary_large_image">');
+    expect(response.text).toContain('48 animes completos');
+  });
+
+  it('escapes the display name', async () => {
+    const user = '7b1c2a3e-8b7d-4c1e-9a2f-0000000000d4';
+    await profiles.update(user, { displayName: 'Zoro <script>"x"', avatarUrl: null }, {});
+    const response = await request(app()).get('/@zoroscriptx');
+    expect(response.status).toBe(200);
+    expect(response.text).not.toContain('<script>"x"');
+    expect(response.text).toContain('Zoro &lt;script&gt;&quot;x&quot;');
+  });
+
+  it('shows nothing of a private list, only the summary', async () => {
+    const response = await request(app()).get('/@nami');
+    expect(response.status).toBe(200);
+    expect(response.text).toContain('7 entradas vistas');
+    expect(response.text).not.toContain(SHUT);
+  });
+
+  it('answers a generic 404 page for an unknown handle', async () => {
+    const response = await request(app()).get('/@nadie_aqui');
+    expect(response.status).toBe(404);
+    expect(response.headers['content-type']).toMatch(/^text\/html/);
+    expect(response.text).toContain('Perfil no disponible');
   });
 });

@@ -852,6 +852,102 @@
           }
         }
       }
+    },
+    "/api/v1/profiles/{handle}/og.png": {
+      "get": {
+        "summary": "Preview image of a profile for social networks: name, avatar and total",
+        "security": [],
+        "tags": [
+          "public-profile"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "handle",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9_]{3,20}$"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A 1200 × 630 PNG, cached at the CDN for 5 minutes"
+          },
+          "404": {
+            "description": "No profile has this handle"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/@{handle}": {
+      "get": {
+        "summary": "Open Graph page of a profile for link previews (crawlers only)",
+        "security": [],
+        "tags": [
+          "public-profile"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "handle",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9_]{3,20}$"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An HTML page with the Open Graph tags of the profile"
+          },
+          "404": {
+            "description": "No profile has this handle"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
     }
   },
   "components": {

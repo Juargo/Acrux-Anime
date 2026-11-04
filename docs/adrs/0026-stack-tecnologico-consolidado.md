@@ -55,5 +55,5 @@ ADR-0003 reunía el stack con MyAnimeList como catálogo y la API en Render. Des
 - **Positivas:** todo el stack en un solo lugar; costo cero hasta tener ingresos.
 - **Negativas / riesgos:** varias piezas dependen de capas gratuitas que pueden cambiar sus condiciones; se revisan antes de cada hito.
 - **Acciones derivadas:**
-  - Agregar la generación de la imagen Open Graph del perfil público (`@vercel/og`) cuando se implemente RF-40.
+  - Agregar la generación de la imagen Open Graph del perfil público (`@vercel/og`) cuando se implemente RF-40. Hecho en #37 con el mismo motor de `@vercel/og` usado directamente (`satori` y `@resvg/resvg-js`), porque `@vercel/og` 1.0 no carga en Node ESM sin empaquetar; los bots de redes reciben las etiquetas Open Graph de `/@handle` desde la API por un rewrite de `vercel.json`.
 
