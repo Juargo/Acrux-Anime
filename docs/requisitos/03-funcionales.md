@@ -60,7 +60,7 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 |---|---|---|---|---|
 | RF-40 | Cada usuario tiene un perfil público accesible por enlace, sin cuenta, con vista previa para redes (imagen Open Graph). | Must | H2 | ADR-0026 · M14/D14 |
 | RF-41 | El perfil público muestra el contador, la lista de vistos y la de viendo ahora. | Must | H2 | — |
-| RF-42 | La lista es **privada por defecto**. Si es privada, el enlace no muestra la lista y la API responde `404`. Al pasarla a privada, el visitante deja de verla de inmediato. | Must | H2 | ADR-0028, DD-23 · M15/D15, M17/D17 |
+| RF-42 | La lista es **privada por defecto**. Si es privada, el enlace muestra solo el nombre, el avatar, el handle y el total, y la API de la lista responde `404`. Al pasarla a privada, el visitante deja de verla de inmediato. | Must | H2 | ADR-0028, DD-23 · M15/D15, M17/D17 |
 | RF-43 | No existe búsqueda ni listado de perfiles de otros usuarios. | Must | H2 | — |
 
 ## 6. Plan Plus

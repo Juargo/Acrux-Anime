@@ -6,6 +6,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import { App } from './App';
 import { createQueryClient } from './anilist/query-client';
 import { initErrorTracking } from './error-tracking';
+import { publicProfileRoute } from './public-profile/routes';
 import { signedInRoutes } from './routes/signed-in-routes';
 import './styles.css';
 
@@ -15,7 +16,11 @@ initErrorTracking({
 });
 
 const queryClient = createQueryClient();
-const router = createBrowserRouter([{ path: '/', element: <App />, children: signedInRoutes }]);
+// The public profile (/@handle) lives outside App, so visitors need no session (RF-40).
+const router = createBrowserRouter([
+  { path: '/', element: <App />, children: signedInRoutes },
+  publicProfileRoute(),
+]);
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');
