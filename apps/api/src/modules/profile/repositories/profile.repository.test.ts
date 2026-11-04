@@ -48,6 +48,7 @@ describe('profile repository', () => {
       listVisibility: 'private',
       counterMode: 'franchise',
       handle: 'camila',
+      avatarPreset: null,
       shownTotal: null,
       shownMode: null,
       cardShared: false,
@@ -185,6 +186,7 @@ describe('profile repository', () => {
       handle: 'usopp',
       displayName: 'Usopp',
       avatarUrl: 'https://lh3.googleusercontent.com/a/usopp',
+      avatarPreset: null,
       listVisibility: 'private',
       shownTotal: 12,
       shownMode: 'entry',
@@ -204,4 +206,34 @@ describe('profile repository', () => {
     expect(new Set(handles).size).toBe(60);
     expect(handles.every((handle) => /^usuario\d*$/.test(handle))).toBe(true);
   }, 60_000);
+
+  it('saves the display name and a preset avatar, and goes back to the Google one', async () => {
+    const profiles = createProfileRepository(prisma);
+    const userId = '7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f20';
+    const initial = { displayName: 'Camila', avatarUrl: 'https://lh3.googleusercontent.com/a/c' };
+    const before = await profiles.findOrCreate(userId, initial);
+
+    const edited = await profiles.update(userId, initial, {
+      displayName: 'Cami',
+      avatarPreset: 'verde',
+    });
+    expect(edited).toMatchObject({
+      displayName: 'Cami',
+      avatarPreset: 'verde',
+      avatarUrl: 'https://lh3.googleusercontent.com/a/c',
+      handle: before.handle,
+    });
+    expect((await profiles.findByHandle(before.handle))?.displayName).toBe('Cami');
+
+    const google = await profiles.update(userId, initial, { avatarPreset: null });
+    expect(google.avatarPreset).toBeNull();
+  });
+
+  it('refuses an unknown preset in the database itself', async () => {
+    const userId = '7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f21';
+    await prisma.profile.create({ data: { userId, displayName: 'Zoro' } });
+    await expect(
+      prisma.$executeRaw`UPDATE "profile" SET "avatar_preset" = 'rosa' WHERE "user_id" = ${userId}::uuid`,
+    ).rejects.toThrow();
+  });
 });

@@ -12,6 +12,7 @@ const summarySchema = z
     handle: z.string(),
     displayName: z.string(),
     avatarUrl: z.string().nullable(),
+    avatarPreset: z.enum(['violeta', 'verde', 'amarillo', 'coral', 'noche', 'lavanda']).nullable(),
     listVisibility: z.enum(['private', 'public']),
     shownTotal: z.number().int().nullable().describe("The owner's last counter"),
     shownMode: counterMode.nullable(),

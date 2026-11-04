@@ -395,6 +395,7 @@ describe('GET /api/v1/me', () => {
           listVisibility: 'private',
           counterMode: 'franchise',
           handle: 'camila',
+          avatarPreset: null,
           shownTotal: null,
           shownMode: null,
           cardShared: false,
@@ -415,6 +416,7 @@ describe('GET /api/v1/me', () => {
       listVisibility: 'private',
       counterMode: 'franchise',
       handle: 'camila',
+      avatarPreset: null,
       shownTotal: null,
       shownMode: null,
       cardShared: false,
@@ -451,8 +453,9 @@ describe('PATCH /api/v1/me', () => {
       update: async (session, changes) => {
         calls.push({ session, changes });
         return {
-          displayName: 'Camila',
+          displayName: changes.displayName ?? 'Camila',
           avatarUrl: null,
+          avatarPreset: changes.avatarPreset ?? null,
           locale: 'es',
           listVisibility: changes.listVisibility ?? 'private',
           counterMode: changes.counterMode ?? 'franchise',
@@ -491,6 +494,7 @@ describe('PATCH /api/v1/me', () => {
       listVisibility: 'private',
       counterMode: 'entry',
       handle: 'camila',
+      avatarPreset: null,
       shownTotal: null,
       shownMode: null,
       cardShared: false,
@@ -498,6 +502,44 @@ describe('PATCH /api/v1/me', () => {
     expect(calls).toEqual([
       { session: { userId: USER, name: 'Camila' }, changes: { counterMode: 'entry' } },
     ]);
+  });
+
+  it('@CA-RF07-01 saves the display name, trimmed, and a preset avatar (RF-07)', async () => {
+    const { calls, service } = fakeProfiles();
+    const response = await request(appWithProfiles(service))
+      .patch('/api/v1/me')
+      .set(auth)
+      .send({ displayName: '  Cami  ', avatarPreset: 'coral' });
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ displayName: 'Cami', avatarPreset: 'coral' });
+    expect(calls).toEqual([
+      {
+        session: { userId: USER, name: 'Camila' },
+        changes: { displayName: 'Cami', avatarPreset: 'coral' },
+      },
+    ]);
+  });
+
+  it('goes back to the Google avatar with a null preset', async () => {
+    const { calls, service } = fakeProfiles();
+    const response = await request(appWithProfiles(service))
+      .patch('/api/v1/me')
+      .set(auth)
+      .send({ avatarPreset: null });
+    expect(response.status).toBe(200);
+    expect(calls).toEqual([
+      { session: { userId: USER, name: 'Camila' }, changes: { avatarPreset: null } },
+    ]);
+  });
+
+  it('accepts a 30-character name, emoji counted once', async () => {
+    const { service } = fakeProfiles();
+    const name = `${'a'.repeat(29)}🌸`;
+    const response = await request(appWithProfiles(service))
+      .patch('/api/v1/me')
+      .set(auth)
+      .send({ displayName: name });
+    expect(response.status).toBe(200);
   });
 
   it('saves the visibility of the list, the shown counter and the first card shared', async () => {
@@ -532,13 +574,21 @@ describe('PATCH /api/v1/me', () => {
   it.each([
     ['an unknown mode', { counterMode: 'episode' }],
     ['an empty body', {}],
-    ['a field it does not change yet', { counterMode: 'entry', displayName: 'Cami' }],
+    ['a field it does not change yet', { counterMode: 'entry', locale: 'en' }],
     ['an unknown visibility', { listVisibility: 'friends' }],
     ['a negative shown total', { shown: { total: -1, mode: 'entry' } }],
     ['a fractional shown total', { shown: { total: 1.5, mode: 'entry' } }],
     ['a shown counter without its mode', { shown: { total: 3 } }],
     ['cardShared false', { cardShared: false }],
     ['a handle', { handle: 'otra' }],
+    ['an empty name', { displayName: '' }],
+    ['a name of spaces', { displayName: '   ' }],
+    ['a name over 30 characters', { displayName: 'a'.repeat(31) }],
+    ['a name with a line break', { displayName: 'Cami\nla' }],
+    ['a name with a control character', { displayName: 'Cami\u0007' }],
+    ['a name that is not text', { displayName: 42 }],
+    ['an unknown preset', { avatarPreset: 'rosa' }],
+    ['an avatar URL', { avatarUrl: 'https://example.com/a.png' }],
   ])('rejects %s with 400 and changes nothing', async (_case, body) => {
     const { calls, service } = fakeProfiles();
     const response = await request(appWithProfiles(service))

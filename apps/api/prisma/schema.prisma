@@ -46,10 +46,23 @@ enum FranchiseRole {
   @@map("franchise_role")
 }
 
+// The preset Acrux avatars of Figma M06 (#39); null on the profile means Google's.
+enum AvatarPreset {
+  violeta
+  verde
+  amarillo
+  coral
+  noche
+  lavanda
+
+  @@map("avatar_preset")
+}
+
 model Profile {
   userId         String         @id @map("user_id") @db.Uuid
   displayName    String         @map("display_name")
   avatarUrl      String?        @map("avatar_url")
+  avatarPreset   AvatarPreset?  @map("avatar_preset")
   locale         String         @default("es")
   // Private until the user decides to share it (ADR-0028).
   listVisibility ListVisibility @default(private) @map("list_visibility")

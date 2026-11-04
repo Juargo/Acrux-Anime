@@ -7,6 +7,7 @@ export interface PublicProfileView {
   handle: string;
   displayName: string;
   avatarUrl: string | null;
+  avatarPreset: 'violeta' | 'verde' | 'amarillo' | 'coral' | 'noche' | 'lavanda' | null;
   listVisibility: 'private' | 'public';
   shownTotal: number | null;
   shownMode: 'franchise' | 'entry' | null;

@@ -69,6 +69,25 @@
                         "null"
                       ]
                     },
+                    "avatarPreset": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "violeta",
+                            "verde",
+                            "amarillo",
+                            "coral",
+                            "noche",
+                            "lavanda"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "A preset Acrux avatar; null shows Google's"
+                    },
                     "locale": {
                       "type": "string"
                     },
@@ -125,6 +144,7 @@
                   "required": [
                     "displayName",
                     "avatarUrl",
+                    "avatarPreset",
                     "locale",
                     "listVisibility",
                     "counterMode",
@@ -170,6 +190,27 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "displayName": {
+                    "type": "string"
+                  },
+                  "avatarPreset": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "violeta",
+                          "verde",
+                          "amarillo",
+                          "coral",
+                          "noche",
+                          "lavanda"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "counterMode": {
                     "type": "string",
                     "enum": [
@@ -233,6 +274,25 @@
                         "null"
                       ]
                     },
+                    "avatarPreset": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "violeta",
+                            "verde",
+                            "amarillo",
+                            "coral",
+                            "noche",
+                            "lavanda"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "A preset Acrux avatar; null shows Google's"
+                    },
                     "locale": {
                       "type": "string"
                     },
@@ -289,6 +349,7 @@
                   "required": [
                     "displayName",
                     "avatarUrl",
+                    "avatarPreset",
                     "locale",
                     "listVisibility",
                     "counterMode",
@@ -1041,6 +1102,24 @@
               "null"
             ]
           },
+          "avatarPreset": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "violeta",
+                  "verde",
+                  "amarillo",
+                  "coral",
+                  "noche",
+                  "lavanda"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "listVisibility": {
             "type": "string",
             "enum": [
@@ -1080,6 +1159,7 @@
           "handle",
           "displayName",
           "avatarUrl",
+          "avatarPreset",
           "listVisibility",
           "shownTotal",
           "shownMode"
