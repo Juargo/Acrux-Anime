@@ -1,0 +1,313 @@
+// @vitest-environment jsdom
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { cleanup, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { createMemoryRouter, RouterProvider } from 'react-router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { CatalogMedia, RelatedMedia } from '../anilist/catalog';
+import type { AniListClient } from '../anilist/client';
+import type { MarkDto } from '../marks-api';
+import type { Profile } from '../profile-api';
+import { Home } from '../routes/Home';
+import { signedInRoutes } from '../routes/signed-in-routes';
+import { cardImage } from './image';
+import { shareOrDownload } from './share';
+
+vi.mock('./image', () => ({ cardImage: vi.fn() }));
+vi.mock('./share', () => ({ shareOrDownload: vi.fn() }));
+
+const png = new Blob(['png'], { type: 'image/png' });
+
+beforeEach(() => {
+  vi.mocked(cardImage).mockResolvedValue(png);
+  vi.mocked(shareOrDownload).mockResolvedValue('shared');
+});
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
+
+// Saga A: seasons 1 → 2. Sagas B to E: one movie each.
+const titles: Record<number, string> = {
+  1: 'Saga A',
+  2: 'Saga A 2',
+  20: 'Saga B',
+  30: 'Saga C',
+  40: 'Saga D',
+  50: 'Saga E',
+};
+const edges: Record<number, [string, number][]> = { 1: [['SEQUEL', 2]], 2: [['PREQUEL', 1]] };
+const cover = (id: number) => `https://s4.anilist.co/media/${id}.jpg`;
+
+function node(id: number): RelatedMedia {
+  return {
+    id,
+    idMal: null,
+    type: 'ANIME',
+    format: id < 20 ? 'TV' : 'MOVIE',
+    isAdult: false,
+    title: { romaji: titles[id] ?? `Media ${id}`, english: null, native: null },
+    coverImage: { large: cover(id) },
+    startDate: { year: 2000 + id, month: 1, day: 1 },
+  };
+}
+
+const media = (id: number): CatalogMedia => ({
+  ...node(id),
+  relations: {
+    edges: (edges[id] ?? []).map(([relationType, target]) => ({
+      relationType,
+      node: node(target),
+    })),
+  },
+});
+
+const client = {
+  request: vi.fn(async (_query: string, variables: Record<string, unknown>, schema) =>
+    schema.parse({
+      Page: { media: (variables.ids as number[]).filter((id) => id in titles).map(media) },
+    }),
+  ),
+} as unknown as AniListClient;
+
+const mark = (anilistId: number, status: MarkDto['status'], day = 10): MarkDto => ({
+  anilistId,
+  malId: null,
+  status,
+  markedAt: `2026-10-${String(day).padStart(2, '0')}T12:00:00.000Z`,
+});
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+
+function renderCard(marks: MarkDto[], profile: Partial<Profile> = {}) {
+  const fetchFn = vi.fn(async (url: string) => {
+    if (url.startsWith('/api/v1/me/marks?')) return json({ items: marks, nextCursor: null });
+    throw new Error(`Unexpected request ${url}`);
+  });
+  const onCardGenerated = vi.fn();
+  const onCardShared = vi.fn();
+  const router = createMemoryRouter(
+    [
+      {
+        path: '/',
+        element: (
+          <Home
+            profile={{
+              displayName: 'Camila',
+              avatarUrl: null,
+              locale: 'es',
+              listVisibility: 'private',
+              counterMode: 'franchise',
+              ...profile,
+            }}
+            onSignOut={() => {}}
+            signingOut={false}
+            signOutFailed={false}
+            getToken={async () => 'jwt'}
+            client={client}
+            fetchFn={fetchFn as unknown as typeof fetch}
+            onCardGenerated={onCardGenerated}
+            onCardShared={onCardShared}
+          />
+        ),
+        children: signedInRoutes,
+      },
+    ],
+    { initialEntries: ['/tarjeta'] },
+  );
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
+  return { onCardGenerated, onCardShared };
+}
+
+const card = () => screen.getByRole('figure', { name: 'Vista previa de tu tarjeta' });
+const coverTitles = () =>
+  [...card().querySelectorAll('.share-card__cover')].map((img) => img.getAttribute('alt'));
+const choices = () => screen.getAllByRole('checkbox');
+
+describe('CardScreen', () => {
+  it('@CA-RF30-01 builds the card with my total, name, avatar and what I am watching, and shares it', async () => {
+    const user = userEvent.setup();
+    const { onCardGenerated, onCardShared } = renderCard(
+      [mark(1, 'seen'), mark(2, 'seen'), mark(20, 'watching', 12), mark(30, 'watching', 11)],
+      { avatarUrl: 'https://lh3.googleusercontent.com/a/camila' },
+    );
+
+    await screen.findByRole('heading', { name: '¿Qué estás viendo ahora?' });
+    screen.getByText('Aparecerá en tu tarjeta. Es opcional.');
+    expect(choices().map((box) => (box as HTMLInputElement).checked)).toEqual([true, true]);
+    await user.click(screen.getByRole('button', { name: 'Continuar (2)' }));
+
+    await screen.findByRole('heading', { name: 'Tu tarjeta' });
+    const preview = within(card());
+    preview.getByText('1');
+    preview.getByText('ANIMES COMPLETOS');
+    preview.getByText('Camila');
+    expect(card().querySelector('.share-card__avatar')?.getAttribute('src')).toBe(
+      'https://lh3.googleusercontent.com/a/camila',
+    );
+    preview.getByText('VIENDO AHORA');
+    expect(coverTitles()).toEqual(['Saga B', 'Saga C']);
+    preview.getByAltText('Acrux');
+
+    const share = await screen.findByRole('button', { name: 'Compartir' });
+    await vi.waitFor(() => expect((share as HTMLButtonElement).disabled).toBe(false));
+    expect(cardImage).toHaveBeenCalledOnce();
+    expect(onCardGenerated).toHaveBeenCalledWith({ mode: 'franchise', covers: 2 });
+
+    await user.click(share);
+    expect(shareOrDownload).toHaveBeenCalledWith(png, { download: false });
+    expect(onCardShared).toHaveBeenCalledWith({ method: 'share' });
+  });
+
+  it('downloads the image with "Descargar imagen"', async () => {
+    const user = userEvent.setup();
+    vi.mocked(shareOrDownload).mockResolvedValue('downloaded');
+    const { onCardShared } = renderCard([mark(20, 'seen')]);
+
+    const download = await screen.findByRole('button', { name: 'Descargar imagen' });
+    await vi.waitFor(() => expect((download as HTMLButtonElement).disabled).toBe(false));
+    await user.click(download);
+
+    expect(shareOrDownload).toHaveBeenCalledWith(png, { download: true });
+    expect(onCardShared).toHaveBeenCalledWith({ method: 'download' });
+  });
+
+  it('reports the download when the browser could not share', async () => {
+    const user = userEvent.setup();
+    vi.mocked(shareOrDownload).mockResolvedValue('downloaded');
+    const { onCardShared } = renderCard([mark(20, 'seen')]);
+
+    const share = await screen.findByRole('button', { name: 'Compartir' });
+    await vi.waitFor(() => expect((share as HTMLButtonElement).disabled).toBe(false));
+    await user.click(share);
+
+    expect(onCardShared).toHaveBeenCalledWith({ method: 'download' });
+  });
+
+  it('sends no card_shared when the share sheet is closed', async () => {
+    const user = userEvent.setup();
+    vi.mocked(shareOrDownload).mockResolvedValue('cancelled');
+    const { onCardShared } = renderCard([mark(20, 'seen')]);
+
+    const share = await screen.findByRole('button', { name: 'Compartir' });
+    await vi.waitFor(() => expect((share as HTMLButtonElement).disabled).toBe(false));
+    await user.click(share);
+
+    expect(shareOrDownload).toHaveBeenCalledOnce();
+    expect(onCardShared).not.toHaveBeenCalled();
+  });
+
+  it('"Saltar" keeps the first three franchises in Viendo', async () => {
+    const user = userEvent.setup();
+    renderCard([
+      mark(20, 'watching', 14),
+      mark(30, 'watching', 13),
+      mark(40, 'watching', 12),
+      mark(50, 'watching', 11),
+    ]);
+
+    await user.click(await screen.findByRole('button', { name: 'Saltar' }));
+
+    expect(coverTitles()).toEqual(['Saga B', 'Saga C', 'Saga D']);
+  });
+
+  it('lets me choose at most three franchises', async () => {
+    const user = userEvent.setup();
+    renderCard([
+      mark(20, 'watching', 14),
+      mark(30, 'watching', 13),
+      mark(40, 'watching', 12),
+      mark(50, 'watching', 11),
+    ]);
+
+    const sagaE = await screen.findByRole('checkbox', { name: 'Saga E' });
+    expect((sagaE as HTMLInputElement).checked).toBe(false);
+    expect((sagaE as HTMLButtonElement).disabled).toBe(true);
+
+    await user.click(screen.getByRole('checkbox', { name: 'Saga C' }));
+    expect((sagaE as HTMLButtonElement).disabled).toBe(false);
+    await user.click(sagaE);
+    await user.click(screen.getByRole('button', { name: 'Continuar (3)' }));
+
+    expect(coverTitles()).toEqual(['Saga B', 'Saga D', 'Saga E']);
+  });
+
+  it('filters the franchises with the search', async () => {
+    const user = userEvent.setup();
+    renderCard([mark(20, 'watching'), mark(30, 'watching')]);
+
+    await user.type(await screen.findByRole('searchbox', { name: 'Buscar anime' }), 'saga c');
+
+    expect(choices().map((box) => box.getAttribute('aria-label'))).toEqual(['Saga C']);
+  });
+
+  it('leaves out "VIENDO AHORA" when nothing is chosen', async () => {
+    const user = userEvent.setup();
+    renderCard([mark(20, 'watching')]);
+
+    await user.click(await screen.findByRole('checkbox', { name: 'Saga B' }));
+    await user.click(screen.getByRole('button', { name: 'Continuar (0)' }));
+
+    expect(within(card()).queryByText('VIENDO AHORA')).toBeNull();
+  });
+
+  it('skips the question when nothing is in Viendo', async () => {
+    renderCard([mark(20, 'seen')], { displayName: '', counterMode: 'entry' });
+
+    await screen.findByRole('heading', { name: 'Tu tarjeta' });
+    expect(screen.queryByRole('button', { name: '‹ Volver' })).toBeNull();
+    const preview = within(card());
+    preview.getByText('ENTRADAS VISTAS');
+    preview.getByText('Sin nombre');
+    preview.getByText('?');
+    expect(preview.queryByText('VIENDO AHORA')).toBeNull();
+  });
+
+  it('goes back to the question from the preview', async () => {
+    const user = userEvent.setup();
+    renderCard([mark(20, 'watching')]);
+
+    await user.click(await screen.findByRole('button', { name: 'Continuar (1)' }));
+    await user.click(screen.getByRole('button', { name: '‹ Volver' }));
+
+    screen.getByRole('heading', { name: '¿Qué estás viendo ahora?' });
+  });
+
+  it('offers a retry when the image cannot be made', async () => {
+    const user = userEvent.setup();
+    vi.mocked(cardImage).mockRejectedValueOnce(new Error('tainted'));
+    const { onCardGenerated } = renderCard([mark(20, 'seen')]);
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'No pudimos crear la imagen de tu tarjeta. Vuelve a intentarlo.',
+    );
+    expect((screen.getByRole('button', { name: 'Compartir' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+    expect(onCardGenerated).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+    await vi.waitFor(() =>
+      expect(
+        (screen.getByRole('button', { name: 'Compartir' }) as HTMLButtonElement).disabled,
+      ).toBe(false),
+    );
+    expect(vi.mocked(cardImage).mock.calls.map((call) => call[1])).toEqual([
+      { retry: false },
+      { retry: true },
+    ]);
+  });
+
+  it('is in the navigation bar', async () => {
+    renderCard([]);
+    const link = await screen.findByRole('link', { name: 'Tarjeta' });
+    expect(link.getAttribute('href')).toBe('/tarjeta');
+    expect(link.getAttribute('aria-current')).toBe('page');
+  });
+});

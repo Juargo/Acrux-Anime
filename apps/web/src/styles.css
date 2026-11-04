@@ -141,10 +141,15 @@ a {
   font-size: 19.2px;
   font-weight: 600;
   line-height: 28.8px;
+  object-fit: cover;
 }
 
 .share-card__handle {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 19.2px;
   font-weight: 600;
   line-height: 28.8px;
@@ -192,6 +197,7 @@ a {
   background:
     linear-gradient(124deg, rgb(157 140 245 / 0.5) 0%, rgb(157 140 245 / 0) 83.333%),
     var(--color-bg-raised);
+  object-fit: cover;
 }
 
 .share-card__url {
@@ -1200,4 +1206,108 @@ label.sheet__label {
 .franchise__actions .button {
   gap: 10px;
   width: 100%;
+}
+
+/* Figma M05 · ¿Qué estás viendo ahora? and M07 · Vista previa de la tarjeta (#36). */
+.card-step,
+.card-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px 0;
+}
+
+.card-step__title,
+.card-preview__title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 30px;
+}
+
+.card-step__text {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.card-step__search {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+}
+
+.card-step__search::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.card-step__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+  cursor: pointer;
+}
+
+.card-choice__box {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  accent-color: var(--color-accent-default);
+}
+
+.card-step__actions,
+.card-preview__actions {
+  display: grid;
+  gap: 12px;
+}
+
+.card-step__actions {
+  grid-template-columns: 1fr 1fr;
+}
+
+.card-preview__bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+.card-preview__title {
+  grid-column: 2;
+  font-size: 20px;
+}
+
+.card-preview__back {
+  grid-row: 1;
+  grid-column: 1;
+  justify-self: start;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-link);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.card-preview__card {
+  display: flex;
+  justify-content: center;
+  margin: 0;
 }

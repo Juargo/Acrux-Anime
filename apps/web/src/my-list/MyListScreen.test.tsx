@@ -202,13 +202,14 @@ describe('MyListScreen', () => {
     expect(within(alert).getByRole('button', { name: 'Reintentar' })).toBeTruthy();
   });
 
-  it('reaches the list from the bar with Explorar and Mi lista (S5)', async () => {
+  it('reaches the list from the bar with Explorar, Mi lista and Tarjeta (S5, #36)', async () => {
     renderList([]);
     const nav = screen.getByRole('navigation', { name: 'Principal' });
     const links = within(nav).getAllByRole('link');
     expect(links.map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
       ['Explorar', '/'],
       ['Mi lista', '/mi-lista'],
+      ['Tarjeta', '/tarjeta'],
     ]);
     expect(within(nav).getByRole('link', { name: 'Mi lista' }).getAttribute('aria-current')).toBe(
       'page',
