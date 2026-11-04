@@ -700,6 +700,158 @@
           }
         }
       }
+    },
+    "/api/v1/profiles/{handle}": {
+      "get": {
+        "summary": "Public summary of a profile: name, avatar, handle and total, even if private",
+        "security": [],
+        "tags": [
+          "public-profile"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "handle",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9_]{3,20}$"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The summary; the list is behind listVisibility",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProfile"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No profile has this handle"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/profiles/{handle}/marks": {
+      "get": {
+        "summary": "Marks of a public list, ordered by anilistId, one page at a time",
+        "security": [],
+        "tags": [
+          "public-profile"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "handle",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9_]{3,20}$"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "description": "The nextCursor of the previous page; leave it out for the first",
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            },
+            "description": "The nextCursor of the previous page; leave it out for the first"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "description": "Marks per page, 1 to 1000; 500 by default",
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            },
+            "description": "Marks per page, 1 to 1000; 500 by default"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of marks; nextCursor is null on the last page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Mark"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The cursor or the limit is not a valid positive integer"
+          },
+          "404": {
+            "description": "No profile has this handle, or its list is private"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -775,6 +927,66 @@
           "malId",
           "status",
           "markedAt"
+        ],
+        "additionalProperties": false
+      },
+      "PublicProfile": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "listVisibility": {
+            "type": "string",
+            "enum": [
+              "private",
+              "public"
+            ]
+          },
+          "shownTotal": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The owner's last counter"
+          },
+          "shownMode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "franchise",
+                  "entry"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "handle",
+          "displayName",
+          "avatarUrl",
+          "listVisibility",
+          "shownTotal",
+          "shownMode"
         ],
         "additionalProperties": false
       }
