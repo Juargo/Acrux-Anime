@@ -1,10 +1,16 @@
+import { DISPLAY_NAME_MAX, displayNameProblem } from '@acrux/domain';
 import { useId, useState } from 'react';
 import { AVATAR_PRESETS, Avatar, PresetArt } from '../components/Avatar';
 import type { AvatarPreset, Profile, ProfileChanges } from '../profile-api';
 import { useOwnProfile } from './use-own-profile';
 
-// RF-07 and Figma M06 ("5/30"): the API checks the same, trimmed and counted per character.
-export const NAME_MAX = 30;
+// RF-07 and Figma M06 ("5/30"): the API checks the same rules (@acrux/domain).
+export const NAME_MAX = DISPLAY_NAME_MAX;
+const HINTS = {
+  empty: 'Escribe un nombre.',
+  'too-long': `Hasta ${DISPLAY_NAME_MAX} caracteres.`,
+  invisible: 'Usa letras, números o emojis visibles.',
+} as const;
 const length = (value: string) => [...value].length;
 
 /**
@@ -33,7 +39,8 @@ export function ProfileEditor({
   const titleId = useId();
   const inputId = useId();
   const trimmed = name.trim();
-  const valid = trimmed.length > 0;
+  const problem = displayNameProblem(trimmed);
+  const valid = problem === null;
 
   async function finish() {
     const changes: ProfileChanges = {};
@@ -120,7 +127,7 @@ export function ProfileEditor({
         onChange={(event) => setName([...event.target.value].slice(0, NAME_MAX).join(''))}
       />
       <p className="profile-editor__hint">
-        <span>{valid ? 'Así te verán en tu tarjeta y tu perfil' : 'Escribe un nombre.'}</span>
+        <span>{problem ? HINTS[problem] : 'Así te verán en tu tarjeta y tu perfil'}</span>
         <span>
           {length(trimmed)}/{NAME_MAX}
         </span>

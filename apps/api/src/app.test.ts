@@ -532,6 +532,15 @@ describe('PATCH /api/v1/me', () => {
     ]);
   });
 
+  it('accepts an emoji joined with ZWJ', async () => {
+    const { service } = fakeProfiles();
+    const response = await request(appWithProfiles(service))
+      .patch('/api/v1/me')
+      .set(auth)
+      .send({ displayName: 'Ana 👩\u200D💻' });
+    expect(response.status).toBe(200);
+  });
+
   it('accepts a 30-character name, emoji counted once', async () => {
     const { service } = fakeProfiles();
     const name = `${'a'.repeat(29)}🌸`;
@@ -586,6 +595,9 @@ describe('PATCH /api/v1/me', () => {
     ['a name over 30 characters', { displayName: 'a'.repeat(31) }],
     ['a name with a line break', { displayName: 'Cami\nla' }],
     ['a name with a control character', { displayName: 'Cami\u0007' }],
+    ['a name with a line separator', { displayName: 'Cami\u2028la' }],
+    ['a name with a bidi override', { displayName: 'Ca\u202Emila' }],
+    ['a name of invisible characters', { displayName: '\u200B\u200B\u200B' }],
     ['a name that is not text', { displayName: 42 }],
     ['an unknown preset', { avatarPreset: 'rosa' }],
     ['an avatar URL', { avatarUrl: 'https://example.com/a.png' }],

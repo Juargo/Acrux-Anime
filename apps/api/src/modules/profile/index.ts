@@ -3,19 +3,17 @@ import { z } from 'zod';
 import { ProblemError } from '../../http/problem.js';
 import type { Module } from '../../http/routes.js';
 import type { Session } from '../../http/session.js';
+import { displayNameProblem } from './domain/display-name.js';
 import type { ProfileService } from './services/profile.service.js';
 
 const counterMode = z.enum(['franchise', 'entry']);
 export const avatarPreset = z.enum(['violeta', 'verde', 'amarillo', 'coral', 'noche', 'lavanda']);
 
-// RF-07 and Figma M06 ("5/30"): trimmed, 1 to 30 characters (an emoji counts once), and no
-// control characters or line breaks, which would break the card and the preview image.
-export const NAME_MAX = 30;
+// RF-07 and Figma M06 ("5/30"): trimmed, then the rules the editor checks too (@acrux/domain).
 const displayName = z
   .string()
   .transform((value) => value.trim())
-  .refine((value) => value.length > 0 && [...value].length <= NAME_MAX, 'Between 1 and 30')
-  .refine((value) => !/\p{Cc}/u.test(value), 'No control characters');
+  .refine((value) => displayNameProblem(value) === null, 'Invalid display name');
 
 const profileSchema = z.object({
   displayName: z.string(),

@@ -365,7 +365,7 @@ export function CardScreen({
       {offer && (
         <FirstShareOffer state={offer} onAccept={makePublic} onClose={() => setOffer(null)} />
       )}
-      <Link className="card-preview__privacy" to="/privacidad">
+      <Link className="card-preview__privacy" to="/privacidad" state={{ from: '/tarjeta' }}>
         ¿Quién ve tu lista?{' '}
         <span>{profile.listVisibility === 'public' ? 'Pública' : 'Privada'} ›</span>
       </Link>

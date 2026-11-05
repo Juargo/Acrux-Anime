@@ -156,6 +156,21 @@ describe('ProfileEditor', () => {
     screen.getByText('30/30');
   });
 
+  it('refuses, before saving, what the API refuses: invisible or control characters', async () => {
+    const user = userEvent.setup();
+    const { patches } = renderEditor();
+
+    await user.clear(await screen.findByRole('textbox', { name: 'Nombre visible' }));
+    await user.click(nameInput());
+    await user.paste('Cami\tla');
+
+    screen.getByText('Usa letras, números o emojis visibles.');
+    expect((screen.getByRole('button', { name: 'Continuar' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+    expect(patches).toEqual([]);
+  });
+
   it('says so and stays when saving fails', async () => {
     const user = userEvent.setup();
     const { router } = renderEditor({ failPatch: true });
