@@ -17,3 +17,8 @@ export type {
   Relation,
   RelationType,
 } from './franchise/types';
+export {
+  DISPLAY_NAME_MAX,
+  type DisplayNameProblem,
+  displayNameProblem,
+} from './profile/display-name';

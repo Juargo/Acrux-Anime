@@ -1,0 +1,119 @@
+import { useId, useState } from 'react';
+import { Link } from 'react-router';
+import { Avatar } from '../components/Avatar';
+import { useCounterMode } from '../counter/use-counter-mode';
+import { type Profile, saveCounterMode } from '../profile-api';
+import { useOwnProfile } from './use-own-profile';
+
+const MODE_LABELS = { franchise: 'Franquicias', entry: 'Entradas' } as const;
+
+/**
+ * Container: "Perfil y ajustes" (Figma M16) with what works today (S4 of
+ * odd/tasks/editar-perfil.md): who you are, "Editar", "Contar por", "Tu lista" and
+ * "Cerrar sesión". Idioma, Títulos, Tema, AniList, Plus, data and account rows arrive with
+ * their issues.
+ */
+export function ProfileScreen({
+  profile: initial,
+  getToken,
+  fetchFn,
+  onSignOut,
+  signingOut = false,
+}: {
+  profile: Profile;
+  getToken: () => Promise<string | null>;
+  fetchFn?: typeof fetch | undefined;
+  onSignOut: () => void;
+  signingOut?: boolean | undefined;
+}) {
+  const [profile] = useOwnProfile({ initial, getToken, fetchFn });
+  const [mode, setMode] = useCounterMode(initial.counterMode);
+  const [savingMode, setSavingMode] = useState(false);
+  const [modeFailed, setModeFailed] = useState(false);
+  const titleId = useId();
+  const name = profile.displayName.trim() || 'Sin nombre';
+
+  // The same switch as the header counter (RF-25): at once, saved, back if saving fails.
+  async function switchMode() {
+    const previous = mode;
+    const next = mode === 'franchise' ? 'entry' : 'franchise';
+    setMode(next);
+    setSavingMode(true);
+    setModeFailed(false);
+    try {
+      await saveCounterMode(getToken, next, fetchFn);
+    } catch {
+      setMode(previous);
+      setModeFailed(true);
+    } finally {
+      setSavingMode(false);
+    }
+  }
+
+  return (
+    <section className="profile" aria-labelledby={titleId}>
+      <h1 className="visually-hidden" id={titleId}>
+        Perfil
+      </h1>
+      <header className="profile__header">
+        <Avatar
+          name={name}
+          avatarUrl={profile.avatarUrl}
+          avatarPreset={profile.avatarPreset}
+          size={56}
+          className="profile__avatar"
+          decorative
+        />
+        <div className="profile__who">
+          <h2 className="profile__name">{name}</h2>
+          <p className="profile__link">
+            @{profile.handle} · {window.location.host}/@{profile.handle}
+          </p>
+        </div>
+        <Link className="button button--secondary" to="/perfil/editar">
+          Editar
+        </Link>
+      </header>
+
+      <h2 className="profile__group">PREFERENCIAS</h2>
+      <ul className="profile__rows">
+        <li>
+          <button
+            className="profile__row"
+            type="button"
+            disabled={savingMode}
+            onClick={() => void switchMode()}
+          >
+            <span>Contar por</span>
+            <span className="profile__value">{MODE_LABELS[mode]} ›</span>
+          </button>
+        </li>
+        <li>
+          <Link className="profile__row" to="/privacidad">
+            <span>Tu lista</span>
+            <span className="profile__value">
+              {profile.listVisibility === 'public' ? 'Pública' : 'Privada'} ›
+            </span>
+          </Link>
+        </li>
+      </ul>
+      {modeFailed && (
+        <p className="counter__error" role="alert">
+          No pudimos guardar cómo contar. Vuelve a intentarlo.
+        </p>
+      )}
+
+      <h2 className="profile__group">CUENTA Y PRIVACIDAD</h2>
+      <ul className="profile__rows">
+        <li>
+          <button className="profile__row" type="button" onClick={onSignOut} disabled={signingOut}>
+            <span>Cerrar sesión</span>
+            <span className="profile__value" aria-hidden="true">
+              ›
+            </span>
+          </button>
+        </li>
+      </ul>
+    </section>
+  );
+}

@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { Resvg } from '@resvg/resvg-js';
 import satori from 'satori';
+import { presetSvg } from '../profile/domain/avatar.js';
 import type { PublicProfileView } from './services/public-profile.service.js';
 
 // The engine of @vercel/og (satori, then resvg), used directly: @vercel/og 1.0 cannot load in
@@ -81,12 +82,22 @@ const el = (
   props: { style, children, ...extra },
 });
 
+// The avatar as an image source: the preset Acrux one (#39), else Google's, else none.
+export async function avatarImage(
+  summary: Pick<PublicProfileView, 'avatarUrl' | 'avatarPreset'>,
+): Promise<string | null> {
+  if (summary.avatarPreset) {
+    return `data:image/svg+xml;base64,${Buffer.from(presetSvg(summary.avatarPreset)).toString('base64')}`;
+  }
+  return avatarData(summary.avatarUrl);
+}
+
 // Name, avatar and total only (S3 of odd/tasks/perfil-publico.md): never the lists.
 export async function profileImage(summary: PublicProfileView): Promise<Buffer> {
   const name = summary.displayName.trim() || 'Sin nombre';
   const initial = name.charAt(0).toUpperCase();
   const total = totalText(summary);
-  const avatarUrl = await avatarData(summary.avatarUrl);
+  const avatarUrl = await avatarImage(summary);
   const avatar = avatarUrl
     ? el('img', { width: 160, height: 160, borderRadius: 80 }, undefined, {
         src: avatarUrl,

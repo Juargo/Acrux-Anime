@@ -1,4 +1,6 @@
 import { forwardRef } from 'react';
+import type { AvatarPreset } from '../profile-api';
+import { Avatar } from './Avatar';
 import { QrCode } from './QrCode';
 
 export interface ShareCardProps {
@@ -6,6 +8,7 @@ export interface ShareCardProps {
   name: string;
   initial: string;
   avatarUrl: string | null;
+  avatarPreset?: AvatarPreset | null;
   total: number | string;
   label: string;
   // Up to three covers under "VIENDO AHORA"; null draws an empty slot. No section when empty.
@@ -21,20 +24,31 @@ export interface ShareCardProps {
  * RNF-51). The image of the card is rendered from this node (card/image.ts).
  */
 export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function ShareCard(
-  { name, initial, avatarUrl, total, label, covers, url, qr = false, hidden = false },
+  {
+    name,
+    initial,
+    avatarUrl,
+    avatarPreset = null,
+    total,
+    label,
+    covers,
+    url,
+    qr = false,
+    hidden = false,
+  },
   ref,
 ) {
   return (
     <div className="share-card" ref={ref} aria-hidden={hidden || undefined}>
       <div className="share-card__user">
-        {avatarUrl ? (
-          <img
+        {avatarPreset || avatarUrl ? (
+          <Avatar
+            name={name}
+            avatarUrl={avatarUrl}
+            avatarPreset={avatarPreset}
+            size={43}
             className="share-card__avatar"
-            src={avatarUrl}
-            alt=""
-            width={43}
-            height={43}
-            referrerPolicy="no-referrer"
+            decorative
           />
         ) : (
           <span className="share-card__avatar">{initial}</span>

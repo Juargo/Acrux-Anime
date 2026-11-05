@@ -1,8 +1,12 @@
 // Client for GET and PATCH /api/v1/me (#28, #34). The first call after sign-in creates the profile.
 
+export type AvatarPreset = 'violeta' | 'verde' | 'amarillo' | 'coral' | 'noche' | 'lavanda';
+
 export interface Profile {
   displayName: string;
   avatarUrl: string | null;
+  // A preset Acrux avatar (#39), shown instead of avatarUrl; null shows Google's.
+  avatarPreset: AvatarPreset | null;
   locale: string;
   listVisibility: 'private' | 'public';
   counterMode: 'franchise' | 'entry';
@@ -16,6 +20,8 @@ export interface Profile {
 }
 
 export interface ProfileChanges {
+  displayName?: string;
+  avatarPreset?: AvatarPreset | null;
   counterMode?: Profile['counterMode'];
   listVisibility?: Profile['listVisibility'];
   shown?: { total: number; mode: Profile['counterMode'] };

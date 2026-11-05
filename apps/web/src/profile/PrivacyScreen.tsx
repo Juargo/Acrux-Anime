@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import type { Profile } from '../profile-api';
 import { useOwnProfile } from './use-own-profile';
 
@@ -68,6 +68,8 @@ export function PrivacyScreen({
   const [status, setStatus] = useState<'saved' | 'failed' | null>(null);
   const titleId = useId();
   const shown = pending ?? profile.listVisibility;
+  // Back to where it was opened from: the card (#37) or Perfil (#39).
+  const fromCard = (useLocation().state as { from?: string } | null)?.from === '/tarjeta';
 
   async function choose(next: Visibility) {
     if (next === shown) return;
@@ -86,8 +88,8 @@ export function PrivacyScreen({
 
   return (
     <section className="privacy" aria-labelledby={titleId}>
-      <Link className="card-preview__back" to="/tarjeta">
-        ‹ Tu tarjeta
+      <Link className="card-preview__back" to={fromCard ? '/tarjeta' : '/perfil'}>
+        {fromCard ? '‹ Tu tarjeta' : '‹ Perfil'}
       </Link>
       <h1 className="card-step__title" id={titleId}>
         ¿Quién ve tu lista?

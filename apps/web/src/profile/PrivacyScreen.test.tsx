@@ -17,6 +17,7 @@ const json = (body: unknown, status = 200) =>
 const base: Profile = {
   displayName: 'Camila',
   avatarUrl: null,
+  avatarPreset: null,
   locale: 'es',
   listVisibility: 'private',
   counterMode: 'franchise',
@@ -26,7 +27,9 @@ const base: Profile = {
   cardShared: false,
 };
 
-function renderPrivacy(options: { profile?: Partial<Profile>; failPatch?: boolean } = {}) {
+function renderPrivacy(
+  options: { profile?: Partial<Profile>; failPatch?: boolean; from?: string } = {},
+) {
   let profile = { ...base, ...options.profile };
   const patches: unknown[] = [];
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
@@ -61,7 +64,12 @@ function renderPrivacy(options: { profile?: Partial<Profile>; failPatch?: boolea
         children: signedInRoutes,
       },
     ],
-    { initialEntries: ['/privacidad'] },
+    {
+      initialEntries: options.from
+        ? [options.from, { pathname: '/privacidad', state: { from: options.from } }]
+        : ['/privacidad'],
+      initialIndex: options.from ? 1 : 0,
+    },
   );
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
@@ -69,7 +77,7 @@ function renderPrivacy(options: { profile?: Partial<Profile>; failPatch?: boolea
       <RouterProvider router={router} />
     </QueryClientProvider>,
   );
-  return { patches, onListMadePublic };
+  return { patches, onListMadePublic, router };
 }
 
 const choice = (name: RegExp) => screen.getByRole('radio', { name }) as HTMLInputElement;
@@ -128,5 +136,18 @@ describe('PrivacyScreen', () => {
     );
     await waitFor(() => expect(choice(/^Privada/).checked).toBe(true));
     expect(screen.queryByText('Listo, guardado.')).toBeNull();
+  });
+
+  it('goes back to Perfil, or to the card when it was opened from the card', async () => {
+    const user = userEvent.setup();
+    renderPrivacy();
+    expect((await screen.findByRole('link', { name: '‹ Perfil' })).getAttribute('href')).toBe(
+      '/perfil',
+    );
+
+    cleanup();
+    const { router } = renderPrivacy({ from: '/tarjeta' });
+    await user.click(await screen.findByRole('link', { name: '‹ Tu tarjeta' }));
+    expect(router.state.location.pathname).toBe('/tarjeta');
   });
 });

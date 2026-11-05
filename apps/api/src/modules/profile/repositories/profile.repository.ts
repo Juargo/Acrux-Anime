@@ -3,10 +3,13 @@ import { handleBase, handleCandidates, randomCandidate } from '../domain/handle.
 
 type CounterMode = 'franchise' | 'entry';
 type ListVisibility = 'private' | 'public';
+export type AvatarPreset = 'violeta' | 'verde' | 'amarillo' | 'coral' | 'noche' | 'lavanda';
 
 export interface ProfileView {
   displayName: string;
   avatarUrl: string | null;
+  // A preset Acrux avatar (#39), shown instead of avatarUrl; null shows Google's.
+  avatarPreset: AvatarPreset | null;
   locale: string;
   listVisibility: ListVisibility;
   counterMode: CounterMode;
@@ -25,12 +28,16 @@ export interface PublicProfileRow {
   handle: string;
   displayName: string;
   avatarUrl: string | null;
+  avatarPreset: AvatarPreset | null;
   listVisibility: ListVisibility;
   shownTotal: number | null;
   shownMode: CounterMode | null;
 }
 
 export interface ProfileChanges {
+  displayName?: string | undefined;
+  // null goes back to Google's avatar.
+  avatarPreset?: AvatarPreset | null | undefined;
   counterMode?: CounterMode | undefined;
   listVisibility?: ListVisibility | undefined;
   shown?: { total: number; mode: CounterMode } | undefined;
@@ -41,6 +48,7 @@ export interface ProfileChanges {
 const SELECT = {
   displayName: true,
   avatarUrl: true,
+  avatarPreset: true,
   locale: true,
   listVisibility: true,
   counterMode: true,
@@ -137,10 +145,12 @@ export function createProfileRepository(prisma: PrismaClient): ProfileRepository
     },
     update: async (userId, initial, changes) => {
       await create(userId, initial);
-      const { counterMode, listVisibility, shown, cardShared } = changes;
+      const { displayName, avatarPreset, counterMode, listVisibility, shown, cardShared } = changes;
       await prisma.profile.update({
         where: { userId },
         data: {
+          ...(displayName !== undefined && { displayName }),
+          ...(avatarPreset !== undefined && { avatarPreset }),
           ...(counterMode && { counterMode }),
           ...(listVisibility && { listVisibility }),
           ...(shown && { shownTotal: shown.total, shownMode: shown.mode }),
@@ -163,6 +173,7 @@ export function createProfileRepository(prisma: PrismaClient): ProfileRepository
             handle: true,
             displayName: true,
             avatarUrl: true,
+            avatarPreset: true,
             listVisibility: true,
             shownTotal: true,
             shownMode: true,

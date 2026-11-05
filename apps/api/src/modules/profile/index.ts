@@ -3,13 +3,22 @@ import { z } from 'zod';
 import { ProblemError } from '../../http/problem.js';
 import type { Module } from '../../http/routes.js';
 import type { Session } from '../../http/session.js';
+import { displayNameProblem } from './domain/display-name.js';
 import type { ProfileService } from './services/profile.service.js';
 
 const counterMode = z.enum(['franchise', 'entry']);
+export const avatarPreset = z.enum(['violeta', 'verde', 'amarillo', 'coral', 'noche', 'lavanda']);
+
+// RF-07 and Figma M06 ("5/30"): trimmed, then the rules the editor checks too (@acrux/domain).
+const displayName = z
+  .string()
+  .transform((value) => value.trim())
+  .refine((value) => displayNameProblem(value) === null, 'Invalid display name');
 
 const profileSchema = z.object({
   displayName: z.string(),
   avatarUrl: z.string().nullable(),
+  avatarPreset: avatarPreset.nullable().describe("A preset Acrux avatar; null shows Google's"),
   locale: z.string(),
   listVisibility: z.enum(['private', 'public']),
   counterMode,
@@ -19,10 +28,12 @@ const profileSchema = z.object({
   cardShared: z.boolean().describe('Whether a card was ever shared (#36)'),
 });
 
-// The counter mode (RF-25), the visibility of the list (RF-42), the counter the owner sees,
-// shown to visitors (#37), and the first card shared (#36). Name and avatar come with #39.
+// The name and avatar (RF-07, #39), the counter mode (RF-25), the visibility of the list
+// (RF-42), the counter the owner sees, shown to visitors (#37), and the first card shared (#36).
 const patchBody = z
   .strictObject({
+    displayName,
+    avatarPreset: avatarPreset.nullable(),
     counterMode,
     listVisibility: profileSchema.shape.listVisibility,
     shown: z.strictObject({ total: z.number().int().min(0).max(1_000_000), mode: counterMode }),

@@ -676,16 +676,6 @@ a {
   object-fit: cover;
 }
 
-.home__avatar--initial {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-accent-default);
-  color: var(--color-text-on-accent);
-  font-size: 18px;
-  font-weight: 600;
-}
-
 .home__error {
   margin-top: 16px;
   color: var(--color-status-error);
@@ -1347,13 +1337,6 @@ label.sheet__label {
   object-fit: cover;
 }
 
-.public-profile__avatar--initial {
-  background: var(--color-accent-default);
-  color: var(--color-text-on-accent);
-  font-size: 40px;
-  font-weight: 600;
-}
-
 .public-profile__name {
   margin: 8px 0 0;
   font-size: 24px;
@@ -1618,4 +1601,207 @@ label.sheet__label {
 
 .share-card__qr svg {
   display: block;
+}
+
+/* Avatars (#39): Google's photo, a preset Acrux one (Figma M06) or the initial. */
+.avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar svg {
+  width: 50%;
+  height: 50%;
+}
+
+.avatar--initial {
+  background: var(--color-accent-default);
+  color: var(--color-text-on-accent);
+  font-weight: 600;
+}
+
+.avatar--violeta {
+  background: var(--color-accent-default);
+  color: var(--color-text-on-accent);
+}
+
+.avatar--verde {
+  background: var(--color-status-seen);
+  color: var(--color-text-on-accent);
+}
+
+.avatar--amarillo {
+  background: var(--color-status-new);
+  color: var(--color-text-on-accent);
+}
+
+.avatar--coral {
+  background: var(--color-status-error);
+  color: var(--color-text-on-accent);
+}
+
+.avatar--noche {
+  background: var(--color-bg-raised);
+  color: var(--color-accent-default);
+}
+
+.avatar--lavanda {
+  background: var(--color-text-link);
+  color: var(--color-text-on-accent);
+}
+
+/* Figma M06 · Nombre y avatar. */
+.profile-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px 0;
+}
+
+.profile-editor .card-preview__back {
+  align-self: flex-start;
+}
+
+.profile-editor__avatar {
+  width: 88px;
+  height: 88px;
+  font-size: 36px;
+}
+
+.profile-editor__avatars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.profile-editor__legend {
+  margin-bottom: 12px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.profile-editor__choice {
+  position: relative;
+  cursor: pointer;
+}
+
+.profile-editor__choice input {
+  position: absolute;
+  opacity: 0;
+}
+
+.profile-editor__choice .avatar {
+  width: 44px;
+  height: 44px;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.profile-editor__choice input:checked + .avatar {
+  outline-color: var(--color-accent-default);
+}
+
+.profile-editor__choice input:focus-visible + .avatar {
+  outline-color: var(--color-text-primary);
+}
+
+.profile-editor__label {
+  color: var(--color-text-secondary);
+}
+
+.profile-editor__hint {
+  display: flex;
+  justify-content: space-between;
+  margin: -8px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+/* Figma M16 · Perfil y ajustes (#39). */
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px 0;
+}
+
+.profile__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile__avatar {
+  width: 56px;
+  height: 56px;
+  font-size: 24px;
+}
+
+.profile__who {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile__name {
+  margin: 0;
+  font-size: 22px;
+}
+
+.profile__link {
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile__group {
+  margin: 16px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.profile__rows {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: 16px;
+  list-style: none;
+}
+
+.profile__rows li + li {
+  border-top: 1px solid var(--color-border-default);
+}
+
+.profile__row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.profile__value {
+  color: var(--color-text-secondary);
 }

@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
 import { ShareCard } from '../components/ShareCard';
@@ -8,6 +8,7 @@ import { useMarkedFranchises } from '../counter/use-marked-franchises';
 import type { CounterMode } from '../counter/use-total-counter';
 import { type ListRow, myList } from '../my-list/items';
 import type { ListMadePublicEvent } from '../profile/PrivacyScreen';
+import { ProfileEditor } from '../profile/ProfileEditor';
 import { useOwnProfile } from '../profile/use-own-profile';
 import type { Profile } from '../profile-api';
 import { defaultChoice, MAX_COVERS, shareCardContent } from './content';
@@ -174,8 +175,17 @@ export function CardScreen({
   // null: the default choice ("Saltar" or not asked yet).
   const [chosen, setChosen] = useState<string[] | null>(null);
   const [asking, setAsking] = useState(true);
+  // Before the first card, the name and avatar it will show (#39, Figma M06, RN-M1).
+  const [identityDone, setIdentityDone] = useState(false);
+  const navigate = useNavigate();
   const watching = list?.watching ?? [];
-  const step = list && (!asking || watching.length === 0) ? 'preview' : 'ask';
+  const step = !list
+    ? 'ask'
+    : asking && watching.length > 0
+      ? 'ask'
+      : !profile.cardShared && !identityDone
+        ? 'identity'
+        : 'preview';
 
   const content = list
     ? shareCardContent({ list, mode, profile, chosen: step === 'preview' ? chosen : null })
@@ -258,6 +268,17 @@ export function CardScreen({
       </p>
     );
   }
+  if (step === 'identity') {
+    return (
+      <ProfileEditor
+        profile={profile}
+        getToken={getToken}
+        fetchFn={fetchFn}
+        onBack={() => (watching.length > 0 ? setAsking(true) : navigate('/'))}
+        onDone={() => setIdentityDone(true)}
+      />
+    );
+  }
   if (step === 'ask') {
     const current = chosen ?? defaultChoice(watching);
     return (
@@ -297,6 +318,7 @@ export function CardScreen({
           name={content.name}
           initial={content.initial}
           avatarUrl={content.avatarUrl}
+          avatarPreset={content.avatarPreset}
           total={content.total}
           label={content.label}
           covers={content.covers}
@@ -343,7 +365,7 @@ export function CardScreen({
       {offer && (
         <FirstShareOffer state={offer} onAccept={makePublic} onClose={() => setOffer(null)} />
       )}
-      <Link className="card-preview__privacy" to="/privacidad">
+      <Link className="card-preview__privacy" to="/privacidad" state={{ from: '/tarjeta' }}>
         ¿Quién ve tu lista?{' '}
         <span>{profile.listVisibility === 'public' ? 'Pública' : 'Privada'} ›</span>
       </Link>

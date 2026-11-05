@@ -19,6 +19,7 @@ export interface ShareCardContent {
   name: string;
   initial: string;
   avatarUrl: string | null;
+  avatarPreset: Profile['avatarPreset'];
   covers: CardCover[];
 }
 
@@ -34,7 +35,7 @@ export function defaultChoice(watching: ListRow[]): string[] {
 export function shareCardContent(input: {
   list: MyList;
   mode: CounterMode;
-  profile: Pick<Profile, 'displayName' | 'avatarUrl'>;
+  profile: Pick<Profile, 'displayName' | 'avatarUrl'> & Partial<Pick<Profile, 'avatarPreset'>>;
   chosen: string[] | null;
 }): ShareCardContent {
   const { list, mode, profile } = input;
@@ -46,6 +47,7 @@ export function shareCardContent(input: {
     name: name || 'Sin nombre',
     initial: name.charAt(0).toUpperCase() || '?',
     avatarUrl: profile.avatarUrl,
+    avatarPreset: profile.avatarPreset ?? null,
     covers: list.watching
       .filter((row) => chosen.has(row.id))
       .slice(0, MAX_COVERS)
