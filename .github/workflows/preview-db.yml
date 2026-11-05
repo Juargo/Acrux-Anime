@@ -10,9 +10,10 @@ on:
     paths:
       - apps/api/prisma/migrations/**
 
-# One migration run at a time on the shared branch; a newer push waits instead of cancelling.
+# One run per PR; a newer push of the same PR waits. Runs of different PRs may overlap:
+# `prisma migrate deploy` takes a Postgres advisory lock, so they still apply one at a time.
 concurrency:
-  group: preview-db
+  group: preview-db-${{ github.event.pull_request.number }}
   cancel-in-progress: false
 
 permissions:
@@ -42,7 +43,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Refuses to run against production by mistake: the production endpoint is known.
+      # Refuses production (its endpoint is known), the pooler (migrations need a direct
+      # connection) and any host that is not the dev branch.
       - name: Check the target is the dev branch
         env:
           DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
@@ -50,6 +52,7 @@ jobs:
           host="$(node -e 'console.log(new URL(process.env.DATABASE_URL_UNPOOLED).hostname)')"
           case "$host" in
             ep-round-snow-b5mftgmf*) echo "::error::DATABASE_URL_UNPOOLED points to production"; exit 1 ;;
+            *-pooler*) echo "::error::DATABASE_URL_UNPOOLED must not use the pooler"; exit 1 ;;
             ep-calm-night-b59xx395*) echo "Target: Neon branch dev" ;;
             *) echo "::error::Unknown database host"; exit 1 ;;
           esac
