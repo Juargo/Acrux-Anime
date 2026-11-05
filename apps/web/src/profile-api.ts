@@ -17,6 +17,9 @@ export interface Profile {
   shownMode: 'franchise' | 'entry' | null;
   // Whether a card was ever shared (#36).
   cardShared: boolean;
+  // When the profile was created, and the salted id analytics knows the user by (#46).
+  createdAt: string;
+  analyticsId: string | null;
 }
 
 export interface ProfileChanges {

@@ -92,6 +92,8 @@ const BASE: Profile = {
   shownMode: null,
   // Most tests share again; the first card asks for the name and avatar first (#39).
   cardShared: true,
+  createdAt: '2026-11-01T12:00:00.000Z',
+  analyticsId: null,
 };
 
 function renderCard(

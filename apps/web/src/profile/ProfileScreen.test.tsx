@@ -25,6 +25,8 @@ const base: Profile = {
   shownTotal: 48,
   shownMode: 'franchise',
   cardShared: true,
+  createdAt: '2026-11-01T12:00:00.000Z',
+  analyticsId: null,
 };
 
 function renderProfile(options: { failPatch?: boolean } = {}) {
@@ -41,6 +43,7 @@ function renderProfile(options: { failPatch?: boolean } = {}) {
     throw new Error(`Unexpected request ${url}`);
   });
   const onSignOut = vi.fn();
+  const onCounterModeChanged = vi.fn();
   const router = createMemoryRouter(
     [
       {
@@ -49,6 +52,7 @@ function renderProfile(options: { failPatch?: boolean } = {}) {
           <Home
             profile={base}
             onSignOut={onSignOut}
+            onCounterModeChanged={onCounterModeChanged}
             signingOut={false}
             signOutFailed={false}
             getToken={async () => 'jwt'}
@@ -67,7 +71,7 @@ function renderProfile(options: { failPatch?: boolean } = {}) {
       <RouterProvider router={router} />
     </QueryClientProvider>,
   );
-  return { patches, onSignOut, router };
+  return { patches, onSignOut, onCounterModeChanged, router };
 }
 
 const page = () => screen.getByRole('region', { name: 'Perfil' });
@@ -95,7 +99,7 @@ describe('ProfileScreen', () => {
 
   it('switches how the counter counts, as the header does', async () => {
     const user = userEvent.setup();
-    const { patches } = renderProfile();
+    const { patches, onCounterModeChanged } = renderProfile();
     const button = await within(await screen.findByRole('region', { name: 'Perfil' })).findByRole(
       'button',
       { name: /Contar por/ },
@@ -106,6 +110,8 @@ describe('ProfileScreen', () => {
 
     expect(button.textContent).toContain('Entradas');
     await vi.waitFor(() => expect(patches).toEqual([{ counterMode: 'entry' }]));
+    // counter_mode_changed, as from the header counter (#46).
+    expect(onCounterModeChanged).toHaveBeenCalledWith({ mode: 'entry' });
     const header = screen.getByRole('region', { name: 'Contador total' });
     expect(
       within(header).getByRole('button', { name: 'Entradas' }).getAttribute('aria-pressed'),

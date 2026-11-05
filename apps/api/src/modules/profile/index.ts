@@ -26,6 +26,11 @@ const profileSchema = z.object({
   shownTotal: z.number().int().nullable().describe('The last counter the owner saw'),
   shownMode: counterMode.nullable(),
   cardShared: z.boolean().describe('Whether a card was ever shared (#36)'),
+  createdAt: z.iso.datetime().describe('When the profile was created'),
+  analyticsId: z
+    .string()
+    .nullable()
+    .describe('Salted id for analytics after consent (#46); null when analytics is off'),
 });
 
 // The name and avatar (RF-07, #39), the counter mode (RF-25), the visibility of the list

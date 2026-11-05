@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { AnalyticsProvider } from '../analytics/AnalyticsContext';
+import { type Analytics, createAnalytics, type PostHogLike } from '../analytics/analytics';
 import type { CatalogMedia, RelatedMedia } from '../anilist/catalog';
 import type { AniListClient } from '../anilist/client';
 import type { MarkDto } from '../marks-api';
@@ -77,6 +79,7 @@ function renderProfile(
   path: string,
   profile: PublicProfile | 'missing' | 'fail',
   marks: MarkDto[] = [],
+  analytics?: Analytics,
 ) {
   const fetchFn = vi.fn(async (url: string) => {
     if (profile === 'fail') return json({ status: 503 }, 503);
@@ -95,11 +98,12 @@ function renderProfile(
     { initialEntries: [path] },
   );
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  render(
+  const tree = (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
+  render(analytics ? <AnalyticsProvider analytics={analytics}>{tree}</AnalyticsProvider> : tree);
   return { fetchFn, onViewed };
 }
 
@@ -191,5 +195,33 @@ describe('PublicProfileScreen', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(fetchFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('counts the visit once the visitor accepts analytics on this page (#46)', async () => {
+    window.localStorage.clear();
+    const analytics = createAnalytics({
+      key: 'phc_test',
+      storage: window.localStorage,
+      load: async () =>
+        ({
+          init() {},
+          capture() {},
+          identify() {},
+          reset() {},
+          opt_in_capturing() {},
+          opt_out_capturing() {},
+        }) as unknown as PostHogLike,
+      clearCookies: () => {},
+    });
+    const { onViewed } = renderProfile('/@camila', camila, [], analytics);
+    await screen.findByRole('heading', { name: 'Camila' });
+    expect(onViewed).not.toHaveBeenCalled();
+
+    act(() => analytics.grant());
+    await vi.waitFor(() => expect(onViewed).toHaveBeenCalledWith({ listVisibility: 'public' }));
+    act(() => analytics.deny());
+    act(() => analytics.grant());
+    expect(onViewed).toHaveBeenCalledOnce();
+    window.localStorage.clear();
   });
 });

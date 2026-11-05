@@ -6,7 +6,7 @@ import { defaultClient, useFranchise } from '../anilist/hooks';
 import { anilistErrorMessage } from '../anilist/messages';
 import { useOnline } from '../catalog/hooks';
 import type { CatalogItem } from '../catalog/items';
-import { useFranchiseMarks } from '../catalog/use-franchise-marks';
+import { type FranchiseMarkedEvent, useFranchiseMarks } from '../catalog/use-franchise-marks';
 import { FranchiseDetailView } from './FranchiseDetail';
 import { useEntryMarks } from './use-entry-marks';
 
@@ -20,15 +20,17 @@ export function FranchiseScreen({
   client = defaultClient,
   getToken,
   fetchFn = fetch,
+  onFranchiseMarked,
 }: {
   anilistId: number;
   client?: AniListClient | undefined;
   getToken: () => Promise<string | null>;
   fetchFn?: typeof fetch | undefined;
+  onFranchiseMarked?: ((event: FranchiseMarkedEvent) => void) | undefined;
 }) {
   const online = useOnline();
   const query = useFranchise(anilistId, client);
-  const marking = useFranchiseMarks({ client, getToken, fetchFn, onFranchiseMarked: undefined });
+  const marking = useFranchiseMarks({ client, getToken, fetchFn, onFranchiseMarked });
   const entryMarks = useEntryMarks({ getToken, fetchFn });
   const detail = query.data?.detail;
 

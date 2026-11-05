@@ -1805,3 +1805,75 @@ label.sheet__label {
 .profile__value {
   color: var(--color-text-secondary);
 }
+
+/* The consent notice of the landing (Figma 72:351) in the app (#46). */
+.consent {
+  position: fixed;
+  right: 16px;
+  bottom: 96px;
+  left: 16px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 560px;
+  padding: 20px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 16px;
+  background: var(--color-bg-raised);
+  box-shadow: 0 8px 12px rgb(0 0 0 / 0.35);
+}
+
+.consent__title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.consent__text {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.consent__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.consent__more {
+  color: var(--color-text-link);
+}
+
+.consent__buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.consent__button {
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.consent__button:hover {
+  border-color: var(--color-text-link);
+}
+
+@media (min-width: 1024px) {
+  .consent {
+    right: auto;
+    bottom: 32px;
+    left: 32px;
+    width: 560px;
+  }
+}

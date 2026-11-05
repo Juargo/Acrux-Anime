@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { Link } from 'react-router';
+import { AnalyticsRow, useAnalyticsState } from '../analytics/AnalyticsContext';
 import { Avatar } from '../components/Avatar';
 import { useCounterMode } from '../counter/use-counter-mode';
 import { type Profile, saveCounterMode } from '../profile-api';
@@ -19,18 +20,21 @@ export function ProfileScreen({
   fetchFn,
   onSignOut,
   signingOut = false,
+  onCounterModeChanged,
 }: {
   profile: Profile;
   getToken: () => Promise<string | null>;
   fetchFn?: typeof fetch | undefined;
   onSignOut: () => void;
   signingOut?: boolean | undefined;
+  onCounterModeChanged?: ((event: { mode: Profile['counterMode'] }) => void) | undefined;
 }) {
   const [profile] = useOwnProfile({ initial, getToken, fetchFn });
   const [mode, setMode] = useCounterMode(initial.counterMode);
   const [savingMode, setSavingMode] = useState(false);
   const [modeFailed, setModeFailed] = useState(false);
   const titleId = useId();
+  const { analytics } = useAnalyticsState();
   const name = profile.displayName.trim() || 'Sin nombre';
 
   // The same switch as the header counter (RF-25): at once, saved, back if saving fails.
@@ -42,6 +46,7 @@ export function ProfileScreen({
     setModeFailed(false);
     try {
       await saveCounterMode(getToken, next, fetchFn);
+      onCounterModeChanged?.({ mode: next });
     } catch {
       setMode(previous);
       setModeFailed(true);
@@ -105,6 +110,11 @@ export function ProfileScreen({
 
       <h2 className="profile__group">CUENTA Y PRIVACIDAD</h2>
       <ul className="profile__rows">
+        {analytics?.enabled && (
+          <li>
+            <AnalyticsRow />
+          </li>
+        )}
         <li>
           <button className="profile__row" type="button" onClick={onSignOut} disabled={signingOut}>
             <span>Cerrar sesión</span>

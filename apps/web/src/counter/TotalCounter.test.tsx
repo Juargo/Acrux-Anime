@@ -88,6 +88,8 @@ function fakeApi(marks: MarkDto[], options: { failPatch?: boolean } = {}) {
     shownTotal: null,
     shownMode: null,
     cardShared: false,
+    createdAt: '2026-11-01T12:00:00.000Z',
+    analyticsId: null,
   });
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
     if (url.startsWith('/api/v1/me/marks?')) return json({ items: marks, nextCursor: null });

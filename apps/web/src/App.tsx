@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useAnalyticsState } from './analytics/AnalyticsContext';
+import { eventCallbacks } from './analytics/events';
 import { auth } from './auth';
 import { fetchMe, type MeResult } from './profile-api';
 import { Home } from './routes/Home';
@@ -69,6 +71,8 @@ function SignedApp({ client }: { client: AuthClient }) {
     setSignOutFailed(false);
     try {
       await client.signOut();
+      // The next account on this device is another person in analytics (#46).
+      analytics?.forget();
       // The session hook then reports no user and the sign-in screen returns.
       setMe(undefined);
     } catch {
@@ -78,6 +82,16 @@ function SignedApp({ client }: { client: AuthClient }) {
       setSigningOut(false);
     }
   }
+
+  // After consent, PostHog knows the user by the salted id of /me (#46).
+  const { analytics } = useAnalyticsState();
+  const callbacks = useMemo(() => (analytics ? eventCallbacks(analytics) : {}), [analytics]);
+  const profile = me?.status === 'ok' ? me.profile : undefined;
+  useEffect(() => {
+    if (profile) {
+      analytics?.identify({ analyticsId: profile.analyticsId, createdAt: profile.createdAt });
+    }
+  }, [analytics, profile]);
 
   if (session.isPending) return <main className="notice" aria-busy="true" />;
   if (!userId || me?.status === 'signed-out') {
@@ -101,6 +115,7 @@ function SignedApp({ client }: { client: AuthClient }) {
       signingOut={signingOut}
       signOutFailed={signOutFailed}
       getToken={() => sessionToken(client)}
+      {...callbacks}
     />
   );
 }

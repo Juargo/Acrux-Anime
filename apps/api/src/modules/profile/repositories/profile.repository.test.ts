@@ -52,6 +52,7 @@ describe('profile repository', () => {
       shownTotal: null,
       shownMode: null,
       cardShared: false,
+      createdAt: expect.any(Date),
     });
   });
 

@@ -66,6 +66,7 @@ Los objetivos son iniciales (RNF sin metas numéricas, decisión del 26-oct-2026
 ### Privacidad
 
 - PostHog en su nube de la UE; sin cookies ni identificador persistente hasta el consentimiento; sin captura automática de campos de texto; grabación de sesiones desactivada (ADR-0028).
+- Identificación (decisión del 2026-11-05 en #46): tras el consentimiento, la app identifica a la persona con `analyticsId`, un HMAC-SHA256 del `user_id` con el secreto `ANALYTICS_ID_SECRET` que entrega `GET /api/v1/me`; PostHog nunca recibe el `user_id`. Detalle y tablero en `docs/runbooks/analitica.md`.
 - Al borrar la cuenta se borra la persona en PostHog (`account_deleted` → API de PostHog).
 
 ## Consecuencias
