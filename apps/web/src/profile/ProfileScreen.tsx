@@ -20,12 +20,14 @@ export function ProfileScreen({
   fetchFn,
   onSignOut,
   signingOut = false,
+  onCounterModeChanged,
 }: {
   profile: Profile;
   getToken: () => Promise<string | null>;
   fetchFn?: typeof fetch | undefined;
   onSignOut: () => void;
   signingOut?: boolean | undefined;
+  onCounterModeChanged?: ((event: { mode: Profile['counterMode'] }) => void) | undefined;
 }) {
   const [profile] = useOwnProfile({ initial, getToken, fetchFn });
   const [mode, setMode] = useCounterMode(initial.counterMode);
@@ -44,6 +46,7 @@ export function ProfileScreen({
     setModeFailed(false);
     try {
       await saveCounterMode(getToken, next, fetchFn);
+      onCounterModeChanged?.({ mode: next });
     } catch {
       setMode(previous);
       setModeFailed(true);

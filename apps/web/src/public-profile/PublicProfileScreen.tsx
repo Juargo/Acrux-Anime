@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router';
+import { useConsent } from '../analytics/AnalyticsContext';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
 import { Avatar } from '../components/Avatar';
@@ -166,11 +167,18 @@ export function PublicProfileScreen({
   const data = profile.data;
   const viewedRef = useRef(onViewed);
   viewedRef.current = onViewed;
+  const sentRef = useRef(false);
   const listVisibility = data?.listVisibility;
+  // A first-time visitor accepts analytics after the page loads: the visit is counted then,
+  // once per page view (#46). Without analytics in the tree, it is counted on load.
+  const consent = useConsent();
 
   useEffect(() => {
-    if (listVisibility) viewedRef.current?.({ listVisibility });
-  }, [listVisibility]);
+    if (!listVisibility || sentRef.current) return;
+    if (consent !== undefined && consent !== 'granted') return;
+    sentRef.current = true;
+    viewedRef.current?.({ listVisibility });
+  }, [listVisibility, consent]);
 
   useEffect(() => {
     document.title = data
