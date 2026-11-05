@@ -14,9 +14,9 @@ Branch: `feat/editar-perfil` · Delivery: `single-pr` (as #35 to #37) · Test ru
 
 | ID | Specs | Route | Status | Evidence |
 |---|---|---|---|---|
-| T1 | S1, S2, S3 | inline | pending | Migration `avatar_preset` (nullable, CHECK on the six keys; null means Google's); `PATCH /me` accepts `displayName` and `avatarPreset`; `/me`, the public summary and the preview image carry the preset. |
-| T2 | S2, S3 | inline | pending | `Avatar` (preset, Google or initial) wherever an avatar shows; M06 `ProfileEditor` at `/perfil/editar`. |
-| T3 | S4 | inline | pending | `/perfil` (M16) and the "Perfil" tab; M06 in the card flow before the first card; the privacy screen goes back to Perfil. |
+| T1 | S1, S2, S3 | inline | done | `50e8bcd`: migration `20261105000000_avatar_predefinido` (enum `avatar_preset`, nullable); `PATCH /me` accepts `displayName` (trimmed, 1–30 characters counted per code point, no control characters) and `avatarPreset` (null = Google); `/me`, the public summary and the preview image carry it (`domain/avatar.ts`). RED 8 + 3, GREEN; API 209, depcruise, `openapi:check`. Risk: items 1 (migration) and 3 (`/me` grows; `displayName` stops being an unknown PATCH field) |
+| T2 | S2, S3 | inline | done | `9eafac8`: `Avatar` (preset, Google, initial) in the header, the card, the public page; `ProfileEditor` (M06) at `/perfil/editar`; Home keeps the live profile (`useOwnProfile`). RED 7 (incl. `@CA-RF07-01`), GREEN; web 203. Risk: none |
+| T3 | S4 | inline | done | `/perfil` (M16: header, "Editar", "Contar por", "Tu lista", "Cerrar sesión"), "Perfil" tab, privacy goes back to Perfil, M06 in the card flow before the first card; `docs/criterios/RF-07.feature`. RED 6 + 2, GREEN; web 212. Risk: none |
 
 Route evidence: one feature in dependent deliveries (API, then the editor, then the tab and the card flow); no writer trigger holds.
 
@@ -25,3 +25,4 @@ Route evidence: one feature in dependent deliveries (API, then the editor, then 
 - L1 (2026-11-04, stakeholder): "vamos" (start #39 after #37 merged).
 - L2 (2026-11-04, stakeholder): "Perfil tab + M06 (Recommended)".
 - L3 (2026-11-04, assumptions): The name is trimmed, 1 to 30 characters (M06 "5/30"), without control characters or line breaks; the handle does not change with it (S9 of `odd/tasks/perfil-publico.md`). Presets `violeta`, `verde`, `amarillo`, `coral`, `noche`, `lavanda` use the app's color tokens with the Acrux sparkle; a preset wins over Google's avatar, and choosing Google's sets it back to null. "Contar por" in Perfil switches the mode like the header counter. The header keeps its "Cerrar sesión" button.
+- L4 (2026-11-04): T1–T3 done. The preview of this PR needs `db:deploy` on Neon `dev` (`ep-calm-night-b59xx395`) for `20261105000000_avatar_predefinido`, as L10 of `odd/tasks/perfil-publico.md` explains.

@@ -1726,3 +1726,82 @@ label.sheet__label {
   color: var(--color-text-secondary);
   font-size: 13px;
 }
+
+/* Figma M16 · Perfil y ajustes (#39). */
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px 0;
+}
+
+.profile__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile__avatar {
+  width: 56px;
+  height: 56px;
+  font-size: 24px;
+}
+
+.profile__who {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile__name {
+  margin: 0;
+  font-size: 22px;
+}
+
+.profile__link {
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile__group {
+  margin: 16px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.profile__rows {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: 16px;
+  list-style: none;
+}
+
+.profile__rows li + li {
+  border-top: 1px solid var(--color-border-default);
+}
+
+.profile__row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.profile__value {
+  color: var(--color-text-secondary);
+}

@@ -207,7 +207,7 @@ describe('MyListScreen', () => {
     expect(within(alert).getByRole('button', { name: 'Reintentar' })).toBeTruthy();
   });
 
-  it('reaches the list from the bar with Explorar, Mi lista and Tarjeta (S5, #36)', async () => {
+  it('reaches the list from the bar with Explorar, Mi lista, Tarjeta and Perfil (S5, #36, #39)', async () => {
     renderList([]);
     const nav = screen.getByRole('navigation', { name: 'Principal' });
     const links = within(nav).getAllByRole('link');
@@ -215,6 +215,7 @@ describe('MyListScreen', () => {
       ['Explorar', '/'],
       ['Mi lista', '/mi-lista'],
       ['Tarjeta', '/tarjeta'],
+      ['Perfil', '/perfil'],
     ]);
     expect(within(nav).getByRole('link', { name: 'Mi lista' }).getAttribute('aria-current')).toBe(
       'page',

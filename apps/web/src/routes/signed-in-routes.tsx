@@ -5,6 +5,7 @@ import { FranchiseScreen } from '../franchise/FranchiseScreen';
 import { MyListScreen } from '../my-list/MyListScreen';
 import { PrivacyScreen } from '../profile/PrivacyScreen';
 import { ProfileEditor } from '../profile/ProfileEditor';
+import { ProfileScreen } from '../profile/ProfileScreen';
 import { useSignedIn } from './signed-in-context';
 
 function CatalogPage() {
@@ -36,6 +37,10 @@ function PrivacyPage() {
   return <PrivacyScreen {...useSignedIn()} />;
 }
 
+function ProfilePage() {
+  return <ProfileScreen {...useSignedIn()} />;
+}
+
 function ProfileEditorPage() {
   const navigate = useNavigate();
   return (
@@ -54,5 +59,6 @@ export const signedInRoutes: RouteObject[] = [
   { path: 'mi-lista', element: <MyListPage /> },
   { path: 'tarjeta', element: <CardPage /> },
   { path: 'privacidad', element: <PrivacyPage /> },
+  { path: 'perfil', element: <ProfilePage /> },
   { path: 'perfil/editar', element: <ProfileEditorPage /> },
 ];

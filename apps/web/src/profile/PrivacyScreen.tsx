@@ -86,8 +86,8 @@ export function PrivacyScreen({
 
   return (
     <section className="privacy" aria-labelledby={titleId}>
-      <Link className="card-preview__back" to="/tarjeta">
-        ‹ Tu tarjeta
+      <Link className="card-preview__back" to="/perfil">
+        ‹ Perfil
       </Link>
       <h1 className="card-step__title" id={titleId}>
         ¿Quién ve tu lista?

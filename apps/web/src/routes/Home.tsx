@@ -78,6 +78,8 @@ export function Home(props: {
             onCardGenerated: props.onCardGenerated,
             onCardShared: props.onCardShared,
             onListMadePublic: props.onListMadePublic,
+            onSignOut: props.onSignOut,
+            signingOut: props.signingOut,
           } satisfies SignedInContext
         }
       />

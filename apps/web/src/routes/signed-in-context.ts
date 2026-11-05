@@ -17,6 +17,9 @@ export interface SignedInContext {
   onCardGenerated?: ((event: CardGeneratedEvent) => void) | undefined;
   onCardShared?: ((event: CardSharedEvent) => void) | undefined;
   onListMadePublic?: ((event: ListMadePublicEvent) => void) | undefined;
+  // Perfil (M16) signs out like the header button.
+  onSignOut: () => void;
+  signingOut: boolean;
 }
 
 export const useSignedIn = () => useOutletContext<SignedInContext>();

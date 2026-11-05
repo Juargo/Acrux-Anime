@@ -138,6 +138,8 @@ function renderAt(
     client,
     fetchFn: fetchFn as unknown as typeof fetch,
     counterMode: 'franchise',
+    onSignOut: () => {},
+    signingOut: false,
     profile: {
       displayName: 'Camila',
       avatarUrl: null,

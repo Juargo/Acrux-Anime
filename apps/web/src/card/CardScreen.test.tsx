@@ -90,7 +90,8 @@ const BASE: Profile = {
   handle: 'camila',
   shownTotal: null,
   shownMode: null,
-  cardShared: false,
+  // Most tests share again; the first card asks for the name and avatar first (#39).
+  cardShared: true,
 };
 
 function renderCard(
@@ -336,6 +337,10 @@ describe('CardScreen', () => {
 
   describe('the link to the public profile (#37)', () => {
     async function shareOnce(user: ReturnType<typeof userEvent.setup>) {
+      const step = await screen.findByRole('heading', { name: /Así aparecerás|Tu tarjeta/ });
+      if (step.textContent === 'Así aparecerás en tu tarjeta') {
+        await user.click(screen.getByRole('button', { name: 'Continuar' }));
+      }
       const share = await screen.findByRole('button', { name: 'Compartir' });
       await vi.waitFor(() => expect((share as HTMLButtonElement).disabled).toBe(false));
       await user.click(share);
@@ -359,7 +364,7 @@ describe('CardScreen', () => {
 
     it('@CA-RF30-02 offers to make my private list public when I share my first card', async () => {
       const user = userEvent.setup();
-      const { patches, onListMadePublic } = renderCard([mark(20, 'seen')]);
+      const { patches, onListMadePublic } = renderCard([mark(20, 'seen')], { cardShared: false });
 
       await shareOnce(user);
 
@@ -381,7 +386,7 @@ describe('CardScreen', () => {
 
     it('closes the offer with "Ahora no", keeping the list private', async () => {
       const user = userEvent.setup();
-      const { patches } = renderCard([mark(20, 'seen')]);
+      const { patches } = renderCard([mark(20, 'seen')], { cardShared: false });
 
       await shareOnce(user);
       await user.click(await screen.findByRole('button', { name: 'Ahora no' }));
@@ -403,7 +408,10 @@ describe('CardScreen', () => {
 
     it('does not offer it for a public list, but remembers the first card', async () => {
       const user = userEvent.setup();
-      const { patches } = renderCard([mark(20, 'seen')], { listVisibility: 'public' });
+      const { patches } = renderCard([mark(20, 'seen')], {
+        listVisibility: 'public',
+        cardShared: false,
+      });
 
       await shareOnce(user);
 
@@ -414,7 +422,7 @@ describe('CardScreen', () => {
     it('does not count a closed share sheet as the first card', async () => {
       const user = userEvent.setup();
       vi.mocked(shareOrDownload).mockResolvedValue('cancelled');
-      const { patches } = renderCard([mark(20, 'seen')]);
+      const { patches } = renderCard([mark(20, 'seen')], { cardShared: false });
 
       await shareOnce(user);
 
@@ -424,7 +432,7 @@ describe('CardScreen', () => {
 
     it('says so when making the list public fails', async () => {
       const user = userEvent.setup();
-      renderCard([mark(20, 'seen')], {}, { failPatch: true });
+      renderCard([mark(20, 'seen')], { cardShared: false }, { failPatch: true });
 
       await shareOnce(user);
       await user.click(await screen.findByRole('button', { name: 'Hacer pública' }));
@@ -432,6 +440,41 @@ describe('CardScreen', () => {
       expect((await screen.findByRole('alert')).textContent).toContain(
         'No pudimos guardar. Vuelve a intentarlo.',
       );
+    });
+  });
+
+  describe('the name and avatar before the first card (#39, Figma M06)', () => {
+    it('asks for them between "¿Qué estás viendo ahora?" and the preview', async () => {
+      const user = userEvent.setup();
+      const { patches } = renderCard([mark(20, 'watching')], { cardShared: false });
+
+      await user.click(await screen.findByRole('button', { name: 'Continuar (1)' }));
+      await screen.findByRole('heading', { name: 'Así aparecerás en tu tarjeta' });
+      await user.click(screen.getByRole('radio', { name: 'Avatar coral' }));
+      await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+      await screen.findByRole('heading', { name: 'Tu tarjeta' });
+      expect(card().querySelector('.avatar--coral')).not.toBeNull();
+      expect(patches).toEqual([{ avatarPreset: 'coral' }]);
+    });
+
+    it('asks for them even with nothing in Viendo, and goes back to the question from them', async () => {
+      const user = userEvent.setup();
+      renderCard([mark(20, 'watching')], { cardShared: false });
+
+      await user.click(await screen.findByRole('button', { name: 'Continuar (1)' }));
+      await user.click(await screen.findByRole('button', { name: '‹ Volver' }));
+      await screen.findByRole('heading', { name: '¿Qué estás viendo ahora?' });
+
+      cleanup();
+      renderCard([mark(20, 'seen')], { cardShared: false });
+      await screen.findByRole('heading', { name: 'Así aparecerás en tu tarjeta' });
+    });
+
+    it('does not ask after the first card', async () => {
+      renderCard([mark(20, 'seen')]);
+      await screen.findByRole('heading', { name: 'Tu tarjeta' });
+      expect(screen.queryByRole('heading', { name: 'Así aparecerás en tu tarjeta' })).toBeNull();
     });
   });
 });
