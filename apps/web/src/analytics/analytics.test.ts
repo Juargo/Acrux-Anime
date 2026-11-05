@@ -168,4 +168,40 @@ describe('analytics', () => {
     analytics.deny();
     expect(listener).toHaveBeenCalledOnce();
   });
+
+  it('keeps the choice for the page view when storage is blocked', async () => {
+    const throwing = {
+      getItem: () => {
+        throw new Error('blocked');
+      },
+      setItem: () => {
+        throw new Error('blocked');
+      },
+      removeItem: () => {},
+      key: () => null,
+      length: 0,
+      clear: () => {},
+    } as unknown as Storage;
+    const { client, load } = fakePostHog();
+    const analytics = createAnalytics({
+      key: 'phc_test',
+      storage: throwing,
+      load,
+      clearCookies: () => {},
+    });
+    analytics.grant();
+    await settle();
+    expect(analytics.consent()).toBe('granted');
+    expect(client.init).toHaveBeenCalledOnce();
+    analytics.deny();
+    expect(analytics.consent()).toBe('denied');
+  });
+
+  it('forgets the person on sign-out, keeping the consent', async () => {
+    const { analytics, client, data } = setup('granted');
+    await settle();
+    analytics.forget();
+    expect(client.reset).toHaveBeenCalledOnce();
+    expect(data.get(CONSENT_KEY)).toBe('granted');
+  });
 });

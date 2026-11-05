@@ -28,6 +28,34 @@ export interface Identity {
   createdAt: string;
 }
 
+// What posthog-js hands to before_send; null drops the event.
+export interface CaptureEvent {
+  event: string;
+  properties: Record<string, unknown>;
+  $set?: Record<string, unknown>;
+  $set_once?: Record<string, unknown>;
+}
+
+// "/@camila" → "/@:handle" in any URL or path: a public profile's handle is the owner's.
+const HANDLE_PATH = /\/@[a-z0-9_]{3,20}(?=[/?#]|$)/gi;
+
+function scrub(values: Record<string, unknown> | undefined) {
+  if (!values) return;
+  // posthog-js adds document.title, which shows a profile's name (ADR-0030: never names).
+  delete values.title;
+  for (const [name, value] of Object.entries(values)) {
+    if (typeof value === 'string') values[name] = value.replace(HANDLE_PATH, '/@:handle');
+  }
+}
+
+// Every event, the SDK's own included, leaves the device without names or handles.
+export function scrubEvent(event: CaptureEvent): CaptureEvent {
+  scrub(event.properties);
+  scrub(event.$set);
+  scrub(event.$set_once);
+  return event;
+}
+
 export interface Analytics {
   // False without a project key: the banner never shows and nothing loads.
   readonly enabled: boolean;
@@ -36,6 +64,8 @@ export interface Analytics {
   deny(): void;
   identify(identity: Identity): void;
   capture(event: string, properties?: Record<string, unknown>): void;
+  // On sign-out: the next account on this device is another person; the consent stays.
+  forget(): void;
   subscribe(listener: () => void): () => void;
 }
 
@@ -78,8 +108,12 @@ export function createAnalytics(options: {
   storage: Storage | undefined;
   load: () => Promise<PostHogLike>;
   clearCookies: (prefix: string) => void;
+  // Tests look at what would be sent; null drops it.
+  beforeSend?: (event: CaptureEvent) => CaptureEvent | null;
 }): Analytics {
-  const { key, storage, load, clearCookies } = options;
+  const { key, storage, load, clearCookies, beforeSend } = options;
+  // The choice of this page view when storage is blocked (it then lasts only for the page).
+  let memory: Consent = 'undecided';
   const listeners = new Set<() => void>();
   let client: PostHogLike | undefined;
   let loading = false;
@@ -87,7 +121,11 @@ export function createAnalytics(options: {
 
   const consent = (): Consent => {
     const value = read(storage, CONSENT_KEY);
-    return value === 'granted' || value === 'denied' ? value : 'undecided';
+    return value === 'granted' || value === 'denied' ? value : memory;
+  };
+  const choose = (value: Exclude<Consent, 'undecided'>) => {
+    memory = value;
+    write(storage, CONSENT_KEY, value);
   };
   const active = () => client !== undefined && consent() === 'granted';
   const notify = () => {
@@ -111,7 +149,14 @@ export function createAnalytics(options: {
       const loaded = await load();
       // The user may have revoked while the SDK was loading.
       if (consent() !== 'granted') return;
-      loaded.init(key, OPTIONS);
+      loaded.init(key, {
+        ...OPTIONS,
+        before_send: (event: CaptureEvent | null) => {
+          if (!event) return null;
+          const clean = scrubEvent(event);
+          return beforeSend ? beforeSend(clean) : clean;
+        },
+      });
       client = loaded;
       applyIdentity();
     } finally {
@@ -119,10 +164,11 @@ export function createAnalytics(options: {
     }
   }
 
-  // Revoking stops capture, forgets the person and removes what PostHog stored here.
+  // Revoking forgets the person, then stops capture: reset() clears the opt-out, so it goes
+  // first. What PostHog stored here is removed.
   function stop() {
-    client?.opt_out_capturing();
     client?.reset();
+    client?.opt_out_capturing();
     if (storage) {
       for (let index = storage.length - 1; index >= 0; index -= 1) {
         const name = storage.key(index);
@@ -140,7 +186,7 @@ export function createAnalytics(options: {
     grant: () => {
       if (!key) return;
       const wasOptedOut = client !== undefined && consent() === 'denied';
-      write(storage, CONSENT_KEY, 'granted');
+      choose('granted');
       notify();
       if (wasOptedOut) {
         client?.opt_in_capturing();
@@ -148,7 +194,7 @@ export function createAnalytics(options: {
       } else void start();
     },
     deny: () => {
-      write(storage, CONSENT_KEY, 'denied');
+      choose('denied');
       notify();
       stop();
     },
@@ -158,6 +204,10 @@ export function createAnalytics(options: {
     },
     capture: (event, properties = {}) => {
       if (active()) client?.capture(event, properties);
+    },
+    forget: () => {
+      identity = undefined;
+      if (active()) client?.reset();
     },
     subscribe: (listener) => {
       listeners.add(listener);

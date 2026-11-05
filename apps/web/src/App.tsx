@@ -71,6 +71,8 @@ function SignedApp({ client }: { client: AuthClient }) {
     setSignOutFailed(false);
     try {
       await client.signOut();
+      // The next account on this device is another person in analytics (#46).
+      analytics?.forget();
       // The session hook then reports no user and the sign-in screen returns.
       setMe(undefined);
     } catch {

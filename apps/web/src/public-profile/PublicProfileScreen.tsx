@@ -176,6 +176,10 @@ export function PublicProfileScreen({
     document.title = data
       ? `${data.displayName.trim() || 'Sin nombre'} (@${data.handle}) · Acrux`
       : 'Acrux';
+    // The next screen must not keep someone's name in the title (analytics sends it, #46).
+    return () => {
+      document.title = 'Acrux';
+    };
   }, [data]);
 
   let body: React.ReactNode;
