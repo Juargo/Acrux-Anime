@@ -34,6 +34,8 @@ La web app envía a PostHog (nube de la UE) los eventos de ADR-0030 solo despué
 
 ## Tablero «Beta Acrux» (ADR-0030, RN-M1 a RN-M3)
 
+Creado el 2026-11-05 en el proyecto «Acrux» (id 328147, nube de la UE), que ya descarta las IP de los clientes: [tablero](https://eu.posthog.com/project/328147/dashboard/1086062), acciones [Uso activo](https://eu.posthog.com/project/328147/data-management/actions/181687) y [Vuelve a marcar o compartir](https://eu.posthog.com/project/328147/data-management/actions/181688). Para rehacerlo en otro proyecto, estas son sus definiciones.
+
 Crear en PostHog un tablero con estos *insights*. La vista previa y producción comparten proyecto: filtrar por `$host` (`app.acruxanime.com` o el dominio de la vista previa) para separarlas.
 
 | Insight | Tipo | Definición |
