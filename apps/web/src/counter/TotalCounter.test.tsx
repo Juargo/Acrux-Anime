@@ -80,6 +80,7 @@ function fakeApi(marks: MarkDto[], options: { failPatch?: boolean } = {}) {
   const profile = (): Profile => ({
     displayName: 'Camila',
     avatarUrl: null,
+    avatarPreset: null,
     locale: 'es',
     listVisibility: 'private',
     counterMode,

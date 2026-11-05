@@ -141,6 +141,7 @@ function renderAt(
     profile: {
       displayName: 'Camila',
       avatarUrl: null,
+      avatarPreset: null,
       locale: 'es',
       listVisibility: 'private',
       counterMode: 'franchise',

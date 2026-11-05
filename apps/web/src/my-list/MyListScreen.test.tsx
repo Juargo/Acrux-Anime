@@ -88,6 +88,7 @@ function renderList(marks: MarkDto[] | 'fail') {
   const profile = {
     displayName: 'Camila',
     avatarUrl: null,
+    avatarPreset: null,
     locale: 'es',
     listVisibility: 'private' as const,
     counterMode: 'franchise' as const,

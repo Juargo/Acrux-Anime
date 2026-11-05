@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
+import { Avatar } from '../components/Avatar';
 import { Logo } from '../components/Logo';
 import { useCrawledFranchises } from '../counter/use-marked-franchises';
 import { type ListRow, myList } from '../my-list/items';
@@ -209,23 +210,14 @@ export function PublicProfileScreen({
     body = (
       <>
         <section className="public-profile__summary">
-          {data.avatarUrl ? (
-            <img
-              className="public-profile__avatar"
-              src={data.avatarUrl}
-              alt={name}
-              width={96}
-              height={96}
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <span
-              className="public-profile__avatar public-profile__avatar--initial"
-              aria-hidden="true"
-            >
-              {name.charAt(0).toUpperCase()}
-            </span>
-          )}
+          <Avatar
+            name={name}
+            avatarUrl={data.avatarUrl}
+            avatarPreset={data.avatarPreset}
+            size={96}
+            className="public-profile__avatar"
+            decorative={!data.avatarUrl && !data.avatarPreset}
+          />
           <h1 className="public-profile__name">{name}</h1>
           <p className="public-profile__handle">@{data.handle}</p>
           {data.shownTotal !== null && (

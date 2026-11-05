@@ -5,6 +5,7 @@ export interface PublicProfile {
   handle: string;
   displayName: string;
   avatarUrl: string | null;
+  avatarPreset: import('../profile-api').AvatarPreset | null;
   listVisibility: 'private' | 'public';
   // The owner's last counter (L3 of odd/tasks/perfil-publico.md), null until they open the app.
   shownTotal: number | null;

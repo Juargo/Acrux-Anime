@@ -1,8 +1,10 @@
 import { Outlet } from 'react-router';
 import type { AniListClient } from '../anilist/client';
 import type { CardGeneratedEvent, CardSharedEvent } from '../card/CardScreen';
+import { Avatar } from '../components/Avatar';
 import { type CounterModeChangedEvent, TotalCounter } from '../counter/TotalCounter';
 import type { ListMadePublicEvent } from '../profile/PrivacyScreen';
+import { useOwnProfile } from '../profile/use-own-profile';
 import type { Profile } from '../profile-api';
 import { MainNav } from './MainNav';
 import type { SignedInContext } from './signed-in-context';
@@ -23,9 +25,10 @@ export function Home(props: {
   onCardShared?: ((event: CardSharedEvent) => void) | undefined;
   onListMadePublic?: ((event: ListMadePublicEvent) => void) | undefined;
 }) {
-  const { profile, getToken, client, fetchFn } = props;
+  const { getToken, client, fetchFn } = props;
+  // The profile App loaded, then what the screens save (name, avatar, privacy).
+  const [profile] = useOwnProfile({ initial: props.profile, getToken, fetchFn });
   const name = profile.displayName || 'Sin nombre';
-  const initial = profile.displayName.trim().charAt(0).toUpperCase() || '?';
   return (
     <main className="home">
       <header className="home__bar">
@@ -42,20 +45,13 @@ export function Home(props: {
           }
         />
         <div className="home__account">
-          {profile.avatarUrl ? (
-            <img
-              className="home__avatar"
-              src={profile.avatarUrl}
-              alt={name}
-              width={40}
-              height={40}
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <span className="home__avatar home__avatar--initial" role="img" aria-label={name}>
-              {initial}
-            </span>
-          )}
+          <Avatar
+            name={name}
+            avatarUrl={profile.avatarUrl}
+            avatarPreset={profile.avatarPreset}
+            size={40}
+            className="home__avatar"
+          />
           <button
             className="button button--secondary"
             type="button"

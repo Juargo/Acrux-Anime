@@ -297,6 +297,7 @@ export function CardScreen({
           name={content.name}
           initial={content.initial}
           avatarUrl={content.avatarUrl}
+          avatarPreset={content.avatarPreset}
           total={content.total}
           label={content.label}
           covers={content.covers}
