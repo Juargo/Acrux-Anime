@@ -4,8 +4,17 @@ import { type AniListClient, createAniListClient } from './client';
 import { fetchFranchise } from './franchise';
 import { fetchMediaByIds } from './queries';
 
+let rateLimitListener: ((details: { attempt: number }) => void) | undefined;
+
+// anilist_rate_limited (ADR-0024, ADR-0030): main.tsx connects it to analytics.
+export function onAniListRateLimited(listener: (details: { attempt: number }) => void) {
+  rateLimitListener = listener;
+}
+
 // One client per tab, so the X-RateLimit-Remaining pause covers every query.
-export const defaultClient: AniListClient = createAniListClient();
+export const defaultClient: AniListClient = createAniListClient({
+  onRateLimited: (details) => rateLimitListener?.(details),
+});
 
 // Lists and the share card ask for their ids in one batch query (ADR-0024, rule 3).
 export function useMediaByIds(ids: number[], client: AniListClient = defaultClient) {

@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { Link } from 'react-router';
+import { AnalyticsRow, useAnalyticsState } from '../analytics/AnalyticsContext';
 import { Avatar } from '../components/Avatar';
 import { useCounterMode } from '../counter/use-counter-mode';
 import { type Profile, saveCounterMode } from '../profile-api';
@@ -31,6 +32,7 @@ export function ProfileScreen({
   const [savingMode, setSavingMode] = useState(false);
   const [modeFailed, setModeFailed] = useState(false);
   const titleId = useId();
+  const { analytics } = useAnalyticsState();
   const name = profile.displayName.trim() || 'Sin nombre';
 
   // The same switch as the header counter (RF-25): at once, saved, back if saving fails.
@@ -105,6 +107,11 @@ export function ProfileScreen({
 
       <h2 className="profile__group">CUENTA Y PRIVACIDAD</h2>
       <ul className="profile__rows">
+        {analytics?.enabled && (
+          <li>
+            <AnalyticsRow />
+          </li>
+        )}
         <li>
           <button className="profile__row" type="button" onClick={onSignOut} disabled={signingOut}>
             <span>Cerrar sesión</span>

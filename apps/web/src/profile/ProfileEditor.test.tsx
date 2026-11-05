@@ -31,6 +31,8 @@ const base: Profile = {
   shownTotal: 48,
   shownMode: 'franchise',
   cardShared: true,
+  createdAt: '2026-11-01T12:00:00.000Z',
+  analyticsId: null,
 };
 
 function renderEditor(options: { profile?: Partial<Profile>; failPatch?: boolean } = {}) {

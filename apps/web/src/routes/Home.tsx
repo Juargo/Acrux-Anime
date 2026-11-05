@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router';
 import type { AniListClient } from '../anilist/client';
 import type { CardGeneratedEvent, CardSharedEvent } from '../card/CardScreen';
+import type { FranchiseMarkedEvent } from '../catalog/use-franchise-marks';
 import { Avatar } from '../components/Avatar';
 import { type CounterModeChangedEvent, TotalCounter } from '../counter/TotalCounter';
 import type { ListMadePublicEvent } from '../profile/PrivacyScreen';
@@ -24,6 +25,7 @@ export function Home(props: {
   onCardGenerated?: ((event: CardGeneratedEvent) => void) | undefined;
   onCardShared?: ((event: CardSharedEvent) => void) | undefined;
   onListMadePublic?: ((event: ListMadePublicEvent) => void) | undefined;
+  onFranchiseMarked?: ((event: FranchiseMarkedEvent) => void) | undefined;
 }) {
   const { getToken, client, fetchFn } = props;
   // The profile App loaded, then what the screens save (name, avatar, privacy).
@@ -78,6 +80,7 @@ export function Home(props: {
             onCardGenerated: props.onCardGenerated,
             onCardShared: props.onCardShared,
             onListMadePublic: props.onListMadePublic,
+            onFranchiseMarked: props.onFranchiseMarked,
             onSignOut: props.onSignOut,
             signingOut: props.signingOut,
           } satisfies SignedInContext

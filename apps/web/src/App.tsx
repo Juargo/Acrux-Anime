@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useAnalyticsState } from './analytics/AnalyticsContext';
+import { eventCallbacks } from './analytics/events';
 import { auth } from './auth';
 import { fetchMe, type MeResult } from './profile-api';
 import { Home } from './routes/Home';
@@ -79,6 +81,16 @@ function SignedApp({ client }: { client: AuthClient }) {
     }
   }
 
+  // After consent, PostHog knows the user by the salted id of /me (#46).
+  const { analytics } = useAnalyticsState();
+  const callbacks = useMemo(() => (analytics ? eventCallbacks(analytics) : {}), [analytics]);
+  const profile = me?.status === 'ok' ? me.profile : undefined;
+  useEffect(() => {
+    if (profile) {
+      analytics?.identify({ analyticsId: profile.analyticsId, createdAt: profile.createdAt });
+    }
+  }, [analytics, profile]);
+
   if (session.isPending) return <main className="notice" aria-busy="true" />;
   if (!userId || me?.status === 'signed-out') {
     return <SignIn onContinue={signIn} busy={signingIn} failed={signInFailed} />;
@@ -101,6 +113,7 @@ function SignedApp({ client }: { client: AuthClient }) {
       signingOut={signingOut}
       signOutFailed={signOutFailed}
       getToken={() => sessionToken(client)}
+      {...callbacks}
     />
   );
 }
