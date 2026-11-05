@@ -43,7 +43,9 @@ export function createContainer(source: Record<string, string | undefined>): Con
   const env = parseEnv(source);
   const prisma = env.DATABASE_URL ? createPrismaClient(env.DATABASE_URL) : undefined;
   const profileRepository = prisma ? createProfileRepository(prisma) : undefined;
-  const profileService = profileRepository ? createProfileService(profileRepository) : undefined;
+  const profileService = profileRepository
+    ? createProfileService(profileRepository, { analyticsSecret: env.ANALYTICS_ID_SECRET })
+    : undefined;
   const marksRepository = prisma ? createMarksRepository(prisma) : undefined;
   const marksService =
     marksRepository && profileService

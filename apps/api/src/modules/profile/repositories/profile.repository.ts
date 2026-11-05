@@ -20,6 +20,8 @@ export interface ProfileView {
   shownMode: CounterMode | null;
   // Whether a card was ever shared (#36): the first share offers to make the list public.
   cardShared: boolean;
+  // When the profile was created: signup_completed is timestamped with it (#46).
+  createdAt: Date;
 }
 
 // What a visitor may read of someone else's profile; the list stays behind listVisibility.
@@ -56,6 +58,7 @@ const SELECT = {
   shownTotal: true,
   shownMode: true,
   cardSharedAt: true,
+  createdAt: true,
 } as const;
 
 type Row = Prisma.ProfileGetPayload<{ select: typeof SELECT }>;

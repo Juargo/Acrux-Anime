@@ -17,6 +17,9 @@ const envSchema = z.object({
   // Upstash Redis for rate limits (#27). Without both, every request passes.
   UPSTASH_REDIS_REST_URL: z.preprocess(emptyAsUnset, z.url().optional()),
   UPSTASH_REDIS_REST_TOKEN: z.preprocess(emptyAsUnset, z.string().optional()),
+  // Key of the salted id PostHog knows users by (#46). Without it, /me gives no analyticsId
+  // and the app captures anonymously.
+  ANALYTICS_ID_SECRET: z.preprocess(emptyAsUnset, z.string().min(32).optional()),
   // Set by Vercel on every deployment.
   VERCEL_ENV: z.preprocess(emptyAsUnset, z.string().default('development')),
   VERCEL_GIT_COMMIT_SHA: z.preprocess(emptyAsUnset, z.string().optional()),
