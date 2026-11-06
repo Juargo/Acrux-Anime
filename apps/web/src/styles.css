@@ -1806,6 +1806,50 @@ label.sheet__label {
   color: var(--color-text-secondary);
 }
 
+.profile__row--danger {
+  color: var(--color-status-error);
+}
+
+/* "Borrar tu cuenta" (Figma M19, #38). */
+.button--danger {
+  background: var(--color-status-error);
+  color: var(--color-text-on-accent);
+}
+
+.delete-account__facts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.delete-account__facts p {
+  margin: 0;
+}
+
+.delete-account__kept,
+.delete-account__note {
+  color: var(--color-text-secondary);
+}
+
+.delete-account__note {
+  font-size: 13px;
+}
+
+.delete-account__form,
+.delete-account__reauth {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.delete-account__reauth p {
+  margin: 0;
+}
+
+.delete-account__input {
+  border-color: var(--color-status-error);
+}
+
 /* The consent notice of the landing (Figma 72:351) in the app (#46). */
 .consent {
   position: fixed;

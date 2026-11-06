@@ -33,6 +33,7 @@ function renderProfile(options: { failPatch?: boolean } = {}) {
   const patches: unknown[] = [];
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
     if (url.startsWith('/api/v1/me/marks?')) return json({ items: [], nextCursor: null });
+    if (url === '/api/v1/me/export') return json({ profile: {}, marks: [] });
     if (url === '/api/v1/me' && init?.method === 'PATCH') {
       const body = JSON.parse(init.body as string);
       if ('shown' in body) return json(base);
@@ -78,6 +79,37 @@ const page = () => screen.getByRole('region', { name: 'Perfil' });
 const row = (name: RegExp) => within(page()).getByRole('link', { name });
 
 describe('ProfileScreen', () => {
+  it('downloads my data as a JSON file (#38)', async () => {
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn(() => 'blob:acrux');
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    // jsdom has no object URLs.
+    const original = { create: URL.createObjectURL, revoke: URL.revokeObjectURL };
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = vi.fn();
+    renderProfile();
+    await user.click(
+      await within(await screen.findByRole('region', { name: 'Perfil' })).findByRole('button', {
+        name: /Descargar mis datos/,
+      }),
+    );
+    await vi.waitFor(() => expect(click).toHaveBeenCalledTimes(1));
+    expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect((click.mock.contexts[0] as HTMLAnchorElement).download).toBe('acrux-datos.json');
+    click.mockRestore();
+    URL.createObjectURL = original.create;
+    URL.revokeObjectURL = original.revoke;
+  });
+
+  it('opens "Borrar tu cuenta" from "Borrar cuenta" (#38)', async () => {
+    const user = userEvent.setup();
+    const { router } = renderProfile();
+    await screen.findByRole('region', { name: 'Perfil' });
+    await user.click(row(/Borrar cuenta/));
+    expect(router.state.location.pathname).toBe('/perfil/borrar-cuenta');
+    await screen.findByRole('heading', { name: 'Borrar tu cuenta' });
+  });
+
   it('shows who I am, my link and "Editar" (Figma M16)', async () => {
     renderProfile();
     await screen.findByRole('region', { name: 'Perfil' });

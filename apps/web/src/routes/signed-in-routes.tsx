@@ -3,6 +3,7 @@ import { CardScreen } from '../card/CardScreen';
 import { CatalogScreen } from '../catalog/CatalogScreen';
 import { FranchiseScreen } from '../franchise/FranchiseScreen';
 import { MyListScreen } from '../my-list/MyListScreen';
+import { DeleteAccountScreen } from '../profile/DeleteAccountScreen';
 import { PrivacyScreen } from '../profile/PrivacyScreen';
 import { ProfileEditor } from '../profile/ProfileEditor';
 import { ProfileScreen } from '../profile/ProfileScreen';
@@ -41,6 +42,19 @@ function ProfilePage() {
   return <ProfileScreen {...useSignedIn()} />;
 }
 
+function DeleteAccountPage() {
+  const context = useSignedIn();
+  return (
+    <DeleteAccountScreen
+      getToken={context.getToken}
+      fetchFn={context.fetchFn}
+      sessionStartedAt={context.sessionStartedAt}
+      onAccountDeleted={() => context.onAccountDeleted?.()}
+      onReauthenticate={() => context.onReauthenticate?.()}
+    />
+  );
+}
+
 function ProfileEditorPage() {
   const navigate = useNavigate();
   return (
@@ -61,4 +75,5 @@ export const signedInRoutes: RouteObject[] = [
   { path: 'privacidad', element: <PrivacyPage /> },
   { path: 'perfil', element: <ProfilePage /> },
   { path: 'perfil/editar', element: <ProfileEditorPage /> },
+  { path: 'perfil/borrar-cuenta', element: <DeleteAccountPage /> },
 ];
