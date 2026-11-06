@@ -1,6 +1,7 @@
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { version } from './package.json';
 
 // The deploy job sets these: maps go to Sentry and never to the published files.
 const { SENTRY_AUTH_TOKEN: authToken, SENTRY_ORG: org, SENTRY_PROJECT: project } = process.env;
@@ -17,10 +18,15 @@ const sentry =
       ]
     : [];
 
+// "Acerca de" shows it (#45). Vercel and GitHub Actions expose the commit at build time.
+const commit = (process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA ?? '').slice(0, 7);
+const appVersion = commit ? `${version} (${commit})` : `${version} (local)`;
+
 // SPA served as static files on Vercel; /api goes to the Express function (ADR-0020).
 // Locally, /api is proxied to the API dev server (pnpm --filter @acrux/api dev).
 export default defineConfig({
   plugins: [react(), ...sentry],
+  define: { __APP_VERSION__: JSON.stringify(appVersion) },
   build: { sourcemap: sentry.length > 0 ? 'hidden' : false },
   server: {
     proxy: { '/api': 'http://localhost:3001' },

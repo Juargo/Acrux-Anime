@@ -12,7 +12,7 @@ const MODE_LABELS = { franchise: 'Franquicias', entry: 'Entradas' } as const;
 /**
  * Container: "Perfil y ajustes" (Figma M16) with what works today (S4 of
  * odd/tasks/editar-perfil.md): who you are, "Editar", "Contar por", "Tu lista" and
- * "Cerrar sesión", plus "Descargar mis datos" and "Borrar cuenta" (#38). Idioma, Títulos,
+ * "Cerrar sesión", plus "Descargar mis datos" and "Borrar cuenta" (#38) and "Acerca de" (#45). Idioma, Títulos,
  * Tema, AniList and Plus rows arrive with their issues.
  */
 export function ProfileScreen({
@@ -133,6 +133,14 @@ export function ProfileScreen({
         <li>
           <Link className="profile__row profile__row--danger" to="/perfil/borrar-cuenta">
             <span>Borrar cuenta</span>
+            <span className="profile__value" aria-hidden="true">
+              ›
+            </span>
+          </Link>
+        </li>
+        <li>
+          <Link className="profile__row" to="/perfil/acerca-de">
+            <span>Acerca de</span>
             <span className="profile__value" aria-hidden="true">
               ›
             </span>

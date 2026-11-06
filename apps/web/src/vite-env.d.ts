@@ -7,3 +7,6 @@ interface ImportMetaEnv {
   // PostHog project key (#46); without it the consent banner never shows and nothing loads.
   readonly VITE_POSTHOG_KEY?: string;
 }
+
+// Defined in vite.config.ts (#45).
+declare const __APP_VERSION__: string;

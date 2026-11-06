@@ -1921,3 +1921,20 @@ label.sheet__label {
     width: 560px;
   }
 }
+
+/* "Acerca de Acrux" (#45) */
+.about__attribution {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.about__attribution p {
+  margin: 0;
+}
+
+.about__version {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
