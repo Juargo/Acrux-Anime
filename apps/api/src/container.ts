@@ -8,13 +8,20 @@ import type { Module } from './http/routes.js';
 import { createSentryReporter } from './http/sentry-reporter.js';
 import { createNeonAuthVerifier, neonAuthIssuer, type SessionVerifier } from './http/session.js';
 import { createUpstashRateLimiter } from './http/upstash-rate-limiter.js';
-import { accountModule } from './modules/account/index.js';
+import { createNeonAuthAdmin } from './modules/account/adapters/neon-auth-admin.js';
+import { createPostHogPersons } from './modules/account/adapters/posthog-persons.js';
+import { createAccountModule } from './modules/account/index.js';
+import {
+  type AccountService,
+  createAccountService,
+} from './modules/account/services/account.service.js';
 import { anilistLinkModule } from './modules/anilist-link/index.js';
 import { billingModule } from './modules/billing/index.js';
 import { franchisesModule } from './modules/franchises/index.js';
 import { createMarksModule } from './modules/marks/index.js';
 import { createMarksRepository } from './modules/marks/repositories/marks.repository.js';
 import { createMarksService, type MarksService } from './modules/marks/services/marks.service.js';
+import { analyticsId } from './modules/profile/domain/analytics-id.js';
 import { createProfileModule } from './modules/profile/index.js';
 import { createProfileRepository } from './modules/profile/repositories/profile.repository.js';
 import {
@@ -55,15 +62,42 @@ export function createContainer(source: Record<string, string | undefined>): Con
     profileService && marksService
       ? createPublicProfileService(profileService, marksService)
       : undefined;
+  const analyticsSecret = env.ANALYTICS_ID_SECRET;
+  const accountService =
+    profileService && marksService
+      ? createAccountService({
+          profiles: profileService,
+          marks: marksService,
+          directory:
+            env.NEON_API_KEY && env.NEON_PROJECT_ID && env.NEON_BRANCH_ID
+              ? createNeonAuthAdmin({
+                  apiKey: env.NEON_API_KEY,
+                  projectId: env.NEON_PROJECT_ID,
+                  branchId: env.NEON_BRANCH_ID,
+                })
+              : undefined,
+          persons:
+            env.POSTHOG_PERSONAL_API_KEY && env.POSTHOG_PROJECT_ID
+              ? createPostHogPersons({
+                  apiKey: env.POSTHOG_PERSONAL_API_KEY,
+                  projectId: env.POSTHOG_PROJECT_ID,
+                  host: env.POSTHOG_API_HOST,
+                })
+              : undefined,
+          analyticsIdOf: (userId) =>
+            analyticsSecret ? analyticsId(userId, analyticsSecret) : null,
+        })
+      : undefined;
+  const errorReporter = env.SENTRY_DSN
+    ? createSentryReporter({
+        dsn: env.SENTRY_DSN,
+        environment: env.VERCEL_ENV,
+        release: env.VERCEL_GIT_COMMIT_SHA,
+      })
+    : noErrorReporter;
   return {
     logger: createLogger(env.LOG_LEVEL),
-    errorReporter: env.SENTRY_DSN
-      ? createSentryReporter({
-          dsn: env.SENTRY_DSN,
-          environment: env.VERCEL_ENV,
-          release: env.VERCEL_GIT_COMMIT_SHA,
-        })
-      : noErrorReporter,
+    errorReporter,
     rateLimiter:
       env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
         ? createUpstashRateLimiter({
@@ -79,7 +113,10 @@ export function createContainer(source: Record<string, string | undefined>): Con
       : undefined,
     profileService,
     marksService,
-    modules: createModules(profileService, marksService, publicProfileService),
+    modules: createModules(profileService, marksService, publicProfileService, {
+      service: accountService,
+      errorReporter,
+    }),
   };
 }
 
@@ -88,10 +125,11 @@ export function createModules(
   profileService: ProfileService | undefined,
   marksService: MarksService | undefined,
   publicProfileService?: PublicProfileService,
+  account?: { service: AccountService | undefined; errorReporter: ErrorReporter },
 ): Module[] {
   return [
     systemModule,
-    accountModule,
+    createAccountModule(account?.service, account?.errorReporter),
     createProfileModule(profileService),
     createMarksModule(marksService),
     franchisesModule,

@@ -230,6 +230,36 @@ describe('profile repository', () => {
     expect(google.avatarPreset).toBeNull();
   });
 
+  it("removes the profile with the user's marks, AniList link and plan, and nobody else's", async () => {
+    const profiles = createProfileRepository(prisma);
+    const userId = '7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f30';
+    const other = '7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f31';
+    for (const [id, anilistUserId] of [
+      [userId, 501],
+      [other, 502],
+    ] as const) {
+      await profiles.findOrCreate(id, { displayName: 'Nami', avatarUrl: null });
+      await prisma.mark.create({ data: { userId: id, anilistId: 21, status: 'seen' } });
+      await prisma.anilistLink.create({
+        data: { userId: id, anilistUserId, accessTokenEncrypted: Buffer.from('x') },
+      });
+      await prisma.entitlement.create({ data: { userId: id, plan: 'plus_annual' } });
+    }
+
+    expect(await profiles.remove(userId)).toBe(true);
+
+    expect(await prisma.profile.count({ where: { userId } })).toBe(0);
+    expect(await prisma.mark.count({ where: { userId } })).toBe(0);
+    expect(await prisma.anilistLink.count({ where: { userId } })).toBe(0);
+    expect(await prisma.entitlement.count({ where: { userId } })).toBe(0);
+    expect(await prisma.profile.count({ where: { userId: other } })).toBe(1);
+    expect(await prisma.mark.count({ where: { userId: other } })).toBe(1);
+    expect(await prisma.anilistLink.count({ where: { userId: other } })).toBe(1);
+    expect(await prisma.entitlement.count({ where: { userId: other } })).toBe(1);
+    // A retry finds nothing left to remove.
+    expect(await profiles.remove(userId)).toBe(false);
+  });
+
   it('refuses an unknown preset in the database itself', async () => {
     const userId = '7a1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f21';
     await prisma.profile.create({ data: { userId, displayName: 'Zoro' } });

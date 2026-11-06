@@ -405,6 +405,7 @@ describe('GET /api/v1/me', () => {
       },
       ensureProfile: async () => {},
       findByHandle: async () => null,
+      remove: async () => false,
       update: async () => {
         throw new Error('not used');
       },
@@ -454,6 +455,7 @@ describe('PATCH /api/v1/me', () => {
       },
       ensureProfile: async () => {},
       findByHandle: async () => null,
+      remove: async () => false,
       update: async (session, changes) => {
         calls.push({ session, changes });
         return {
