@@ -4,6 +4,7 @@ import { AnalyticsRow, useAnalyticsState } from '../analytics/AnalyticsContext';
 import { Avatar } from '../components/Avatar';
 import { useCounterMode } from '../counter/use-counter-mode';
 import { type Profile, saveCounterMode } from '../profile-api';
+import { useDataDownload } from './use-data-download';
 import { useOwnProfile } from './use-own-profile';
 
 const MODE_LABELS = { franchise: 'Franquicias', entry: 'Entradas' } as const;
@@ -11,8 +12,8 @@ const MODE_LABELS = { franchise: 'Franquicias', entry: 'Entradas' } as const;
 /**
  * Container: "Perfil y ajustes" (Figma M16) with what works today (S4 of
  * odd/tasks/editar-perfil.md): who you are, "Editar", "Contar por", "Tu lista" and
- * "Cerrar sesión". Idioma, Títulos, Tema, AniList, Plus, data and account rows arrive with
- * their issues.
+ * "Cerrar sesión", plus "Descargar mis datos" and "Borrar cuenta" (#38). Idioma, Títulos,
+ * Tema, AniList and Plus rows arrive with their issues.
  */
 export function ProfileScreen({
   profile: initial,
@@ -35,6 +36,7 @@ export function ProfileScreen({
   const [modeFailed, setModeFailed] = useState(false);
   const titleId = useId();
   const { analytics } = useAnalyticsState();
+  const data = useDataDownload({ getToken, fetchFn });
   const name = profile.displayName.trim() || 'Sin nombre';
 
   // The same switch as the header counter (RF-25): at once, saved, back if saving fails.
@@ -116,6 +118,27 @@ export function ProfileScreen({
           </li>
         )}
         <li>
+          <button
+            className="profile__row"
+            type="button"
+            disabled={data.downloading}
+            onClick={() => void data.download()}
+          >
+            <span>Descargar mis datos</span>
+            <span className="profile__value" aria-hidden="true">
+              ⤓
+            </span>
+          </button>
+        </li>
+        <li>
+          <Link className="profile__row profile__row--danger" to="/perfil/borrar-cuenta">
+            <span>Borrar cuenta</span>
+            <span className="profile__value" aria-hidden="true">
+              ›
+            </span>
+          </Link>
+        </li>
+        <li>
           <button className="profile__row" type="button" onClick={onSignOut} disabled={signingOut}>
             <span>Cerrar sesión</span>
             <span className="profile__value" aria-hidden="true">
@@ -124,6 +147,11 @@ export function ProfileScreen({
           </button>
         </li>
       </ul>
+      {data.failed && (
+        <p className="counter__error" role="alert">
+          No pudimos descargar tus datos. Vuelve a intentarlo.
+        </p>
+      )}
     </section>
   );
 }

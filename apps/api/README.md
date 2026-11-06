@@ -28,6 +28,8 @@ API Express de Acrux, publicada como función de Vercel bajo `/api` (ADR-0018, A
 | `DATABASE_URL_UNPOOLED` | Conexión directa con el rol propietario (solo migraciones, CI) |
 | `NEON_AUTH_BASE_URL` | Base de Neon Auth; el JWKS se lee de `<base>/.well-known/jwks.json` (#28) |
 | `NEON_AUTH_ISSUER` | Emisor esperado del JWT; por defecto, `NEON_AUTH_BASE_URL` |
+| `NEON_API_KEY`, `NEON_PROJECT_ID`, `NEON_BRANCH_ID` | Borran el usuario de Neon Auth al borrar la cuenta. Sin las tres, `DELETE /api/v1/me` responde 503 ([runbook](../../docs/runbooks/borrado-de-cuenta.md)) |
+| `POSTHOG_PERSONAL_API_KEY`, `POSTHOG_PROJECT_ID`, `POSTHOG_API_HOST` | Borran la persona de PostHog al borrar la cuenta. Son opcionales; el host es `https://eu.posthog.com` por defecto |
 | `LOG_LEVEL` | Nivel de `pino` (por defecto `info`) |
 
 ## Base de datos (ADR-0022, ADR-0034)

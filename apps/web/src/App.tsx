@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { finishAccountDeletion } from './account-deletion';
 import { useAnalyticsState } from './analytics/AnalyticsContext';
 import { eventCallbacks } from './analytics/events';
 import { auth } from './auth';
@@ -12,6 +13,12 @@ type AuthClient = NonNullable<typeof auth>;
 async function sessionToken(client: AuthClient): Promise<string | null> {
   const { data } = await client.getSession();
   return data?.session.token ?? null;
+}
+
+// Neon Auth gives the session start as a date or its ISO string, depending on the cache.
+function sessionStart(value: Date | string | undefined): string | undefined {
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? undefined : value.toISOString();
+  return value;
 }
 
 // Container: owns the session and the profile; the routes only render.
@@ -34,6 +41,7 @@ function SignedApp({ client }: { client: AuthClient }) {
   const [signInFailed, setSignInFailed] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutFailed, setSignOutFailed] = useState(false);
+  const [accountDeleted, setAccountDeleted] = useState(false);
 
   useEffect(() => {
     setMe(undefined);
@@ -51,13 +59,16 @@ function SignedApp({ client }: { client: AuthClient }) {
     };
   }, [client, userId]);
 
-  async function signIn() {
+  // `returnTo` brings the user back after Google, as when deleting the account asks for a
+  // fresh session (RF-06).
+  async function signIn(returnTo = '/') {
     setSigningIn(true);
     setSignInFailed(false);
+    setAccountDeleted(false);
     try {
       const { error } = await client.signIn.social({
         provider: 'google',
-        callbackURL: window.location.origin,
+        callbackURL: new URL(returnTo, window.location.origin).toString(),
       });
       if (error) throw error;
     } catch {
@@ -93,9 +104,27 @@ function SignedApp({ client }: { client: AuthClient }) {
     }
   }, [analytics, profile]);
 
+  // Once deleted, the app never asks for /me again with the old token: it would recreate the
+  // profile while that token lasts.
+  async function accountWasDeleted() {
+    setAccountDeleted(true);
+    setMe(undefined);
+    await finishAccountDeletion({ analytics, signOut: () => client.signOut() });
+  }
+
+  if (accountDeleted) {
+    return (
+      <SignIn
+        onContinue={() => void signIn()}
+        busy={signingIn}
+        failed={signInFailed}
+        notice="Borramos tu cuenta y tus datos."
+      />
+    );
+  }
   if (session.isPending) return <main className="notice" aria-busy="true" />;
   if (!userId || me?.status === 'signed-out') {
-    return <SignIn onContinue={signIn} busy={signingIn} failed={signInFailed} />;
+    return <SignIn onContinue={() => void signIn()} busy={signingIn} failed={signInFailed} />;
   }
   if (!me) return <main className="notice" aria-busy="true" />;
   if (me.status === 'error') {
@@ -115,6 +144,9 @@ function SignedApp({ client }: { client: AuthClient }) {
       signingOut={signingOut}
       signOutFailed={signOutFailed}
       getToken={() => sessionToken(client)}
+      sessionStartedAt={sessionStart(session.data?.session.createdAt)}
+      onReauthenticate={() => void signIn('/perfil/borrar-cuenta')}
+      onAccountDeleted={() => void accountWasDeleted()}
       {...callbacks}
     />
   );

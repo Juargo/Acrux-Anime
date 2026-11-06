@@ -22,6 +22,8 @@ export interface ProfileService {
   update(session: Session, changes: ProfileChanges): Promise<MeView>;
   // The profile of a handle, for the public profile (#37), which decides what visitors see.
   findByHandle(handle: string): Promise<PublicProfileRow | null>;
+  // Deletes the profile and every row that references it (#38); false when there was none.
+  remove(userId: string): Promise<boolean>;
 }
 
 export function createProfileService(
@@ -47,5 +49,6 @@ export function createProfileService(
     update: async (session, changes) =>
       withAnalytics(session, await profiles.update(session.userId, initial(session), changes)),
     findByHandle: (handle) => profiles.findByHandle(handle),
+    remove: (userId) => profiles.remove(userId),
   };
 }

@@ -2,11 +2,22 @@ import { Logo } from '../components/Logo';
 import { ShareCardSample } from '../components/ShareCardSample';
 
 // Figma M01 (28:2) and D01 (32:487), without the age checkbox (P-07 stays open).
-export function SignIn(props: { onContinue: () => void; busy: boolean; failed: boolean }) {
+// `notice` says what just happened, such as the account being deleted (#38).
+export function SignIn(props: {
+  onContinue: () => void;
+  busy: boolean;
+  failed: boolean;
+  notice?: string | undefined;
+}) {
   return (
     <main className="sign-in">
       <section className="sign-in__intro">
         <Logo />
+        {props.notice && (
+          <p className="privacy__status" role="status">
+            {props.notice}
+          </p>
+        )}
         <h1 className="sign-in__title">¿Cuántos animes has visto de verdad?</h1>
         <p className="sign-in__lead">
           Marca la saga, no las temporadas, y compártelo en segundos.

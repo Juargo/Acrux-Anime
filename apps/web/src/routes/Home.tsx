@@ -26,6 +26,9 @@ export function Home(props: {
   onCardShared?: ((event: CardSharedEvent) => void) | undefined;
   onListMadePublic?: ((event: ListMadePublicEvent) => void) | undefined;
   onFranchiseMarked?: ((event: FranchiseMarkedEvent) => void) | undefined;
+  sessionStartedAt?: string | undefined;
+  onReauthenticate?: (() => void) | undefined;
+  onAccountDeleted?: (() => void) | undefined;
 }) {
   const { getToken, client, fetchFn } = props;
   // The profile App loaded, then what the screens save (name, avatar, privacy).
@@ -84,6 +87,9 @@ export function Home(props: {
             onCounterModeChanged: props.onCounterModeChanged,
             onSignOut: props.onSignOut,
             signingOut: props.signingOut,
+            sessionStartedAt: props.sessionStartedAt,
+            onReauthenticate: props.onReauthenticate,
+            onAccountDeleted: props.onAccountDeleted,
           } satisfies SignedInContext
         }
       />

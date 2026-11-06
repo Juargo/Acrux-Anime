@@ -20,6 +20,16 @@ const envSchema = z.object({
   // Key of the salted id PostHog knows users by (#46). Without it, /me gives no analyticsId
   // and the app captures anonymously.
   ANALYTICS_ID_SECRET: z.preprocess(emptyAsUnset, z.string().min(32).optional()),
+  // Neon API key and the project and branch whose Neon Auth users it deletes (#38, ADR-0034).
+  // Server only. Without all three, DELETE /api/v1/me answers 503 and deletes nothing.
+  NEON_API_KEY: z.preprocess(emptyAsUnset, z.string().optional()),
+  NEON_PROJECT_ID: z.preprocess(emptyAsUnset, z.string().optional()),
+  NEON_BRANCH_ID: z.preprocess(emptyAsUnset, z.string().optional()),
+  // PostHog personal API key with person:write and its project (#38). Without both, deleting
+  // an account leaves the PostHog person, who is only a salted id.
+  POSTHOG_PERSONAL_API_KEY: z.preprocess(emptyAsUnset, z.string().optional()),
+  POSTHOG_PROJECT_ID: z.preprocess(emptyAsUnset, z.string().optional()),
+  POSTHOG_API_HOST: z.preprocess(emptyAsUnset, z.url().default('https://eu.posthog.com')),
   // Set by Vercel on every deployment.
   VERCEL_ENV: z.preprocess(emptyAsUnset, z.string().default('development')),
   VERCEL_GIT_COMMIT_SHA: z.preprocess(emptyAsUnset, z.string().optional()),

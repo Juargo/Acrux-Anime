@@ -88,7 +88,7 @@ Las menciones a Supabase en ADRs que siguen vigentes se leen así:
   - **Escalado a cero:** tras un rato sin actividad, la primera consulta paga el arranque del cómputo.
   - **0,5 GB por proyecto**, contra los 500 MB de Supabase: margen similar (ADR-0021). Al superarlo, toca pasar a un plan de pago de Neon.
   - La sesión de Neon Auth también es robable con un XSS. Se mantiene la CSP estricta de ADR-0028, ahora con el dominio de Neon Auth en `connect-src`.
-  - Hay que confirmar en un spike que el rol viaja en el JWT y cuál es la API administrativa para borrar usuarios.
+  - Hay que confirmar en un spike que el rol viaja en el JWT. La API administrativa para borrar usuarios quedó confirmada en #38: `DELETE /projects/{project}/branches/{branch}/auth/users/{user}` de la API de Neon, con una API key solo en el servidor ([runbook](../runbooks/borrado-de-cuenta.md)).
 - **Acciones derivadas:**
   - Activar Neon Auth en `neon.ts` (`auth`) y configurar Google con credenciales propias para producción.
   - Spike: claims del JWT de Neon Auth (`sub`, rol, audiencia) y borrado de usuario desde el servidor.

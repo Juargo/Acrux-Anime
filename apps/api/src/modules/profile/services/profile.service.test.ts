@@ -21,6 +21,7 @@ const repository = {
   findOrCreate: async () => view,
   update: async () => view,
   findByHandle: async () => null,
+  remove: async () => false,
 } as ProfileRepository;
 const session = { userId: '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f70', name: 'Camila' };
 

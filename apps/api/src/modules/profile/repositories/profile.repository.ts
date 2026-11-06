@@ -91,6 +91,10 @@ export interface ProfileRepository {
   ): Promise<ProfileView>;
   // The public profile of a handle (RF-40), or null when no profile has it.
   findByHandle(handle: string): Promise<PublicProfileRow | null>;
+  // Deletes the profile; the foreign keys cascade to the marks, the AniList link and the
+  // plan, so the user's rows go all together or not at all (RDI-35). False when there was
+  // none, as on a retry.
+  remove(userId: string): Promise<boolean>;
 }
 
 export function createProfileRepository(prisma: PrismaClient): ProfileRepository {
@@ -183,5 +187,11 @@ export function createProfileRepository(prisma: PrismaClient): ProfileRepository
           },
         })
         .then((row) => (row?.handle ? { ...row, handle: row.handle } : null)),
+    remove: async (userId) => {
+      const [{ count }] = await prisma.$transaction([
+        prisma.profile.deleteMany({ where: { userId } }),
+      ]);
+      return count > 0;
+    },
   };
 }
