@@ -37,3 +37,9 @@ Route evidence: one feature in dependent deliveries (the API, then the app that 
   - The Plus box of M19 waits for #50, because no plan exists yet.
   - Perfil gets "Descargar mis datos" and "Borrar cuenta" rows.
 - L4 (2026-11-05): T1–T3 done on `feat/borrar-cuenta`. The export carries the profile and the marks only: the AniList link and the plan have no service yet (#40, #50), so their tables are empty in the beta. The service in T1 was written just before its unit tests; the HTTP integration tests were RED first.
+- L5 (2026-11-05): independent verifier on `a41ee5c..HEAD`: no blockers. S1–S6 pass; S7 is partly verified: the logic is tested, but whether Neon Auth returns `session.createdAt` must be confirmed on the preview (without it the check fails open), and the check is client-side only. Advisories:
+  - Fixed: the 503 text now fits the export as well.
+  - Fixed: the runbook notes that a valid JWT recreates an empty profile after a 502 until the retry.
+  - Recorded: no App test pins "no `/me` after deletion".
+  - Recorded: a failed Google sign-in can leave the spinner.
+  - Checks: API 252, web 247, typecheck, depcruise, `openapi:check`.

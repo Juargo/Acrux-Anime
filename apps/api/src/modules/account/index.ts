@@ -35,7 +35,7 @@ const exportSchema = z
   .meta({ id: 'AccountExport' });
 
 const unavailable = () =>
-  new ProblemError(503, 'account.unavailable', 'Account deletion is not available');
+  new ProblemError(503, 'account.unavailable', 'Account actions are not available');
 
 function start(service: AccountService | undefined, response: Response) {
   // User data is never cached, not even on errors (ADR-0023).

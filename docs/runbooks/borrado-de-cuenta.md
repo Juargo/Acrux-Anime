@@ -12,6 +12,7 @@ Derechos del titular (ADR-0028, RF-06, RDI-35), issue #38.
 - **Idempotencia:** repetir el borrado no rompe nada.
   - Si Neon falla, la API responde 502 `account.auth_unavailable`, lo reporta a Sentry y la app ofrece reintentar. El reintento termina el trabajo, y un 404 de Neon cuenta como «ya borrado».
   - Si PostHog falla, el borrado igual termina y el error va a Sentry.
+  - Mientras el usuario de Neon Auth exista y su JWT siga vigente, cualquier `GET /api/v1/me` vuelve a crear un perfil vacío. La app no lo pide después de borrar. Si tras un 502 se recarga la página, el perfil vuelve vacío hasta que se reintenta el borrado.
 - **Sin las credenciales de Neon** la ruta responde 503 `account.unavailable` y no borra nada.
 - **Sin las credenciales de PostHog** (o sin `ANALYTICS_ID_SECRET`) se omite el paso 3.
 - **En la app** (Perfil → «Borrar cuenta», Figma M19):
