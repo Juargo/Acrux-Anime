@@ -43,3 +43,4 @@ Route evidence: one feature in dependent deliveries (the API, then the app that 
   - Recorded: no App test pins "no `/me` after deletion".
   - Recorded: a failed Google sign-in can leave the spinner.
   - Checks: API 252, web 247, typecheck, depcruise, `openapi:check`.
+- L6 (2026-11-06): PR #91 opened. Stakeholder set the Vercel variables; the agent set `NEON_PROJECT_ID`, `NEON_BRANCH_ID` and `POSTHOG_PROJECT_ID`. Correction: previews share Neon Auth with production (`VITE_NEON_AUTH_URL` and `NEON_AUTH_BASE_URL` are one entry for Preview and Production, and preview aliases are trusted domains of the `production` branch), so the Preview `NEON_BRANCH_ID` is the `production` branch; with `dev`, Neon would answer 404, which counts as already deleted, and the user could still sign in. Stakeholder approved the change; the runbook was corrected.

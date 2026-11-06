@@ -29,18 +29,20 @@ En el proyecto `app` de Vercel, todas marcadas como *Sensitive*:
 |---|---|---|
 | `NEON_API_KEY` | API key de Neon con alcance al proyecto de Acrux (*Project-scoped*) | la misma |
 | `NEON_PROJECT_ID` | id del proyecto de Neon | el mismo |
-| `NEON_BRANCH_ID` | id de la rama de producción | id de la rama `dev`, la base de las vistas previas |
+| `NEON_BRANCH_ID` | id de la rama `production` (`br-purple-feather-b5w9mw26`) | el mismo: la rama donde viven los usuarios de Neon Auth |
 | `POSTHOG_PERSONAL_API_KEY` | *Personal API key* de PostHog, limitada al proyecto 328147 y al permiso `person:write` | la misma |
 | `POSTHOG_PROJECT_ID` | `328147` | `328147` |
 | `POSTHOG_API_HOST` | opcional; por defecto `https://eu.posthog.com` | — |
 
-**Ojo con `NEON_BRANCH_ID`:** cada rama de Neon tiene su propio directorio de usuarios. Si en una vista previa apunta a la rama de producción, el borrado iría contra los usuarios reales.
+**Ojo con `NEON_BRANCH_ID`:** cada rama de Neon tiene su propio directorio de usuarios, y tiene que ser la rama del Neon Auth que usa la app. Las vistas previas comparten `VITE_NEON_AUTH_URL` y `NEON_AUTH_BASE_URL` con producción, así que sus usuarios viven en la rama `production`, aunque sus datos estén en la base de `dev`.
+- Si apuntara a `dev`, Neon respondería 404 y la API lo tomaría como «ya borrado»: el borrado parecería exitoso, pero el usuario podría seguir iniciando sesión.
+- Desde una vista previa se borran usuarios reales de Neon Auth. Probar solo con una cuenta de Google de prueba.
 
 ## Comprobación (criterio de #38)
 
 1. En una vista previa con las variables, iniciar sesión con una cuenta de prueba, marcar dos franquicias y aceptar la analítica.
 2. Perfil → «Descargar mis datos»: el JSON trae el perfil y las dos marcas.
 3. Perfil → «Borrar cuenta», escribir BORRAR y confirmar. La app vuelve al inicio con «Borramos tu cuenta y tus datos.».
-4. En Neon, en la rama `dev`: `profile` y `mark` ya no tienen filas de ese `user_id`, y en *Auth → Users* el usuario ya no existe.
+4. En Neon, en la rama `dev`, `profile` y `mark` ya no tienen filas de ese `user_id`. En la rama `production`, en *Auth → Users*, el usuario ya no existe.
 5. En PostHog, la persona con ese `analyticsId` desaparece tras unos minutos, y `account_deleted` aparece sin persona.
 6. Iniciar sesión otra vez con la misma cuenta de Google crea una cuenta nueva y vacía.
