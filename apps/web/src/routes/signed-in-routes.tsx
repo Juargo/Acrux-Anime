@@ -3,6 +3,7 @@ import { CardScreen } from '../card/CardScreen';
 import { CatalogScreen } from '../catalog/CatalogScreen';
 import { FranchiseScreen } from '../franchise/FranchiseScreen';
 import { MyListScreen } from '../my-list/MyListScreen';
+import { AboutScreen } from '../profile/AboutScreen';
 import { DeleteAccountScreen } from '../profile/DeleteAccountScreen';
 import { PrivacyScreen } from '../profile/PrivacyScreen';
 import { ProfileEditor } from '../profile/ProfileEditor';
@@ -76,4 +77,5 @@ export const signedInRoutes: RouteObject[] = [
   { path: 'perfil', element: <ProfilePage /> },
   { path: 'perfil/editar', element: <ProfileEditorPage /> },
   { path: 'perfil/borrar-cuenta', element: <DeleteAccountPage /> },
+  { path: 'perfil/acerca-de', element: <AboutScreen /> },
 ];

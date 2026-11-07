@@ -110,6 +110,16 @@ describe('ProfileScreen', () => {
     await screen.findByRole('heading', { name: 'Borrar tu cuenta' });
   });
 
+  it('opens "Acerca de Acrux" with the AniList attribution from "Acerca de" (#45)', async () => {
+    const user = userEvent.setup();
+    const { router } = renderProfile();
+    await screen.findByRole('region', { name: 'Perfil' });
+    await user.click(row(/Acerca de/));
+    expect(router.state.location.pathname).toBe('/perfil/acerca-de');
+    await screen.findByRole('heading', { name: 'Acerca de Acrux' });
+    expect(screen.getByRole('link', { name: 'AniList' })).toBeTruthy();
+  });
+
   it('shows who I am, my link and "Editar" (Figma M16)', async () => {
     renderProfile();
     await screen.findByRole('region', { name: 'Perfil' });
