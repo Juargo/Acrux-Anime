@@ -45,3 +45,32 @@ describe('the crawler rewrite of /@handle', () => {
     expect(crawler.test(agent)).toBe(false);
   });
 });
+
+// ZAP baseline findings (#73).
+const full = config as unknown as {
+  rewrites: { source: string; destination: string }[];
+  headers: { source: string; headers: { key: string; value: string }[] }[];
+};
+const headerFor = (source: string, key: string) =>
+  full.headers
+    .find((rule) => rule.source === source)
+    ?.headers.find((header) => header.key.toLowerCase() === key.toLowerCase())?.value;
+const spaFallback = full.rewrites.find((rewrite) => rewrite.destination === '/index.html');
+const fallsBackToSpa = (path: string) => new RegExp(`^${spaFallback?.source ?? ''}$`).test(path);
+
+describe('static responses', () => {
+  it('do not allow every origin to read them', () => {
+    expect(headerFor('/(.*)', 'Access-Control-Allow-Origin')).toBe('https://app.acruxanime.com');
+  });
+
+  it('cache hashed assets for a year', () => {
+    expect(headerFor('/assets/(.*)', 'Cache-Control')).toBe('public, max-age=31536000, immutable');
+  });
+
+  it('answer a missing asset with 404, not the SPA', () => {
+    expect(fallsBackToSpa('/assets/index-old.js')).toBe(false);
+    expect(fallsBackToSpa('/perfil')).toBe(true);
+    expect(fallsBackToSpa('/@someone')).toBe(true);
+    expect(fallsBackToSpa('/api/me')).toBe(false);
+  });
+});
