@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { overridesVersion, useFranchiseOverrides } from '../franchise/use-franchise-overrides';
 import { type CatalogQuery, fetchCatalogPage, fetchGenres } from './catalog';
 import { type AniListClient, createAniListClient } from './client';
 import { fetchFranchise } from './franchise';
@@ -45,11 +46,17 @@ export function useGenres(enabled: boolean, client: AniListClient = defaultClien
   });
 }
 
-// The franchise detail (RF-16) builds the whole franchise from any of its entries.
-export function useFranchise(anilistId: number, client: AniListClient = defaultClient) {
+// The franchise detail (RF-16) builds the whole franchise from any of its entries, with the
+// curator table applied first (RF-60).
+export function useFranchise(
+  anilistId: number,
+  client: AniListClient = defaultClient,
+  fetchFn: typeof fetch = fetch,
+) {
+  const overrides = useFranchiseOverrides(fetchFn);
   return useQuery({
-    queryKey: ['anilist', 'franchise', anilistId],
-    queryFn: () => fetchFranchise(client, [anilistId]),
-    enabled: Number.isInteger(anilistId) && anilistId > 0,
+    queryKey: ['anilist', 'franchise', anilistId, overridesVersion(overrides)],
+    queryFn: () => fetchFranchise(client, [anilistId], overrides),
+    enabled: Number.isInteger(anilistId) && anilistId > 0 && overrides !== undefined,
   });
 }

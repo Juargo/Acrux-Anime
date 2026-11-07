@@ -82,6 +82,7 @@ function PublicList(props: {
     marks: marks.data ?? undefined,
     crawl: true,
     storeKey: STORE_KEY,
+    fetchFn,
   });
   const { franchises, known, ready } = crawled;
   const list = useMemo(

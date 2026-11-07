@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AniListClient } from '../anilist/client';
 import { type FranchiseEntry, fetchFranchise } from '../anilist/franchise';
+import { overridesQuery } from '../franchise/use-franchise-overrides';
 import { fetchMarks, type MarkDto, saveMarks } from '../marks-api';
 import type { CatalogItem } from './items';
 
@@ -59,7 +60,11 @@ export function useFranchiseMarks(options: {
   const toggle = useMutation({
     mutationFn: async (item: CatalogItem) => {
       const token = getToken as () => Promise<string | null>;
-      const franchise = await fetchFranchise(client, item.coreIds);
+      // Without the curator table, marking falls back to automatic grouping (RF-60).
+      const overrides = await queryClient
+        .fetchQuery(overridesQuery(fetchFn))
+        .catch(() => undefined);
+      const franchise = await fetchFranchise(client, item.coreIds, overrides);
       if (franchise.core.length === 0) throw new Error('Franchise not found on AniList');
       const coreSize = franchise.core.length;
       if (item.dimmed) {

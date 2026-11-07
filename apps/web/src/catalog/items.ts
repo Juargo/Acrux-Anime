@@ -1,6 +1,7 @@
 import {
   type CatalogEntry,
   type Franchise,
+  type FranchiseOverride,
   franchiseProgress,
   groupFranchises,
   type Mark,
@@ -77,17 +78,18 @@ export function catalogEntries(medias: readonly CatalogMedia[]): {
  * One item per franchise for the loaded hits, in the order of each franchise's first hit
  * (RF-14). Grouping only sees the hits and their neighbours one hop away, so an item is
  * titled and covered by the earliest entry known here, and its ids are the ones known here;
- * marking builds the whole franchise first (anilist/franchise.ts). Curator overrides join
- * once the API serves them (#42).
+ * marking builds the whole franchise first (anilist/franchise.ts). The curator table (RF-60)
+ * is applied first.
  */
 export function toCatalogItems(
   hits: readonly CatalogMedia[],
   marks: readonly Mark[],
   now: string,
+  overrides: readonly FranchiseOverride[] = [],
 ): CatalogItem[] {
   const { entries, known } = catalogEntries(hits);
   const franchiseOf = new Map<number, Franchise>();
-  for (const franchise of groupFranchises(entries, [])) {
+  for (const franchise of groupFranchises(entries, overrides)) {
     for (const member of franchise.core) franchiseOf.set(member.id, franchise);
     for (const id of franchise.extras) franchiseOf.set(id, franchise);
   }

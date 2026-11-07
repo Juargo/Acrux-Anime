@@ -34,6 +34,22 @@ function hit(
 }
 
 describe('toCatalogItems', () => {
+  it('splits a franchise the curator marked as separate (RF-60)', () => {
+    const hits = [hit(1, 2020), hit(2, 2021, [['PREQUEL', related(1, 2020)]])];
+    const separate = {
+      anilistId: 2,
+      franchiseRootId: 1,
+      role: 'separate' as const,
+      updatedAt: '2026-11-07T12:00:00.000Z',
+    };
+
+    expect(toCatalogItems(hits, [], NOW).map((item) => item.coreIds)).toEqual([[1, 2]]);
+    expect(toCatalogItems(hits, [], NOW, [separate]).map((item) => item.coreIds)).toEqual([
+      [1],
+      [2],
+    ]);
+  });
+
   it('@CA-RF12-01 shows one item per franchise with cover and title', () => {
     const season1 = related(154587, 2023);
     const items = toCatalogItems(
