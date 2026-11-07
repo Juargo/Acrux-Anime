@@ -72,6 +72,19 @@ describe('createApp', () => {
     ]);
   });
 
+  it('refuses a public route that needs a role, which would skip the check (#42)', () => {
+    const route = {
+      method: 'put' as const,
+      path: '/api/v1/test/role',
+      public: true,
+      role: 'curator' as const,
+      handler: () => {},
+    };
+    expect(() => appWith([{ name: 'test', routes: [route] }])).toThrow(
+      'PUT /api/v1/test/role cannot be public and need a role',
+    );
+  });
+
   it('keeps GET /api/health public and answering ok', async () => {
     const response = await request(createApp(createContainer({}))).get('/api/health');
 

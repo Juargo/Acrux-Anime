@@ -22,6 +22,12 @@ export function createApp(container: Container): Express {
       const limit = route.rateLimit
         ? [rateLimit(route.rateLimit, container.rateLimiter, container.logger)]
         : [];
+      // A public route never has a session to check a role against.
+      if (route.public && route.role) {
+        throw new Error(
+          `${route.method.toUpperCase()} ${route.path} cannot be public and need a role`,
+        );
+      }
       const role = route.role ? [requireRole(route.role)] : [];
       if (route.public) app[route.method](route.path, ...limit, route.handler);
       else app[route.method](route.path, session, ...role, ...limit, route.handler);
