@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
@@ -30,6 +31,7 @@ export default defineConfig({
   plugins: [react(), VitePWA(pwaOptions), ...sentry],
   define: { __APP_VERSION__: JSON.stringify(appVersion) },
   build: { sourcemap: sentry.length > 0 ? 'hidden' : false },
+  test: { setupFiles: ['./src/test-setup.ts'] },
   server: {
     proxy: { '/api': 'http://localhost:3001' },
   },
