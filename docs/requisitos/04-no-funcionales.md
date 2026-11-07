@@ -43,6 +43,7 @@ Las metas numéricas son **iniciales** (decisión del 26-oct: sin metas hasta te
 | RNF-36 | Los pagos los gestiona Lemon Squeezy; Acrux no maneja datos de tarjetas. | Must | — |
 | RNF-37 | Autorización denegada por defecto; aislamiento entre usuarios verificado con pruebas. | Must | ADR-0025, ADR-0029 |
 | RNF-38 | Analítica solo con consentimiento; los eventos nunca llevan datos personales. | Must | ADR-0028, ADR-0030 |
+| RNF-39 | Anuncios personalizados solo con consentimiento; la red de anuncios figura en la política de privacidad como encargado del tratamiento. | Must | ADR-0028, ADR-0036 |
 
 ## Confiabilidad de los datos
 

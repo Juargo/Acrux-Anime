@@ -11,7 +11,7 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 | RF-03 | Con AniList vinculada, lo que marca en Acrux se escribe en su lista de AniList, y lo que ya tenía en AniList aparece en Acrux. Al vincular, ambas listas se combinan y gana "Vista". | Should | — | DD-21 · M31 |
 | RF-04 | El usuario puede desvincular AniList sin perder su cuenta ni sus marcas; no se borra nada en AniList. | Must (si existe RF-02) | — | Figma flujo 4 · M18/D18 |
 | RF-05 | El usuario puede cerrar sesión. | Must | H2 | — |
-| RF-06 | El usuario puede borrar su cuenta y todos sus datos. Si la sesión tiene más de 24 horas, debe volver a iniciar sesión antes. Si tiene Plus, se le avisa que la suscripción se cancela sin reembolso proporcional y que el plan vitalicio se pierde. | Must | H2 | ADR-0025, DD-30, DD-33 · M19/D19 |
+| RF-06 | El usuario puede borrar su cuenta y todos sus datos. Si la sesión tiene más de 24 horas, debe volver a iniciar sesión antes. Si tiene Plus, se le avisa que el plan vitalicio se pierde sin reembolso. | Must | H2 | ADR-0025, DD-30, DD-33, ADR-0036 · M19/D19 |
 | RF-07 | El usuario puede editar su nombre visible y su avatar. Se toman de Google y solo se piden si faltan. | Must | H2 | DD-11; Must porque la tarjeta los exige · M06/D06 |
 | RF-08 | El usuario puede descargar sus datos personales en JSON en cualquier momento. | Must | H2 | ADR-0028, Ley 21.719 · D35 |
 | RF-09 | Antes de crear la cuenta, el usuario declara tener 16 años o más. | Must (propuesta, P-07) | H2 | Figma M01/D01 |
@@ -63,18 +63,20 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 | RF-42 | La lista es **privada por defecto**. Si es privada, el enlace muestra solo el nombre, el avatar, el handle y el total, y la API de la lista responde `404`. Al pasarla a privada, el visitante deja de verla de inmediato. | Must | H2 | ADR-0028, DD-23 · M15/D15, M17/D17 |
 | RF-43 | No existe búsqueda ni listado de perfiles de otros usuarios. | Must | H2 | — |
 
-## 6. Plan Plus
+## 6. Plan Plus y anuncios
 
 | ID | Requisito | Prioridad | Hito | Origen y pantallas |
 |---|---|---|---|---|
-| RF-50 | El usuario compra Plus anual o vitalicio con Lemon Squeezy. Sin prueba gratis. | Must | H4 | ADR-0025, DD-27–DD-29 · M21/D21 |
+| RF-50 | El usuario compra Plus vitalicio, de pago único, con Lemon Squeezy. Sin prueba gratis. | Must | H4 | ADR-0025, DD-27–DD-29, ADR-0036 · M21/D21 |
 | RF-51 | Plus vive en la cuenta: sigue activo al iniciar sesión en otro navegador o dispositivo. *(Reemplaza "restaurar compra", propio de las tiendas.)* | Must | H4 | Figma flujo 5 |
 | RF-52 | Plus desbloquea plantillas y temas extra de tarjeta. Antes de pagar, el usuario prueba el tema en su propia tarjeta con marca de agua. | Must | H4 | Figma flujo 5 · M20/D20 |
 | RF-53 | Plus desbloquea estadísticas avanzadas. | Should | H4 | — |
 | RF-54 | Plus desbloquea un Wrapped anual compartible. Contenido por definir. | Should | H4 | — |
 | RF-55 | Plus desbloquea insignias e íconos. | Could | H4 | — |
-| RF-56 | Al vencer o cancelar Plus, el usuario conserva su lista, su total y sus tarjetas. El vitalicio no vence. | Must | H4 | Figma flujo 5 |
-| RF-57 | La app informa la confirmación, el error de pago, el pago pendiente (Plus sigue activo 7 días de gracia) y el vencimiento, y muestra el plan en Ajustes. | Must | H4 | M22–M25/D22–D25 |
+| RF-56 | Plus no vence. Si se reembolsa la compra, el usuario vuelve a ser gratuito y conserva su lista, su total y sus tarjetas. | Must | H4 | Figma flujo 5; ADR-0036 |
+| RF-57 | La app informa la confirmación, el error de pago y el pago pendiente, y muestra el plan en Ajustes. | Must | H4 | M22–M25/D22–D25; ADR-0036 |
+| RF-58 | El usuario gratuito ve anuncios no intrusivos que no tapan contenido. Nunca aparecen en la tarjeta compartida, en el perfil público, en el inicio de sesión ni en el borrado de cuenta. La red y los espacios están por definir (P-13). | Must | H4 | ADR-0036 |
+| RF-59 | Plus quita todos los anuncios en cualquier navegador o dispositivo donde el usuario inicie sesión. | Must | H4 | ADR-0036 |
 
 ## 7. Curación
 

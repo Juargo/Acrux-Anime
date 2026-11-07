@@ -14,10 +14,10 @@
 | RN-02 | El diferenciador es la combinación de: un ítem por franquicia, tarjeta vertical para compartir, español nativo con foco en Latinoamérica y Chile, y una web app simple pensada primero para el celular. | Must | Estudio de mercado; ADR-0013 |
 | RN-03 | Compartir es la función central y el motor de crecimiento orgánico, no un extra. | Must | Estudio de mercado |
 | RN-04 | Antes de construir en serio se valida la demanda. No hay fecha fija de lanzamiento; se avanza por hitos con umbral. | Must | Decisión 26-oct; ADR-0031 |
-| RN-05 | Freemium sin anuncios intrusivos. Marcar, el contador y la tarjeta básica son gratis para siempre. Nunca hay anuncios en la tarjeta compartida. | Must | Estudio de mercado |
-| RN-06 | Plan **Plus** de pago con plantillas y temas extra de tarjeta, estadísticas avanzadas, Wrapped completo, insignias e íconos. | Must | Estudio de mercado |
-| RN-07 | Precios de referencia de Plus: US$9,99/año y pago vitalicio de ~US$19,99, con precio regional para Latinoamérica. El plan mensual queda para el futuro. | Should | Estudio de mercado; DD-28 |
-| RN-08 | El producto opera legalmente con el catálogo y los datos de AniList, incluido el escenario de ingresos sobre el umbral de uso comercial gratuito. Plus no se cobra sin autorización y licencia de AniList. | Must | Estudio §5.2; ADR-0024 |
+| RN-05 | Freemium con anuncios no intrusivos para los usuarios gratuitos. Marcar, el contador y la tarjeta básica son gratis para siempre. Nunca hay anuncios en la tarjeta compartida, en el perfil público, en el inicio de sesión ni en el borrado de cuenta. | Must | Estudio de mercado; ADR-0036 |
+| RN-06 | Plan **Plus** de pago único que quita los anuncios y agrega plantillas y temas extra de tarjeta, estadísticas avanzadas, Wrapped completo, insignias e íconos. | Must | Estudio de mercado; ADR-0036 |
+| RN-07 | Precio de referencia de Plus: pago vitalicio de ~US$19,99, con precio regional para Latinoamérica. No hay suscripción mensual ni anual. | Should | Estudio de mercado; DD-28; modificado por ADR-0036 |
+| RN-08 | El producto opera legalmente con el catálogo y los datos de AniList, incluido el escenario de ingresos sobre el umbral de uso comercial gratuito. Ni Plus se cobra ni se muestran anuncios sin autorización y licencia de AniList. | Must | Estudio §5.2; ADR-0024; ADR-0036 |
 
 ## Hitos
 
@@ -26,7 +26,7 @@
 | **H1. Validación** | Entrevistas, encuesta y landing de prueba en `acruxanime.com` con lista de espera y medición en PostHog. Correos de autorización a AniList y MyAnimeList. | Se cumplen los umbrales de validación |
 | **H2. Beta cerrada** | Web app en `app.acruxanime.com` para 30 a 50 testers: login con Google, marcar franquicias, contador, tarjeta, perfil público y borrado de cuenta. Sin cobro. | RN-M1 a RN-M3 medidas y autorización escrita de AniList |
 | **H3. Lanzamiento público** | Apertura a todos, en español e inglés. | Licencia comercial de AniList, Vercel Pro y Lemon Squeezy configurado |
-| **H4. Cobro de Plus** | Plan anual y vitalicio. | — |
+| **H4. Monetización** | Anuncios no intrusivos y Plus vitalicio sin anuncios (ADR-0036). | — |
 
 Si AniList y MyAnimeList responden que no, se detiene el avance después de H1 y se reconsidera el modelo (ADR-0031).
 
@@ -48,6 +48,7 @@ Si AniList y MyAnimeList responden que no, se detiene el avance después de H1 y
 | RN-M2 | Tasa de compartir por usuario activo | Por definir tras la beta | `card_shared` / activos |
 | RN-M3 | Retención D7 y D30 | Por definir tras la beta | Retención en PostHog |
 | RN-M4 | Conversión a Plus | 2–5 % | `plus_purchased` / activos |
+| RN-M5 | Ingresos por anuncios por cada 1.000 usuarios activos | Por definir tras H4 | Informe de la red de anuncios |
 
 Estimaciones del estudio (no verificadas): SAM de 1,6–6 M de hispanohablantes con smartphone; meta a 3 años de 10.000–60.000 usuarios activos al mes; ingresos de US$2.000–45.000 al año.
 

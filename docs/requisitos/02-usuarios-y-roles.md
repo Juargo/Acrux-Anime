@@ -8,7 +8,7 @@ La identidad es la cuenta de Google (Neon Auth, ADR-0034). AniList es un víncul
 |---|---|---|
 | **Visitante** | Alguien que abre un perfil público o una tarjeta compartida | Sin cuenta, por enlace o QR |
 | **Usuario gratuito** | Fan con cuenta en Acrux | Google (OAuth con PKCE) |
-| **Usuario Plus** | Usuario gratuito con plan anual o vitalicio vigente | Google + compra en Lemon Squeezy |
+| **Usuario Plus** | Usuario gratuito que compró Plus vitalicio | Google + compra en Lemon Squeezy |
 | **Curador** | El autor o colaboradores de confianza | Rol `curator` del usuario de Neon Auth, asignado solo desde la consola o la CLI de Neon (ADR-0034) |
 
 No hay rol de moderador: no hay reseñas ni foros.
@@ -24,6 +24,7 @@ No hay rol de moderador: no hay reseñas ni foros.
 | Tarjeta básica | ❌ | ✅ | ✅ | ✅ | Usuario autenticado |
 | Hacer pública o privada su lista | ❌ | ✅ | ✅ | ✅ | Filtro por `user_id` |
 | Reportar una saga mal armada | ❌ | ✅ | ✅ | ✅ | Usuario autenticado |
+| Usar la app sin anuncios | ✅ (perfil público sin anuncios) | ❌ | ✅ | ✅ | `requirePlan('plus')` |
 | Temas y plantillas Plus | ❌ | Vista previa con marca de agua | ✅ | ✅ | `requirePlan('plus')` |
 | Estadísticas avanzadas y Wrapped | ❌ | ❌ | ✅ | ✅ | `requirePlan('plus')` |
 | Insignias e íconos | ❌ | ❌ | ✅ | ✅ | `requirePlan('plus')` |
