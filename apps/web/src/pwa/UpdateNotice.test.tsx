@@ -2,6 +2,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { setLocale } from '../i18n';
 import { UpdateNotice } from './UpdateNotice';
 
 afterEach(cleanup);
@@ -31,5 +32,18 @@ describe('UpdateNotice (ADR-0016)', () => {
       <UpdateNotice needRefresh={false} onReload={vi.fn()} onDismiss={vi.fn()} />,
     );
     expect(container.innerHTML).toBe('');
+  });
+});
+
+describe('UpdateNotice in English (#43)', () => {
+  afterEach(() => setLocale('es'));
+
+  it('says there is a new version in English', async () => {
+    await setLocale('en');
+    render(<UpdateNotice needRefresh onReload={vi.fn()} onDismiss={vi.fn()} />);
+    screen.getByText('A new version is available');
+    screen.getByRole('button', { name: 'Reload' });
+    screen.getByRole('button', { name: 'Later' });
+    expect(screen.queryByText('Hay una nueva versión')).toBeNull();
   });
 });

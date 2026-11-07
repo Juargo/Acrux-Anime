@@ -1,4 +1,5 @@
 // Client for the holder's rights (#38, ADR-0028): GET /api/v1/me/export and DELETE /api/v1/me.
+import { apiError } from './api-errors';
 
 export const EXPORT_FILE_NAME = 'acrux-datos.json';
 
@@ -14,7 +15,8 @@ export async function fetchExport(
   fetchFn: typeof fetch = fetch,
 ): Promise<Blob> {
   const response = await fetchFn('/api/v1/me/export', { headers: await authorization(getToken) });
-  if (!response.ok) throw new Error(`Exporting the data failed with ${response.status}`);
+  if (!response.ok)
+    throw await apiError(response, `Exporting the data failed with ${response.status}`);
   return new Blob([await response.text()], { type: 'application/json' });
 }
 
@@ -27,7 +29,8 @@ export async function deleteAccount(
     method: 'DELETE',
     headers: await authorization(getToken),
   });
-  if (!response.ok) throw new Error(`Deleting the account failed with ${response.status}`);
+  if (!response.ok)
+    throw await apiError(response, `Deleting the account failed with ${response.status}`);
 }
 
 // Hands the file to the browser as a download.

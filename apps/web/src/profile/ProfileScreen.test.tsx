@@ -243,3 +243,25 @@ describe('ProfileScreen', () => {
     expect(router.state.location.pathname).toBe('/perfil');
   });
 });
+
+describe('ProfileScreen in English (#43)', () => {
+  it('shows its rows in English', async () => {
+    await setLocale('en');
+    renderProfile();
+    const profile = await screen.findByRole('region', { name: 'Profile' });
+    within(profile).getByRole('link', { name: 'Edit' });
+    within(profile).getByText('PREFERENCES');
+    expect(within(profile).getByRole('button', { name: /Count by/ }).textContent).toContain(
+      'Franchises',
+    );
+    expect(within(profile).getByRole('link', { name: /Your list/ }).textContent).toContain(
+      'Private',
+    );
+    within(profile).getByText('ACCOUNT AND PRIVACY');
+    within(profile).getByRole('button', { name: /Download my data/ });
+    within(profile).getByRole('link', { name: /Delete account/ });
+    within(profile).getByRole('link', { name: /About/ });
+    within(profile).getByRole('button', { name: /Sign out/ });
+    expect(within(profile).queryByText('Descargar mis datos')).toBeNull();
+  });
+});

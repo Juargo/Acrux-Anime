@@ -2,6 +2,7 @@
 import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { setLocale } from '../i18n';
 import { InstallPrompt } from './InstallSuggestion';
 import {
   type BeforeInstallPromptEvent,
@@ -115,5 +116,20 @@ describe('InstallPrompt (ADR-0016)', () => {
     const { store, environment } = setup({ installed: true, offered: true });
     render(<InstallPrompt show store={store} environment={environment} />);
     expect(screen.queryByText(/Instala Acrux/)).toBeNull();
+  });
+});
+
+describe('InstallPrompt in English (#43)', () => {
+  afterEach(() => setLocale('es'));
+
+  it('suggests installing Acrux in English', async () => {
+    await setLocale('en');
+    const { store, environment } = setup({ ios: true });
+    render(<InstallPrompt show store={store} environment={environment} />);
+    screen.getByRole('region', { name: 'Install Acrux' });
+    screen.getByText('Install Acrux on your phone');
+    screen.getByText('Tap “Share” and then “Add to Home Screen” to open it like an app.');
+    screen.getByRole('button', { name: 'Not now' });
+    expect(screen.queryByText('Instala Acrux en tu teléfono')).toBeNull();
   });
 });

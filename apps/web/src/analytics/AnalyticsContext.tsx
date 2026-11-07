@@ -6,6 +6,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Analytics, Consent } from './analytics';
 
 interface AnalyticsState {
@@ -48,21 +49,16 @@ export function useConsent(): Consent | undefined {
   );
 }
 
-const LABELS: Record<Consent, string> = {
-  granted: 'Aceptada',
-  denied: 'Rechazada',
-  undecided: 'Sin decidir',
-};
-
 /** The "Analítica" row of Perfil (Figma M16, CUENTA Y PRIVACIDAD): reopens the banner. */
 export function AnalyticsRow() {
   const { analytics, openPreferences } = useAnalyticsState();
   const consent = useConsent();
+  const { t } = useTranslation();
   if (!analytics?.enabled || !consent) return null;
   return (
     <button className="profile__row" type="button" onClick={openPreferences}>
-      <span>Analítica</span>
-      <span className="profile__value">{LABELS[consent]} ›</span>
+      <span>{t('analytics.row')}</span>
+      <span className="profile__value">{t(`analytics.consent.${consent}`)} ›</span>
     </button>
   );
 }

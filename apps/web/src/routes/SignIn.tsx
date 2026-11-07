@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Logo } from '../components/Logo';
 import { ShareCardSample } from '../components/ShareCardSample';
 
@@ -9,6 +10,7 @@ export function SignIn(props: {
   failed: boolean;
   notice?: string | undefined;
 }) {
+  const { t } = useTranslation();
   return (
     <main className="sign-in">
       <section className="sign-in__intro">
@@ -18,13 +20,10 @@ export function SignIn(props: {
             {props.notice}
           </p>
         )}
-        <h1 className="sign-in__title">¿Cuántos animes has visto de verdad?</h1>
+        <h1 className="sign-in__title">{t('signIn.title')}</h1>
         <p className="sign-in__lead">
-          Marca la saga, no las temporadas, y compártelo en segundos.
-          <span className="sign-in__lead-extra">
-            {' '}
-            Gratis, en español y sin anuncios en tu tarjeta.
-          </span>
+          {t('signIn.lead')}
+          <span className="sign-in__lead-extra"> {t('signIn.leadExtra')}</span>
         </p>
         <div className="sign-in__card sign-in__card--inline">
           <ShareCardSample />
@@ -36,17 +35,17 @@ export function SignIn(props: {
             onClick={props.onContinue}
             disabled={props.busy}
           >
-            {props.busy ? 'Abriendo Google…' : 'Continuar con Google'}
+            {props.busy ? t('signIn.opening') : t('signIn.continue')}
           </button>
           {props.failed && (
             <p className="sign-in__error" role="alert">
-              No pudimos abrir Google. Vuelve a intentarlo.
+              {t('signIn.failed')}
             </p>
           )}
           <p className="sign-in__note">
-            Al continuar aceptas la{' '}
+            {t('signIn.privacyBefore')}{' '}
             <a href="https://acruxanime.com/privacidad" target="_blank" rel="noreferrer">
-              política de privacidad
+              {t('signIn.privacyLink')}
             </a>
           </p>
         </div>

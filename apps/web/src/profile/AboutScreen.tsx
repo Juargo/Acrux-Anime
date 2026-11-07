@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 const LANDING = 'https://acruxanime.com';
@@ -12,20 +13,18 @@ export const APP_VERSION = __APP_VERSION__;
  * required by ADR-0024; "AniList" only names the data source, never the app (RES-24).
  */
 export function AboutScreen({ version = APP_VERSION }: { version?: string }) {
+  const { t } = useTranslation();
   const titleId = useId();
   return (
     <section className="privacy about" aria-labelledby={titleId}>
       <Link className="card-preview__back" to="/perfil">
-        ‹ Perfil
+        {t('app.backToProfile')}
       </Link>
       <h1 className="card-step__title" id={titleId}>
-        Acerca de Acrux
+        {t('about.title')}
       </h1>
       <div className="privacy__status about__attribution">
-        <p>
-          Los datos del catálogo los provee AniList. Acrux no está afiliada a AniList ni cuenta con
-          su respaldo. Los títulos e imágenes de cada anime pertenecen a sus dueños.
-        </p>
+        <p>{t('about.attribution')}</p>
         <a href="https://anilist.co" target="_blank" rel="noreferrer">
           AniList
         </a>
@@ -38,7 +37,7 @@ export function AboutScreen({ version = APP_VERSION }: { version?: string }) {
             target="_blank"
             rel="noreferrer"
           >
-            <span>Privacidad</span>
+            <span>{t('about.privacy')}</span>
             <span className="profile__value" aria-hidden="true">
               ↗
             </span>
@@ -46,7 +45,7 @@ export function AboutScreen({ version = APP_VERSION }: { version?: string }) {
         </li>
         <li>
           <a className="profile__row" href={`${LANDING}/terminos`} target="_blank" rel="noreferrer">
-            <span>Términos</span>
+            <span>{t('about.terms')}</span>
             <span className="profile__value" aria-hidden="true">
               ↗
             </span>
@@ -54,14 +53,14 @@ export function AboutScreen({ version = APP_VERSION }: { version?: string }) {
         </li>
         <li>
           <a className="profile__row" href={`${LANDING}/soporte`} target="_blank" rel="noreferrer">
-            <span>Soporte</span>
+            <span>{t('about.support')}</span>
             <span className="profile__value" aria-hidden="true">
               ↗
             </span>
           </a>
         </li>
       </ul>
-      <p className="about__version">Versión {version}</p>
+      <p className="about__version">{t('about.version', { version })}</p>
     </section>
   );
 }

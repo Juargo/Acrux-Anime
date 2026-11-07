@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAnalyticsState, useConsent } from './AnalyticsContext';
 
 // The landing's privacy policy (the app's /privacidad is who sees your list, #37).
@@ -12,6 +13,7 @@ export function ConsentBanner() {
   const { analytics, preferencesOpen, closePreferences } = useAnalyticsState();
   const consent = useConsent();
   const titleId = useId();
+  const { t } = useTranslation();
   if (!analytics?.enabled || (consent !== 'undecided' && !preferencesOpen)) return null;
 
   function choose(granted: boolean) {
@@ -23,22 +25,19 @@ export function ConsentBanner() {
   return (
     <section className="consent" aria-labelledby={titleId}>
       <p className="consent__title" id={titleId}>
-        ¿Nos ayudas a medir?
+        {t('analytics.bannerTitle')}
       </p>
-      <p className="consent__text">
-        Usamos analítica para saber si Acrux le sirve a más gente. Sin cookies hasta que aceptes, y
-        puedes cambiarlo cuando quieras desde tu perfil.
-      </p>
+      <p className="consent__text">{t('analytics.bannerText')}</p>
       <div className="consent__actions">
         <a className="consent__more" href={PRIVACY_POLICY_URL} target="_blank" rel="noreferrer">
-          Más información
+          {t('analytics.more')}
         </a>
         <div className="consent__buttons">
           <button className="consent__button" type="button" onClick={() => choose(false)}>
-            Rechazar
+            {t('analytics.deny')}
           </button>
           <button className="consent__button" type="button" onClick={() => choose(true)}>
-            Aceptar
+            {t('analytics.grant')}
           </button>
         </div>
       </div>

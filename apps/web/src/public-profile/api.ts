@@ -1,4 +1,5 @@
 // Client for the public profile (#37): no session, nothing but what the owner made visible.
+import { readProblem } from '../api-errors';
 import type { MarkDto } from '../marks-api';
 
 export interface PublicProfile {
@@ -12,8 +13,9 @@ export interface PublicProfile {
   shownMode: 'franchise' | 'entry' | null;
 }
 
+// `code` is the API problem's (ADR-0023), when the API answered with one.
 export class PublicProfileError extends Error {
-  constructor() {
+  constructor(readonly code?: string) {
     super('Public profile request failed');
     this.name = 'PublicProfileError';
   }
@@ -33,7 +35,7 @@ async function get(path: string, fetchFn: typeof fetch): Promise<unknown | null>
     throw new PublicProfileError();
   }
   if (response.status === 404) return null;
-  if (!response.ok) throw new PublicProfileError();
+  if (!response.ok) throw new PublicProfileError((await readProblem(response)).code);
   return response.json();
 }
 
