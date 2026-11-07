@@ -5,11 +5,15 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AniListClient } from '../anilist/client';
+import { i18n, setLocale } from '../i18n';
 import type { Profile } from '../profile-api';
 import { Home } from '../routes/Home';
 import { signedInRoutes } from '../routes/signed-in-routes';
 
-afterEach(cleanup);
+afterEach(async () => {
+  cleanup();
+  await setLocale('es');
+});
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -171,6 +175,47 @@ describe('ProfileScreen', () => {
     await user.click(button);
 
     await vi.waitFor(() => expect(button.textContent).toContain('Franquicias'));
+    within(page()).getByRole('alert');
+  });
+
+  it('switches the whole app to English, saves it in the account and keeps it (CA-RF71-01)', async () => {
+    const user = userEvent.setup();
+    const { patches } = renderProfile();
+    const select = await within(await screen.findByRole('region', { name: 'Perfil' })).findByRole(
+      'combobox',
+      { name: 'Idioma' },
+    );
+
+    await user.selectOptions(select, 'en');
+
+    await vi.waitFor(() => expect(patches).toEqual([{ locale: 'en' }]));
+    expect(i18n.language).toBe('en');
+    expect(document.documentElement.lang).toBe('en');
+    expect(screen.getByRole('combobox', { name: 'Language' })).toHaveProperty('value', 'en');
+  });
+
+  it('goes back to the device language with "Idioma del dispositivo" (null)', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['en-US']);
+    const { patches } = renderProfile();
+    const select = await screen.findByRole('combobox', { name: 'Idioma' });
+
+    await user.selectOptions(select, 'device');
+
+    await vi.waitFor(() => expect(patches).toEqual([{ locale: null }]));
+    expect(i18n.language).toBe('en');
+    vi.restoreAllMocks();
+  });
+
+  it('goes back and says so when saving the language fails', async () => {
+    const user = userEvent.setup();
+    renderProfile({ failPatch: true });
+    const select = await screen.findByRole('combobox', { name: 'Idioma' });
+
+    await user.selectOptions(select, 'en');
+
+    await vi.waitFor(() => expect(i18n.language).toBe('es'));
+    expect(screen.getByRole('combobox', { name: 'Idioma' })).toHaveProperty('value', 'es');
     within(page()).getByRole('alert');
   });
 

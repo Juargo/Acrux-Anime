@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { browserLocale, i18n, initI18n, setLocale } from './i18n';
+import { accountLocale, browserLocale, i18n, initI18n, setLocale } from './i18n';
 
 function stubLanguages(languages: string[]) {
   vi.spyOn(navigator, 'languages', 'get').mockReturnValue(languages);
@@ -26,6 +26,18 @@ describe('browserLocale', () => {
   it('falls back to English when no language is supported (ADR-0010)', () => {
     stubLanguages(['fr-FR', 'de']);
     expect(browserLocale()).toBe('en');
+  });
+});
+
+describe('accountLocale', () => {
+  it('uses the language chosen in the account over the device one', () => {
+    stubLanguages(['en-US']);
+    expect(accountLocale('es')).toBe('es');
+  });
+
+  it('follows the device language when the account has none (null)', () => {
+    stubLanguages(['en-US']);
+    expect(accountLocale(null)).toBe('en');
   });
 });
 

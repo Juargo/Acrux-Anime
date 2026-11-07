@@ -1810,6 +1810,21 @@ label.sheet__label {
   color: var(--color-status-error);
 }
 
+/* "Idioma" (#43): the native select keeps the row's look and stays keyboard and screen reader friendly. */
+.profile__row:has(.profile__select) {
+  align-items: center;
+}
+
+.profile__select {
+  max-width: 60%;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  font: inherit;
+}
+
 /* "Borrar tu cuenta" (Figma M19, #38). */
 .button--danger {
   background: var(--color-status-error);

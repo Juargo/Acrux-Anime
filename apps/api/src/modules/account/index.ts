@@ -14,7 +14,7 @@ const exportSchema = z
       displayName: z.string(),
       avatarUrl: z.string().nullable(),
       avatarPreset: z.string().nullable(),
-      locale: z.string().nullable(),
+      locale: z.enum(['es', 'en']).nullable(),
       listVisibility: z.enum(['private', 'public']),
       counterMode,
       handle: z.string(),

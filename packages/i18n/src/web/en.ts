@@ -6,5 +6,7 @@ export const en: WebMessages = {
     label: 'Language',
     es: 'Español',
     en: 'English',
+    device: 'Device language',
+    saveFailed: "We couldn't save the language. Try again.",
   },
 };

@@ -4,6 +4,7 @@ import { AnalyticsRow, useAnalyticsState } from '../analytics/AnalyticsContext';
 import { Avatar } from '../components/Avatar';
 import { useCounterMode } from '../counter/use-counter-mode';
 import { type Profile, saveCounterMode } from '../profile-api';
+import { LanguageRow } from './LanguageRow';
 import { useDataDownload } from './use-data-download';
 import { useOwnProfile } from './use-own-profile';
 
@@ -12,8 +13,8 @@ const MODE_LABELS = { franchise: 'Franquicias', entry: 'Entradas' } as const;
 /**
  * Container: "Perfil y ajustes" (Figma M16) with what works today (S4 of
  * odd/tasks/editar-perfil.md): who you are, "Editar", "Contar por", "Tu lista" and
- * "Cerrar sesión", plus "Descargar mis datos" and "Borrar cuenta" (#38) and "Acerca de" (#45). Idioma, Títulos,
- * Tema, AniList and Plus rows arrive with their issues.
+ * "Cerrar sesión", plus "Descargar mis datos" and "Borrar cuenta" (#38), "Acerca de" (#45) and "Idioma"
+ * (#43). Títulos, Tema, AniList and Plus rows arrive with their issues.
  */
 export function ProfileScreen({
   profile: initial,
@@ -30,7 +31,7 @@ export function ProfileScreen({
   signingOut?: boolean | undefined;
   onCounterModeChanged?: ((event: { mode: Profile['counterMode'] }) => void) | undefined;
 }) {
-  const [profile] = useOwnProfile({ initial, getToken, fetchFn });
+  const [profile, save] = useOwnProfile({ initial, getToken, fetchFn });
   const [mode, setMode] = useCounterMode(initial.counterMode);
   const [savingMode, setSavingMode] = useState(false);
   const [modeFailed, setModeFailed] = useState(false);
@@ -94,6 +95,9 @@ export function ProfileScreen({
             <span>Contar por</span>
             <span className="profile__value">{MODE_LABELS[mode]} ›</span>
           </button>
+        </li>
+        <li>
+          <LanguageRow locale={profile.locale} save={save} />
         </li>
         <li>
           <Link className="profile__row" to="/privacidad">

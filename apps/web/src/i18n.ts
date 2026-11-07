@@ -32,6 +32,11 @@ export function browserLocale(): Locale {
   return fallbackLocale;
 }
 
+// The account's language wins over the one cached on this browser; null follows the device (#43).
+export function accountLocale(locale: Locale | null): Locale {
+  return locale ?? browserLocale();
+}
+
 function applyLocale(locale: string) {
   if (typeof document !== 'undefined') document.documentElement.lang = locale;
   try {

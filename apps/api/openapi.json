@@ -1212,9 +1212,17 @@
                 ]
               },
               "locale": {
-                "type": [
-                  "string",
-                  "null"
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "es",
+                      "en"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
                 ]
               },
               "listVisibility": {

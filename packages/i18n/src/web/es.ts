@@ -4,5 +4,7 @@ export const es = {
     label: 'Idioma',
     es: 'Español',
     en: 'English',
+    device: 'Idioma del dispositivo',
+    saveFailed: 'No pudimos guardar el idioma. Vuelve a intentarlo.',
   },
 } as const;

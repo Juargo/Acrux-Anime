@@ -3,6 +3,7 @@ import { finishAccountDeletion } from './account-deletion';
 import { useAnalyticsState } from './analytics/AnalyticsContext';
 import { eventCallbacks } from './analytics/events';
 import { auth } from './auth';
+import { accountLocale, setLocale } from './i18n';
 import { fetchMe, type MeResult } from './profile-api';
 import { Home } from './routes/Home';
 import { SignIn } from './routes/SignIn';
@@ -98,6 +99,11 @@ function SignedApp({ client }: { client: AuthClient }) {
   const { analytics } = useAnalyticsState();
   const callbacks = useMemo(() => (analytics ? eventCallbacks(analytics) : {}), [analytics]);
   const profile = me?.status === 'ok' ? me.profile : undefined;
+  const locale = profile ? accountLocale(profile.locale) : undefined;
+  useEffect(() => {
+    if (locale) void setLocale(locale);
+  }, [locale]);
+
   useEffect(() => {
     if (profile) {
       analytics?.identify({ analyticsId: profile.analyticsId, createdAt: profile.createdAt });

@@ -89,7 +89,7 @@ function renderList(marks: MarkDto[] | 'fail') {
     displayName: 'Camila',
     avatarUrl: null,
     avatarPreset: null,
-    locale: 'es',
+    locale: 'es' as const,
     listVisibility: 'private' as const,
     counterMode: 'franchise' as const,
     handle: 'camila',

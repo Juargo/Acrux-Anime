@@ -1,5 +1,7 @@
 // Client for GET and PATCH /api/v1/me (#28, #34). The first call after sign-in creates the profile.
 
+import type { Locale } from '@acrux/i18n';
+
 export type AvatarPreset = 'violeta' | 'verde' | 'amarillo' | 'coral' | 'noche' | 'lavanda';
 
 export interface Profile {
@@ -7,7 +9,8 @@ export interface Profile {
   avatarUrl: string | null;
   // A preset Acrux avatar (#39), shown instead of avatarUrl; null shows Google's.
   avatarPreset: AvatarPreset | null;
-  locale: string;
+  // The language the user chose (#43); null follows the device language.
+  locale: Locale | null;
   listVisibility: 'private' | 'public';
   counterMode: 'franchise' | 'entry';
   // The @handle of the public link (#37).
@@ -29,6 +32,7 @@ export interface ProfileChanges {
   listVisibility?: Profile['listVisibility'];
   shown?: { total: number; mode: Profile['counterMode'] };
   cardShared?: true;
+  locale?: Locale | null;
 }
 
 export type MeResult =
