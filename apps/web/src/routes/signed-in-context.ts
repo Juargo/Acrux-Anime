@@ -19,6 +19,8 @@ export interface SignedInContext {
   onCardShared?: ((event: CardSharedEvent) => void) | undefined;
   onListMadePublic?: ((event: ListMadePublicEvent) => void) | undefined;
   onFranchiseMarked?: ((event: FranchiseMarkedEvent) => void) | undefined;
+  // One entry of a franchise saved as seen: the install suggestion waits for it (#44).
+  onEntryMarkedSeen?: (() => void) | undefined;
   // counter_mode_changed also from Perfil's "Contar por" (#46).
   onCounterModeChanged?: ((event: { mode: CounterMode }) => void) | undefined;
   // Perfil (M16) signs out like the header button.

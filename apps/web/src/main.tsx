@@ -12,6 +12,7 @@ import { onAniListRateLimited } from './anilist/hooks';
 import { createQueryClient } from './anilist/query-client';
 import { initErrorTracking } from './error-tracking';
 import { publicProfileRoute } from './public-profile/routes';
+import { UpdatePrompt } from './pwa/UpdateNotice';
 import { signedInRoutes } from './routes/signed-in-routes';
 import './styles.css';
 
@@ -78,6 +79,7 @@ createRoot(root, {
         <RouterProvider router={router} />
       </QueryClientProvider>
       <ConsentBanner />
+      <UpdatePrompt />
     </AnalyticsProvider>
   </StrictMode>,
 );
