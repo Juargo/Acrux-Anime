@@ -48,6 +48,10 @@ jobs:
           pnpm --filter @acrux/api depcruise
           pnpm --filter @acrux/domain depcruise
 
+      # Warns, never fails: each @CA- criterion in docs/criterios should be cited by a test (ADR-0029).
+      - name: Acceptance criteria without a test
+        run: pnpm --filter @acrux/e2e check-tags
+
       - name: Build
         run: pnpm build
 

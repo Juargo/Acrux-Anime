@@ -123,7 +123,7 @@ describe('DeleteAccountScreen', () => {
     expect(saveFile).not.toHaveBeenCalled();
   });
 
-  it('@CA-RF06 asks to sign in again when the session is older than 24 hours', async () => {
+  it('@CA-RF06-02 asks to sign in again when the session is older than 24 hours', async () => {
     const user = userEvent.setup();
     const { onReauthenticate, requests } = renderScreen({ sessionStartedAt: STALE });
     expect(screen.queryByRole('button', { name: 'Borrar mi cuenta para siempre' })).toBeNull();

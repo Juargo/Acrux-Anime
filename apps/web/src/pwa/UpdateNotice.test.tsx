@@ -8,7 +8,7 @@ import { UpdateNotice } from './UpdateNotice';
 afterEach(cleanup);
 
 describe('UpdateNotice (ADR-0016)', () => {
-  // @CA-ADR16-01
+  // Criterion CA-ADR16-01 of issue #44 (ADR-0016); not a requirement in docs/criterios.
   it('says there is a new version, with a button to reload', async () => {
     const user = userEvent.setup();
     const onReload = vi.fn();
