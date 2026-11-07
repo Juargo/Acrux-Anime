@@ -8,6 +8,7 @@ import { AnalyticsProvider } from '../analytics/AnalyticsContext';
 import { type Analytics, createAnalytics, type PostHogLike } from '../analytics/analytics';
 import type { CatalogMedia, RelatedMedia } from '../anilist/catalog';
 import type { AniListClient } from '../anilist/client';
+import { setLocale } from '../i18n';
 import type { MarkDto } from '../marks-api';
 import type { PublicProfile } from './api';
 import { publicProfileRoute } from './routes';
@@ -223,5 +224,37 @@ describe('PublicProfileScreen', () => {
     act(() => analytics.grant());
     expect(onViewed).toHaveBeenCalledOnce();
     window.localStorage.clear();
+  });
+});
+
+describe('PublicProfileScreen in English (#43)', () => {
+  afterEach(() => setLocale('es'));
+
+  it('shows a private profile, its title and the call to action in English', async () => {
+    await setLocale('en');
+    renderProfile('/@nami', {
+      handle: 'nami',
+      displayName: ' ',
+      avatarUrl: null,
+      avatarPreset: null,
+      listVisibility: 'private',
+      shownTotal: 7,
+      shownMode: 'entry',
+    });
+    await screen.findByRole('heading', { name: 'No name' });
+    screen.getByText('ENTRIES WATCHED');
+    screen.getByText('This user keeps their list private');
+    screen.getByText('Only their total is shown.');
+    screen.getByRole('link', { name: 'Create your card for free' });
+    screen.getByRole('link', { name: 'Create my card' });
+    expect(document.title).toBe('No name (@nami) · Acrux');
+    expect(screen.queryByText('Solo se muestra su total.')).toBeNull();
+  });
+
+  it('says the profile is not available in English', async () => {
+    await setLocale('en');
+    renderProfile('/@nadie_aqui', 'missing');
+    await screen.findByRole('heading', { name: 'Profile not available' });
+    screen.getByText('This link does not exist or is no longer available.');
   });
 });

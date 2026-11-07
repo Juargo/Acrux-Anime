@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { ApiError } from './api-errors';
 import { fetchMe, patchMe, saveCounterMode } from './profile-api';
 
 const profile = {
@@ -102,5 +103,19 @@ describe('patchMe', () => {
         async () => new Response(null, { status: 400 }),
       ),
     ).rejects.toThrow();
+  });
+});
+
+describe('patchMe errors (ADR-0023)', () => {
+  it('throws an ApiError with the code and request id of the problem', async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>(async () =>
+      Response.json(
+        { status: 400, code: 'profile.invalid_body', requestId: 'r9' },
+        { status: 400 },
+      ),
+    );
+    const error = await patchMe(async () => 'jwt', { displayName: '' }, fetch).catch((e) => e);
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({ status: 400, code: 'profile.invalid_body', requestId: 'r9' });
   });
 });

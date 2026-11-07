@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient, useCatalog, useGenres } from '../anilist/hooks';
 import { anilistErrorMessage } from '../anilist/messages';
@@ -35,6 +36,7 @@ export function CatalogScreen({
   fetchFn?: typeof fetch | undefined;
   onFranchiseMarked?: ((event: FranchiseMarkedEvent) => void) | undefined;
 }) {
+  const { t } = useTranslation();
   const [input, setInput] = useState('');
   const search = useDebounced(input.trim(), SEARCH_DEBOUNCE_MS);
   const [filters, setFilters] = useState(defaultFilters);
@@ -64,19 +66,19 @@ export function CatalogScreen({
   const searching = search !== '';
 
   return (
-    <section className="catalog" aria-label="Explorar">
+    <section className="catalog" aria-label={t('catalog.label')}>
       <input
         className="catalog__search"
         type="search"
-        aria-label="Buscar anime"
-        placeholder="Buscar anime"
+        aria-label={t('catalog.search')}
+        placeholder={t('catalog.search')}
         value={input}
         onChange={(event) => setInput(event.target.value)}
       />
 
       <div className="chips catalog__filters">
         <button className="chip" type="button" onClick={() => setSheetOpen(true)}>
-          {searching ? 'Todos los años' : String(filters.year)}
+          {searching ? t('catalog.allYears') : String(filters.year)}
         </button>
         <button
           className="chip"
@@ -84,7 +86,7 @@ export function CatalogScreen({
           aria-pressed={filters.genres.length > 0}
           onClick={() => setSheetOpen(true)}
         >
-          {countLabel('Género', filters.genres.length)}
+          {countLabel(t('catalog.genre'), filters.genres.length)}
         </button>
         <button
           className="chip"
@@ -92,7 +94,7 @@ export function CatalogScreen({
           aria-pressed={filters.formats.length > 0}
           onClick={() => setSheetOpen(true)}
         >
-          {countLabel('Tipo', filters.formats.length)}
+          {countLabel(t('catalog.format'), filters.formats.length)}
         </button>
       </div>
 
@@ -104,29 +106,26 @@ export function CatalogScreen({
 
       {!online ? (
         <p className="catalog__notice" role="alert">
-          Estás sin conexión. El catálogo se carga cuando vuelvas a conectarte; lo que marcaste
-          sigue guardado.
+          {t('catalog.offline')}
         </p>
       ) : catalog.isPending ? (
         <p className="catalog__state" role="status">
-          Cargando el catálogo…
+          {t('catalog.loading')}
         </p>
       ) : catalog.isLoadingError ? (
         <div className="catalog__notice" role="alert">
-          <p>{anilistErrorMessage(catalog.error)}</p>
+          <p>{anilistErrorMessage(catalog.error, t)}</p>
           <button
             className="button button--secondary"
             type="button"
             onClick={() => catalog.refetch()}
           >
-            Reintentar
+            {t('catalog.retry')}
           </button>
         </div>
       ) : items.length === 0 ? (
         <p className="catalog__state">
-          {searching
-            ? `No encontramos animes para «${search}».`
-            : 'No encontramos animes con estos filtros.'}
+          {searching ? t('catalog.noResultsFor', { search }) : t('catalog.noResults')}
         </p>
       ) : (
         <>
@@ -140,14 +139,14 @@ export function CatalogScreen({
           />
           {catalog.isFetchingNextPage && (
             <p className="catalog__state" role="status">
-              Cargando más…
+              {t('catalog.loadingMore')}
             </p>
           )}
           {catalog.isFetchNextPageError && !catalog.isFetchingNextPage && (
             <div className="catalog__notice" role="alert">
-              <p>{anilistErrorMessage(catalog.error)}</p>
+              <p>{anilistErrorMessage(catalog.error, t)}</p>
               <button className="button button--secondary" type="button" onClick={loadMore}>
-                Reintentar
+                {t('catalog.retry')}
               </button>
             </div>
           )}

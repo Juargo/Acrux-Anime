@@ -1,16 +1,13 @@
 import { DISPLAY_NAME_MAX, displayNameProblem } from '@acrux/domain';
 import { useId, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { errorCode, errorMessage } from '../api-errors';
 import { AVATAR_PRESETS, Avatar, PresetArt } from '../components/Avatar';
 import type { AvatarPreset, Profile, ProfileChanges } from '../profile-api';
 import { useOwnProfile } from './use-own-profile';
 
 // RF-07 and Figma M06 ("5/30"): the API checks the same rules (@acrux/domain).
 export const NAME_MAX = DISPLAY_NAME_MAX;
-const HINTS = {
-  empty: 'Escribe un nombre.',
-  'too-long': `Hasta ${DISPLAY_NAME_MAX} caracteres.`,
-  invisible: 'Usa letras, números o emojis visibles.',
-} as const;
 const length = (value: string) => [...value].length;
 
 /**
@@ -35,7 +32,9 @@ export function ProfileEditor({
   const [name, setName] = useState(profile.displayName);
   const [preset, setPreset] = useState<AvatarPreset | null>(profile.avatarPreset);
   const [saving, setSaving] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const { t } = useTranslation();
+  // The API code of the failed save (ADR-0023); null while nothing failed.
+  const [failure, setFailure] = useState<{ code: string | undefined } | null>(null);
   const titleId = useId();
   const inputId = useId();
   const trimmed = name.trim();
@@ -51,12 +50,12 @@ export function ProfileEditor({
       return;
     }
     setSaving(true);
-    setFailed(false);
+    setFailure(null);
     try {
       await save(changes);
       onDone();
-    } catch {
-      setFailed(true);
+    } catch (error) {
+      setFailure({ code: errorCode(error) });
     } finally {
       setSaving(false);
     }
@@ -65,12 +64,12 @@ export function ProfileEditor({
   return (
     <section className="profile-editor" aria-labelledby={titleId}>
       <button className="card-preview__back" type="button" onClick={onBack}>
-        ‹ Volver
+        {t('profileEditor.back')}
       </button>
       <h1 className="card-step__title" id={titleId}>
-        Así aparecerás en tu tarjeta
+        {t('profileEditor.title')}
       </h1>
-      <p className="card-step__text">Solo falta tu foto. Puedes cambiarla después en Ajustes.</p>
+      <p className="card-step__text">{t('profileEditor.text')}</p>
       <Avatar
         name={trimmed || profile.displayName}
         avatarUrl={profile.avatarUrl}
@@ -80,13 +79,13 @@ export function ProfileEditor({
         decorative
       />
       <fieldset className="profile-editor__avatars">
-        <legend className="profile-editor__legend">O elige uno de Acrux</legend>
+        <legend className="profile-editor__legend">{t('profileEditor.pickPreset')}</legend>
         {profile.avatarUrl && (
           <label className="profile-editor__choice">
             <input
               type="radio"
               name="avatar"
-              aria-label="Tu foto de Google"
+              aria-label={t('profileEditor.googlePhoto')}
               checked={preset === null}
               onChange={() => setPreset(null)}
             />
@@ -105,7 +104,7 @@ export function ProfileEditor({
             <input
               type="radio"
               name="avatar"
-              aria-label={`Avatar ${key}`}
+              aria-label={t('profileEditor.preset', { name: t(`avatar.${key}`) })}
               checked={preset === key}
               onChange={() => setPreset(key)}
             />
@@ -116,7 +115,7 @@ export function ProfileEditor({
         ))}
       </fieldset>
       <label className="profile-editor__label" htmlFor={inputId}>
-        Nombre visible
+        {t('profileEditor.nameLabel')}
       </label>
       <input
         id={inputId}
@@ -127,14 +126,20 @@ export function ProfileEditor({
         onChange={(event) => setName([...event.target.value].slice(0, NAME_MAX).join(''))}
       />
       <p className="profile-editor__hint">
-        <span>{problem ? HINTS[problem] : 'Así te verán en tu tarjeta y tu perfil'}</span>
+        <span>
+          {problem === 'too-long'
+            ? t('profileEditor.hints.too-long', { max: String(DISPLAY_NAME_MAX) })
+            : problem
+              ? t(`profileEditor.hints.${problem}`)
+              : t('profileEditor.nameHint')}
+        </span>
         <span>
           {length(trimmed)}/{NAME_MAX}
         </span>
       </p>
-      {failed && (
+      {failure && (
         <p className="counter__error" role="alert">
-          No pudimos guardar. Vuelve a intentarlo.
+          {errorMessage(failure.code) ?? t('app.saveFailed')}
         </p>
       )}
       <button
@@ -143,7 +148,7 @@ export function ProfileEditor({
         disabled={!valid || saving}
         onClick={() => void finish()}
       >
-        Continuar
+        {t('profileEditor.continue')}
       </button>
     </section>
   );

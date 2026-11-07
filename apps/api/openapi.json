@@ -193,7 +193,19 @@
                       "description": "A preset Acrux avatar; null shows Google's"
                     },
                     "locale": {
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "es",
+                            "en"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "The chosen language; null follows the browser (#43)"
                     },
                     "listVisibility": {
                       "type": "string",
@@ -293,7 +305,7 @@
         }
       },
       "patch": {
-        "summary": "Change the counter mode, the list visibility, the shown counter or the first share",
+        "summary": "Change the counter mode, the list visibility, the shown counter, the first share or the language",
         "security": [
           {
             "session": []
@@ -369,6 +381,20 @@
                   "cardShared": {
                     "type": "boolean",
                     "const": true
+                  },
+                  "locale": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "es",
+                          "en"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "additionalProperties": false
@@ -413,7 +439,19 @@
                       "description": "A preset Acrux avatar; null shows Google's"
                     },
                     "locale": {
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "es",
+                            "en"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "The chosen language; null follows the browser (#43)"
                     },
                     "listVisibility": {
                       "type": "string",
@@ -1174,7 +1212,18 @@
                 ]
               },
               "locale": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "es",
+                      "en"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "listVisibility": {
                 "type": "string",

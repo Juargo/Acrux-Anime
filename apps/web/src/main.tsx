@@ -11,6 +11,7 @@ import { eventCallbacks } from './analytics/events';
 import { onAniListRateLimited } from './anilist/hooks';
 import { createQueryClient } from './anilist/query-client';
 import { initErrorTracking } from './error-tracking';
+import { initI18n } from './i18n';
 import { publicProfileRoute } from './public-profile/routes';
 import { UpdatePrompt } from './pwa/UpdateNotice';
 import { signedInRoutes } from './routes/signed-in-routes';
@@ -20,6 +21,9 @@ initErrorTracking({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   environment: import.meta.env.VITE_VERCEL_ENV ?? 'development',
 });
+
+// Texts are bundled, so this resolves before the first render (#43).
+await initI18n();
 
 function localStore(): Storage | undefined {
   try {

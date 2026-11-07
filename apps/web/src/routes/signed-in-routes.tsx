@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { type RouteObject, useNavigate, useParams } from 'react-router';
 import { CardScreen } from '../card/CardScreen';
 import { CatalogScreen } from '../catalog/CatalogScreen';
@@ -12,9 +13,10 @@ import { useSignedIn } from './signed-in-context';
 
 function CatalogPage() {
   const context = useSignedIn();
+  const { t } = useTranslation();
   return (
     <>
-      <h1 className="visually-hidden">Explorar</h1>
+      <h1 className="visually-hidden">{t('nav.explore')}</h1>
       <CatalogScreen {...context} />
     </>
   );

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
 import { patchMe, saveCounterMode } from '../profile-api';
@@ -8,17 +9,15 @@ import { type CounterMode, useTotalCounter } from './use-total-counter';
 // ADR-0030: no personal data; the sender arrives with PostHog in the SPA (#46).
 export type CounterModeChangedEvent = { mode: CounterMode };
 
-export const SAVE_MODE_FAILED = 'No pudimos guardar cómo contar. Vuelve a intentarlo.';
+const UNITS = {
+  franchise: 'counter.franchiseUnit',
+  entry: 'counter.entryUnit',
+} as const satisfies Record<CounterMode, string>;
 
-const UNITS: Record<CounterMode, string> = {
-  franchise: 'sagas completas',
-  entry: 'entradas vistas',
-};
-
-const OPTIONS: { mode: CounterMode; label: string }[] = [
-  { mode: 'franchise', label: 'Franquicias' },
-  { mode: 'entry', label: 'Entradas' },
-];
+const OPTIONS = [
+  { mode: 'franchise', label: 'counter.franchises' },
+  { mode: 'entry', label: 'counter.entries' },
+] as const satisfies readonly { mode: CounterMode; label: string }[];
 
 // Figma M03 "Catálogo con contador": "48 animes" over "sagas completas".
 export function CounterView(props: {
@@ -29,13 +28,14 @@ export function CounterView(props: {
   onModeChange: (mode: CounterMode) => void;
 }) {
   const { value, mode } = props;
+  const { t } = useTranslation();
   return (
-    <section className="counter" aria-label="Contador total">
+    <section className="counter" aria-label={t('counter.label')}>
       <p className="counter__total" aria-live="polite" aria-busy={value === undefined}>
-        {value === undefined ? '— animes' : `${value} ${value === 1 ? 'anime' : 'animes'}`}
+        {value === undefined ? t('counter.unknown') : t('counter.total', { count: value })}
       </p>
-      <p className="counter__unit">{UNITS[mode]}</p>
-      <fieldset className="segmented counter__switch" aria-label="Contar por">
+      <p className="counter__unit">{t(UNITS[mode])}</p>
+      <fieldset className="segmented counter__switch" aria-label={t('counter.countBy')}>
         {OPTIONS.map((option) => (
           <button
             key={option.mode}
@@ -47,13 +47,13 @@ export function CounterView(props: {
               if (mode !== option.mode) props.onModeChange(option.mode);
             }}
           >
-            {option.label}
+            {t(option.label)}
           </button>
         ))}
       </fieldset>
       {props.failed && (
         <p className="counter__error" role="alert">
-          {SAVE_MODE_FAILED}
+          {t('counter.saveFailed')}
         </p>
       )}
     </section>

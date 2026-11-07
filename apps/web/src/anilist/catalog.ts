@@ -1,4 +1,7 @@
+import { webSpanish } from '@acrux/i18n';
+import type { TFunction } from 'i18next';
 import { z } from 'zod';
+import { i18n } from '../i18n';
 import type { AniListClient } from './client';
 
 // Catalog browsing (ADR-0017, ADR-0024 rule 7): AniList filters by name or year, genre and
@@ -11,20 +14,44 @@ export const CATALOG_PAGE_SIZE = 50;
 const CATALOG_FORMATS = ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA'] as const;
 type CatalogFormat = (typeof CATALOG_FORMATS)[number];
 
+type FilterValue = keyof typeof webSpanish.formatFilters;
+
 export interface FormatFilter {
-  value: string;
-  label: string;
+  value: FilterValue;
+  // In the current language.
+  readonly label: string;
   formats: readonly CatalogFormat[];
 }
 
-// The filter sheet labels of Figma M34.
+const formatFilter = (value: FilterValue, formats: readonly CatalogFormat[]): FormatFilter => ({
+  value,
+  formats,
+  get label() {
+    return formatFilterLabel(value);
+  },
+});
+
+// The filter sheet options of Figma M34.
 export const FORMAT_FILTERS: readonly FormatFilter[] = [
-  { value: 'TV', label: 'Serie de TV', formats: ['TV', 'TV_SHORT'] },
-  { value: 'MOVIE', label: 'Película', formats: ['MOVIE'] },
-  { value: 'OVA', label: 'OVA', formats: ['OVA'] },
-  { value: 'ONA', label: 'ONA', formats: ['ONA'] },
-  { value: 'SPECIAL', label: 'Especial', formats: ['SPECIAL'] },
+  formatFilter('TV', ['TV', 'TV_SHORT']),
+  formatFilter('MOVIE', ['MOVIE']),
+  formatFilter('OVA', ['OVA']),
+  formatFilter('ONA', ['ONA']),
+  formatFilter('SPECIAL', ['SPECIAL']),
 ];
+
+export function formatFilterLabel(value: FilterValue, t: TFunction = i18n.t): string {
+  return t(`formatFilters.${value}`);
+}
+
+type FormatName = keyof typeof webSpanish.formats;
+const isFormatName = (format: string): format is FormatName =>
+  Object.hasOwn(webSpanish.formats, format);
+
+// Figma M09 names formats short: "TV · 24 ep. · 2020", "Película · 2021".
+export function formatLabel(format: string, t: TFunction = i18n.t): string {
+  return isFormatName(format) ? t(`formats.${format}`) : format;
+}
 
 export interface CatalogQuery {
   search: string;
@@ -150,29 +177,13 @@ export async function fetchCatalogPage(
   };
 }
 
-// AniList names genres in English; the filter shows them in Spanish (ADR-0017) until i18n (#43).
-const GENRE_LABELS: Record<string, string> = {
-  Action: 'Acción',
-  Adventure: 'Aventura',
-  Comedy: 'Comedia',
-  Drama: 'Drama',
-  Ecchi: 'Ecchi',
-  Fantasy: 'Fantasía',
-  Horror: 'Terror',
-  'Mahou Shoujo': 'Mahō shōjo',
-  Mecha: 'Mecha',
-  Music: 'Música',
-  Mystery: 'Misterio',
-  Psychological: 'Psicológico',
-  Romance: 'Romance',
-  'Sci-Fi': 'Ciencia ficción',
-  'Slice of Life': 'Recuentos de la vida',
-  Sports: 'Deportes',
-  Supernatural: 'Sobrenatural',
-  Thriller: 'Suspenso',
-};
+// AniList names genres in English; the app shows the curated names of ADR-0010.
+type GenreName = keyof typeof webSpanish.genres;
+const isGenreName = (genre: string): genre is GenreName => Object.hasOwn(webSpanish.genres, genre);
 
-export const genreLabel = (genre: string) => GENRE_LABELS[genre] ?? genre;
+export function genreLabel(genre: string, t: TFunction = i18n.t): string {
+  return isGenreName(genre) ? t(`genres.${genre}`) : genre;
+}
 
 const ADULT_GENRES = new Set(['Hentai']);
 
@@ -180,6 +191,7 @@ const genresSchema = z.object({ GenreCollection: z.array(z.string()) });
 
 export interface GenreOption {
   value: string;
+  // In the language of the moment it was fetched; screens show genreLabel(value).
   label: string;
 }
 

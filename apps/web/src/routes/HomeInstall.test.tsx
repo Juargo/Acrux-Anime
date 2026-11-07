@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AniListClient } from '../anilist/client';
+import { setLocale } from '../i18n';
 import type { Profile } from '../profile-api';
 import { createInstallStore, type InstallEnvironment } from '../pwa/install';
 import { Home } from './Home';
@@ -110,5 +111,23 @@ describe('Home: install suggestion (ADR-0016, #44)', () => {
     renderHome();
     await user.click(await screen.findByRole('button', { name: 'Marcar entrada' }));
     expect(suggestion()).not.toBeNull();
+  });
+});
+
+describe('Home in English (#43)', () => {
+  afterEach(() => setLocale('es'));
+
+  it('shows the navigation, sign out and install suggestion in English', async () => {
+    await setLocale('en');
+    const user = userEvent.setup();
+    renderHome();
+    await screen.findByRole('navigation', { name: 'Main' });
+    for (const name of ['Explore', 'My list', 'Card', 'Profile']) {
+      screen.getByRole('link', { name });
+    }
+    screen.getByRole('button', { name: 'Sign out' });
+    expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Marcar entrada' }));
+    screen.getByRole('region', { name: 'Install Acrux' });
   });
 });

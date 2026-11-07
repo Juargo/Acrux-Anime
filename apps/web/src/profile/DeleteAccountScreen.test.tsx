@@ -3,6 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { setLocale } from '../i18n';
 import { DeleteAccountScreen } from './DeleteAccountScreen';
 
 afterEach(cleanup);
@@ -12,13 +13,21 @@ const FRESH = '2026-11-05T10:00:00.000Z';
 const STALE = '2026-11-04T11:00:00.000Z';
 
 function renderScreen(
-  options: { sessionStartedAt?: string; deleteStatus?: number; exportStatus?: number } = {},
+  options: {
+    sessionStartedAt?: string;
+    deleteStatus?: number;
+    deleteProblem?: unknown;
+    exportStatus?: number;
+  } = {},
 ) {
   const requests: { url: string; method: string }[] = [];
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
     const method = init?.method ?? 'GET';
     requests.push({ url, method });
     if (url === '/api/v1/me' && method === 'DELETE') {
+      if (options.deleteProblem) {
+        return Response.json(options.deleteProblem, { status: options.deleteStatus ?? 503 });
+      }
       return new Response(null, { status: options.deleteStatus ?? 204 });
     }
     if (url === '/api/v1/me/export') {
@@ -124,5 +133,35 @@ describe('DeleteAccountScreen', () => {
     await user.click(screen.getByRole('button', { name: 'Volver a iniciar sesión' }));
     expect(onReauthenticate).toHaveBeenCalledTimes(1);
     expect(requests).toEqual([]);
+  });
+});
+
+describe('DeleteAccountScreen in English and API codes (#43)', () => {
+  afterEach(() => setLocale('es'));
+
+  it('says what is deleted in English and confirms with DELETE', async () => {
+    await setLocale('en');
+    const user = userEvent.setup();
+    const { onAccountDeleted } = renderScreen();
+    screen.getByRole('heading', { name: 'Delete your account' });
+    screen.getByText('Deleted forever: your profile, your marks, your public link and your plan.');
+    screen.getByRole('button', { name: 'Download my data first' });
+    expect(screen.queryByText('Borrar tu cuenta')).toBeNull();
+    await user.type(screen.getByLabelText('Type DELETE to confirm'), 'DELETE');
+    await user.click(screen.getByRole('button', { name: 'Delete my account forever' }));
+    expect(onAccountDeleted).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the API code's message when the deletion fails with one (ADR-0023)", async () => {
+    const user = userEvent.setup();
+    renderScreen({
+      deleteStatus: 503,
+      deleteProblem: { status: 503, code: 'account.auth_unavailable', requestId: 'r1' },
+    });
+    await user.type(screen.getByLabelText('Escribe BORRAR para confirmar'), 'BORRAR');
+    await user.click(confirm());
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'No pudimos contactar al servicio de inicio de sesión. Vuelve a intentarlo.',
+    );
   });
 });

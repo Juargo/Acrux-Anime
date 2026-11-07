@@ -1,14 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { useConsent } from '../analytics/AnalyticsContext';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
+import { errorMessage } from '../api-errors';
 import { Avatar } from '../components/Avatar';
 import { Logo } from '../components/Logo';
 import { useCrawledFranchises } from '../counter/use-marked-franchises';
 import { type ListRow, myList } from '../my-list/items';
-import { fetchPublicMarks, fetchPublicProfile, isHandle, type PublicProfile } from './api';
+import {
+  fetchPublicMarks,
+  fetchPublicProfile,
+  isHandle,
+  type PublicProfile,
+  PublicProfileError,
+} from './api';
 
 // ADR-0030: no personal data in the properties, so not the handle either.
 export type PublicProfileViewedEvent = { listVisibility: PublicProfile['listVisibility'] };
@@ -17,12 +25,17 @@ export type PublicProfileViewedEvent = { listVisibility: PublicProfile['listVisi
 const RECENT_SAGAS = 6;
 const STORE_KEY = ['anilist', 'public-franchises'] as const;
 
+// The message of the API code that failed (ADR-0023), when it has one.
+const codeMessage = (error: unknown) =>
+  errorMessage(error instanceof PublicProfileError ? error.code : undefined);
+
 function CallToAction() {
+  const { t } = useTranslation();
   return (
     <aside className="public-profile__cta">
-      <p>¿Y tú, cuántos has visto?</p>
+      <p>{t('publicProfile.ctaQuestion')}</p>
       <Link className="button button--primary" to="/">
-        Crea tu tarjeta gratis
+        {t('publicProfile.ctaLink')}
       </Link>
     </aside>
   );
@@ -59,6 +72,7 @@ function PublicList(props: {
   fetchFn: typeof fetch;
 }) {
   const { profile, client, fetchFn } = props;
+  const { t } = useTranslation();
   const marks = useQuery({
     queryKey: ['public-profile', profile.handle, 'marks'],
     queryFn: () => fetchPublicMarks(profile.handle, fetchFn),
@@ -81,13 +95,13 @@ function PublicList(props: {
   if (marks.isError || crawled.failed) {
     return (
       <div className="catalog__notice" role="alert">
-        <p>No pudimos cargar su lista. Vuelve a intentarlo.</p>
+        <p>{codeMessage(marks.error) ?? t('publicProfile.listFailed')}</p>
         <button
           className="button button--secondary"
           type="button"
           onClick={() => (marks.isError ? void marks.refetch() : crawled.retry())}
         >
-          Reintentar
+          {t('app.retry')}
         </button>
       </div>
     );
@@ -97,47 +111,49 @@ function PublicList(props: {
   if (!list) {
     return (
       <p className="catalog__state" role="status">
-        Cargando su lista…
+        {t('publicProfile.listLoading')}
       </p>
     );
   }
-  const name = profile.displayName.trim() || 'Este usuario';
+  const name = profile.displayName.trim() || t('publicProfile.someone');
   return (
     <>
       <Covers
-        title="VIENDO AHORA"
+        title={t('publicProfile.watching')}
         rows={list.watching}
-        empty={`${name} no está viendo nada ahora.`}
+        empty={t('publicProfile.watchingEmpty', { name })}
       />
       <Covers
-        title="SAGAS MÁS RECIENTES"
+        title={t('publicProfile.recent')}
         rows={list.seen.slice(0, RECENT_SAGAS)}
-        empty="Aún no completó ninguna saga."
+        empty={t('publicProfile.recentEmpty')}
       />
     </>
   );
 }
 
 function PrivateNotice({ name }: { name: string }) {
+  const { t } = useTranslation();
   return (
     <div className="public-profile__private">
       <span className="public-profile__lock" aria-hidden="true">
         🔒
       </span>
       <p className="public-profile__private-title">
-        {name.trim() || 'Este usuario'} mantiene su lista privada
+        {t('app.privateList', { name: name.trim() || t('publicProfile.someone') })}
       </p>
-      <p className="public-profile__private-text">Solo se muestra su total.</p>
+      <p className="public-profile__private-text">{t('publicProfile.privateText')}</p>
     </div>
   );
 }
 
 function Header() {
+  const { t } = useTranslation();
   return (
     <header className="public-profile__bar">
       <Logo />
       <Link className="button button--secondary" to="/">
-        Crear mi tarjeta
+        {t('publicProfile.createCard')}
       </Link>
     </header>
   );
@@ -158,6 +174,7 @@ export function PublicProfileScreen({
   fetchFn?: typeof fetch | undefined;
   onViewed?: ((event: PublicProfileViewedEvent) => void) | undefined;
 }) {
+  const { t } = useTranslation();
   const valid = isHandle(handle);
   const profile = useQuery({
     queryKey: ['public-profile', handle],
@@ -182,43 +199,46 @@ export function PublicProfileScreen({
 
   useEffect(() => {
     document.title = data
-      ? `${data.displayName.trim() || 'Sin nombre'} (@${data.handle}) · Acrux`
+      ? t('publicProfile.documentTitle', {
+          name: data.displayName.trim() || t('app.noName'),
+          handle: data.handle,
+        })
       : 'Acrux';
     // The next screen must not keep someone's name in the title (analytics sends it, #46).
     return () => {
       document.title = 'Acrux';
     };
-  }, [data]);
+  }, [data, t]);
 
   let body: React.ReactNode;
   if (!valid || data === null) {
     body = (
       <section className="public-profile__missing">
-        <h1>Perfil no disponible</h1>
-        <p>El enlace no existe o ya no está disponible.</p>
+        <h1>{t('publicProfile.missingTitle')}</h1>
+        <p>{t('publicProfile.missingText')}</p>
       </section>
     );
   } else if (profile.isError) {
     body = (
       <div className="catalog__notice" role="alert">
-        <p>No pudimos cargar este perfil. Vuelve a intentarlo.</p>
+        <p>{codeMessage(profile.error) ?? t('publicProfile.failed')}</p>
         <button
           className="button button--secondary"
           type="button"
           onClick={() => void profile.refetch()}
         >
-          Reintentar
+          {t('app.retry')}
         </button>
       </div>
     );
   } else if (!data) {
     body = (
       <p className="catalog__state" role="status">
-        Cargando el perfil…
+        {t('publicProfile.loading')}
       </p>
     );
   } else {
-    const name = data.displayName.trim() || 'Sin nombre';
+    const name = data.displayName.trim() || t('app.noName');
     body = (
       <>
         <section className="public-profile__summary">
@@ -236,7 +256,7 @@ export function PublicProfileScreen({
             <p className="public-profile__total">
               <span className="public-profile__count">{data.shownTotal}</span>
               <span className="public-profile__label">
-                {data.shownMode === 'entry' ? 'ENTRADAS VISTAS' : 'ANIMES COMPLETOS'}
+                {t(data.shownMode === 'entry' ? 'app.total.entry' : 'app.total.franchise')}
               </span>
             </p>
           )}

@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AvatarPreset } from '../profile-api';
 import { Avatar } from './Avatar';
 import { QrCode } from './QrCode';
@@ -38,6 +39,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
   },
   ref,
 ) {
+  const { t } = useTranslation();
   return (
     <div className="share-card" ref={ref} aria-hidden={hidden || undefined}>
       <div className="share-card__user">
@@ -68,7 +70,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
       </div>
       {covers.length > 0 && (
         <div className="share-card__watching">
-          <span className="share-card__label">VIENDO AHORA</span>
+          <span className="share-card__label">{t('card.watchingNow')}</span>
           <div className="share-card__covers">
             {covers.map((cover) =>
               cover.coverUrl ? (

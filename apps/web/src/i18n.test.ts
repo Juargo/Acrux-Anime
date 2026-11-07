@@ -1,0 +1,75 @@
+// @vitest-environment jsdom
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { accountLocale, browserLocale, i18n, initI18n, setLocale } from './i18n';
+
+function stubLanguages(languages: string[]) {
+  vi.spyOn(navigator, 'languages', 'get').mockReturnValue(languages);
+}
+
+afterEach(async () => {
+  vi.restoreAllMocks();
+  await setLocale('es');
+  localStorage.clear();
+});
+
+describe('browserLocale', () => {
+  it('uses the first supported browser language, ignoring the region', () => {
+    stubLanguages(['es-CL', 'en-US']);
+    expect(browserLocale()).toBe('es');
+  });
+
+  it('skips unsupported languages', () => {
+    stubLanguages(['fr-FR', 'en-GB']);
+    expect(browserLocale()).toBe('en');
+  });
+
+  it('falls back to English when no language is supported (ADR-0010)', () => {
+    stubLanguages(['fr-FR', 'de']);
+    expect(browserLocale()).toBe('en');
+  });
+});
+
+describe('accountLocale', () => {
+  it('uses the language chosen in the account over the device one', () => {
+    stubLanguages(['en-US']);
+    expect(accountLocale('es')).toBe('es');
+  });
+
+  it('follows the device language when the account has none (null)', () => {
+    stubLanguages(['en-US']);
+    expect(accountLocale(null)).toBe('en');
+  });
+});
+
+describe('initI18n', () => {
+  it('starts in the browser language when nothing was chosen', async () => {
+    stubLanguages(['en-US']);
+    await initI18n();
+    expect(i18n.language).toBe('en');
+    expect(i18n.t('language.label')).toBe('Language');
+  });
+
+  it('starts in the last language used on this browser', async () => {
+    stubLanguages(['en-US']);
+    localStorage.setItem('acrux.locale', 'es');
+    await initI18n();
+    expect(i18n.language).toBe('es');
+    expect(i18n.t('language.label')).toBe('Idioma');
+  });
+});
+
+describe('plurals', () => {
+  it('says a million in Spanish, which uses the "many" plural form', () => {
+    expect(i18n.t('counter.total', { count: 1_000_000 })).toBe('1000000 animes');
+    expect(i18n.t('franchise.entries', { count: 1_000_000 })).toBe('1000000 entradas');
+  });
+});
+
+describe('setLocale', () => {
+  it('switches the texts, the html lang and remembers it on this browser', async () => {
+    await setLocale('en');
+    expect(i18n.t('language.label')).toBe('Language');
+    expect(document.documentElement.lang).toBe('en');
+    expect(localStorage.getItem('acrux.locale')).toBe('en');
+  });
+});

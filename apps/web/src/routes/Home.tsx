@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Outlet } from 'react-router';
 import type { AniListClient } from '../anilist/client';
 import type { CardGeneratedEvent, CardSharedEvent } from '../card/CardScreen';
@@ -35,12 +36,13 @@ export function Home(props: {
   // Tests inject the browser's install event and environment (#44).
   install?: { store?: InstallStore; environment?: InstallEnvironment } | undefined;
 }) {
+  const { t } = useTranslation();
   const { getToken, client, fetchFn } = props;
   // The install suggestion waits for the first anime marked as seen (ADR-0016).
   const [markedSeen, setMarkedSeen] = useState(false);
   // The profile App loaded, then what the screens save (name, avatar, privacy).
   const [profile] = useOwnProfile({ initial: props.profile, getToken, fetchFn });
-  const name = profile.displayName || 'Sin nombre';
+  const name = profile.displayName || t('app.noName');
   return (
     <main className="home">
       <header className="home__bar">
@@ -70,13 +72,13 @@ export function Home(props: {
             onClick={props.onSignOut}
             disabled={props.signingOut}
           >
-            Cerrar sesión
+            {t('app.signOut')}
           </button>
         </div>
       </header>
       {props.signOutFailed && (
         <p className="home__error" role="alert">
-          No pudimos cerrar tu sesión. Vuelve a intentarlo.
+          {t('app.signOutFailed')}
         </p>
       )}
       <Outlet

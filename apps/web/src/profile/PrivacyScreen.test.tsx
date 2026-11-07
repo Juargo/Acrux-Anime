@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AniListClient } from '../anilist/client';
+import { setLocale } from '../i18n';
 import type { Profile } from '../profile-api';
 import { Home } from '../routes/Home';
 import { signedInRoutes } from '../routes/signed-in-routes';
@@ -151,5 +152,23 @@ describe('PrivacyScreen', () => {
     const { router } = renderPrivacy({ from: '/tarjeta' });
     await user.click(await screen.findByRole('link', { name: '‹ Tu tarjeta' }));
     expect(router.state.location.pathname).toBe('/tarjeta');
+  });
+});
+
+describe('PrivacyScreen in English (#43)', () => {
+  afterEach(() => setLocale('es'));
+
+  it('asks who sees the list in English', async () => {
+    await setLocale('en');
+    renderPrivacy();
+    await screen.findByRole('heading', { name: 'Who sees your list?' });
+    expect(choice(/^Private/).checked).toBe(true);
+    screen.getByText('Anyone who opens your link will only see your total.');
+    const visitor = screen.getByRole('region', { name: 'HOW A VISITOR SEES YOU' });
+    within(visitor).getByText('ANIME COMPLETED');
+    within(visitor).getByText('Camila keeps their list private');
+    within(visitor).getByRole('link', { name: 'See my public profile' });
+    screen.getByRole('link', { name: '‹ Profile' });
+    expect(screen.queryByText('¿Quién ve tu lista?')).toBeNull();
   });
 });

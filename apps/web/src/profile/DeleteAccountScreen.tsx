@@ -1,9 +1,10 @@
 import { useId, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { deleteAccount } from '../account-api';
+import { errorCode, errorMessage } from '../api-errors';
 import { useDataDownload } from './use-data-download';
 
-const CONFIRMATION = 'BORRAR';
 // RF-06: a session older than this signs in again before deleting.
 const REAUTH_AFTER_MS = 24 * 60 * 60 * 1000;
 
@@ -15,7 +16,8 @@ export function sessionIsStale(startedAt: string | undefined, now: Date): boolea
 }
 
 /**
- * Container: "Borrar tu cuenta" (RF-06, Figma M19). Deletes only after typing BORRAR; a
+ * Container: "Borrar tu cuenta" (RF-06, Figma M19). Deletes only after typing BORRAR (DELETE in
+ * English); a
  * session older than 24 hours signs in again first. The Plus warning arrives with #50.
  */
 export function DeleteAccountScreen({
@@ -35,22 +37,26 @@ export function DeleteAccountScreen({
   onAccountDeleted: () => void;
   onReauthenticate: () => void;
 }) {
+  const { t } = useTranslation();
+  // The word to type is in the user's language (#43).
+  const confirmation = t('deleteAccount.confirmWord');
   const titleId = useId();
   const inputId = useId();
   const [typed, setTyped] = useState('');
   const [deleting, setDeleting] = useState(false);
-  const [deleteFailed, setDeleteFailed] = useState(false);
+  // The API code of the failed deletion (ADR-0023); null while nothing failed.
+  const [deleteFailure, setDeleteFailure] = useState<{ code: string | undefined } | null>(null);
   const data = useDataDownload({ getToken, fetchFn, saveFile });
   const stale = sessionIsStale(sessionStartedAt, now());
 
   async function remove() {
     setDeleting(true);
-    setDeleteFailed(false);
+    setDeleteFailure(null);
     try {
       await deleteAccount(getToken, fetchFn);
       onAccountDeleted();
-    } catch {
-      setDeleteFailed(true);
+    } catch (error) {
+      setDeleteFailure({ code: errorCode(error) });
       setDeleting(false);
     }
   }
@@ -58,19 +64,15 @@ export function DeleteAccountScreen({
   return (
     <section className="privacy delete-account" aria-labelledby={titleId}>
       <Link className="card-preview__back" to="/perfil">
-        ‹ Perfil
+        {t('app.backToProfile')}
       </Link>
       <h1 className="card-step__title" id={titleId}>
-        Borrar tu cuenta
+        {t('deleteAccount.title')}
       </h1>
       <div className="privacy__status delete-account__facts">
-        <p className="delete-account__gone">
-          Se borra para siempre: tu perfil, tus marcas, tu enlace público y tu plan.
-        </p>
-        <p className="delete-account__kept">No se toca: tu lista de AniList.</p>
-        <p className="delete-account__note">
-          Las tarjetas que ya compartiste no se pueden recuperar.
-        </p>
+        <p className="delete-account__gone">{t('deleteAccount.gone')}</p>
+        <p className="delete-account__kept">{t('deleteAccount.kept')}</p>
+        <p className="delete-account__note">{t('deleteAccount.note')}</p>
       </div>
       <button
         className="button button--secondary"
@@ -79,18 +81,18 @@ export function DeleteAccountScreen({
         onClick={() => void data.download()}
       >
         <span aria-hidden="true">⤓&nbsp;</span>
-        Descargar mis datos antes
+        {t('deleteAccount.downloadFirst')}
       </button>
       {data.failed && (
         <p className="counter__error" role="alert">
-          No pudimos descargar tus datos. Vuelve a intentarlo.
+          {errorMessage(data.code) ?? t('app.downloadFailed')}
         </p>
       )}
       {stale ? (
         <div className="delete-account__reauth">
-          <p>Por seguridad, vuelve a iniciar sesión antes de borrar tu cuenta.</p>
+          <p>{t('deleteAccount.reauthText')}</p>
           <button className="button button--secondary" type="button" onClick={onReauthenticate}>
-            Volver a iniciar sesión
+            {t('deleteAccount.reauth')}
           </button>
         </div>
       ) : (
@@ -98,11 +100,11 @@ export function DeleteAccountScreen({
           className="delete-account__form"
           onSubmit={(event) => {
             event.preventDefault();
-            if (typed.trim() === CONFIRMATION && !deleting) void remove();
+            if (typed.trim() === confirmation && !deleting) void remove();
           }}
         >
           <label className="profile-editor__label" htmlFor={inputId}>
-            Escribe {CONFIRMATION} para confirmar
+            {t('deleteAccount.confirmLabel', { word: confirmation })}
           </label>
           <input
             id={inputId}
@@ -114,17 +116,17 @@ export function DeleteAccountScreen({
             value={typed}
             onChange={(event) => setTyped(event.target.value)}
           />
-          {deleteFailed && (
+          {deleteFailure && (
             <p className="counter__error" role="alert">
-              No pudimos terminar de borrar tu cuenta. Vuelve a intentarlo.
+              {errorMessage(deleteFailure.code) ?? t('deleteAccount.failed')}
             </p>
           )}
           <button
             className="button button--danger"
             type="submit"
-            disabled={typed.trim() !== CONFIRMATION || deleting}
+            disabled={typed.trim() !== confirmation || deleting}
           >
-            Borrar mi cuenta para siempre
+            {t('deleteAccount.submit')}
           </button>
         </form>
       )}

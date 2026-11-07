@@ -75,3 +75,13 @@ describe('fetchPublicMarks', () => {
     await expect(fetchPublicMarks('camila', fetchFn)).rejects.toBeInstanceOf(PublicProfileError);
   });
 });
+
+describe('PublicProfileError (ADR-0023)', () => {
+  it('keeps the code of the problem', async () => {
+    const error = await fetchPublicProfile('camila', async () =>
+      json({ status: 429, code: 'rate_limited' }, 429),
+    ).catch((e) => e);
+    expect(error).toBeInstanceOf(PublicProfileError);
+    expect(error.code).toBe('rate_limited');
+  });
+});

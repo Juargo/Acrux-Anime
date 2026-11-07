@@ -6,6 +6,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AniListClient } from '../anilist/client';
 import { cardImage } from '../card/image';
+import { setLocale } from '../i18n';
 import type { Profile } from '../profile-api';
 import { Home } from '../routes/Home';
 import { signedInRoutes } from '../routes/signed-in-routes';
@@ -35,7 +36,9 @@ const base: Profile = {
   analyticsId: null,
 };
 
-function renderEditor(options: { profile?: Partial<Profile>; failPatch?: boolean } = {}) {
+function renderEditor(
+  options: { profile?: Partial<Profile>; failPatch?: boolean; patchProblem?: unknown } = {},
+) {
   let profile = { ...base, ...options.profile };
   const patches: unknown[] = [];
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
@@ -44,7 +47,7 @@ function renderEditor(options: { profile?: Partial<Profile>; failPatch?: boolean
       const body = JSON.parse(init.body as string);
       if ('shown' in body) return json(profile);
       patches.push(body);
-      if (options.failPatch) return json({ status: 503 }, 503);
+      if (options.failPatch) return json(options.patchProblem ?? { status: 503 }, 503);
       profile = { ...profile, ...body };
       return json(profile);
     }
@@ -184,5 +187,34 @@ describe('ProfileEditor', () => {
       'No pudimos guardar. Vuelve a intentarlo.',
     );
     expect(router.state.location.pathname).toBe('/perfil/editar');
+  });
+});
+
+describe('ProfileEditor in English and API codes (#43)', () => {
+  afterEach(() => setLocale('es'));
+
+  it('shows the editor and its hints in English', async () => {
+    await setLocale('en');
+    const user = userEvent.setup();
+    renderEditor();
+    await screen.findByRole('heading', { name: "This is how you'll appear on your card" });
+    screen.getByText('Or pick one from Acrux');
+    expect(avatarChoice('Your Google photo').checked).toBe(true);
+    avatarChoice('Violet avatar');
+    screen.getByText('This is how you’ll look on your card and profile');
+    await user.clear(screen.getByRole('textbox', { name: 'Display name' }));
+    screen.getByText('Write a name.');
+    screen.getByRole('button', { name: 'Continue' });
+    expect(screen.queryByText('Escribe un nombre.')).toBeNull();
+  });
+
+  it("shows the API code's message when saving fails with one (ADR-0023)", async () => {
+    const user = userEvent.setup();
+    renderEditor({ failPatch: true, patchProblem: { status: 429, code: 'rate_limited' } });
+    await user.type(await screen.findByRole('textbox', { name: 'Nombre visible' }), 'x');
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'Demasiados intentos. Espera un momento y vuelve a intentarlo.',
+    );
   });
 });

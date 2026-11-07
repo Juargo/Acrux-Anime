@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { finishAccountDeletion } from './account-deletion';
 import { useAnalyticsState } from './analytics/AnalyticsContext';
 import { eventCallbacks } from './analytics/events';
 import { auth } from './auth';
+import { accountLocale, setLocale } from './i18n';
 import { fetchMe, type MeResult } from './profile-api';
 import { Home } from './routes/Home';
 import { SignIn } from './routes/SignIn';
@@ -23,10 +25,11 @@ function sessionStart(value: Date | string | undefined): string | undefined {
 
 // Container: owns the session and the profile; the routes only render.
 export function App() {
+  const { t } = useTranslation();
   if (!auth) {
     return (
       <main className="notice">
-        <p>El inicio de sesión no está disponible en este entorno.</p>
+        <p>{t('app.signInUnavailable')}</p>
       </main>
     );
   }
@@ -34,6 +37,7 @@ export function App() {
 }
 
 function SignedApp({ client }: { client: AuthClient }) {
+  const { t } = useTranslation();
   const session = client.useSession();
   const userId = session.data?.user.id;
   const [me, setMe] = useState<MeResult | undefined>();
@@ -98,6 +102,11 @@ function SignedApp({ client }: { client: AuthClient }) {
   const { analytics } = useAnalyticsState();
   const callbacks = useMemo(() => (analytics ? eventCallbacks(analytics) : {}), [analytics]);
   const profile = me?.status === 'ok' ? me.profile : undefined;
+  const locale = profile ? accountLocale(profile.locale) : undefined;
+  useEffect(() => {
+    if (locale) void setLocale(locale);
+  }, [locale]);
+
   useEffect(() => {
     if (profile) {
       analytics?.identify({ analyticsId: profile.analyticsId, createdAt: profile.createdAt });
@@ -118,7 +127,7 @@ function SignedApp({ client }: { client: AuthClient }) {
         onContinue={() => void signIn()}
         busy={signingIn}
         failed={signInFailed}
-        notice="Borramos tu cuenta y tus datos."
+        notice={t('signIn.accountDeleted')}
       />
     );
   }
@@ -131,8 +140,10 @@ function SignedApp({ client }: { client: AuthClient }) {
     return (
       <main className="notice">
         <p role="alert">
-          No pudimos cargar tu perfil. Recarga la página.
-          {me.requestId && <span className="notice__id"> Código: {me.requestId}</span>}
+          {t('app.profileLoadFailed')}
+          {me.requestId && (
+            <span className="notice__id"> {t('app.requestId', { id: me.requestId })}</span>
+          )}
         </p>
       </main>
     );

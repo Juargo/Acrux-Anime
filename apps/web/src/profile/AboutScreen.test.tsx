@@ -2,6 +2,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it } from 'vitest';
+import { setLocale } from '../i18n';
 import { AboutScreen } from './AboutScreen';
 
 afterEach(cleanup);
@@ -39,5 +40,21 @@ describe('AboutScreen', () => {
   it('shows the app version', () => {
     renderAbout('0.0.0 (abc1234)');
     expect(screen.getByText('Versión 0.0.0 (abc1234)')).toBeTruthy();
+  });
+});
+
+describe('AboutScreen in English (#43)', () => {
+  afterEach(() => setLocale('es'));
+
+  it('shows the attribution, links and version in English', async () => {
+    await setLocale('en');
+    renderAbout('0.0.0 (abc1234)');
+    screen.getByRole('heading', { name: 'About Acrux' });
+    expect(link('Privacy')).toBe('https://acruxanime.com/privacidad');
+    expect(link('Terms')).toBe('https://acruxanime.com/terminos');
+    expect(link('Support')).toBe('https://acruxanime.com/soporte');
+    expect(link('‹ Profile')).toBe('/perfil');
+    screen.getByText('Version 0.0.0 (abc1234)');
+    expect(screen.queryByText('Versión 0.0.0 (abc1234)')).toBeNull();
   });
 });

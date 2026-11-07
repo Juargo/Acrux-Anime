@@ -1,5 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { FORMAT_FILTERS, type GenreOption } from '../anilist/catalog';
+import { useTranslation } from 'react-i18next';
+import {
+  FORMAT_FILTERS,
+  formatFilterLabel,
+  type GenreOption,
+  genreLabel,
+} from '../anilist/catalog';
 
 export interface Filters {
   year: number;
@@ -27,6 +33,7 @@ export function FilterSheet(props: {
   onClose: () => void;
 }) {
   const { currentYear, searching, genres, onApply, onClear, onClose } = props;
+  const { t } = useTranslation();
   const dialogRef = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState(props.initial);
   const titleId = useId();
@@ -53,7 +60,7 @@ export function FilterSheet(props: {
       <button
         className="sheet-backdrop__close"
         type="button"
-        aria-label="Cerrar filtros"
+        aria-label={t('filters.close')}
         onClick={onClose}
       />
       <div
@@ -65,11 +72,11 @@ export function FilterSheet(props: {
         tabIndex={-1}
       >
         <h2 className="sheet__title" id={titleId}>
-          Filtrar
+          {t('filters.title')}
         </h2>
 
         <label className="sheet__label" htmlFor={yearId}>
-          Año de estreno
+          {t('filters.year')}
         </label>
         <select
           id={yearId}
@@ -84,11 +91,13 @@ export function FilterSheet(props: {
             </option>
           ))}
         </select>
-        {searching && <p className="sheet__hint">La búsqueda cubre todos los años.</p>}
+        {searching && <p className="sheet__hint">{t('filters.searchCoversAllYears')}</p>}
 
-        <h3 className="sheet__label">Género</h3>
+        <h3 className="sheet__label">{t('filters.genre')}</h3>
         <div className="chips">
-          {genres === undefined && <span className="sheet__hint">Cargando géneros…</span>}
+          {genres === undefined && (
+            <span className="sheet__hint">{t('filters.loadingGenres')}</span>
+          )}
           {genres?.map((genre) => (
             <button
               key={genre.value}
@@ -97,12 +106,12 @@ export function FilterSheet(props: {
               aria-pressed={draft.genres.includes(genre.value)}
               onClick={() => setDraft({ ...draft, genres: toggle(draft.genres, genre.value) })}
             >
-              {genre.label}
+              {genreLabel(genre.value, t)}
             </button>
           ))}
         </div>
 
-        <h3 className="sheet__label">Tipo</h3>
+        <h3 className="sheet__label">{t('filters.format')}</h3>
         <div className="chips">
           {FORMAT_FILTERS.map((format) => (
             <button
@@ -112,19 +121,19 @@ export function FilterSheet(props: {
               aria-pressed={draft.formats.includes(format.value)}
               onClick={() => setDraft({ ...draft, formats: toggle(draft.formats, format.value) })}
             >
-              {format.label}
+              {formatFilterLabel(format.value, t)}
             </button>
           ))}
         </div>
 
-        <p className="sheet__hint">Una saga aparece si alguna de sus entradas cumple el filtro.</p>
+        <p className="sheet__hint">{t('filters.sagaHint')}</p>
 
         <div className="sheet__actions">
           <button className="button button--ghost" type="button" onClick={onClear}>
-            Limpiar
+            {t('filters.clear')}
           </button>
           <button className="button button--primary" type="button" onClick={() => onApply(draft)}>
-            Ver resultados
+            {t('filters.apply')}
           </button>
         </div>
       </div>

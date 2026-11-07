@@ -2,6 +2,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { setLocale } from '../i18n';
 import { AnalyticsProvider, AnalyticsRow } from './AnalyticsContext';
 import { type Analytics, CONSENT_KEY, createAnalytics, type PostHogLike } from './analytics';
 import { ConsentBanner } from './ConsentBanner';
@@ -111,5 +112,20 @@ describe('eventCallbacks', () => {
       ['public_profile_viewed', { listVisibility: 'public' }],
       ['anilist_rate_limited', { attempt: 1 }],
     ]);
+  });
+});
+
+describe('ConsentBanner in English (#43)', () => {
+  afterEach(() => setLocale('es'));
+
+  it('asks in English, and the Perfil row too', async () => {
+    await setLocale('en');
+    setup();
+    expect(screen.queryByRole('region', { name: 'Will you help us measure?' })).not.toBeNull();
+    screen.getByRole('link', { name: 'Learn more' });
+    screen.getByRole('button', { name: 'Decline' });
+    screen.getByRole('button', { name: 'Accept' });
+    expect(screen.getByRole('button', { name: /Analytics/ }).textContent).toContain('Undecided');
+    expect(screen.queryByRole('button', { name: 'Rechazar' })).toBeNull();
   });
 });

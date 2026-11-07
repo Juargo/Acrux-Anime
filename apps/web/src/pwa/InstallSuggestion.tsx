@@ -1,4 +1,5 @@
 import { useState, useSyncExternalStore } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   browserEnvironment,
   createInstallStore,
@@ -24,19 +25,18 @@ export function InstallSuggestion(props: {
   onInstall: () => void;
   onDismiss: () => void;
 }) {
+  const { t } = useTranslation();
   return (
-    <section className="pwa-notice" aria-label="Instalar Acrux">
-      <p className="pwa-notice__title">Instala Acrux en tu teléfono</p>
+    <section className="pwa-notice" aria-label={t('pwa.installLabel')}>
+      <p className="pwa-notice__title">{t('pwa.installTitle')}</p>
       {props.offer === 'ios' ? (
-        <p className="pwa-notice__text">
-          Toca «Compartir» y luego «Agregar a pantalla de inicio» para abrirla como una app.
-        </p>
+        <p className="pwa-notice__text">{t('pwa.installIos')}</p>
       ) : (
-        <p className="pwa-notice__text">Ábrela desde tu pantalla de inicio, como una app.</p>
+        <p className="pwa-notice__text">{t('pwa.installText')}</p>
       )}
       <div className="pwa-notice__buttons">
         <button className="pwa-notice__button" type="button" onClick={props.onDismiss}>
-          Ahora no
+          {t('pwa.notNow')}
         </button>
         {props.offer === 'prompt' && (
           <button
@@ -44,7 +44,7 @@ export function InstallSuggestion(props: {
             type="button"
             onClick={props.onInstall}
           >
-            Instalar Acrux
+            {t('pwa.install')}
           </button>
         )}
       </div>

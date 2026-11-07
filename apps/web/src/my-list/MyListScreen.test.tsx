@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { CatalogMedia, RelatedMedia } from '../anilist/catalog';
 import type { AniListClient } from '../anilist/client';
 import { FRANCHISE_MEDIA } from '../anilist/franchise';
+import { setLocale } from '../i18n';
 import type { MarkDto } from '../marks-api';
 import { Home } from '../routes/Home';
 import { signedInRoutes } from '../routes/signed-in-routes';
@@ -89,7 +90,7 @@ function renderList(marks: MarkDto[] | 'fail') {
     displayName: 'Camila',
     avatarUrl: null,
     avatarPreset: null,
-    locale: 'es',
+    locale: 'es' as const,
     listVisibility: 'private' as const,
     counterMode: 'franchise' as const,
     handle: 'camila',
@@ -222,5 +223,36 @@ describe('MyListScreen', () => {
     expect(within(nav).getByRole('link', { name: 'Mi lista' }).getAttribute('aria-current')).toBe(
       'page',
     );
+  });
+});
+
+describe('MyListScreen in English (RF-70)', () => {
+  afterEach(async () => {
+    await setLocale('es');
+  });
+
+  it('shows the figures, the tabs and the rows in English', async () => {
+    await setLocale('en');
+    const user = userEvent.setup();
+    renderList([mark(1, 'seen', 2), mark(2, 'watching', 5), mark(20, 'watching', 7)]);
+
+    const myList = await screen.findByRole('region', { name: 'My list' });
+    await user.click(await within(myList).findByRole('tab', { name: 'Watching (2)' }));
+
+    expect(within(myList).getByText('anime completed')).toBeTruthy();
+    expect(within(myList).getByText('0 of 1 · marked Oct 7')).toBeTruthy();
+    expect(within(myList).queryByText('viendo ahora')).toBeNull();
+  });
+
+  it('shows the empty state in English', async () => {
+    await setLocale('en');
+    renderList([]);
+
+    const myList = await screen.findByRole('region', { name: 'My list' });
+    expect(
+      await within(myList).findByText("You haven't marked anything as watched yet."),
+    ).toBeTruthy();
+    expect(within(myList).getByRole('link', { name: 'Explore the catalog' })).toBeTruthy();
+    expect(within(myList).queryByText('Explorar el catálogo')).toBeNull();
   });
 });

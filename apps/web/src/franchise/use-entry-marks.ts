@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FranchiseEntry } from '../anilist/franchise';
-import { MARKS_KEY, type MarkMessage, SAVE_FAILED } from '../catalog/use-franchise-marks';
+import { MARKS_KEY, type MarkMessage } from '../catalog/use-franchise-marks';
 import { deleteMark, type MarkDto, putMark } from '../marks-api';
 
 export interface EntryMarkChange {
@@ -26,6 +27,7 @@ export function useEntryMarks(options: {
   onMarkedSeen?: (() => void) | undefined;
 }) {
   const { getToken, fetchFn, onMarkedSeen } = options;
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState<MarkMessage | null>(null);
 
@@ -58,7 +60,7 @@ export function useEntryMarks(options: {
       queryClient.setQueryData<MarkDto[]>(MARKS_KEY, (current = []) =>
         withEntryMark(current, entry.anilistId, context?.previous),
       );
-      setMessage({ kind: 'alert', text: SAVE_FAILED });
+      setMessage({ kind: 'alert', text: t('marks.saveFailed') });
     },
     onSuccess: (written, { entry }) => {
       queryClient.setQueryData<MarkDto[]>(MARKS_KEY, (current = []) =>

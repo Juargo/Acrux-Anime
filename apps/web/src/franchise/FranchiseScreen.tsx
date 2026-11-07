@@ -1,5 +1,6 @@
 import { franchiseProgress } from '@acrux/domain';
 import { type ReactNode, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient, useFranchise } from '../anilist/hooks';
@@ -30,6 +31,7 @@ export function FranchiseScreen({
   onFranchiseMarked?: ((event: FranchiseMarkedEvent) => void) | undefined;
   onEntryMarkedSeen?: (() => void) | undefined;
 }) {
+  const { t } = useTranslation();
   const online = useOnline();
   const query = useFranchise(anilistId, client);
   const marking = useFranchiseMarks({ client, getToken, fetchFn, onFranchiseMarked });
@@ -50,31 +52,30 @@ export function FranchiseScreen({
   if (!online) {
     body = (
       <p className="catalog__notice" role="alert">
-        Estás sin conexión. La franquicia se carga cuando vuelvas a conectarte; lo que marcaste
-        sigue guardado.
+        {t('franchise.offline')}
       </p>
     );
   } else if (!valid || query.data?.detail === null) {
     body = (
       <div className="catalog__notice">
-        <p>No encontramos esta franquicia en AniList.</p>
+        <p>{t('franchise.notFound')}</p>
         <Link className="button button--secondary" to="/">
-          Volver al catálogo
+          {t('franchise.backToCatalog')}
         </Link>
       </div>
     );
   } else if (query.isPending) {
     body = (
       <p className="catalog__state" role="status">
-        Cargando la franquicia…
+        {t('franchise.loading')}
       </p>
     );
   } else if (query.isError) {
     body = (
       <div className="catalog__notice" role="alert">
-        <p>{anilistErrorMessage(query.error)}</p>
+        <p>{anilistErrorMessage(query.error, t)}</p>
         <button className="button button--secondary" type="button" onClick={() => query.refetch()}>
-          Reintentar
+          {t('franchise.retry')}
         </button>
       </div>
     );
@@ -108,7 +109,7 @@ export function FranchiseScreen({
 
   const message = entryMarks.message ?? marking.message;
   return (
-    <section className="franchise-screen" aria-label="Detalle de franquicia">
+    <section className="franchise-screen" aria-label={t('franchise.label')}>
       {message && (
         <p className="catalog__message" role={message.kind}>
           {message.text}

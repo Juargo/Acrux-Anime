@@ -462,7 +462,7 @@ describe('PATCH /api/v1/me', () => {
           displayName: changes.displayName ?? 'Camila',
           avatarUrl: null,
           avatarPreset: changes.avatarPreset ?? null,
-          locale: 'es',
+          locale: changes.locale === undefined ? null : changes.locale,
           listVisibility: changes.listVisibility ?? 'private',
           counterMode: changes.counterMode ?? 'franchise',
           handle: 'camila',
@@ -498,7 +498,7 @@ describe('PATCH /api/v1/me', () => {
     expect(response.body).toEqual({
       displayName: 'Camila',
       avatarUrl: null,
-      locale: 'es',
+      locale: null,
       listVisibility: 'private',
       counterMode: 'entry',
       handle: 'camila',
@@ -561,6 +561,21 @@ describe('PATCH /api/v1/me', () => {
     expect(response.status).toBe(200);
   });
 
+  it.each([
+    ['English', 'en'],
+    ['Spanish', 'es'],
+    ['the browser language again (null)', null],
+  ])('saves %s as the language of the account (#43)', async (_case, locale) => {
+    const { calls, service } = fakeProfiles();
+    const response = await request(appWithProfiles(service))
+      .patch('/api/v1/me')
+      .set(auth)
+      .send({ locale });
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ locale });
+    expect(calls).toEqual([{ session: { userId: USER, name: 'Camila' }, changes: { locale } }]);
+  });
+
   it('saves the visibility of the list, the shown counter and the first card shared', async () => {
     const { calls, service } = fakeProfiles();
     const response = await request(appWithProfiles(service))
@@ -593,7 +608,9 @@ describe('PATCH /api/v1/me', () => {
   it.each([
     ['an unknown mode', { counterMode: 'episode' }],
     ['an empty body', {}],
-    ['a field it does not change yet', { counterMode: 'entry', locale: 'en' }],
+    ['a field it does not change yet', { counterMode: 'entry', titleLanguage: 'romaji' }],
+    ['an unsupported language', { locale: 'fr' }],
+    ['a language with its region', { locale: 'es-CL' }],
     ['an unknown visibility', { listVisibility: 'friends' }],
     ['a negative shown total', { shown: { total: -1, mode: 'entry' } }],
     ['a fractional shown total', { shown: { total: 1.5, mode: 'entry' } }],

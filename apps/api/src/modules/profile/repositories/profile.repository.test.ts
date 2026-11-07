@@ -44,7 +44,8 @@ describe('profile repository', () => {
     expect(profile).toEqual({
       displayName: 'Camila',
       avatarUrl: 'https://lh3.googleusercontent.com/a/camila',
-      locale: 'es',
+      // Nobody chose a language yet: the app follows the browser (#43).
+      locale: null,
       listVisibility: 'private',
       counterMode: 'franchise',
       handle: 'camila',
@@ -88,6 +89,16 @@ describe('profile repository', () => {
     const again = await profiles.findOrCreate(userId, { displayName: 'Camila', avatarUrl: null });
     expect(again).toMatchObject({ displayName: 'Camila', counterMode: 'entry' });
     expect(await prisma.profile.count({ where: { userId } })).toBe(1);
+  });
+
+  it('saves the chosen language and goes back to the browser language with null (#43)', async () => {
+    const profiles = createProfileRepository(prisma);
+    const userId = '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f75';
+    const initial = { displayName: 'Camila', avatarUrl: null };
+    expect((await profiles.update(userId, initial, { locale: 'en' })).locale).toBe('en');
+    expect((await profiles.findOrCreate(userId, initial)).locale).toBe('en');
+    expect((await profiles.update(userId, initial, { counterMode: 'entry' })).locale).toBe('en');
+    expect((await profiles.update(userId, initial, { locale: null })).locale).toBeNull();
   });
 
   it('gives the next profile with the same name the next free handle', async () => {

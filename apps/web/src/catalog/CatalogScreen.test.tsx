@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CATALOG_PAGE, type CatalogMedia, GENRES } from '../anilist/catalog';
 import { type AniListClient, AniListError } from '../anilist/client';
+import { setLocale } from '../i18n';
 import { CatalogScreen } from './CatalogScreen';
 
 afterEach(cleanup);
@@ -264,5 +265,40 @@ describe('CatalogScreen', () => {
     await waitFor(() => expect(calls.map((call) => call.page)).toEqual([1, 2]));
     expect(await screen.findByText('Second page')).toBeTruthy();
     expect(calls.map((call) => call.page)).toEqual([1, 2]);
+  });
+});
+
+describe('CatalogScreen in English (RF-70)', () => {
+  afterEach(async () => {
+    await setLocale('es');
+  });
+
+  it('shows the catalog, its filters and the mark button in English', async () => {
+    await setLocale('en');
+    const { client } = fakeClient(() => ({ media: [frieren] }));
+    renderScreen(client);
+
+    expect(await screen.findByText('Sousou no Frieren')).toBeTruthy();
+    expect(screen.getByRole('searchbox', { name: 'Search anime' })).toBeTruthy();
+    expect(screen.getByRole('list', { name: 'Catalog' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Genre' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Género' })).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Type' }));
+    const sheet = screen.getByRole('dialog', { name: 'Filter' });
+    expect(within(sheet).getByLabelText('Release year')).toBeTruthy();
+    expect(await within(sheet).findByRole('button', { name: 'Fantasy' })).toBeTruthy();
+    expect(within(sheet).getByRole('button', { name: 'TV series' })).toBeTruthy();
+    expect(within(sheet).getByRole('button', { name: 'Show results' })).toBeTruthy();
+    expect(within(sheet).queryByText('Ver resultados')).toBeNull();
+  });
+
+  it('says it found nothing in English', async () => {
+    await setLocale('en');
+    const { client } = fakeClient(() => ({ media: [] }));
+    renderScreen(client);
+
+    expect(await screen.findByText('No anime matches these filters.')).toBeTruthy();
+    expect(screen.queryByText(/No encontramos animes/)).toBeNull();
   });
 });

@@ -120,7 +120,7 @@ describe('GET /api/v1/me/export', () => {
         displayName: 'Camila',
         avatarUrl: null,
         avatarPreset: null,
-        locale: 'es',
+        locale: null,
         listVisibility: 'private',
         counterMode: 'franchise',
         handle: 'camila',

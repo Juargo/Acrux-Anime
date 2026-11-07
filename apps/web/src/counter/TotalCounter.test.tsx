@@ -7,6 +7,7 @@ import type { CatalogMedia, RelatedMedia } from '../anilist/catalog';
 import type { AniListClient } from '../anilist/client';
 import { FRANCHISE_MEDIA } from '../anilist/franchise';
 import { MARKS_KEY } from '../catalog/use-franchise-marks';
+import { setLocale } from '../i18n';
 import type { MarkDto } from '../marks-api';
 import { fetchMe, type Profile } from '../profile-api';
 import { type CounterModeChangedEvent, TotalCounter } from './TotalCounter';
@@ -290,5 +291,38 @@ describe('TotalCounter', () => {
       await waitFor(() => expect(shownPatches(fetchFn)).toHaveLength(1));
       expect(within(counter).queryByRole('alert')).toBeNull();
     });
+  });
+});
+
+describe('TotalCounter in English (RF-70)', () => {
+  afterEach(async () => {
+    await setLocale('es');
+  });
+
+  it('shows the total, its unit and the switch in English', async () => {
+    await setLocale('en');
+    const user = userEvent.setup();
+    const { client } = fakeAniList();
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <TotalCounter
+          initialMode="franchise"
+          getToken={async () => 'jwt'}
+          client={client}
+          fetchFn={fakeApi([seen(1), seen(2), seen(3), seen(4)])}
+        />
+      </QueryClientProvider>,
+    );
+    const counter = screen.getByRole('region', { name: 'Total counter' });
+
+    expect(await within(counter).findByText('1 anime')).toBeTruthy();
+    expect(within(counter).getByText('complete sagas')).toBeTruthy();
+    const group = within(counter).getByRole('group', { name: 'Count by' });
+    await user.click(within(group).getByRole('button', { name: 'Entries' }));
+
+    expect(within(counter).getByText('4 anime')).toBeTruthy();
+    expect(within(counter).getByText('entries watched')).toBeTruthy();
+    expect(within(counter).queryByText('entradas vistas')).toBeNull();
   });
 });
