@@ -63,7 +63,8 @@ model Profile {
   displayName    String         @map("display_name")
   avatarUrl      String?        @map("avatar_url")
   avatarPreset   AvatarPreset?  @map("avatar_preset")
-  locale         String         @default("es")
+  // The language the user chose (#43); null follows the browser language.
+  locale         String?
   // Private until the user decides to share it (ADR-0028).
   listVisibility ListVisibility @default(private) @map("list_visibility")
   counterMode    CounterMode    @default(franchise) @map("counter_mode")

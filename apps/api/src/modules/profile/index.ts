@@ -7,6 +7,8 @@ import { displayNameProblem } from './domain/display-name.js';
 import type { ProfileService } from './services/profile.service.js';
 
 const counterMode = z.enum(['franchise', 'entry']);
+// The languages of the web app (@acrux/i18n locales, ADR-0010).
+const locale = z.enum(['es', 'en']);
 export const avatarPreset = z.enum(['violeta', 'verde', 'amarillo', 'coral', 'noche', 'lavanda']);
 
 // RF-07 and Figma M06 ("5/30"): trimmed, then the rules the editor checks too (@acrux/domain).
@@ -19,7 +21,7 @@ const profileSchema = z.object({
   displayName: z.string(),
   avatarUrl: z.string().nullable(),
   avatarPreset: avatarPreset.nullable().describe("A preset Acrux avatar; null shows Google's"),
-  locale: z.string(),
+  locale: locale.nullable().describe('The chosen language; null follows the browser (#43)'),
   listVisibility: z.enum(['private', 'public']),
   counterMode,
   handle: z.string().describe('The @handle of the public link, assigned once (#37)'),
@@ -34,7 +36,8 @@ const profileSchema = z.object({
 });
 
 // The name and avatar (RF-07, #39), the counter mode (RF-25), the visibility of the list
-// (RF-42), the counter the owner sees, shown to visitors (#37), and the first card shared (#36).
+// (RF-42), the counter the owner sees, shown to visitors (#37), the first card shared (#36),
+// and the language (#43).
 const patchBody = z
   .strictObject({
     displayName,
@@ -43,6 +46,7 @@ const patchBody = z
     listVisibility: profileSchema.shape.listVisibility,
     shown: z.strictObject({ total: z.number().int().min(0).max(1_000_000), mode: counterMode }),
     cardShared: z.literal(true),
+    locale: locale.nullable(),
   })
   .partial()
   .refine((body) => Object.keys(body).length > 0, 'At least one change');
@@ -80,7 +84,7 @@ export function createProfileModule(profiles: ProfileService | undefined): Modul
         path: '/api/v1/me',
         docs: {
           summary:
-            'Change the counter mode, the list visibility, the shown counter or the first share',
+            'Change the counter mode, the list visibility, the shown counter, the first share or the language',
           requestBody: patchBody,
           responses: {
             200: { description: 'The profile after the change', schema: profileSchema },

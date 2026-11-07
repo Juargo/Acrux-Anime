@@ -3,6 +3,7 @@ import { handleBase, handleCandidates, randomCandidate } from '../domain/handle.
 
 type CounterMode = 'franchise' | 'entry';
 type ListVisibility = 'private' | 'public';
+export type Locale = 'es' | 'en';
 export type AvatarPreset = 'violeta' | 'verde' | 'amarillo' | 'coral' | 'noche' | 'lavanda';
 
 export interface ProfileView {
@@ -10,7 +11,7 @@ export interface ProfileView {
   avatarUrl: string | null;
   // A preset Acrux avatar (#39), shown instead of avatarUrl; null shows Google's.
   avatarPreset: AvatarPreset | null;
-  locale: string;
+  locale: Locale | null;
   listVisibility: ListVisibility;
   counterMode: CounterMode;
   // The @handle of the public link (#37).
@@ -45,6 +46,8 @@ export interface ProfileChanges {
   shown?: { total: number; mode: CounterMode } | undefined;
   // Only true: the date of the first card shared is kept.
   cardShared?: true | undefined;
+  // null goes back to the browser language.
+  locale?: Locale | null | undefined;
 }
 
 const SELECT = {
@@ -63,8 +66,13 @@ const SELECT = {
 
 type Row = Prisma.ProfileGetPayload<{ select: typeof SELECT }>;
 
-const view = ({ cardSharedAt, handle, ...row }: Row, assigned: string): ProfileView => ({
+// The column is text; only the API writes it, after validating it. Anything else follows the browser.
+const asLocale = (value: string | null): Locale | null =>
+  value === 'es' || value === 'en' ? value : null;
+
+const view = ({ cardSharedAt, handle, locale, ...row }: Row, assigned: string): ProfileView => ({
   ...row,
+  locale: asLocale(locale),
   handle: handle ?? assigned,
   cardShared: cardSharedAt !== null,
 });
@@ -152,12 +160,14 @@ export function createProfileRepository(prisma: PrismaClient): ProfileRepository
     },
     update: async (userId, initial, changes) => {
       await create(userId, initial);
-      const { displayName, avatarPreset, counterMode, listVisibility, shown, cardShared } = changes;
+      const { displayName, avatarPreset, counterMode, listVisibility, shown, cardShared, locale } =
+        changes;
       await prisma.profile.update({
         where: { userId },
         data: {
           ...(displayName !== undefined && { displayName }),
           ...(avatarPreset !== undefined && { avatarPreset }),
+          ...(locale !== undefined && { locale }),
           ...(counterMode && { counterMode }),
           ...(listVisibility && { listVisibility }),
           ...(shown && { shownTotal: shown.total, shownMode: shown.mode }),
