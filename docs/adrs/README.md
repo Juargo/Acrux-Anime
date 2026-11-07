@@ -44,9 +44,9 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0024](./0024-catalogo-anilist-desde-el-navegador.md) | Fuente del catálogo: AniList, consultada desde el navegador | Aceptado | Reunión 006, decisiones 2026-10-26, sesión 2026-10-27 |
 | [0025](./0025-autenticacion-y-autorizacion.md) | Autenticación y autorización | Aceptado (Supabase Auth reemplazado por Neon Auth en ADR-0034; plan anual retirado en ADR-0036) | Sesión 2026-10-27 |
 | [0026](./0026-stack-tecnologico-consolidado.md) | Stack tecnológico consolidado | Aceptado (base de datos, ORM y autenticación reemplazados por ADR-0034) | Sesión 2026-10-27 |
-| [0027](./0027-ci-cd.md) | CI/CD: GitHub Actions y despliegue en Vercel | Aceptado | Sesión 2026-10-27 |
+| [0027](./0027-ci-cd.md) | CI/CD: GitHub Actions y despliegue en Vercel | Aceptado (E2E contra la vista previa reemplazado por ADR-0037) | Sesión 2026-10-27 |
 | [0028](./0028-seguridad-y-privacidad-by-design-y-by-default.md) | Seguridad y privacidad desde el diseño y por defecto | Aceptado (retención de respaldos reemplazada por ADR-0032) | Sesión 2026-10-27 |
-| [0029](./0029-estrategia-de-pruebas-y-criterios-de-aceptacion.md) | Estrategia de pruebas (pirámide) y criterios de aceptación en Gherkin | Aceptado | Sesión 2026-10-27 |
+| [0029](./0029-estrategia-de-pruebas-y-criterios-de-aceptacion.md) | Estrategia de pruebas (pirámide) y criterios de aceptación en Gherkin | Aceptado (E2E contra la vista previa reemplazado por ADR-0037) | Sesión 2026-10-27 |
 | [0030](./0030-observabilidad-kpis-logs-y-errores.md) | Observabilidad: KPIs, logs y errores | Aceptado | Sesión 2026-10-27 |
 | [0031](./0031-validar-primero-sin-fecha-fija-y-solo-web.md) | Validar primero, sin fecha fija, y solo web | Aceptado | Decisión 2026-10-26, sesión 2026-10-27 |
 | [0032](./0032-retencion-de-respaldos-de-30-dias.md) | Retención de los respaldos: 30 días | Aceptado | Sesión 2026-10-27 |
@@ -54,6 +54,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0034](./0034-neon-para-postgres-y-autenticacion.md) | Neon para Postgres y autenticación, en lugar de Supabase | Aceptado | Sesión 2026-10-28 |
 | [0035](./0035-respaldos-en-backblaze-b2.md) | Respaldos en Backblaze B2, en lugar de Cloudflare R2 | Aceptado | Sesión 2026-11-01 |
 | [0036](./0036-monetizacion-con-anuncios-y-plus-vitalicio.md) | Monetización con anuncios no intrusivos y Plus vitalicio | Aceptado | Sesión 2026-11-06 |
+| [0037](./0037-e2e-contra-la-app-construida-en-ci.md) | Pruebas E2E contra la app construida en CI, con Neon Auth simulado | Aceptado | Sesión 2026-11-07 |
 
 ## Trazabilidad con las reuniones
 
@@ -91,6 +92,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-10-27: lista de espera de la landing en Buttondown, con doble confirmación | 0033 (complementa 0028) |
 | Sesión 2026-11-01: respaldos en Backblaze B2, sin medio de pago | 0035 (reemplaza R2 en 0022, 0028 y 0034) |
 | Sesión 2026-11-06: anuncios no intrusivos y Plus solo vitalicio | 0036 (reemplaza el plan anual de 0025 y DD-28) |
+| Sesión 2026-11-07: E2E contra la app construida en CI (#47) | 0037 (reemplaza el E2E contra la vista previa de 0027 y 0029) |
 | Sesión 2026-10-27: repo público, región São Paulo, lista privada por defecto | 0027, 0020, 0028 |
 | Sesión 2026-10-27: monorepo con pnpm workspaces aceptado (solo web) | 0002 |
 | D13 | 0010 |
