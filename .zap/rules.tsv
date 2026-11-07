@@ -1,0 +1,7 @@
+# ZAP baseline rules for app.acruxanime.com (#73). Format: <rule id><TAB>IGNORE|WARN|FAIL<TAB>(note).
+# Each IGNORE is an accepted finding; the reason is in docs/runbooks/zap.md.
+10109	IGNORE	(Modern Web Application: informational, the app is a SPA)
+10049	IGNORE	(Storable but Non-Cacheable Content: informational)
+10050	IGNORE	(Retrieved from Cache: informational, the CDN serves it)
+10015	IGNORE	(Re-examine Cache-control Directives: the HTML shell revalidates on purpose)
+90004	IGNORE	(COEP: no cross-origin isolation needed; require-corp would block AniList and Google images)
