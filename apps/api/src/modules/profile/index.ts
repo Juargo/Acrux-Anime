@@ -33,6 +33,9 @@ const profileSchema = z.object({
     .string()
     .nullable()
     .describe('Salted id for analytics after consent (#46); null when analytics is off'),
+  curator: z
+    .boolean()
+    .describe('Whether the session has the curator role (#42); the API still checks every edit'),
 });
 
 // The name and avatar (RF-07, #39), the counter mode (RF-25), the visibility of the list
@@ -59,6 +62,8 @@ function session(profiles: ProfileService | undefined, response: Response) {
   return { profiles, current };
 }
 
+const isCurator = (current: Session) => current.roles?.includes('curator') ?? false;
+
 // Without a database the routes stay mounted and answer 503, as sign-in does.
 export function createProfileModule(profiles: ProfileService | undefined): Module {
   return {
@@ -76,7 +81,7 @@ export function createProfileModule(profiles: ProfileService | undefined): Modul
         },
         handler: async (_request, response) => {
           const { profiles: service, current } = session(profiles, response);
-          response.json(await service.me(current));
+          response.json({ ...(await service.me(current)), curator: isCurator(current) });
         },
       },
       {
@@ -100,7 +105,10 @@ export function createProfileModule(profiles: ProfileService | undefined): Modul
           if (!body.success) {
             throw new ProblemError(400, 'profile.invalid_body', 'Invalid profile body');
           }
-          response.json(await service.update(current, body.data));
+          response.json({
+            ...(await service.update(current, body.data)),
+            curator: isCurator(current),
+          });
         },
       },
     ],

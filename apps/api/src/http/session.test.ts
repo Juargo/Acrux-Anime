@@ -193,6 +193,25 @@ describe('session claims from untrusted shapes', () => {
   });
 });
 
+describe('the role claim (#42)', () => {
+  it('carries the curator role set with neon neon-auth user set-role', async () => {
+    const token = await signWith({ sub: USER_ID, role: 'curator' });
+    expect(await verifier(token)).toEqual({ userId: USER_ID, roles: ['curator'] });
+  });
+
+  it('reads several comma-separated roles', async () => {
+    const token = await signWith({ sub: USER_ID, role: 'authenticated, curator' });
+    expect((await verifier(token)).roles).toEqual(['curator']);
+  });
+
+  it('leaves the default role and unknown roles out', async () => {
+    for (const role of ['authenticated', 'admin', 'Curator', 'curators', '', 42, ['curator']]) {
+      const token = await signWith({ sub: USER_ID, role });
+      expect(await verifier(token), String(role)).toEqual({ userId: USER_ID });
+    }
+  });
+});
+
 describe('neonAuthIssuer', () => {
   it('is the origin of the Neon Auth URL, without its path', () => {
     expect(neonAuthIssuer('https://ep-x.neonauth.us-east-2.aws.neon.tech/neondb/auth')).toBe(

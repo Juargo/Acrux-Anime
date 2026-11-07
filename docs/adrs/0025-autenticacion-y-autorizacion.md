@@ -33,7 +33,7 @@
 
 ### Autorización: denegada por defecto
 
-1. **Toda ruta exige un usuario autenticado salvo que se marque como pública de forma explícita** (`public: true` en la definición de la ruta). Hoy son públicas solo `GET /api/v1/profiles/{handle}` (con `/marks`, `/og.png` y la página `/@{handle}` para las vistas previas, #37), `GET /api/health` y el webhook, que se autentica con firma HMAC.
+1. **Toda ruta exige un usuario autenticado salvo que se marque como pública de forma explícita** (`public: true` en la definición de la ruta). Hoy son públicas solo `GET /api/v1/profiles/{handle}` (con `/marks`, `/og.png` y la página `/@{handle}` para las vistas previas, #37), `GET /api/health`, `GET /api/v1/franchise-overrides` (la tabla del curador, solo IDs de AniList, #42) y el webhook, que se autentica con firma HMAC.
 2. **Propiedad del recurso:** las rutas `/me/*` toman el `user_id` **solo del JWT**, nunca de la URL ni del cuerpo. Los repositorios exigen `userId` como parámetro obligatorio, de modo que no exista una consulta de datos de usuario sin ese filtro.
 3. **Plan (Plus):** un *middleware* `requirePlan('plus')` lee `entitlement` en la base. El estado de Plus **nunca** se toma del cliente ni del JWT.
 4. **Curador:** se identifica con el claim `app_metadata.role = 'curator'`, que solo se puede asignar desde el panel o la API administrativa de Supabase (el usuario no puede modificar `app_metadata`). Un *middleware* `requireRole('curator')` protege la edición de `franchise_override` y las métricas internas.

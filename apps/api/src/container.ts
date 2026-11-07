@@ -17,7 +17,11 @@ import {
 } from './modules/account/services/account.service.js';
 import { anilistLinkModule } from './modules/anilist-link/index.js';
 import { billingModule } from './modules/billing/index.js';
-import { franchisesModule } from './modules/franchises/index.js';
+import { createFranchisesModule } from './modules/franchises/index.js';
+import {
+  createFranchiseOverridesRepository,
+  type FranchiseOverridesRepository,
+} from './modules/franchises/repositories/franchise-overrides.repository.js';
 import { createMarksModule } from './modules/marks/index.js';
 import { createMarksRepository } from './modules/marks/repositories/marks.repository.js';
 import { createMarksService, type MarksService } from './modules/marks/services/marks.service.js';
@@ -113,10 +117,16 @@ export function createContainer(source: Record<string, string | undefined>): Con
       : undefined,
     profileService,
     marksService,
-    modules: createModules(profileService, marksService, publicProfileService, {
-      service: accountService,
-      errorReporter,
-    }),
+    modules: createModules(
+      profileService,
+      marksService,
+      publicProfileService,
+      {
+        service: accountService,
+        errorReporter,
+      },
+      prisma ? createFranchiseOverridesRepository(prisma) : undefined,
+    ),
   };
 }
 
@@ -126,13 +136,14 @@ export function createModules(
   marksService: MarksService | undefined,
   publicProfileService?: PublicProfileService,
   account?: { service: AccountService | undefined; errorReporter: ErrorReporter },
+  franchiseOverrides?: FranchiseOverridesRepository,
 ): Module[] {
   return [
     systemModule,
     createAccountModule(account?.service, account?.errorReporter),
     createProfileModule(profileService),
     createMarksModule(marksService),
-    franchisesModule,
+    createFranchisesModule(franchiseOverrides),
     createPublicProfileModule(publicProfileService),
     billingModule,
     anilistLinkModule,

@@ -268,6 +268,10 @@
                         "string",
                         "null"
                       ]
+                    },
+                    "curator": {
+                      "type": "boolean",
+                      "description": "Whether the session has the curator role (#42); the API still checks every edit"
                     }
                   },
                   "required": [
@@ -282,7 +286,8 @@
                     "shownMode",
                     "cardShared",
                     "createdAt",
-                    "analyticsId"
+                    "analyticsId",
+                    "curator"
                   ],
                   "additionalProperties": false
                 }
@@ -514,6 +519,10 @@
                         "string",
                         "null"
                       ]
+                    },
+                    "curator": {
+                      "type": "boolean",
+                      "description": "Whether the session has the curator role (#42); the API still checks every edit"
                     }
                   },
                   "required": [
@@ -528,7 +537,8 @@
                     "shownMode",
                     "cardShared",
                     "createdAt",
-                    "analyticsId"
+                    "analyticsId",
+                    "curator"
                   ],
                   "additionalProperties": false
                 }
@@ -903,6 +913,169 @@
           },
           "401": {
             "description": "Missing, invalid or expired session",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/franchise-overrides": {
+      "get": {
+        "summary": "The curator table, applied before automatic grouping (RF-60)",
+        "security": [],
+        "tags": [
+          "franchises"
+        ],
+        "responses": {
+          "200": {
+            "description": "Every correction, ordered by anilistId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FranchiseOverride"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/franchise-overrides/{anilistId}": {
+      "put": {
+        "summary": "Save the correction of one entry; there is no delete, set another role instead (RF-60)",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "franchises"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "anilistId",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "franchiseRootId": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 2147483647
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "core",
+                      "extra",
+                      "separate"
+                    ]
+                  }
+                },
+                "required": [
+                  "franchiseRootId",
+                  "role"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The stored correction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FranchiseOverride"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid anilistId, unknown fields or an invalid body"
+          },
+          "401": {
+            "description": "Missing, invalid or expired session",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The session lacks the curator role",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1415,6 +1588,41 @@
           "malId",
           "status",
           "markedAt"
+        ],
+        "additionalProperties": false
+      },
+      "FranchiseOverride": {
+        "type": "object",
+        "properties": {
+          "anilistId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "franchiseRootId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "core",
+              "extra",
+              "separate"
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          }
+        },
+        "required": [
+          "anilistId",
+          "franchiseRootId",
+          "role",
+          "updatedAt"
         ],
         "additionalProperties": false
       },
