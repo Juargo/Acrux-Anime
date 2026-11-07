@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet } from 'react-router';
 import type { AniListClient } from '../anilist/client';
 import type { CardGeneratedEvent, CardSharedEvent } from '../card/CardScreen';
@@ -7,6 +8,8 @@ import { type CounterModeChangedEvent, TotalCounter } from '../counter/TotalCoun
 import type { ListMadePublicEvent } from '../profile/PrivacyScreen';
 import { useOwnProfile } from '../profile/use-own-profile';
 import type { Profile } from '../profile-api';
+import { InstallPrompt } from '../pwa/InstallSuggestion';
+import type { InstallEnvironment, InstallStore } from '../pwa/install';
 import { MainNav } from './MainNav';
 import type { SignedInContext } from './signed-in-context';
 
@@ -29,8 +32,12 @@ export function Home(props: {
   sessionStartedAt?: string | undefined;
   onReauthenticate?: (() => void) | undefined;
   onAccountDeleted?: (() => void) | undefined;
+  // Tests inject the browser's install event and environment (#44).
+  install?: { store?: InstallStore; environment?: InstallEnvironment } | undefined;
 }) {
   const { getToken, client, fetchFn } = props;
+  // The install suggestion waits for the first anime marked as seen (ADR-0016).
+  const [markedSeen, setMarkedSeen] = useState(false);
   // The profile App loaded, then what the screens save (name, avatar, privacy).
   const [profile] = useOwnProfile({ initial: props.profile, getToken, fetchFn });
   const name = profile.displayName || 'Sin nombre';
@@ -83,7 +90,11 @@ export function Home(props: {
             onCardGenerated: props.onCardGenerated,
             onCardShared: props.onCardShared,
             onListMadePublic: props.onListMadePublic,
-            onFranchiseMarked: props.onFranchiseMarked,
+            onFranchiseMarked: (event) => {
+              props.onFranchiseMarked?.(event);
+              if (event.status === 'seen') setMarkedSeen(true);
+            },
+            onEntryMarkedSeen: () => setMarkedSeen(true),
             onCounterModeChanged: props.onCounterModeChanged,
             onSignOut: props.onSignOut,
             signingOut: props.signingOut,
@@ -92,6 +103,11 @@ export function Home(props: {
             onAccountDeleted: props.onAccountDeleted,
           } satisfies SignedInContext
         }
+      />
+      <InstallPrompt
+        show={markedSeen}
+        store={props.install?.store}
+        environment={props.install?.environment}
       />
       <MainNav />
     </main>

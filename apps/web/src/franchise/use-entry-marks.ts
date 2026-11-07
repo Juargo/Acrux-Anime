@@ -22,8 +22,10 @@ function withEntryMark(marks: MarkDto[], anilistId: number, mark: MarkDto | null
 export function useEntryMarks(options: {
   getToken: () => Promise<string | null>;
   fetchFn: typeof fetch;
+  // The install suggestion waits for the first anime marked as seen (#44).
+  onMarkedSeen?: (() => void) | undefined;
 }) {
-  const { getToken, fetchFn } = options;
+  const { getToken, fetchFn, onMarkedSeen } = options;
   const queryClient = useQueryClient();
   const [message, setMessage] = useState<MarkMessage | null>(null);
 
@@ -62,6 +64,7 @@ export function useEntryMarks(options: {
       queryClient.setQueryData<MarkDto[]>(MARKS_KEY, (current = []) =>
         withEntryMark(current, entry.anilistId, written),
       );
+      if (written?.status === 'seen') onMarkedSeen?.();
     },
   });
 

@@ -21,17 +21,19 @@ export function FranchiseScreen({
   getToken,
   fetchFn = fetch,
   onFranchiseMarked,
+  onEntryMarkedSeen,
 }: {
   anilistId: number;
   client?: AniListClient | undefined;
   getToken: () => Promise<string | null>;
   fetchFn?: typeof fetch | undefined;
   onFranchiseMarked?: ((event: FranchiseMarkedEvent) => void) | undefined;
+  onEntryMarkedSeen?: (() => void) | undefined;
 }) {
   const online = useOnline();
   const query = useFranchise(anilistId, client);
   const marking = useFranchiseMarks({ client, getToken, fetchFn, onFranchiseMarked });
-  const entryMarks = useEntryMarks({ getToken, fetchFn });
+  const entryMarks = useEntryMarks({ getToken, fetchFn, onMarkedSeen: onEntryMarkedSeen });
   const detail = query.data?.detail;
 
   const progress = useMemo(

@@ -113,7 +113,12 @@ type Api = (path: string, init?: RequestInit) => Response | Promise<Response>;
 // The marks API: GET answers `marks`; other requests go to `write`, by default an echo.
 function renderAt(
   path: string,
-  options: { marks?: unknown[]; write?: Api; client?: AniListClient } = {},
+  options: {
+    marks?: unknown[];
+    write?: Api;
+    client?: AniListClient;
+    onEntryMarkedSeen?: () => void;
+  } = {},
 ) {
   const { marks = [], client = fakeAniList() } = options;
   const write: Api =
@@ -138,6 +143,7 @@ function renderAt(
     client,
     fetchFn: fetchFn as unknown as typeof fetch,
     counterMode: 'franchise',
+    onEntryMarkedSeen: options.onEntryMarkedSeen,
     onSignOut: () => {},
     signingOut: false,
     profile: {
@@ -229,6 +235,19 @@ describe('franchise detail', () => {
     ]);
     save(json(mark(104)));
     await waitFor(() => expect(pressed('Temporada 4', 'Vista')).toBe('true'));
+  });
+
+  it('says an entry was marked as seen once it is saved, for the install suggestion (#44)', async () => {
+    const onEntryMarkedSeen = vi.fn();
+    renderAt('/franquicia/101', { marks: [mark(101)], onEntryMarkedSeen });
+    await screen.findByText('1 de 5 vistas');
+
+    await userEvent.click(option('Temporada 2', 'Viendo'));
+    await waitFor(() => expect(pressed('Temporada 2', 'Viendo')).toBe('true'));
+    expect(onEntryMarkedSeen).not.toHaveBeenCalled();
+
+    await userEvent.click(option('Temporada 3', 'Vista'));
+    await waitFor(() => expect(onEntryMarkedSeen).toHaveBeenCalledOnce());
   });
 
   it('marks an entry as watching, and the franchise shows as watching', async () => {
