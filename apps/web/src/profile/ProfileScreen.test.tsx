@@ -178,7 +178,7 @@ describe('ProfileScreen', () => {
     within(page()).getByRole('alert');
   });
 
-  it('switches the whole app to English, saves it in the account and keeps it (CA-RF71-01)', async () => {
+  it('@CA-RF71-01 switches the whole app to English, saves it in the account and keeps it', async () => {
     const user = userEvent.setup();
     const { patches } = renderProfile();
     const select = await within(await screen.findByRole('region', { name: 'Perfil' })).findByRole(
