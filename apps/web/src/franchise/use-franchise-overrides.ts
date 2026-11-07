@@ -26,6 +26,11 @@ export function useFranchiseOverrides(
 // A short key for queries whose result depends on the table.
 export function overridesVersion(overrides: readonly FranchiseOverride[] | undefined): string {
   if (!overrides) return 'loading';
-  const latest = overrides.reduce((max, row) => (row.updatedAt > max ? row.updatedAt : max), '');
+  // ISO times sort as text.
+  const latest =
+    overrides
+      .map((row) => row.updatedAt)
+      .sort()
+      .at(-1) ?? '';
   return `${overrides.length}:${latest}`;
 }

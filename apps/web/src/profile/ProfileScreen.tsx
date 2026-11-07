@@ -143,6 +143,16 @@ export function ProfileScreen({
             </span>
           </Link>
         </li>
+        {profile.curator && (
+          <li>
+            <Link className="profile__row" to="/curador">
+              <span>{t('profile.curator')}</span>
+              <span className="profile__value" aria-hidden="true">
+                ›
+              </span>
+            </Link>
+          </li>
+        )}
         <li>
           <Link className="profile__row" to="/perfil/acerca-de">
             <span>{t('profile.about')}</span>
