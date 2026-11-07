@@ -42,7 +42,7 @@
 
 | ID | Riesgo | Mitigación |
 |---|---|---|
-| R-01 | Un usuario sin AniList vinculada usa Acrux como tracker independiente con datos de AniList, lo que los términos prohíben sin autorización. AniList podría negar el acceso. Ninguna alternativa revisada permite un tracker propio con plan de pago sin autorización. | Pedir autorización a AniList y, en paralelo, a MyAnimeList (plan B). Beta sin cobro. No cobrar Plus sin autorización y licencia. Detenerse tras H1 si ambas responden que no. |
+| R-01 | Un usuario sin AniList vinculada usa Acrux como tracker independiente con datos de AniList, lo que los términos prohíben sin autorización. AniList podría negar el acceso. Ninguna alternativa revisada permite un tracker propio con plan de pago sin autorización. | Pedir autorización a AniList y, en paralelo, a MyAnimeList (plan B). Beta sin cobro. No cobrar Plus ni mostrar anuncios sin autorización y licencia (ADR-0036). Detenerse tras H1 si ambas responden que no. |
 | R-02 | Costo de la licencia comercial de AniList desconocido. | Consultarlo en el correo de autorización. |
 | R-03 | *Retirado.* Prueba cerrada de Google Play. | No aplica (solo web). |
 | R-04 | Errores en el agrupamiento de sagas populares. | Tabla del curador (RF-60), reportes (RF-62) y pruebas con sagas reales (ADR-0029). |

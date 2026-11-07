@@ -42,7 +42,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0022](./0022-base-de-datos-postgresql-relacional-acid.md) | Base de datos: PostgreSQL relacional (ACID) en Supabase, con Prisma | Aceptado (retención de respaldos reemplazada por ADR-0032; Supabase reemplazado por Neon en ADR-0034) | Sesión 2026-10-27 |
 | [0023](./0023-estilo-de-api-rest-con-openapi.md) | Estilo de la API: REST con contrato OpenAPI, sin WebSocket | Aceptado | Sesión 2026-10-27 |
 | [0024](./0024-catalogo-anilist-desde-el-navegador.md) | Fuente del catálogo: AniList, consultada desde el navegador | Aceptado | Reunión 006, decisiones 2026-10-26, sesión 2026-10-27 |
-| [0025](./0025-autenticacion-y-autorizacion.md) | Autenticación y autorización | Aceptado (Supabase Auth reemplazado por Neon Auth en ADR-0034) | Sesión 2026-10-27 |
+| [0025](./0025-autenticacion-y-autorizacion.md) | Autenticación y autorización | Aceptado (Supabase Auth reemplazado por Neon Auth en ADR-0034; plan anual retirado en ADR-0036) | Sesión 2026-10-27 |
 | [0026](./0026-stack-tecnologico-consolidado.md) | Stack tecnológico consolidado | Aceptado (base de datos, ORM y autenticación reemplazados por ADR-0034) | Sesión 2026-10-27 |
 | [0027](./0027-ci-cd.md) | CI/CD: GitHub Actions y despliegue en Vercel | Aceptado | Sesión 2026-10-27 |
 | [0028](./0028-seguridad-y-privacidad-by-design-y-by-default.md) | Seguridad y privacidad desde el diseño y por defecto | Aceptado (retención de respaldos reemplazada por ADR-0032) | Sesión 2026-10-27 |
@@ -53,6 +53,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0033](./0033-lista-de-espera-con-buttondown.md) | Lista de espera con Buttondown | Aceptado | Sesión 2026-10-27 |
 | [0034](./0034-neon-para-postgres-y-autenticacion.md) | Neon para Postgres y autenticación, en lugar de Supabase | Aceptado | Sesión 2026-10-28 |
 | [0035](./0035-respaldos-en-backblaze-b2.md) | Respaldos en Backblaze B2, en lugar de Cloudflare R2 | Aceptado | Sesión 2026-11-01 |
+| [0036](./0036-monetizacion-con-anuncios-y-plus-vitalicio.md) | Monetización con anuncios no intrusivos y Plus vitalicio | Aceptado | Sesión 2026-11-06 |
 
 ## Trazabilidad con las reuniones
 
@@ -89,6 +90,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-10-27: respaldos con retención de 30 días (DD-32) | 0032 (reemplaza la retención de 0022 y 0028) |
 | Sesión 2026-10-27: lista de espera de la landing en Buttondown, con doble confirmación | 0033 (complementa 0028) |
 | Sesión 2026-11-01: respaldos en Backblaze B2, sin medio de pago | 0035 (reemplaza R2 en 0022, 0028 y 0034) |
+| Sesión 2026-11-06: anuncios no intrusivos y Plus solo vitalicio | 0036 (reemplaza el plan anual de 0025 y DD-28) |
 | Sesión 2026-10-27: repo público, región São Paulo, lista privada por defecto | 0027, 0020, 0028 |
 | Sesión 2026-10-27: monorepo con pnpm workspaces aceptado (solo web) | 0002 |
 | D13 | 0010 |

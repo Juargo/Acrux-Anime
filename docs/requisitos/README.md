@@ -35,7 +35,8 @@ Cuando las fuentes se contradicen, gana la decisión más reciente: **ADR acepta
 |---|---|
 | Solo web (SPA responsive mobile first, instalable como PWA); se retiran Android, iPhone y tiendas | ADR-0013, ADR-0016, ADR-0031 |
 | Inicio de sesión solo con Google; Apple se retira | ADR-0015, ADR-0025, DD-19 |
-| Plus con Lemon Squeezy: solo anual y vitalicio, sin prueba gratis; "Plus vive en la cuenta" reemplaza "restaurar compra" | ADR-0025, DD-27, DD-28, DD-29 |
+| Plus con Lemon Squeezy: solo vitalicio, sin prueba gratis; "Plus vive en la cuenta" reemplaza "restaurar compra" | ADR-0025, DD-27, DD-28, DD-29, ADR-0036 |
+| Anuncios no intrusivos para usuarios gratuitos; Plus los quita (RF-58, RF-59, RNF-39, RN-M5) | ADR-0036 |
 | La identidad es la cuenta de Google; AniList es un vínculo opcional | ADR-0025 |
 | Lista privada por defecto; se ofrece hacerla pública al compartir la primera tarjeta | ADR-0028, DD-23 |
 | Nuevos RF-08 (descargar mis datos), RF-09 (edad), RF-17 (idioma de los títulos), RF-28 (deshacer), RF-35 (ofrecer lista pública), RF-57 (estados del pago), RF-62 (reportar saga), RF-72 a RF-74 (tema, guardado instantáneo, Acerca de) y RF-80 a RF-82 (landing de validación) | ADR-0024, ADR-0028, ADR-0031, Figma flujos 1 a 7, DD-23 a DD-25 |
@@ -53,7 +54,7 @@ Conflictos y vacíos detectados en la revisión del 2026-10-27. Ningún pendient
 | P-02 | **Caché del catálogo.** Figma fija 7 días de caché en el navegador; ADR-0024 permite solo caché en memoria, sin persistencia. | DD-17 vs ADR-0024 regla 1 | H2 |
 | P-03 | **Sincronización con AniList sin decisión técnica.** El token se guarda cifrado en la API (ADR-0025), así que las escrituras saldrían desde el servidor y compartirían un único límite de 30 peticiones por minuto, el problema que ADR-0024 descartó. Falta decidir dónde corre la cola de escrituras (DD-17), la lectura inicial y la resolución de conflictos. | ADR-0024, ADR-0025, DD-17, RDI-33 | Vínculo con AniList (fuera de H2) |
 | P-04 | ~~Retención de los respaldos.~~ **Resuelto (2026-10-27):** 30 días (ADR-0032). | DD-32, ADR-0032 | — |
-| P-05 | **Cancelar la suscripción al borrar la cuenta** no está en el borrado de ADR-0025 (falta la llamada a Lemon Squeezy). | DD-30 vs ADR-0025 | H4 |
+| P-05 | ~~Cancelar la suscripción al borrar la cuenta.~~ **Sin objeto (2026-11-06):** Plus es solo vitalicio, sin suscripción (ADR-0036). | DD-30 vs ADR-0025 | — |
 | P-06 | **ADR-0009 y ADR-0017 desactualizados.** ADR-0009 sigue diciendo que el contador cuenta entradas y que el login es con Google o Apple; ADR-0017 limita la exploración a nombre o año por las restricciones de MAL, pero la carga en ráfaga muestra las sagas más populares de AniList (DD-09). Falta un ADR que los reemplace. | ADR-0009, ADR-0017 vs RF-25, DD-09, ADR-0024 | Coherencia documental |
 | P-07 | **Requisito de edad.** La landing de Figma pide "Tengo 16 años o más"; ningún requisito ni ADR lo define. Se recoge como RF-09 (propuesta). | Figma D01/M01 | H2 |
 | P-08 | **Pantallas sin diseño:** "Acerca de" con la atribución a AniList (ADR-0024), aviso de consentimiento dentro de la app (el de la landing ya existe), celebración de hito (RF-34) y aviso de sincronización pendiente. Falta también el flujo 3 (compartir y perfil público) en la página de flujos. | ADR-0024, ADR-0028 vs Figma | H2 |
@@ -61,3 +62,4 @@ Conflictos y vacíos detectados en la revisión del 2026-10-27. Ningún pendient
 | P-10 | ~~Almacén del límite de peticiones de la API sin elegir.~~ **Resuelto (2026-11-02):** Upstash Redis (ADR-0028, punto 6). | ADR-0028 | — |
 | P-11 | **Requisitos de Obsidian sin actualizar** a "solo web" (acción derivada de ADR-0031). Este directorio pasa a ser la fuente vigente. | ADR-0031 | — |
 | P-12 | ~~Lista de espera sin modelar.~~ **Resuelto (2026-10-27):** Buttondown con doble confirmación (ADR-0033). Sigue abierta la tabla de reportes de sagas (RDI-18), que no bloquea H1. | ADR-0022, ADR-0033 | — |
+| P-13 | **Red de anuncios y espacios sin elegir.** Falta decidir la red, qué pantallas llevan anuncios y si se muestran anuncios no personalizados sin consentimiento. | ADR-0036 | H4 |
