@@ -55,6 +55,65 @@ jobs:
       - name: Build
         run: pnpm build
 
+  # Journeys against the app built here, with Postgres in a container and Neon Auth and
+  # AniList simulated (ADR-0037). No secrets, so it also runs on fork PRs.
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply migrations
+        env:
+          DATABASE_URL_UNPOOLED: postgresql://postgres:postgres@localhost:5432/postgres
+        run: pnpm --filter @acrux/api db:deploy
+
+      - name: Build the API and the web
+        run: pnpm --filter @acrux/e2e build:apps
+
+      - name: Install browsers
+        run: pnpm --filter @acrux/e2e exec playwright install --with-deps chromium webkit
+
+      - name: Run journeys
+        run: pnpm --filter @acrux/e2e e2e
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: apps/e2e/playwright-report
+          retention-days: 7
+
   commitlint:
     name: Commitlint
     runs-on: ubuntu-latest
