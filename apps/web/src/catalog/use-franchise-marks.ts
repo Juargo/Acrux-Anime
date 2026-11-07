@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AniListClient } from '../anilist/client';
 import { type FranchiseEntry, fetchFranchise } from '../anilist/franchise';
 import { fetchMarks, type MarkDto, saveMarks } from '../marks-api';
@@ -14,9 +15,6 @@ export interface MarkMessage {
   kind: 'status' | 'alert';
   text: string;
 }
-
-export const SAVE_FAILED =
-  'No pudimos guardar tu marca. Vuelve a intentarlo; lo que ya marcaste sigue guardado.';
 
 function uniqueEntries(entries: FranchiseEntry[]): FranchiseEntry[] {
   const seen = new Set<number>();
@@ -52,6 +50,7 @@ export function useFranchiseMarks(options: {
   onFranchiseMarked: ((event: FranchiseMarkedEvent) => void) | undefined;
 }) {
   const { client, getToken, fetchFn, onFranchiseMarked } = options;
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState<MarkMessage | null>(null);
 
@@ -108,7 +107,7 @@ export function useFranchiseMarks(options: {
         ...current.filter((mark) => !touched.has(mark.anilistId)),
         ...before,
       ]);
-      setMessage({ kind: 'alert', text: SAVE_FAILED });
+      setMessage({ kind: 'alert', text: t('marks.saveFailed') });
     },
     onSuccess: (result, item) => {
       queryClient.setQueryData<MarkDto[]>(MARKS_KEY, (current = []) =>
@@ -118,7 +117,7 @@ export function useFranchiseMarks(options: {
         ),
       );
       if (result.status === null) {
-        setMessage({ kind: 'status', text: `Quitaste «${item.title}» de tus vistas.` });
+        setMessage({ kind: 'status', text: t('marks.removed', { title: item.title }) });
       }
       onFranchiseMarked?.({ status: result.status, coreSize: result.coreSize });
     },

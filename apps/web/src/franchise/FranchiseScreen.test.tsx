@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CATALOG_PAGE, type CatalogMedia, type RelatedMedia } from '../anilist/catalog';
 import { type AniListClient, AniListError } from '../anilist/client';
 import { FRANCHISE_MEDIA } from '../anilist/franchise';
+import { setLocale } from '../i18n';
 import type { SignedInContext } from '../routes/signed-in-context';
 import { signedInRoutes } from '../routes/signed-in-routes';
 
@@ -410,5 +411,31 @@ describe('catalog card', () => {
     expect(router.state.location.pathname).toBe('/franquicia/101');
     expect(await screen.findByRole('heading', { level: 1, name: 'Temporada 1' })).toBeTruthy();
     expect(await screen.findByText('0 de 5 vistas')).toBeTruthy();
+  });
+});
+
+describe('franchise detail in English (RF-70)', () => {
+  afterEach(async () => {
+    await setLocale('es');
+  });
+
+  it('shows the progress, the sections and the options in English', async () => {
+    await setLocale('en');
+    renderAt('/franquicia/101', { marks: [mark(101), mark(102), mark(103)] });
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Temporada 1' })).toBeTruthy();
+    expect(await screen.findByText('3 of 5 watched')).toBeTruthy();
+    expect(screen.getByText('Partial')).toBeTruthy();
+    expect(screen.getByText('5 entries · 2020–2024 · Action · Supernatural')).toBeTruthy();
+    const core = screen.getByRole('region', { name: 'Core · counts toward completion' });
+    expect(within(core).getAllByText('TV · 24 ep. · 2020')).toHaveLength(1);
+    expect(
+      within(within(core).getByRole('group', { name: 'Temporada 1' })).getByRole('button', {
+        name: 'Watched',
+      }),
+    ).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Mark saga as watched' })).toBeTruthy();
+    expect(screen.queryByText('Parcial')).toBeNull();
+    expect(screen.queryByText('3 de 5 vistas')).toBeNull();
   });
 });

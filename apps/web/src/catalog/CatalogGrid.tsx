@@ -1,5 +1,6 @@
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { useWindowWidth } from './hooks';
 import type { CatalogItem } from './items';
@@ -31,6 +32,7 @@ export function CatalogGrid(props: {
   pendingRootId?: number | undefined;
 }) {
   const { items, hasMore, loadingMore, onLoadMore, onToggle, pendingRootId } = props;
+  const { t } = useTranslation();
   const listRef = useRef<HTMLUListElement>(null);
   const width = useWindowWidth();
   const columns = columnsFor(width);
@@ -56,7 +58,7 @@ export function CatalogGrid(props: {
     <ul
       ref={listRef}
       className="catalog-grid"
-      aria-label="Catálogo"
+      aria-label={t('catalog.grid')}
       style={{ height: virtualizer.getTotalSize() }}
     >
       {rows.flatMap((row) =>
@@ -74,17 +76,17 @@ export function CatalogGrid(props: {
           >
             <Link className="catalog-card__link" to={`/franquicia/${item.rootId}`}>
               <CardContent item={item} />
-              {item.dimmed && !onToggle && <span className="visually-hidden"> (vista)</span>}
+              {item.dimmed && !onToggle && (
+                <span className="visually-hidden">{t('catalog.seen')}</span>
+              )}
             </Link>
             {onToggle && (
               <button
                 className="catalog-card__mark"
                 type="button"
-                aria-label={
-                  item.dimmed
-                    ? `Quitar «${item.title}» de vistas`
-                    : `Marcar «${item.title}» como vista`
-                }
+                aria-label={t(item.dimmed ? 'catalog.unmark' : 'catalog.mark', {
+                  title: item.title,
+                })}
                 aria-pressed={item.dimmed}
                 disabled={item.rootId === pendingRootId}
                 onClick={() => onToggle(item)}

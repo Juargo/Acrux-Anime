@@ -5,10 +5,11 @@ import {
   franchiseProgress,
   type Mark,
 } from '@acrux/domain';
-import type { RelatedMedia } from '../anilist/catalog';
+import type { TFunction } from 'i18next';
+import { formatLabel, type RelatedMedia } from '../anilist/catalog';
 import { displayTitle } from '../catalog/items';
 import type { CounterMode } from '../counter/use-total-counter';
-import { FORMAT_LABELS } from '../franchise/FranchiseDetail';
+import { i18n } from '../i18n';
 
 // One row of Figma M12: cover, title and "8 de 8 · marcada el 12 de oct.".
 export interface ListRow {
@@ -28,23 +29,25 @@ export interface MyList {
 }
 
 const MONTHS = [
-  'ene.',
-  'feb.',
-  'mar.',
-  'abr.',
-  'may.',
-  'jun.',
-  'jul.',
-  'ago.',
-  'sept.',
-  'oct.',
-  'nov.',
-  'dic.',
-];
+  'jan',
+  'feb',
+  'mar',
+  'apr',
+  'may',
+  'jun',
+  'jul',
+  'aug',
+  'sep',
+  'oct',
+  'nov',
+  'dec',
+] as const;
 
-export function markedOn(iso: string): string {
+// "marcada el 12 de oct." in Spanish, "marked Oct 12" in English.
+export function markedOn(iso: string, t: TFunction = i18n.t): string {
   const date = new Date(iso);
-  return `marcada el ${date.getDate()} de ${MONTHS[date.getMonth()]}`;
+  const month = MONTHS[date.getMonth()] ?? 'jan';
+  return t('myList.markedOn', { day: String(date.getDate()), month: t(`myList.months.${month}`) });
 }
 
 type Sortable = ListRow & { markedAt: string };
@@ -66,6 +69,7 @@ export function myList(
   known: ReadonlyMap<number, RelatedMedia>,
   mode: CounterMode,
   now: string,
+  t: TFunction = i18n.t,
 ): MyList {
   const coverOf = (id: number) => known.get(id)?.coverImage?.large ?? null;
   const watching: Sortable[] = [];
@@ -84,7 +88,10 @@ export function myList(
       href: `/franquicia/${franchise.rootId}`,
       title: franchise.title,
       coverUrl: coverOf(franchise.rootId),
-      detail: `${progress.seenCore} de ${progress.releasedCore} · ${markedOn(markedAt)}`,
+      detail: `${t('myList.progress', {
+        seen: String(progress.seenCore),
+        total: String(progress.releasedCore),
+      })} · ${markedOn(markedAt, t)}`,
       markedAt,
     });
     if (progress.state === 'watching') watching.push(row());
@@ -97,13 +104,13 @@ export function myList(
     ).values(),
   ].map((mark): Sortable => {
     const media = known.get(mark.anilistId);
-    const format = media?.format ? (FORMAT_LABELS[media.format] ?? media.format) : null;
+    const format = media?.format ? formatLabel(media.format, t) : null;
     return {
       id: `entry-${mark.anilistId}`,
       href: `/franquicia/${mark.anilistId}`,
-      title: media ? displayTitle(media) : `Entrada ${mark.anilistId}`,
+      title: media ? displayTitle(media) : t('myList.entry', { id: String(mark.anilistId) }),
       coverUrl: coverOf(mark.anilistId),
-      detail: [format, markedOn(mark.markedAt)].filter(Boolean).join(' · '),
+      detail: [format, markedOn(mark.markedAt, t)].filter(Boolean).join(' · '),
       markedAt: mark.markedAt,
     };
   });

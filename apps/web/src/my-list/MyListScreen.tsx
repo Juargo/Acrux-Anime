@@ -1,4 +1,5 @@
 import { useId, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
@@ -9,15 +10,13 @@ import { type ListRow, myList } from './items';
 
 type Tab = 'watching' | 'seen';
 
-const EMPTY: Record<Tab, { title: string; text: string | null }> = {
-  watching: {
-    title: 'Aún no estás viendo nada',
-    text: 'Marca una saga como "Viendo" y aparecerá en tu tarjeta.',
-  },
-  seen: { title: 'Aún no marcaste nada como visto.', text: null },
-};
+const EMPTY = {
+  watching: { title: 'myList.emptyWatchingTitle', text: 'myList.emptyWatchingText' },
+  seen: { title: 'myList.emptySeenTitle', text: null },
+} as const satisfies Record<Tab, { title: string; text: string | null }>;
 
 function Rows({ rows, tab }: { rows: ListRow[]; tab: Tab }) {
+  const { t } = useTranslation();
   if (rows.length === 0) {
     const empty = EMPTY[tab];
     return (
@@ -25,10 +24,10 @@ function Rows({ rows, tab }: { rows: ListRow[]; tab: Tab }) {
         <span className="my-list__empty-icon" aria-hidden="true">
           {tab === 'watching' ? '▶' : '✓'}
         </span>
-        <p className="my-list__empty-title">{empty.title}</p>
-        {empty.text && <p className="my-list__empty-text">{empty.text}</p>}
+        <p className="my-list__empty-title">{t(empty.title)}</p>
+        {empty.text && <p className="my-list__empty-text">{t(empty.text)}</p>}
         <Link className="button button--primary" to="/">
-          Explorar el catálogo
+          {t('myList.explore')}
         </Link>
       </div>
     );
@@ -72,6 +71,7 @@ export function MyListScreen({
   fetchFn?: typeof fetch | undefined;
   counterMode: CounterMode;
 }) {
+  const { t } = useTranslation();
   const [mode] = useCounterMode(counterMode);
   const [tab, setTab] = useState<Tab>('seen');
   const marked = useMarkedFranchises({ client, getToken, fetchFn, crawl: true });
@@ -79,43 +79,43 @@ export function MyListScreen({
   const { marks, franchises, known, ready } = marked;
   const list = useMemo(
     () =>
-      marks && ready ? myList(franchises, marks, known, mode, new Date().toISOString()) : null,
-    [marks, franchises, known, ready, mode],
+      marks && ready ? myList(franchises, marks, known, mode, new Date().toISOString(), t) : null,
+    [marks, franchises, known, ready, mode, t],
   );
 
   return (
     <section className="my-list" aria-labelledby={`${panelId}-title`}>
       <h1 className="my-list__title" id={`${panelId}-title`}>
-        Mi lista
+        {t('myList.title')}
       </h1>
       {marked.failed ? (
         <div className="catalog__notice" role="alert">
-          <p>No pudimos cargar tu lista. Vuelve a intentarlo.</p>
+          <p>{t('myList.loadFailed')}</p>
           <button className="button button--secondary" type="button" onClick={marked.retry}>
-            Reintentar
+            {t('myList.retry')}
           </button>
         </div>
       ) : !list ? (
         <p className="catalog__state" role="status">
-          Cargando tu lista…
+          {t('myList.loading')}
         </p>
       ) : (
         <>
           <dl className="my-list__stats">
             <div>
-              <dt>animes completos</dt>
+              <dt>{t('myList.complete')}</dt>
               <dd>{list.stats.complete}</dd>
             </div>
             <div>
-              <dt>entradas vistas</dt>
+              <dt>{t('myList.seenEntries')}</dt>
               <dd>{list.stats.seenEntries}</dd>
             </div>
             <div>
-              <dt>viendo ahora</dt>
+              <dt>{t('myList.watchingNow')}</dt>
               <dd>{list.stats.watching}</dd>
             </div>
           </dl>
-          <div className="my-list__tabs" role="tablist" aria-label="Mi lista">
+          <div className="my-list__tabs" role="tablist" aria-label={t('myList.title')}>
             {(['watching', 'seen'] as const).map((value) => (
               <button
                 key={value}
@@ -128,8 +128,8 @@ export function MyListScreen({
                 onClick={() => setTab(value)}
               >
                 {value === 'watching'
-                  ? `Viendo (${list.watching.length})`
-                  : `Vistas (${list.seen.length})`}
+                  ? t('myList.watchingTab', { count: list.watching.length })
+                  : t('myList.seenTab', { count: list.seen.length })}
               </button>
             ))}
           </div>

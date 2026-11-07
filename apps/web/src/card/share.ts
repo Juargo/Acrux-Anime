@@ -1,3 +1,5 @@
+import { i18n } from '../i18n';
+
 export const CARD_FILE_NAME = 'acrux-tarjeta.png';
 
 export type ShareOutcome = 'shared' | 'downloaded' | 'cancelled';
@@ -33,7 +35,7 @@ export async function shareOrDownload(
   const { nav = navigator, doc = document, urls = URL } = options;
   if (!options.download) {
     const file = new File([blob], CARD_FILE_NAME, { type: 'image/png' });
-    const data: ShareData = { files: [file], title: 'Mi tarjeta de Acrux' };
+    const data: ShareData = { files: [file], title: i18n.t('card.shareTitle') };
     if (nav.canShare?.(data) && nav.share) {
       try {
         await nav.share(data);

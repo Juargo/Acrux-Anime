@@ -1,48 +1,41 @@
 import type { FranchiseProgress, MarkStatus } from '@acrux/domain';
+import type { TFunction } from 'i18next';
 import { useId } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { genreLabel } from '../anilist/catalog';
+import { formatLabel, genreLabel } from '../anilist/catalog';
 import type { FranchiseDetail, FranchiseEntryDetail } from '../anilist/franchise';
 import type { EntryMarkChange } from './use-entry-marks';
 
-// Figma M09 names formats short: "TV · 24 ep. · 2020", "Película · 2021".
-export const FORMAT_LABELS: Record<string, string> = {
-  TV: 'TV',
-  TV_SHORT: 'TV corto',
-  MOVIE: 'Película',
-  SPECIAL: 'Especial',
-  OVA: 'OVA',
-  ONA: 'ONA',
-};
-
 // RF-26: Viendo > Vista > Parcial > Sin marcar; M35 flags a season released after completing.
-const STATE_LABELS: Record<FranchiseProgress['state'], string> = {
-  watching: 'Viendo',
-  seen: 'Vista',
-  partial: 'Parcial',
-  unmarked: 'Sin marcar',
-};
+const STATE_LABELS = {
+  watching: 'franchise.watching',
+  seen: 'franchise.seen',
+  partial: 'franchise.partial',
+  unmarked: 'franchise.unmarked',
+} as const satisfies Record<FranchiseProgress['state'], string>;
 
 const SUBTITLE_GENRES = 2;
 
-function entryMeta(entry: FranchiseEntryDetail): string {
+// Figma M09: "TV · 24 ep. · 2020", "Película · 2021".
+function entryMeta(entry: FranchiseEntryDetail, t: TFunction): string {
   return [
-    entry.format ? (FORMAT_LABELS[entry.format] ?? entry.format) : null,
-    entry.episodes ? `${entry.episodes} ep.` : null,
+    entry.format ? formatLabel(entry.format, t) : null,
+    entry.episodes ? t('franchise.episodes', { count: entry.episodes }) : null,
     entry.year ? String(entry.year) : null,
   ]
     .filter(Boolean)
     .join(' · ');
 }
 
-function subtitle(detail: FranchiseDetail): string {
+function subtitle(detail: FranchiseDetail, t: TFunction): string {
   const years = detail.core.flatMap((entry) => (entry.year ? [entry.year] : []));
   const first = Math.min(...years);
   const last = Math.max(...years);
   return [
-    `${detail.core.length} ${detail.core.length === 1 ? 'entrada' : 'entradas'}`,
+    t('franchise.entries', { count: detail.core.length }),
     years.length === 0 ? null : first === last ? String(first) : `${first}–${last}`,
-    ...detail.genres.slice(0, SUBTITLE_GENRES).map(genreLabel),
+    ...detail.genres.slice(0, SUBTITLE_GENRES).map((genre) => genreLabel(genre, t)),
   ]
     .filter(Boolean)
     .join(' · ');
@@ -59,12 +52,13 @@ export function FranchiseDetailView(props: {
   onChangeEntry: (change: EntryMarkChange) => void;
 }) {
   const { detail, progress, statusOf, onChangeEntry } = props;
+  const { t } = useTranslation();
   const coreHeading = useId();
   const extrasHeading = useId();
   const relatedHeading = useId();
   const percent =
     progress.releasedCore === 0 ? 0 : Math.round((progress.seenCore / progress.releasedCore) * 100);
-  const chip = progress.hasNewEntries ? 'Nueva temporada' : STATE_LABELS[progress.state];
+  const chip = t(progress.hasNewEntries ? 'franchise.newSeason' : STATE_LABELS[progress.state]);
   const chipVariant = progress.hasNewEntries ? 'new' : progress.state;
 
   const rows = (entries: FranchiseEntryDetail[]) => (
@@ -84,13 +78,13 @@ export function FranchiseDetailView(props: {
     <article className="franchise">
       <div className="franchise__hero">
         {detail.coverUrl && <img className="franchise__backdrop" src={detail.coverUrl} alt="" />}
-        <Link className="franchise__back" to="/" aria-label="Volver al catálogo">
+        <Link className="franchise__back" to="/" aria-label={t('franchise.backToCatalog')}>
           <span aria-hidden="true">‹</span>
         </Link>
       </div>
 
       <h1 className="franchise__title">{detail.title}</h1>
-      <p className="franchise__subtitle">{subtitle(detail)}</p>
+      <p className="franchise__subtitle">{subtitle(detail, t)}</p>
 
       <div
         className={
@@ -100,29 +94,28 @@ export function FranchiseDetailView(props: {
         <div className="franchise__status-row">
           <span className={`status-chip status-chip--${chipVariant}`}>{chip}</span>
           <span className="franchise__count">
-            {`${progress.seenCore} de ${progress.releasedCore} vistas`}
+            {t('franchise.seenCount', {
+              seen: String(progress.seenCore),
+              total: String(progress.releasedCore),
+            })}
           </span>
         </div>
         <div
           className="progress"
           role="progressbar"
-          aria-label="Progreso del núcleo"
+          aria-label={t('franchise.progress')}
           aria-valuemin={0}
           aria-valuemax={progress.releasedCore}
           aria-valuenow={progress.seenCore}
         >
           <span className="progress__fill" style={{ width: `${percent}%` }} />
         </div>
-        {progress.hasNewEntries && (
-          <p className="franchise__note">
-            Salió una entrada nueva. Tu total no cambia: esta saga sigue sumando.
-          </p>
-        )}
+        {progress.hasNewEntries && <p className="franchise__note">{t('franchise.newEntryNote')}</p>}
       </div>
 
       <section className="franchise__section" aria-labelledby={coreHeading}>
         <h2 className="franchise__heading" id={coreHeading}>
-          Núcleo · cuenta para completar
+          {t('franchise.core')}
         </h2>
         {rows(detail.core)}
       </section>
@@ -130,7 +123,7 @@ export function FranchiseDetailView(props: {
       {detail.extras.length > 0 && (
         <section className="franchise__section" aria-labelledby={extrasHeading}>
           <h2 className="franchise__heading" id={extrasHeading}>
-            Extras · no cuentan para completar
+            {t('franchise.extras')}
           </h2>
           {rows(detail.extras)}
         </section>
@@ -139,7 +132,7 @@ export function FranchiseDetailView(props: {
       {detail.related.length > 0 && (
         <section className="franchise__section" aria-labelledby={relatedHeading}>
           <h2 className="franchise__heading" id={relatedHeading}>
-            Franquicias relacionadas
+            {t('franchise.related')}
           </h2>
           <ul className="related-list">
             {detail.related.map((related) => (
@@ -162,7 +155,7 @@ export function FranchiseDetailView(props: {
           onClick={props.onToggleSaga}
         >
           <span aria-hidden="true">✓</span>
-          {props.allSeen ? 'Quitar saga de vistas' : 'Marcar saga como vista'}
+          {t(props.allSeen ? 'franchise.unmarkSaga' : 'franchise.markSaga')}
         </button>
       </div>
     </article>
@@ -185,6 +178,7 @@ function EntryRow(props: {
   onChange: (change: EntryMarkChange) => void;
 }) {
   const { entry, status, onChange } = props;
+  const { t } = useTranslation();
   const toggle = (next: MarkStatus) =>
     onChange({
       entry: { anilistId: entry.anilistId, malId: entry.malId },
@@ -195,7 +189,7 @@ function EntryRow(props: {
       <Thumb url={entry.coverUrl} />
       <div className="entry-row__text">
         <span className="entry-row__title">{entry.title}</span>
-        <span className="entry-row__meta">{entryMeta(entry)}</span>
+        <span className="entry-row__meta">{entryMeta(entry, t)}</span>
       </div>
       <fieldset className="segmented" aria-label={entry.title}>
         <button
@@ -205,7 +199,7 @@ function EntryRow(props: {
           onClick={() => toggle('watching')}
         >
           <span aria-hidden="true">▶</span>
-          Viendo
+          {t('franchise.watching')}
         </button>
         <button
           className="segmented__option segmented__option--seen"
@@ -214,7 +208,7 @@ function EntryRow(props: {
           onClick={() => toggle('seen')}
         >
           <span aria-hidden="true">✓</span>
-          Vista
+          {t('franchise.seen')}
         </button>
       </fieldset>
     </li>

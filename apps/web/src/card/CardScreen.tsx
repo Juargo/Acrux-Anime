@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
@@ -28,6 +29,7 @@ function WatchingStep(props: {
   onContinue: () => void;
 }) {
   const { watching, chosen, onToggle } = props;
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const titleId = useId();
   const query = search.trim().toLowerCase();
@@ -37,14 +39,14 @@ function WatchingStep(props: {
   return (
     <section className="card-step" aria-labelledby={titleId}>
       <h1 className="card-step__title" id={titleId}>
-        ¿Qué estás viendo ahora?
+        {t('card.askTitle')}
       </h1>
-      <p className="card-step__text">Aparecerá en tu tarjeta. Es opcional.</p>
+      <p className="card-step__text">{t('card.askText')}</p>
       <input
         className="card-step__search"
         type="search"
-        aria-label="Buscar anime"
-        placeholder="Buscar anime"
+        aria-label={t('card.search')}
+        placeholder={t('card.search')}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
       />
@@ -84,10 +86,10 @@ function WatchingStep(props: {
       </ul>
       <div className="card-step__actions">
         <button className="button button--secondary" type="button" onClick={props.onSkip}>
-          Saltar
+          {t('card.skip')}
         </button>
         <button className="button button--primary" type="button" onClick={props.onContinue}>
-          Continuar ({chosen.length})
+          {t('card.continue', { count: chosen.length })}
         </button>
       </div>
     </section>
@@ -100,29 +102,28 @@ function FirstShareOffer(props: {
   onAccept: () => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   if (props.state === 'done') {
     return (
       <p className="privacy__status" role="status">
-        Listo, tu lista es pública.
+        {t('card.madePublic')}
       </p>
     );
   }
   return (
     <section className="card-offer" aria-labelledby="card-offer-title">
       <h2 className="card-offer__title" id="card-offer-title">
-        ¿Hacemos pública tu lista?
+        {t('card.offerTitle')}
       </h2>
-      <p className="card-step__text">
-        Así, quien escanee tu QR verá lo que estás viendo y tus sagas más recientes.
-      </p>
+      <p className="card-step__text">{t('card.offerText')}</p>
       {props.state === 'failed' && (
         <p className="counter__error" role="alert">
-          No pudimos guardar. Vuelve a intentarlo.
+          {t('card.offerFailed')}
         </p>
       )}
       <div className="card-step__actions">
         <button className="button button--secondary" type="button" onClick={props.onClose}>
-          Ahora no
+          {t('card.notNow')}
         </button>
         <button
           className="button button--primary"
@@ -130,7 +131,7 @@ function FirstShareOffer(props: {
           disabled={props.state === 'saving'}
           onClick={props.onAccept}
         >
-          Hacer pública
+          {t('card.makePublic')}
         </button>
       </div>
     </section>
@@ -161,6 +162,7 @@ export function CardScreen({
   onCardShared?: ((event: CardSharedEvent) => void) | undefined;
   onListMadePublic?: ((event: ListMadePublicEvent) => void) | undefined;
 }) {
+  const { t } = useTranslation();
   const [profile, saveProfile] = useOwnProfile({ initial, getToken, fetchFn });
   // null: no offer; open while the first card's offer waits for an answer (@CA-RF30-02).
   const [offer, setOffer] = useState<'open' | 'saving' | 'done' | 'failed' | null>(null);
@@ -169,8 +171,8 @@ export function CardScreen({
   const { marks, franchises, known, ready } = marked;
   const list = useMemo(
     () =>
-      marks && ready ? myList(franchises, marks, known, mode, new Date().toISOString()) : null,
-    [marks, franchises, known, ready, mode],
+      marks && ready ? myList(franchises, marks, known, mode, new Date().toISOString(), t) : null,
+    [marks, franchises, known, ready, mode, t],
   );
   // null: the default choice ("Saltar" or not asked yet).
   const [chosen, setChosen] = useState<string[] | null>(null);
@@ -188,7 +190,7 @@ export function CardScreen({
         : 'preview';
 
   const content = list
-    ? shareCardContent({ list, mode, profile, chosen: step === 'preview' ? chosen : null })
+    ? shareCardContent({ list, mode, profile, chosen: step === 'preview' ? chosen : null, t })
     : null;
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -254,9 +256,9 @@ export function CardScreen({
   if (marked.failed) {
     return (
       <div className="catalog__notice" role="alert">
-        <p>No pudimos cargar tu lista. Vuelve a intentarlo.</p>
+        <p>{t('card.loadFailed')}</p>
         <button className="button button--secondary" type="button" onClick={marked.retry}>
-          Reintentar
+          {t('card.retry')}
         </button>
       </div>
     );
@@ -264,7 +266,7 @@ export function CardScreen({
   if (!list || !content) {
     return (
       <p className="catalog__state" role="status">
-        Cargando tu tarjeta…
+        {t('card.loading')}
       </p>
     );
   }
@@ -305,14 +307,14 @@ export function CardScreen({
       <div className="card-preview__bar">
         {watching.length > 0 && (
           <button className="card-preview__back" type="button" onClick={() => setAsking(true)}>
-            ‹ Volver
+            {t('card.back')}
           </button>
         )}
         <h1 className="card-preview__title" id="card-preview-title">
-          Tu tarjeta
+          {t('card.title')}
         </h1>
       </div>
-      <figure className="card-preview__card" aria-label="Vista previa de tu tarjeta">
+      <figure className="card-preview__card" aria-label={t('card.preview')}>
         <ShareCard
           ref={cardRef}
           name={content.name}
@@ -328,19 +330,19 @@ export function CardScreen({
       </figure>
       {failed ? (
         <div className="catalog__notice" role="alert">
-          <p>No pudimos crear la imagen de tu tarjeta. Vuelve a intentarlo.</p>
+          <p>{t('card.imageFailed')}</p>
           <button
             className="button button--secondary"
             type="button"
             onClick={() => setAttempt((n) => n + 1)}
           >
-            Reintentar
+            {t('card.retry')}
           </button>
         </div>
       ) : (
         !image && (
           <p className="catalog__state" role="status">
-            Preparando tu tarjeta…
+            {t('card.preparing')}
           </p>
         )
       )}
@@ -351,7 +353,7 @@ export function CardScreen({
           disabled={!image || sharing}
           onClick={() => send(false)}
         >
-          Compartir
+          {t('card.share')}
         </button>
         <button
           className="button button--secondary"
@@ -359,15 +361,15 @@ export function CardScreen({
           disabled={!image || sharing}
           onClick={() => send(true)}
         >
-          Descargar imagen
+          {t('card.download')}
         </button>
       </div>
       {offer && (
         <FirstShareOffer state={offer} onAccept={makePublic} onClose={() => setOffer(null)} />
       )}
       <Link className="card-preview__privacy" to="/privacidad" state={{ from: '/tarjeta' }}>
-        ¿Quién ve tu lista?{' '}
-        <span>{profile.listVisibility === 'public' ? 'Pública' : 'Privada'} ›</span>
+        {t('card.whoSees')}{' '}
+        <span>{t(profile.listVisibility === 'public' ? 'card.public' : 'card.private')} ›</span>
       </Link>
     </section>
   );

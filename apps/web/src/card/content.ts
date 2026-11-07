@@ -1,4 +1,6 @@
+import type { TFunction } from 'i18next';
 import type { CounterMode } from '../counter/use-total-counter';
+import { i18n } from '../i18n';
 import type { ListRow, MyList } from '../my-list/items';
 import type { Profile } from '../profile-api';
 
@@ -37,14 +39,15 @@ export function shareCardContent(input: {
   mode: CounterMode;
   profile: Pick<Profile, 'displayName' | 'avatarUrl'> & Partial<Pick<Profile, 'avatarPreset'>>;
   chosen: string[] | null;
+  t?: TFunction;
 }): ShareCardContent {
-  const { list, mode, profile } = input;
+  const { list, mode, profile, t = i18n.t } = input;
   const chosen = new Set(input.chosen ?? defaultChoice(list.watching));
   const name = profile.displayName.trim();
   return {
     total: mode === 'franchise' ? list.stats.complete : list.stats.seenEntries,
-    label: mode === 'franchise' ? 'ANIMES COMPLETOS' : 'ENTRADAS VISTAS',
-    name: name || 'Sin nombre',
+    label: t(mode === 'franchise' ? 'card.complete' : 'card.seenEntries'),
+    name: name || t('card.noName'),
     initial: name.charAt(0).toUpperCase() || '?',
     avatarUrl: profile.avatarUrl,
     avatarPreset: profile.avatarPreset ?? null,

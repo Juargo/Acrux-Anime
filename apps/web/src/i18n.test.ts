@@ -58,6 +58,13 @@ describe('initI18n', () => {
   });
 });
 
+describe('plurals', () => {
+  it('says a million in Spanish, which uses the "many" plural form', () => {
+    expect(i18n.t('counter.total', { count: 1_000_000 })).toBe('1000000 animes');
+    expect(i18n.t('franchise.entries', { count: 1_000_000 })).toBe('1000000 entradas');
+  });
+});
+
 describe('setLocale', () => {
   it('switches the texts, the html lang and remembers it on this browser', async () => {
     await setLocale('en');

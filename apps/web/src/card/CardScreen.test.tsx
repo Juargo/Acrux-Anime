@@ -6,6 +6,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CatalogMedia, RelatedMedia } from '../anilist/catalog';
 import type { AniListClient } from '../anilist/client';
+import { setLocale } from '../i18n';
 import type { MarkDto } from '../marks-api';
 import type { Profile } from '../profile-api';
 import { Home } from '../routes/Home';
@@ -478,5 +479,38 @@ describe('CardScreen', () => {
       await screen.findByRole('heading', { name: 'Tu tarjeta' });
       expect(screen.queryByRole('heading', { name: 'Así aparecerás en tu tarjeta' })).toBeNull();
     });
+  });
+});
+
+describe('CardScreen in English (RF-70)', () => {
+  afterEach(async () => {
+    await setLocale('es');
+  });
+
+  it('asks what I am watching and builds the card in English', async () => {
+    await setLocale('en');
+    const user = userEvent.setup();
+    renderCard([mark(1, 'seen'), mark(2, 'seen'), mark(20, 'watching', 12)]);
+
+    await screen.findByRole('heading', { name: 'What are you watching now?' });
+    await user.click(screen.getByRole('button', { name: 'Continue (1)' }));
+
+    await screen.findByRole('heading', { name: 'Your card' });
+    const preview = within(screen.getByRole('figure', { name: 'Preview of your card' }));
+    preview.getByText('ANIME COMPLETED');
+    preview.getByText('WATCHING NOW');
+    expect(preview.queryByText('ANIMES COMPLETOS')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Download image' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Descargar imagen' })).toBeNull();
+  });
+
+  it('names the card of a profile without a name in English', async () => {
+    await setLocale('en');
+    renderCard([mark(20, 'seen')], { displayName: '', counterMode: 'entry' });
+
+    await screen.findByRole('heading', { name: 'Your card' });
+    const preview = within(screen.getByRole('figure', { name: 'Preview of your card' }));
+    preview.getByText('ENTRIES WATCHED');
+    preview.getByText('No name');
   });
 });
