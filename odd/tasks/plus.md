@@ -26,8 +26,8 @@ Branch: `feat/plus`. Delivery: single-pr (same as #42, #43 and #47; commits spli
 
 | ID | Specs | Task | Route | Status | Evidence |
 |---|---|---|---|---|---|
-| T1 | S3, S4, A4, A5 | Migration: drop `plus_annual`, add `lemon_squeezy_order_id` and `purchased_at`; entitlement repository with grant/revoke in one transaction with `billing_event` | inline; Risk item 1 (migration) | pending | |
-| T2 | S2, S11, A1 | Billing env vars, Lemon Squeezy checkout adapter, `POST /api/v1/billing/checkout` | inline | pending | |
+| T1 | S3, S4, A4, A5 | Migration: drop `plus_annual`, add `lemon_squeezy_order_id` and `purchased_at`; entitlement repository with grant/revoke in one transaction with `billing_event` | inline; Risk item 1 (migration) | done | 20b34e1; RED missing module, GREEN API 282/282, no schema drift |
+| T2 | S2, S11, A1 | Billing env vars, Lemon Squeezy checkout adapter, `POST /api/v1/billing/checkout` | inline | done | RED missing module + 6 failing, GREEN API 295/295 |
 | T3 | S3, S4, S9, A2, A3 | `POST /api/v1/webhooks/lemon-squeezy`: raw body, HMAC check, Zod payload, idempotent apply | inline; Risk item 2 (guard) | pending | |
 | T4 | S5, S6, S10 | `requirePlan('plus')` reading the database; `plan` and `plusAvailable` in `/me` | inline; Risk item 2 (guard) | pending | |
 | T5 | S7, S8 | Web: plan row and Plus screen in Perfil, checkout redirect, return states, events | inline | pending | |

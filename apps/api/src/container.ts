@@ -16,7 +16,9 @@ import {
   createAccountService,
 } from './modules/account/services/account.service.js';
 import { anilistLinkModule } from './modules/anilist-link/index.js';
-import { billingModule } from './modules/billing/index.js';
+import { createLemonSqueezyCheckout } from './modules/billing/adapters/lemon-squeezy-checkout.js';
+import { type BillingDependencies, createBillingModule } from './modules/billing/index.js';
+import { createEntitlementRepository } from './modules/billing/repositories/entitlement.repository.js';
 import { createFranchisesModule } from './modules/franchises/index.js';
 import {
   createFranchiseOverridesRepository,
@@ -127,6 +129,22 @@ export function createContainer(source: Record<string, string | undefined>): Con
         errorReporter,
       },
       prisma ? createFranchiseOverridesRepository(prisma) : undefined,
+      prisma &&
+        env.LEMON_SQUEEZY_API_KEY &&
+        env.LEMON_SQUEEZY_STORE_ID &&
+        env.LEMON_SQUEEZY_VARIANT_ID &&
+        env.LEMON_SQUEEZY_WEBHOOK_SECRET
+        ? {
+            entitlements: createEntitlementRepository(prisma),
+            checkout: createLemonSqueezyCheckout({
+              apiKey: env.LEMON_SQUEEZY_API_KEY,
+              storeId: env.LEMON_SQUEEZY_STORE_ID,
+              variantId: env.LEMON_SQUEEZY_VARIANT_ID,
+            }),
+            returnUrl: env.BILLING_RETURN_URL,
+            errorReporter,
+          }
+        : undefined,
     ),
   };
 }
@@ -138,6 +156,7 @@ export function createModules(
   publicProfileService?: PublicProfileService,
   account?: { service: AccountService | undefined; errorReporter: ErrorReporter },
   franchiseOverrides?: FranchiseOverridesRepository,
+  billing?: BillingDependencies,
 ): Module[] {
   return [
     systemModule,
@@ -146,7 +165,7 @@ export function createModules(
     createMarksModule(marksService),
     createFranchisesModule(franchiseOverrides),
     createPublicProfileModule(publicProfileService),
-    billingModule,
+    createBillingModule(billing),
     anilistLinkModule,
   ];
 }

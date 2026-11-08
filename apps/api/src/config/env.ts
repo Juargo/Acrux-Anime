@@ -43,6 +43,17 @@ const envSchema = z.object({
   POSTHOG_PERSONAL_API_KEY: z.preprocess(emptyAsUnset, z.string().optional()),
   POSTHOG_PROJECT_ID: z.preprocess(emptyAsUnset, z.string().optional()),
   POSTHOG_API_HOST: z.preprocess(emptyAsUnset, z.url().default('https://eu.posthog.com')),
+  // Lemon Squeezy (epic #50). Server only. Billing stays off, and its routes answer 503,
+  // until all four are set: Plus is not sold before the AniList licence (ADR-0036).
+  LEMON_SQUEEZY_API_KEY: z.preprocess(emptyAsUnset, z.string().optional()),
+  LEMON_SQUEEZY_STORE_ID: z.preprocess(emptyAsUnset, z.string().regex(/^\d+$/).optional()),
+  LEMON_SQUEEZY_VARIANT_ID: z.preprocess(emptyAsUnset, z.string().regex(/^\d+$/).optional()),
+  LEMON_SQUEEZY_WEBHOOK_SECRET: z.preprocess(emptyAsUnset, z.string().min(16).optional()),
+  // The Plus screen Lemon Squeezy sends the buyer back to; previews set their own.
+  BILLING_RETURN_URL: z.preprocess(
+    emptyAsUnset,
+    z.url({ protocol: /^https$/ }).default('https://app.acruxanime.com/perfil/plus'),
+  ),
   // Set by Vercel on every deployment.
   VERCEL_ENV: z.preprocess(emptyAsUnset, z.string().default('development')),
   VERCEL_GIT_COMMIT_SHA: z.preprocess(emptyAsUnset, z.string().optional()),
