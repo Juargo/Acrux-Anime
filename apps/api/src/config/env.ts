@@ -9,6 +9,19 @@ const envSchema = z.object({
   NEON_AUTH_BASE_URL: z.url().optional(),
   // JWT issuer; defaults to the origin of NEON_AUTH_BASE_URL (#28).
   NEON_AUTH_ISSUER: z.string().min(1).optional(),
+  // Comma-separated Neon Auth user IDs with the curator role (#42, ADR-0034). Unset: nobody.
+  CURATOR_USER_IDS: z.preprocess(
+    emptyAsUnset,
+    z
+      .string()
+      .optional()
+      .transform((value) =>
+        (value ?? '')
+          .split(',')
+          .map((id) => id.trim())
+          .filter(Boolean),
+      ),
+  ),
   // Pooled Neon connection with the acrux_api role (ADR-0034). Without it, /api/v1/me
   // answers 503.
   DATABASE_URL: z.preprocess(emptyAsUnset, z.url().optional()),

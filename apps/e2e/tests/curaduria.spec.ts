@@ -1,6 +1,6 @@
 import { SPY_FAMILY } from '../support/anilist.ts';
 import { markSeen } from '../support/api.ts';
-import { API_URL } from '../support/env.ts';
+import { API_URL, CURATOR_USER_ID } from '../support/env.ts';
 import { expect, test } from '../support/fixtures.ts';
 import { createUser, installNeonAuth } from '../support/neon-auth.ts';
 
@@ -25,7 +25,7 @@ test('@CA-RF60-01 the curator splits a saga from /curador and the counter follow
   context,
   request,
 }) => {
-  const curator = await createUser('Curadora', { role: 'authenticated,curator' });
+  const curator = await createUser('Curadora', { id: CURATOR_USER_ID });
   await installNeonAuth(context, curator);
   await markSeen(request, curator, [SPY_FAMILY.rootId]);
 

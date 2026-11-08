@@ -4,18 +4,11 @@ La tabla del curador (`franchise_override`) corrige el agrupamiento automático 
 
 ## Dar o quitar el rol de curador
 
-El rol se asigna solo desde la consola o la CLI de Neon (ADR-0034). El usuario no puede cambiárselo.
+La API reconoce a los curadores por su ID de usuario de Neon Auth, que lee de la variable `CURATOR_USER_IDS` (ADR-0034). El usuario no puede cambiársela. El rol de Neon Auth (`neon-auth user set-role`) no sirve para esto: Neon Auth siempre firma `"role": "authenticated"` en el JWT, aunque el usuario tenga otros roles.
 
-1. Busca el ID del usuario en la consola de Neon: **Auth → Users**, en la rama `production`, que es la que usan producción y las vistas previas.
-2. Asigna el rol:
-
-   ```sh
-   pnpm dlx neonctl neon-auth user set-role <user-id> \
-     --project-id <project-id> --branch production --roles authenticated curator
-   ```
-
-   El ID del proyecto aparece en `pnpm dlx neonctl projects list`. Conserva `authenticated`, el rol por defecto, junto a `curator`. Para quitar el rol de curador, asigna solo `--roles authenticated`.
-3. El rol viaja en el claim `role` del JWT de la sesión. El cambio llega a la API cuando se renueva el token, en hasta 15 minutos; para verlo antes, cierra sesión y vuelve a entrar.
+1. Busca el ID del usuario en la consola de Neon: **Auth → Users**, en la rama `production`, que es la que usan producción y las vistas previas. También es el `sub` de su JWT.
+2. En Vercel, proyecto `app`, edita `CURATOR_USER_IDS` en los entornos **Production** y **Preview**. Contiene los IDs separados por comas. Para quitar un curador, borra su ID.
+3. Vuelve a desplegar. La variable se lee al arrancar la API.
 4. Comprueba en **Perfil** que aparece la fila **Curaduría**.
 
 ## Corregir una franquicia

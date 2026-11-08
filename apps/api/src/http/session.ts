@@ -10,20 +10,13 @@ export interface Session {
   // From the Google profile. The email claim is never read (ADR-0028).
   name?: string;
   image?: string;
-  // Roles the API knows, from the `role` claim Neon Auth signs (#42). Absent for most users.
+  // Roles the API grants by user ID (#42). Absent for most users.
   roles?: readonly Role[];
 }
 
-// Assigned only from the Neon console or CLI (`neon neon-auth user set-role`, ADR-0034).
+// Neon Auth always signs `"role": "authenticated"`, even after `set-role`, so the token
+// cannot carry it: the curators are the user IDs in CURATOR_USER_IDS (ADR-0034).
 export type Role = 'curator';
-const ROLES: readonly Role[] = ['curator'];
-
-// Neon Auth sends "authenticated" by default; Better Auth joins several roles with commas.
-function knownRoles(claim: unknown): Role[] {
-  if (typeof claim !== 'string') return [];
-  const named = new Set(claim.split(',').map((role) => role.trim()));
-  return ROLES.filter((role) => named.has(role));
-}
 
 export type SessionVerifier = (token: string) => Promise<Session>;
 
@@ -54,7 +47,9 @@ export function neonAuthIssuer(baseUrl: string): string {
 export function createJwtVerifier(options: {
   jwks: JWTVerifyGetKey;
   issuer: string;
+  curators?: readonly string[];
 }): SessionVerifier {
+  const curators = new Set(options.curators);
   return async (token) => {
     const { payload } = await jwtVerify(token, options.jwks, {
       issuer: options.issuer,
@@ -65,17 +60,20 @@ export function createJwtVerifier(options: {
     if (displayName.success) session.name = displayName.data;
     const avatar = image.safeParse(payload.image);
     if (avatar.success) session.image = avatar.data;
-    const roles = knownRoles(payload.role);
-    if (roles.length > 0) session.roles = roles;
+    if (curators.has(session.userId)) session.roles = ['curator'];
     return session;
   };
 }
 
-export function createNeonAuthVerifier(baseUrl: string, issuer: string): SessionVerifier {
+export function createNeonAuthVerifier(
+  baseUrl: string,
+  issuer: string,
+  curators: readonly string[] = [],
+): SessionVerifier {
   const jwks = createRemoteJWKSet(
     new URL('.well-known/jwks.json', `${baseUrl.replace(/\/$/, '')}/`),
   );
-  return createJwtVerifier({ jwks, issuer });
+  return createJwtVerifier({ jwks, issuer, curators });
 }
 
 function unauthorized(code: string, title: string): ProblemError {

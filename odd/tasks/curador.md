@@ -12,7 +12,7 @@ Branch: `feat/curador`. Delivery: single-pr (same as #43 and #47). Test runner: 
 - **S5** (issue #42, acceptance): "Un usuario sin rol curador recibe 403 al intentar editar".
 - **S6** (RF-60, RDI-30): "La tabla del curador siempre prevalece." "Una corrección nunca resta al total de nadie." RDI-15: "IDs del agrupamiento corregido … sin títulos ni portadas".
 - **S7** (ADR-0023): `GET /api/v1/franchise-overrides`; ADR-0024: the browser applies the corrections it fetches. Access changed to public in L4.
-- Assumption A1: the role comes from the verified JWT `role` claim. Neon Auth sends `"role": "authenticated"` by default and `set-role` changes it (Neon docs, `content/docs/auth/guides/plugins/jwt.md`). Better Auth stores several roles comma-separated, so the claim is split on commas. A role change reaches the API when the 15-minute token is renewed.
+- Assumption A1 (revised 2026-11-08, L8): the API grants `curator` to the user IDs in `CURATOR_USER_IDS`. The JWT `role` claim is never read: Neon Auth always signs `"authenticated"`, even after `set-role`.
 - Assumption A2: there is no delete. Deleting a row would let automatic grouping put an entry back into a core with its old start date, which could undo a completed franchise (S6). To undo a correction, the curator sets another role, which moves `updatedAt` forward.
 - Assumption A3: the web learns whether the user is a curator from `GET /api/v1/me` (a new optional field). The API is still the only gate.
 - Assumption A4: S3's ~200 corrections are curation work for the stakeholder, done in the S4 screen. This PR ships the tool, not the data.
@@ -25,6 +25,7 @@ Branch: `feat/curador`. Delivery: single-pr (same as #43 and #47). Test runner: 
 | T2 | S6, S7 | Web: fetch the corrections and pass them to the three `groupFranchises` call sites | inline | done | f4d056c; RED 2 + missing module, GREEN web 322/322 |
 | T3 | S4 | Web: `/curador` screen (list, add, change), es/en | inline | done | 3ff14c4; RED 6/6, GREEN web 328/328 |
 | T4 | S1, S3, S5 | Runbook (assign the role, curate), criteria tags, E2E 403 journey | inline | done | E2E 10/10 (chromium + webkit) on fresh Postgres; check-tags 21 of 52 |
+| T5 | S1, S5 | Curator role from `CURATOR_USER_IDS`, not the JWT claim (L8) | inline; Risk item 2 (auth) | done | API 273/273, E2E 10/10 on fresh Postgres |
 
 ## Log
 
@@ -35,3 +36,4 @@ Branch: `feat/curador`. Delivery: single-pr (same as #43 and #47). Test runner: 
 - **L5** (2026-11-07): known limit. A correction applies only when both ids are already in the crawled set. The crawl follows SEQUEL/PREQUEL from the seed, so a `core` correction for an entry with no AniList relation to the saga is not fetched. Corrections of related entries (OVAs, movies, side stories) work.
 - **L6** (2026-11-07): T4. The E2E fake Neon Auth now signs `role` ("authenticated" by default). The curator journey uses a new saga (Spy x Family) because a correction stays in the shared database. `docs/runbooks/curaduria.md` explains how to assign the role and curate. S3's initial load is left to the stakeholder (A4).
 - **L7** (2026-11-07): independent verifier (Risk item 2): PASS, no blockers; API 271/271, web 328/328, tsc, openapi:check and lint clean. Its advisory "a public route with a role silently skips the check" is closed: createApp now refuses that combination (test in app.test.ts). Other advisories accepted: a 403 carries no Cache-Control (same as 401); a non-curator 403 does not use the write budget; no DB-level test of updatedAt moving forward on an identical re-save.
+- **L8** (2026-11-08, stakeholder): on the preview, after `set-role` (CLI: "Roles: authenticated, curator"), a token issued later (iat 05:23:33Z, user updatedAt 05:13:26Z) still carried `"role": "authenticated"`. So Neon Auth pins the claim and S1 cannot read the role from the JWT. Stakeholder chose "Env var (Recommended)": `CURATOR_USER_IDS` (comma-separated user IDs, Vercel Production + Preview). Rejected: an own table (migration plus dev seeding) and reading `neon_auth.user` (Neon internals; the preview reads a stale dev copy). ADR-0034 point 5 and the runbook are updated.

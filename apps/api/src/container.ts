@@ -113,6 +113,7 @@ export function createContainer(source: Record<string, string | undefined>): Con
       ? createNeonAuthVerifier(
           env.NEON_AUTH_BASE_URL,
           env.NEON_AUTH_ISSUER ?? neonAuthIssuer(env.NEON_AUTH_BASE_URL),
+          env.CURATOR_USER_IDS,
         )
       : undefined,
     profileService,

@@ -12,13 +12,13 @@ export interface TestUser {
   token: string;
 }
 
-// `role` as Neon Auth signs it, e.g. "curator" after `neon neon-auth user set-role` (#42).
-export async function createUser(name: string, options: { role?: string } = {}): Promise<TestUser> {
-  const id = randomUUID();
+// A fixed `id` such as CURATOR_USER_ID gives the user a role the API grants by ID (#42).
+export async function createUser(name: string, options: { id?: string } = {}): Promise<TestUser> {
+  const id = options.id ?? randomUUID();
   const response = await fetch(`${FAKE_AUTH_URL}/test/tokens`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ sub: id, name, ...options }),
+    body: JSON.stringify({ sub: id, name }),
   });
   if (!response.ok) throw new Error(`The fake Neon Auth answered ${response.status}`);
   const { token } = (await response.json()) as { token: string };
