@@ -45,7 +45,7 @@ En el proyecto `app` de Vercel, todas marcadas como *Sensitive*:
 | `LEMON_SQUEEZY_API_KEY` | API key de la tienda en modo real | API key en modo de prueba (*Test mode*) |
 | `LEMON_SQUEEZY_STORE_ID` | id numérico de la tienda | el mismo |
 | `LEMON_SQUEEZY_VARIANT_ID` | id numérico de la variante «Plus vitalicio» | el de modo de prueba |
-| `LEMON_SQUEEZY_WEBHOOK_SECRET` | secreto de firma del webhook de producción (16 caracteres o más) | el del webhook de prueba |
+| `LEMON_SQUEEZY_WEBHOOK_SECRET` | secreto de firma del webhook de producción, de 16 a 40 caracteres (Lemon Squeezy no acepta más de 40; por ejemplo `openssl rand -hex 16`) | el del webhook de prueba |
 | `BILLING_RETURN_URL` | opcional; por defecto `https://app.acruxanime.com/perfil/plus` | la URL `/perfil/plus` de la vista previa |
 
 En Lemon Squeezy:
