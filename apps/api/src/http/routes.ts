@@ -1,5 +1,6 @@
 import type { RequestHandler } from 'express';
 import type { ZodType } from 'zod';
+import type { Plan } from './plan.js';
 import type { RateLimitPolicy } from './rate-limit.js';
 import type { Role } from './session.js';
 
@@ -24,6 +25,8 @@ export interface RouteDefinition {
   public?: boolean;
   // Only users with this role pass; the others get 403 (ADR-0025). Private routes only.
   role?: Role;
+  // Only users with this plan pass; the others get 403 (ADR-0025). Private routes only.
+  plan?: Plan;
   // Counted per user on private routes and per client IP on public ones (ADR-0028).
   rateLimit?: RateLimitPolicy;
   docs?: RouteDocs;

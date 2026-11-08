@@ -3,6 +3,7 @@ import { parseEnv } from './config/env.js';
 import { createPrismaClient } from './db/client.js';
 import { type ErrorReporter, noErrorReporter } from './http/error-reporter.js';
 import { createLogger } from './http/logger.js';
+import type { PlanReader } from './http/plan.js';
 import { noRateLimiter, type RateLimiter } from './http/rate-limit.js';
 import type { Module } from './http/routes.js';
 import { createSentryReporter } from './http/sentry-reporter.js';
@@ -49,6 +50,8 @@ export interface Container {
   profileService: ProfileService | undefined;
   marksService: MarksService | undefined;
   sessionVerifier: SessionVerifier | undefined;
+  // Reads the plan from the database for requirePlan; undefined without a database.
+  planOf?: PlanReader | undefined;
   modules: Module[];
 }
 
@@ -94,6 +97,8 @@ export function createContainer(source: Record<string, string | undefined>): Con
             analyticsSecret ? analyticsId(userId, analyticsSecret) : null,
         })
       : undefined;
+  const entitlements = prisma ? createEntitlementRepository(prisma) : undefined;
+  const planOf = entitlements?.planOf;
   const errorReporter = env.SENTRY_DSN
     ? createSentryReporter({
         dsn: env.SENTRY_DSN,
@@ -120,6 +125,7 @@ export function createContainer(source: Record<string, string | undefined>): Con
       : undefined,
     profileService,
     marksService,
+    planOf,
     modules: createModules(
       profileService,
       marksService,
@@ -135,7 +141,7 @@ export function createContainer(source: Record<string, string | undefined>): Con
         env.LEMON_SQUEEZY_VARIANT_ID &&
         env.LEMON_SQUEEZY_WEBHOOK_SECRET
         ? {
-            entitlements: createEntitlementRepository(prisma),
+            entitlements: entitlements ?? createEntitlementRepository(prisma),
             checkout: createLemonSqueezyCheckout({
               apiKey: env.LEMON_SQUEEZY_API_KEY,
               storeId: env.LEMON_SQUEEZY_STORE_ID,
@@ -148,6 +154,7 @@ export function createContainer(source: Record<string, string | undefined>): Con
             errorReporter,
           }
         : undefined,
+      planOf,
     ),
   };
 }
@@ -160,11 +167,12 @@ export function createModules(
   account?: { service: AccountService | undefined; errorReporter: ErrorReporter },
   franchiseOverrides?: FranchiseOverridesRepository,
   billing?: BillingDependencies,
+  planOf?: PlanReader,
 ): Module[] {
   return [
     systemModule,
     createAccountModule(account?.service, account?.errorReporter),
-    createProfileModule(profileService),
+    createProfileModule(profileService, { planOf, plusAvailable: billing !== undefined }),
     createMarksModule(marksService),
     createFranchisesModule(franchiseOverrides),
     createPublicProfileModule(publicProfileService),

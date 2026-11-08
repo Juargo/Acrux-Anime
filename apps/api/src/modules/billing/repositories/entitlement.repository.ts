@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from '../../../generated/prisma/client.js';
+import type { UserPlan } from '../../../http/plan.js';
 
-export type UserPlan = 'free' | 'plus';
+export type { UserPlan };
 
 // What happened to a webhook event. "duplicate" means it was already processed (S9);
 // "unknown_user" means the account no longer exists; "refunded" means the order's refund

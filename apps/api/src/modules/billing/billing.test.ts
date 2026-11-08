@@ -3,6 +3,7 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../../app.js';
 import { createContainer, createModules } from '../../container.js';
+import type { PlanReader } from '../../http/plan.js';
 import type { CheckoutPort } from './adapters/lemon-squeezy-checkout.js';
 import type { BillingDependencies } from './index.js';
 import type {
@@ -384,5 +385,70 @@ describe('POST /api/v1/webhooks/lemon-squeezy', () => {
     const response = await deliver(app, orderEvent('order_created'));
 
     expect(response.status).toBe(200);
+  });
+});
+
+describe('GET /api/v1/me and Plus', () => {
+  const profile = {
+    displayName: 'Camila',
+    avatarUrl: null,
+    locale: null,
+    listVisibility: 'private' as const,
+    counterMode: 'franchise' as const,
+    handle: 'camila',
+    avatarPreset: null,
+    shownTotal: null,
+    shownMode: null,
+    cardShared: false,
+    createdAt: new Date('2026-11-01T12:00:00.000Z'),
+    analyticsId: null,
+  };
+  const profiles = {
+    me: async () => profile,
+    ensureProfile: async () => {},
+    findByHandle: async () => null,
+    remove: async () => false,
+    update: async () => profile,
+  };
+
+  function meApp(planOf: PlanReader | undefined, billing: BillingDependencies | undefined) {
+    const base = createContainer({});
+    return createApp({
+      ...base,
+      sessionVerifier: async () => ({ userId: USER }),
+      planOf,
+      modules: createModules(profiles, undefined, undefined, undefined, undefined, billing, planOf),
+    });
+  }
+
+  it('gives the plan read from the database on every device (S5)', async () => {
+    const { repository } = fakeEntitlements({ [USER]: 'plus' });
+    const app = meApp(repository.planOf, deps({ entitlements: repository }));
+
+    const read = await request(app)
+      .get('/api/v1/me')
+      .set(...bearer);
+    expect(read.body).toMatchObject({ plan: 'plus', plusAvailable: true });
+
+    const patched = await request(app)
+      .patch('/api/v1/me')
+      .set(...bearer)
+      .send({ counterMode: 'franchise' });
+    expect(patched.body).toMatchObject({ plan: 'plus', plusAvailable: true });
+  });
+
+  it('keeps a bought Plus while billing is off, but offers no purchase (S11)', async () => {
+    const { repository } = fakeEntitlements({ [USER]: 'plus' });
+    const read = await request(meApp(repository.planOf, undefined))
+      .get('/api/v1/me')
+      .set(...bearer);
+    expect(read.body).toMatchObject({ plan: 'plus', plusAvailable: false });
+  });
+
+  it('reports a free user without a database plan reader', async () => {
+    const read = await request(meApp(undefined, undefined))
+      .get('/api/v1/me')
+      .set(...bearer);
+    expect(read.body).toMatchObject({ plan: 'free', plusAvailable: false });
   });
 });

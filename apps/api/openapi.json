@@ -272,6 +272,18 @@
                     "curator": {
                       "type": "boolean",
                       "description": "Whether the session has the curator role (#42); the API still checks every edit"
+                    },
+                    "plan": {
+                      "type": "string",
+                      "enum": [
+                        "free",
+                        "plus"
+                      ],
+                      "description": "The plan read from the database (epic #50); the API still checks every Plus route"
+                    },
+                    "plusAvailable": {
+                      "type": "boolean",
+                      "description": "Whether Plus can be bought in this environment; false while billing is off"
                     }
                   },
                   "required": [
@@ -287,7 +299,9 @@
                     "cardShared",
                     "createdAt",
                     "analyticsId",
-                    "curator"
+                    "curator",
+                    "plan",
+                    "plusAvailable"
                   ],
                   "additionalProperties": false
                 }
@@ -523,6 +537,18 @@
                     "curator": {
                       "type": "boolean",
                       "description": "Whether the session has the curator role (#42); the API still checks every edit"
+                    },
+                    "plan": {
+                      "type": "string",
+                      "enum": [
+                        "free",
+                        "plus"
+                      ],
+                      "description": "The plan read from the database (epic #50); the API still checks every Plus route"
+                    },
+                    "plusAvailable": {
+                      "type": "boolean",
+                      "description": "Whether Plus can be bought in this environment; false while billing is off"
                     }
                   },
                   "required": [
@@ -538,7 +564,9 @@
                     "cardShared",
                     "createdAt",
                     "analyticsId",
-                    "curator"
+                    "curator",
+                    "plan",
+                    "plusAvailable"
                   ],
                   "additionalProperties": false
                 }

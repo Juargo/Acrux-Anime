@@ -439,6 +439,8 @@ describe('GET /api/v1/me', () => {
       createdAt: '2026-11-01T12:00:00.000Z',
       analyticsId: '0123456789abcdef0123456789abcdef',
       curator: false,
+      plan: 'free',
+      plusAvailable: false,
     });
     expect(calls).toHaveLength(1);
   });
@@ -523,6 +525,8 @@ describe('PATCH /api/v1/me', () => {
       createdAt: '2026-11-01T12:00:00.000Z',
       analyticsId: null,
       curator: false,
+      plan: 'free',
+      plusAvailable: false,
     });
     expect(calls).toEqual([
       { session: { userId: USER, name: 'Camila' }, changes: { counterMode: 'entry' } },

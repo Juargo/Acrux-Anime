@@ -1,5 +1,6 @@
 import type { Response } from 'express';
 import { z } from 'zod';
+import type { PlanReader } from '../../http/plan.js';
 import { ProblemError } from '../../http/problem.js';
 import type { Module } from '../../http/routes.js';
 import type { Session } from '../../http/session.js';
@@ -36,6 +37,12 @@ const profileSchema = z.object({
   curator: z
     .boolean()
     .describe('Whether the session has the curator role (#42); the API still checks every edit'),
+  plan: z
+    .enum(['free', 'plus'])
+    .describe('The plan read from the database (epic #50); the API still checks every Plus route'),
+  plusAvailable: z
+    .boolean()
+    .describe('Whether Plus can be bought in this environment; false while billing is off'),
 });
 
 // The name and avatar (RF-07, #39), the counter mode (RF-25), the visibility of the list
@@ -64,8 +71,24 @@ function session(profiles: ProfileService | undefined, response: Response) {
 
 const isCurator = (current: Session) => current.roles?.includes('curator') ?? false;
 
+export interface PlanInfo {
+  planOf?: PlanReader | undefined;
+  plusAvailable: boolean;
+}
+
+// What the web shows about Plus: the plan from the database and whether it can be bought.
+async function planFields(current: Session, plans: PlanInfo | undefined) {
+  return {
+    plan: plans?.planOf ? await plans.planOf(current.userId) : ('free' as const),
+    plusAvailable: plans?.plusAvailable ?? false,
+  };
+}
+
 // Without a database the routes stay mounted and answer 503, as sign-in does.
-export function createProfileModule(profiles: ProfileService | undefined): Module {
+export function createProfileModule(
+  profiles: ProfileService | undefined,
+  plans?: PlanInfo,
+): Module {
   return {
     name: 'profile',
     routes: [
@@ -81,7 +104,11 @@ export function createProfileModule(profiles: ProfileService | undefined): Modul
         },
         handler: async (_request, response) => {
           const { profiles: service, current } = session(profiles, response);
-          response.json({ ...(await service.me(current)), curator: isCurator(current) });
+          response.json({
+            ...(await service.me(current)),
+            curator: isCurator(current),
+            ...(await planFields(current, plans)),
+          });
         },
       },
       {
@@ -108,6 +135,7 @@ export function createProfileModule(profiles: ProfileService | undefined): Modul
           response.json({
             ...(await service.update(current, body.data)),
             curator: isCurator(current),
+            ...(await planFields(current, plans)),
           });
         },
       },
