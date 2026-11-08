@@ -18,7 +18,7 @@ const envSchema = z.object({
       .transform((value) =>
         (value ?? '')
           .split(',')
-          .map((id) => id.trim())
+          .map((id) => id.trim().toLowerCase())
           .filter(Boolean),
       ),
   ),
