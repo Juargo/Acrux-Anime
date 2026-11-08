@@ -13,6 +13,9 @@ export function createApp(container: Container): Express {
 
   app.use(requestId);
   app.use(requestLog(container.logger));
+  // Webhooks keep the raw bytes, so the signature is checked on exactly what was signed
+  // before the body is read (ADR-0025). express.json skips a body that is already read.
+  app.use('/api/v1/webhooks', express.raw({ type: () => true, limit: '100kb' }));
   app.use(express.json({ limit: '100kb' }));
 
   // Private by default: only routes marked public skip the session check (ADR-0025).

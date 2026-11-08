@@ -1,3 +1,4 @@
+import { createHmac } from 'node:crypto';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../../app.js';
@@ -51,6 +52,23 @@ function fakeCheckout(fail = false) {
   return { checkout, calls };
 }
 
+const SECRET = 'whsec-test-0123456789abcdef';
+const STORE_ID = '11';
+const VARIANT_ID = '22';
+
+function deps(
+  parts: Pick<BillingDependencies, 'entitlements'> & Partial<BillingDependencies>,
+): BillingDependencies {
+  return {
+    checkout: fakeCheckout().checkout,
+    returnUrl: RETURN_URL,
+    webhookSecret: SECRET,
+    storeId: STORE_ID,
+    variantId: VARIANT_ID,
+    ...parts,
+  };
+}
+
 function appWith(billing: BillingDependencies | undefined) {
   const base = createContainer({});
   return createApp({
@@ -65,9 +83,7 @@ describe('POST /api/v1/billing/checkout', () => {
     const { repository } = fakeEntitlements();
     const { checkout, calls } = fakeCheckout();
 
-    const response = await request(
-      appWith({ entitlements: repository, checkout, returnUrl: RETURN_URL }),
-    )
+    const response = await request(appWith(deps({ entitlements: repository, checkout })))
       .post('/api/v1/billing/checkout')
       .set(...bearer);
 
@@ -80,7 +96,7 @@ describe('POST /api/v1/billing/checkout', () => {
     const { repository } = fakeEntitlements();
     const { checkout, calls } = fakeCheckout();
 
-    await request(appWith({ entitlements: repository, checkout, returnUrl: RETURN_URL }))
+    await request(appWith(deps({ entitlements: repository, checkout })))
       .post('/api/v1/billing/checkout')
       .set(...bearer)
       .send({ userId: '00000000-0000-4000-8000-000000000000' });
@@ -92,9 +108,7 @@ describe('POST /api/v1/billing/checkout', () => {
     const { repository } = fakeEntitlements({ [USER]: 'plus' });
     const { checkout, calls } = fakeCheckout();
 
-    const response = await request(
-      appWith({ entitlements: repository, checkout, returnUrl: RETURN_URL }),
-    )
+    const response = await request(appWith(deps({ entitlements: repository, checkout })))
       .post('/api/v1/billing/checkout')
       .set(...bearer);
 
@@ -115,9 +129,9 @@ describe('POST /api/v1/billing/checkout', () => {
   it('needs a session', async () => {
     const { repository } = fakeEntitlements();
     const { checkout } = fakeCheckout();
-    const response = await request(
-      appWith({ entitlements: repository, checkout, returnUrl: RETURN_URL }),
-    ).post('/api/v1/billing/checkout');
+    const response = await request(appWith(deps({ entitlements: repository, checkout }))).post(
+      '/api/v1/billing/checkout',
+    );
     expect(response.status).toBe(401);
   });
 
@@ -125,13 +139,250 @@ describe('POST /api/v1/billing/checkout', () => {
     const { repository } = fakeEntitlements();
     const { checkout } = fakeCheckout(true);
 
-    const response = await request(
-      appWith({ entitlements: repository, checkout, returnUrl: RETURN_URL }),
-    )
+    const response = await request(appWith(deps({ entitlements: repository, checkout })))
       .post('/api/v1/billing/checkout')
       .set(...bearer);
 
     expect(response.status).toBe(502);
     expect(response.body.code).toBe('billing.provider_error');
+  });
+});
+
+// A Lemon Squeezy order webhook, as https://docs.lemonsqueezy.com/help/webhooks/webhook-requests
+// documents it, trimmed to the fields Acrux reads plus some it ignores.
+function orderEvent(
+  eventName: string,
+  attributes: Record<string, unknown> = {},
+  customData: Record<string, unknown> | null = { user_id: USER },
+) {
+  return {
+    meta: { event_name: eventName, ...(customData ? { custom_data: customData } : {}) },
+    data: {
+      type: 'orders',
+      id: '1001',
+      attributes: {
+        store_id: 11,
+        customer_id: 501,
+        identifier: '104e18a2-d755-4d4b-80c4-a6c1dcbe1c10',
+        user_email: 'buyer@example.com',
+        status: 'paid',
+        refunded: false,
+        total: 1999,
+        first_order_item: { order_id: 1001, product_id: 7, variant_id: 22 },
+        created_at: '2026-11-08T12:00:00.000000Z',
+        ...attributes,
+      },
+    },
+  };
+}
+
+function sign(body: string, secret = SECRET): string {
+  return createHmac('sha256', secret).update(body).digest('hex');
+}
+
+function deliver(app: ReturnType<typeof appWith>, payload: unknown, signature?: string) {
+  const body = JSON.stringify(payload);
+  const call = request(app)
+    .post('/api/v1/webhooks/lemon-squeezy')
+    .set('Content-Type', 'application/json')
+    .set('X-Event-Name', String((payload as { meta?: { event_name?: string } }).meta?.event_name));
+  return (
+    signature === undefined
+      ? call.set('X-Signature', sign(body))
+      : call.set('X-Signature', signature)
+  ).send(body);
+}
+
+describe('POST /api/v1/webhooks/lemon-squeezy', () => {
+  it('grants lifetime Plus for a paid order of the Plus variant (S3)', async () => {
+    const { repository, grants } = fakeEntitlements();
+
+    const response = await deliver(
+      appWith(deps({ entitlements: repository })),
+      orderEvent('order_created'),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ result: 'applied' });
+    expect(grants).toEqual([
+      {
+        eventId: 'order_created:1001',
+        eventName: 'order_created',
+        userId: USER,
+        orderId: '1001',
+        customerId: '501',
+        purchasedAt: new Date('2026-11-08T12:00:00.000Z'),
+      },
+    ]);
+  });
+
+  it('answers 200 to a repeated event without applying it again (S9)', async () => {
+    const { repository, results } = fakeEntitlements();
+    results.grant = 'duplicate';
+
+    const response = await deliver(
+      appWith(deps({ entitlements: repository })),
+      orderEvent('order_created'),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ result: 'duplicate' });
+  });
+
+  it('rejects a bad signature before reading the event (S3)', async () => {
+    const { repository, grants } = fakeEntitlements();
+    const payload = orderEvent('order_created');
+
+    const response = await deliver(
+      appWith(deps({ entitlements: repository })),
+      payload,
+      sign(JSON.stringify(payload), 'another-secret-0123456789'),
+    );
+
+    expect(response.status).toBe(401);
+    expect(response.body.code).toBe('billing.invalid_signature');
+    expect(grants).toEqual([]);
+  });
+
+  it('rejects a missing or malformed signature', async () => {
+    const { repository, grants } = fakeEntitlements();
+    const app = appWith(deps({ entitlements: repository }));
+
+    expect((await deliver(app, orderEvent('order_created'), '')).status).toBe(401);
+    expect((await deliver(app, orderEvent('order_created'), 'zz')).status).toBe(401);
+    expect(grants).toEqual([]);
+  });
+
+  it('rejects a body changed after it was signed', async () => {
+    const { repository, grants } = fakeEntitlements();
+    const signed = JSON.stringify(orderEvent('order_created'));
+    const tampered = JSON.stringify(
+      orderEvent('order_created', {}, { user_id: '00000000-0000-4000-8000-000000000000' }),
+    );
+
+    const response = await request(appWith(deps({ entitlements: repository })))
+      .post('/api/v1/webhooks/lemon-squeezy')
+      .set('Content-Type', 'application/json')
+      .set('X-Signature', sign(signed))
+      .send(tampered);
+
+    expect(response.status).toBe(401);
+    expect(grants).toEqual([]);
+  });
+
+  it('rejects a signed body that is not a valid order event', async () => {
+    const { repository, grants } = fakeEntitlements();
+    const app = appWith(deps({ entitlements: repository }));
+
+    const response = await deliver(app, { meta: { event_name: 'order_created' }, data: { id: 5 } });
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('billing.invalid_payload');
+    expect(grants).toEqual([]);
+  });
+
+  it.each([
+    ['a pending order', { status: 'pending' }],
+    ['a failed order', { status: 'failed' }],
+    ['a fraudulent order', { status: 'fraudulent' }],
+    ['another store', { store_id: 99 }],
+    [
+      'another product variant',
+      { first_order_item: { order_id: 1001, product_id: 7, variant_id: 23 } },
+    ],
+  ])('grants nothing for %s', async (_case, attributes) => {
+    const { repository, grants } = fakeEntitlements();
+
+    const response = await deliver(
+      appWith(deps({ entitlements: repository })),
+      orderEvent('order_created', attributes),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ result: 'ignored' });
+    expect(grants).toEqual([]);
+  });
+
+  it('grants nothing for an order without a valid user id', async () => {
+    const { repository, grants } = fakeEntitlements();
+    const app = appWith(deps({ entitlements: repository }));
+
+    expect((await deliver(app, orderEvent('order_created', {}, null))).body).toEqual({
+      result: 'ignored',
+    });
+    expect((await deliver(app, orderEvent('order_created', {}, { user_id: 'nami' }))).body).toEqual(
+      { result: 'ignored' },
+    );
+    expect(grants).toEqual([]);
+  });
+
+  it('takes Plus back on a full refund (S4)', async () => {
+    const { repository, revokes } = fakeEntitlements();
+
+    const response = await deliver(
+      appWith(deps({ entitlements: repository })),
+      orderEvent('order_refunded', { status: 'refunded', refunded: true }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ result: 'applied' });
+    expect(revokes).toEqual([
+      { eventId: 'order_refunded:1001', eventName: 'order_refunded', orderId: '1001' },
+    ]);
+  });
+
+  it('keeps Plus after a partial refund', async () => {
+    const { repository, revokes } = fakeEntitlements();
+
+    const response = await deliver(
+      appWith(deps({ entitlements: repository })),
+      orderEvent('order_refunded', { status: 'partial_refund', refunded: false }),
+    );
+
+    expect(response.body).toEqual({ result: 'ignored' });
+    expect(revokes).toEqual([]);
+  });
+
+  it('accepts and ignores events Acrux does not use', async () => {
+    const { repository, grants, revokes } = fakeEntitlements();
+
+    const response = await deliver(
+      appWith(deps({ entitlements: repository })),
+      orderEvent('customer_updated'),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ result: 'ignored' });
+    expect(grants).toEqual([]);
+    expect(revokes).toEqual([]);
+  });
+
+  it('answers 503 while billing is off, so the provider retries later (S11)', async () => {
+    const response = await deliver(appWith(undefined), orderEvent('order_created'));
+    expect(response.status).toBe(503);
+    expect(response.body.code).toBe('billing.unavailable');
+  });
+
+  it('needs no session: the signature is the authentication', async () => {
+    const { repository } = fakeEntitlements();
+    const base = createContainer({});
+    const app = createApp({
+      ...base,
+      sessionVerifier: async () => {
+        throw new Error('no session expected');
+      },
+      modules: createModules(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        deps({ entitlements: repository }),
+      ),
+    });
+
+    const response = await deliver(app, orderEvent('order_created'));
+
+    expect(response.status).toBe(200);
   });
 });

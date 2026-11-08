@@ -142,6 +142,9 @@ export function createContainer(source: Record<string, string | undefined>): Con
               variantId: env.LEMON_SQUEEZY_VARIANT_ID,
             }),
             returnUrl: env.BILLING_RETURN_URL,
+            webhookSecret: env.LEMON_SQUEEZY_WEBHOOK_SECRET,
+            storeId: env.LEMON_SQUEEZY_STORE_ID,
+            variantId: env.LEMON_SQUEEZY_VARIANT_ID,
             errorReporter,
           }
         : undefined,

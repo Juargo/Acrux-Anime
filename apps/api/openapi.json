@@ -1425,6 +1425,52 @@
           }
         }
       }
+    },
+    "/api/v1/webhooks/lemon-squeezy": {
+      "post": {
+        "summary": "Lemon Squeezy order events: a paid order grants Plus, a refund takes it back",
+        "security": [],
+        "tags": [
+          "billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Received; a repeated event is not applied again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "string",
+                      "enum": [
+                        "applied",
+                        "duplicate",
+                        "unknown_user",
+                        "refunded",
+                        "ignored"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The signed body is not a valid order event"
+          },
+          "401": {
+            "description": "Missing or invalid X-Signature"
+          },
+          "503": {
+            "description": "Billing is not enabled in this environment"
+          }
+        }
+      }
     }
   },
   "components": {
