@@ -1,5 +1,12 @@
 -- Lifetime Plus with Lemon Squeezy (epic #50).
 -- ADR-0036 retired the annual plan. No purchase has ever been possible, so no row holds it.
+-- Prisma does not wrap this file in a transaction: stop before any change if one does.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM "entitlement" WHERE "plan" = 'plus_annual') THEN
+    RAISE EXCEPTION 'entitlement holds plus_annual rows; migrate them before dropping the value';
+  END IF;
+END $$;
 ALTER TYPE "plan" RENAME TO "plan_old";
 CREATE TYPE "plan" AS ENUM ('plus_lifetime');
 ALTER TABLE "entitlement" ALTER COLUMN "plan" TYPE "plan" USING ("plan"::text::"plan");
