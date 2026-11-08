@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { type RouteObject, useNavigate, useParams } from 'react-router';
 import { CardScreen } from '../card/CardScreen';
 import { CatalogScreen } from '../catalog/CatalogScreen';
+import { CuratorScreen } from '../curator/CuratorScreen';
 import { FranchiseScreen } from '../franchise/FranchiseScreen';
 import { MyListScreen } from '../my-list/MyListScreen';
 import { AboutScreen } from '../profile/AboutScreen';
@@ -69,6 +70,19 @@ function ProfileEditorPage() {
   );
 }
 
+// Visible to everyone with the link; only the curator gets the form, and the API checks (#42).
+function CuratorPage() {
+  const { profile, getToken, client, fetchFn } = useSignedIn();
+  return (
+    <CuratorScreen
+      curator={profile.curator === true}
+      getToken={getToken}
+      client={client}
+      fetchFn={fetchFn}
+    />
+  );
+}
+
 // Screens behind the session gate of App, inside the signed-in layout (routes/Home.tsx).
 export const signedInRoutes: RouteObject[] = [
   { index: true, element: <CatalogPage /> },
@@ -80,4 +94,5 @@ export const signedInRoutes: RouteObject[] = [
   { path: 'perfil/editar', element: <ProfileEditorPage /> },
   { path: 'perfil/borrar-cuenta', element: <DeleteAccountPage /> },
   { path: 'perfil/acerca-de', element: <AboutScreen /> },
+  { path: 'curador', element: <CuratorPage /> },
 ];

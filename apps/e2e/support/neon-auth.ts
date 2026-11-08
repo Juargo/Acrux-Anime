@@ -12,8 +12,9 @@ export interface TestUser {
   token: string;
 }
 
-export async function createUser(name: string): Promise<TestUser> {
-  const id = randomUUID();
+// A fixed `id` such as CURATOR_USER_ID gives the user a role the API grants by ID (#42).
+export async function createUser(name: string, options: { id?: string } = {}): Promise<TestUser> {
+  const id = options.id ?? randomUUID();
   const response = await fetch(`${FAKE_AUTH_URL}/test/tokens`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

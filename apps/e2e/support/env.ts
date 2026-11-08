@@ -19,3 +19,6 @@ export const FAKE_NEON_API_URL = `${FAKE_AUTH_URL}/neon-api/`;
 // Playwright installs answer without CORS; nothing ever listens there.
 export const BROWSER_NEON_AUTH_PATH = '/neon-auth';
 export const BROWSER_NEON_AUTH_URL = `${WEB_URL}${BROWSER_NEON_AUTH_PATH}`;
+
+// The only curator the E2E API knows (CURATOR_USER_IDS, #42).
+export const CURATOR_USER_ID = 'c0a7d0e2-2f4b-4e6a-9c1d-5b8e7f6a4d3c';

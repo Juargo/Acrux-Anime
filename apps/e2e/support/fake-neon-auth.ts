@@ -24,9 +24,10 @@ function send(response: ServerResponse, status: number, body: unknown) {
   response.end(JSON.stringify(body));
 }
 
-// The claims the API reads: sub (uuid), exp, and the Google name. Issuer: the origin.
+// The claims the API reads: sub (uuid), exp and the Google name. Neon Auth always signs role
+// "authenticated", even after `set-role` (#42). Issuer: the origin.
 async function mintToken(body: Record<string, unknown>): Promise<string> {
-  const claims: Record<string, unknown> = {};
+  const claims: Record<string, unknown> = { role: 'authenticated' };
   if (typeof body.name === 'string') claims.name = body.name;
   return new SignJWT(claims)
     .setProtectedHeader({ alg: ALG, kid })

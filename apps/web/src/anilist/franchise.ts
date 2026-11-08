@@ -1,4 +1,4 @@
-import { type Franchise, groupFranchises } from '@acrux/domain';
+import { type Franchise, type FranchiseOverride, groupFranchises } from '@acrux/domain';
 import { z } from 'zod';
 import { catalogEntries, displayTitle } from '../catalog/items';
 import { type CatalogMedia, catalogMediaSchema, MEDIA_FIELDS, type RelatedMedia } from './catalog';
@@ -127,9 +127,11 @@ export async function crawlFranchises(
   return { media: [...fetched.values()], requested, pending };
 }
 
+// The curator table (RF-60) is applied before automatic grouping.
 export async function fetchFranchise(
   client: AniListClient,
   seedIds: readonly number[],
+  overrides: readonly FranchiseOverride[] = [],
 ): Promise<FullFranchise> {
   const { fetched, pending } = await crawl(client, seedIds, MAX_REQUESTS);
 
@@ -138,7 +140,7 @@ export async function fetchFranchise(
 
   const { entries, known } = catalogEntries([...fetched.values()]);
   const seed = seedIds[0];
-  const franchises = groupFranchises(entries, []);
+  const franchises = groupFranchises(entries, overrides);
   const franchise = franchises.find((candidate) =>
     candidate.core.some((member) => member.id === seed),
   );

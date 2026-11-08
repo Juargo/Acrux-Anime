@@ -1,7 +1,7 @@
 // Starts the built API (apps/api/dist) for E2E (ADR-0037). The environment is built here, so
 // a developer's own variables (Sentry, Upstash, PostHog, real Neon) never leak in. Run with
 // `node` after `pnpm --filter @acrux/e2e build:apps`.
-import { API_PORT, FAKE_NEON_API_URL, FAKE_NEON_AUTH_BASE_URL } from './env.ts';
+import { API_PORT, CURATOR_USER_ID, FAKE_NEON_API_URL, FAKE_NEON_AUTH_BASE_URL } from './env.ts';
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -24,6 +24,7 @@ for (const name of [
 Object.assign(process.env, {
   DATABASE_URL: databaseUrl,
   NEON_AUTH_BASE_URL: FAKE_NEON_AUTH_BASE_URL,
+  CURATOR_USER_IDS: CURATOR_USER_ID,
   // Placeholders: account deletion only runs with all three set. The calls go to the fake.
   NEON_API_KEY: 'e2e',
   NEON_PROJECT_ID: 'e2e',

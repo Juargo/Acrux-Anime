@@ -33,7 +33,7 @@ export function FranchiseScreen({
 }) {
   const { t } = useTranslation();
   const online = useOnline();
-  const query = useFranchise(anilistId, client);
+  const query = useFranchise(anilistId, client, fetchFn);
   const marking = useFranchiseMarks({ client, getToken, fetchFn, onFranchiseMarked });
   const entryMarks = useEntryMarks({ getToken, fetchFn, onMarkedSeen: onEntryMarkedSeen });
   const detail = query.data?.detail;

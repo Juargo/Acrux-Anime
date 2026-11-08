@@ -15,3 +15,9 @@ Característica: Tabla de correcciones del agrupamiento
     Dado que vi completa una saga y mi contador muestra 13
     Cuando el curador agrega una corrección que suma una entrada que no vi a su núcleo
     Entonces mi contador sigue mostrando 13
+
+  @CA-RF60-03
+  Escenario: Solo el curador edita la tabla
+    Dado que mi cuenta no tiene el rol de curador
+    Cuando intento guardar una corrección
+    Entonces la API responde 403 y la tabla no cambia

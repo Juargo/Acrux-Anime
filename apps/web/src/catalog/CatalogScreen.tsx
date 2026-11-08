@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient, useCatalog, useGenres } from '../anilist/hooks';
 import { anilistErrorMessage } from '../anilist/messages';
+import { useFranchiseOverrides } from '../franchise/use-franchise-overrides';
 import { CatalogGrid } from './CatalogGrid';
 import { FilterSheet, type Filters } from './FilterSheet';
 import { useDebounced, useOnline } from './hooks';
@@ -47,6 +48,7 @@ export function CatalogScreen({
   const catalog = useCatalog(query, client);
   const genres = useGenres(sheetOpen, client);
   const marking = useFranchiseMarks({ client, getToken, fetchFn, onFranchiseMarked });
+  const overrides = useFranchiseOverrides(fetchFn);
 
   const items = useMemo(
     () =>
@@ -54,8 +56,9 @@ export function CatalogScreen({
         catalog.data?.pages.flatMap((page) => page.media) ?? [],
         marking.marks,
         new Date().toISOString(),
+        overrides,
       ),
-    [catalog.data, marking.marks],
+    [catalog.data, marking.marks, overrides],
   );
 
   const { fetchNextPage } = catalog;

@@ -52,6 +52,17 @@ describe('OpenAPI document', () => {
     });
   });
 
+  it('documents 403 only on routes that require a role', () => {
+    const document = buildOpenApiDocument(modules);
+    const overrides = document.paths?.['/api/v1/franchise-overrides'];
+    const edit = document.paths?.['/api/v1/franchise-overrides/{anilistId}']?.put;
+
+    expect(edit?.responses?.['403']).toBeDefined();
+    expect(edit?.responses?.['401']).toBeDefined();
+    expect(overrides?.get?.responses?.['403']).toBeUndefined();
+    expect(document.paths?.['/api/v1/me']?.get?.responses?.['403']).toBeUndefined();
+  });
+
   it('renders the same JSON every time and detects a stale file', () => {
     const rendered = renderOpenApiJson(modules);
 

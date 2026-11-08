@@ -36,7 +36,7 @@ El catálogo no pasa por la API: el navegador consulta AniList (ADR-0024), que e
 | `PUT /api/v1/me/marks/{anilistId}` | Usuario | Marca una entrada como vista o viendo (idempotente) |
 | `DELETE /api/v1/me/marks/{anilistId}` | Usuario | Desmarca una entrada |
 | `POST /api/v1/me/marks:batch` | Usuario | Marca o desmarca todo el núcleo de una franquicia en una transacción (RDI-31) |
-| `GET /api/v1/franchise-overrides` | Usuario | Correcciones del curador (RDI-15) |
+| `GET /api/v1/franchise-overrides` | Público | Correcciones del curador (RDI-15). Público desde #42: el perfil público agrupa las franquicias en el navegador del visitante, sin sesión; la tabla solo tiene IDs de AniList |
 | `GET /api/v1/profiles/{handle}` | **Público** | Resumen del perfil público (nombre, avatar, handle y total), también con la lista privada; 404 si el handle no existe (#37) |
 | `GET /api/v1/profiles/{handle}/marks` | **Público** | Marcas de una lista pública, por páginas; 404 si la lista es privada o el handle no existe (RNF-31) |
 | `GET /api/v1/profiles/{handle}/og.png` | **Público** | Imagen Open Graph: nombre, avatar y total |

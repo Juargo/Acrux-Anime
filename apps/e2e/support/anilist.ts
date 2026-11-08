@@ -21,6 +21,10 @@ export const FRIEREN = {
   rootId: 154587,
 } as const;
 
+// "Spy x Family" Part 1 → Part 2, only for the curator journey (#42): its correction stays in
+// the database, so no other journey uses this saga.
+export const SPY_FAMILY = { rootId: 140960, part2Id: 142838 } as const;
+
 const ANIME: Anime[] = [
   {
     id: 154587,
@@ -49,6 +53,30 @@ const ANIME: Anime[] = [
     episodes: 10,
     genres: ['Adventure', 'Drama', 'Fantasy'],
     relations: [{ relationType: 'PREQUEL', id: 154587 }],
+  },
+  {
+    id: 140960,
+    idMal: 50265,
+    title: { romaji: 'SPY×FAMILY', english: 'SPY x FAMILY', native: 'SPY×FAMILY' },
+    format: 'TV',
+    startDate: { year: 2022, month: 4, day: 9 },
+    episodes: 12,
+    genres: ['Action', 'Comedy'],
+    relations: [{ relationType: 'SEQUEL', id: 142838 }],
+  },
+  {
+    id: 142838,
+    idMal: 50602,
+    title: {
+      romaji: 'SPY×FAMILY Part 2',
+      english: 'SPY x FAMILY Cour 2',
+      native: 'SPY×FAMILY 第2クール',
+    },
+    format: 'TV',
+    startDate: { year: 2022, month: 10, day: 1 },
+    episodes: 13,
+    genres: ['Action', 'Comedy'],
+    relations: [{ relationType: 'PREQUEL', id: 140960 }],
   },
 ];
 

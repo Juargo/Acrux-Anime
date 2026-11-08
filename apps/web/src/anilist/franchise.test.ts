@@ -62,6 +62,23 @@ function fakeClient() {
 }
 
 describe('fetchFranchise', () => {
+  it('@CA-RF60-01 applies the curator table before automatic grouping (RF-60)', async () => {
+    const { client } = fakeClient();
+    // Automatic grouping leaves the side story 9 out of the core; the curator puts it in.
+    const sideStoryInCore = {
+      anilistId: 9,
+      franchiseRootId: 1,
+      role: 'core' as const,
+      updatedAt: '2026-11-07T12:00:00.000Z',
+    };
+
+    const franchise = await fetchFranchise(client, [3], [sideStoryInCore]);
+
+    expect(franchise.core.map((entry) => entry.anilistId)).toEqual([1, 9, 2, 3, 4]);
+    expect(franchise.extras).toEqual([]);
+    expect(franchise.detail?.core.map((entry) => entry.anilistId)).toContain(9);
+  });
+
   it('follows sequels and prequels until the whole core is known', async () => {
     const { client, request } = fakeClient();
 

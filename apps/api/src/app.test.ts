@@ -72,6 +72,19 @@ describe('createApp', () => {
     ]);
   });
 
+  it('refuses a public route that needs a role, which would skip the check (#42)', () => {
+    const route = {
+      method: 'put' as const,
+      path: '/api/v1/test/role',
+      public: true,
+      role: 'curator' as const,
+      handler: () => {},
+    };
+    expect(() => appWith([{ name: 'test', routes: [route] }])).toThrow(
+      'PUT /api/v1/test/role cannot be public and need a role',
+    );
+  });
+
   it('keeps GET /api/health public and answering ok', async () => {
     const response = await request(createApp(createContainer({}))).get('/api/health');
 
@@ -425,6 +438,7 @@ describe('GET /api/v1/me', () => {
       cardShared: false,
       createdAt: '2026-11-01T12:00:00.000Z',
       analyticsId: '0123456789abcdef0123456789abcdef',
+      curator: false,
     });
     expect(calls).toHaveLength(1);
   });
@@ -508,6 +522,7 @@ describe('PATCH /api/v1/me', () => {
       cardShared: false,
       createdAt: '2026-11-01T12:00:00.000Z',
       analyticsId: null,
+      curator: false,
     });
     expect(calls).toEqual([
       { session: { userId: USER, name: 'Camila' }, changes: { counterMode: 'entry' } },

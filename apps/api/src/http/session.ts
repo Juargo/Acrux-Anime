@@ -10,7 +10,13 @@ export interface Session {
   // From the Google profile. The email claim is never read (ADR-0028).
   name?: string;
   image?: string;
+  // Roles the API grants by user ID (#42). Absent for most users.
+  roles?: readonly Role[];
 }
+
+// Neon Auth always signs `"role": "authenticated"`, even after `set-role`, so the token
+// cannot carry it: the curators are the user IDs in CURATOR_USER_IDS (ADR-0034).
+export type Role = 'curator';
 
 export type SessionVerifier = (token: string) => Promise<Session>;
 
@@ -41,7 +47,9 @@ export function neonAuthIssuer(baseUrl: string): string {
 export function createJwtVerifier(options: {
   jwks: JWTVerifyGetKey;
   issuer: string;
+  curators?: readonly string[];
 }): SessionVerifier {
+  const curators = new Set(options.curators);
   return async (token) => {
     const { payload } = await jwtVerify(token, options.jwks, {
       issuer: options.issuer,
@@ -52,15 +60,20 @@ export function createJwtVerifier(options: {
     if (displayName.success) session.name = displayName.data;
     const avatar = image.safeParse(payload.image);
     if (avatar.success) session.image = avatar.data;
+    if (curators.has(session.userId)) session.roles = ['curator'];
     return session;
   };
 }
 
-export function createNeonAuthVerifier(baseUrl: string, issuer: string): SessionVerifier {
+export function createNeonAuthVerifier(
+  baseUrl: string,
+  issuer: string,
+  curators: readonly string[] = [],
+): SessionVerifier {
   const jwks = createRemoteJWKSet(
     new URL('.well-known/jwks.json', `${baseUrl.replace(/\/$/, '')}/`),
   );
-  return createJwtVerifier({ jwks, issuer });
+  return createJwtVerifier({ jwks, issuer, curators });
 }
 
 function unauthorized(code: string, title: string): ProblemError {
@@ -84,6 +97,18 @@ export function requireSession(verifier: SessionVerifier | undefined): RequestHa
     } catch {
       response.setHeader('WWW-Authenticate', 'Bearer error="invalid_token"');
       sendProblem(response, unauthorized('auth.invalid_token', 'Invalid or expired session'));
+      return;
+    }
+    next();
+  };
+}
+
+// After requireSession. The role is checked on the server, never trusted from the web (ADR-0025).
+export function requireRole(role: Role): RequestHandler {
+  return (_request, response, next) => {
+    const session: Session | undefined = response.locals.session;
+    if (!session?.roles?.includes(role)) {
+      sendProblem(response, new ProblemError(403, 'auth.forbidden', 'Not allowed'));
       return;
     }
     next();

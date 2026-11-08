@@ -12,8 +12,10 @@ type SigningKey = Awaited<ReturnType<typeof generateKeyPair>>['privateKey'];
 
 const ISSUER = 'https://auth.test.acrux';
 const USER_ID = '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f70';
+const CURATOR_ID = '0b9e8d7c-6a5b-4c3d-8e2f-1a0b9c8d7e6f';
 
 let verifier: SessionVerifier;
+let withCurators: SessionVerifier;
 let signWith: (
   claims: Record<string, unknown>,
   options?: { expiresIn?: string | number; key?: SigningKey; issuer?: string },
@@ -24,6 +26,11 @@ beforeAll(async () => {
   const { privateKey, publicKey } = await generateKeyPair('EdDSA', { crv: 'Ed25519' });
   const jwk: JWK = { ...(await exportJWK(publicKey)), kid: 'test-key', alg: 'EdDSA' };
   verifier = createJwtVerifier({ jwks: createLocalJWKSet({ keys: [jwk] }), issuer: ISSUER });
+  withCurators = createJwtVerifier({
+    jwks: createLocalJWKSet({ keys: [jwk] }),
+    issuer: ISSUER,
+    curators: [CURATOR_ID],
+  });
   foreignKey = (await generateKeyPair('EdDSA', { crv: 'Ed25519' })).privateKey;
 
   signWith = (claims, options = {}) =>
@@ -190,6 +197,20 @@ describe('session claims from untrusted shapes', () => {
     expect((await verifier(google)).image).toBe('https://lh3.googleusercontent.com/a/x');
     const other = await signWith({ sub: USER_ID, image: 'https://evil.example/a.png' });
     expect((await verifier(other)).image).toBeUndefined();
+  });
+});
+
+describe('the curator role (#42)', () => {
+  it('is granted to the user IDs in CURATOR_USER_IDS', async () => {
+    const token = await signWith({ sub: CURATOR_ID, role: 'authenticated' });
+    expect(await withCurators(token)).toEqual({ userId: CURATOR_ID, roles: ['curator'] });
+  });
+
+  it('is never granted by the role claim, which Neon Auth always signs as authenticated', async () => {
+    for (const role of ['curator', 'authenticated, curator', ['curator']]) {
+      const token = await signWith({ sub: USER_ID, role });
+      expect(await withCurators(token), String(role)).toEqual({ userId: USER_ID });
+    }
   });
 });
 

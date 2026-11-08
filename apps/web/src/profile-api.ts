@@ -24,6 +24,8 @@ export interface Profile {
   // When the profile was created, and the salted id analytics knows the user by (#46).
   createdAt: string;
   analyticsId: string | null;
+  // The session has the curator role (#42). Only shows the curator screen; the API checks.
+  curator?: boolean;
 }
 
 export interface ProfileChanges {

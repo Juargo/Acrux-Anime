@@ -46,7 +46,7 @@
 2. Cada petición a la API lleva `Authorization: Bearer <JWT de Neon Auth>`.
 3. La API **verifica la firma del JWT** con `jose` contra el JWKS de Neon Auth (`<NEON_AUTH_BASE_URL>/.well-known/jwks.json`), además del emisor (`iss`) y la expiración. No confía en ningún dato del token sin verificarlo.
 4. El `sub` del token (el `id` en `neon_auth.user`) es el `user_id` en todas las tablas de `public` (ADR-0022).
-5. **Curador:** se asigna como rol del usuario de Neon Auth, solo desde la consola o la CLI de Neon (`neon neon-auth user set-role`). El usuario no puede cambiarlo. El *middleware* `requireRole('curator')` sigue igual; si el rol no viene en el JWT, la API lo lee de `neon_auth.user`.
+5. **Curador:** la API lo reconoce por su ID de usuario, que lee de la variable `CURATOR_USER_IDS` del servidor. El usuario no puede cambiarla. El *middleware* `requireRole('curator')` sigue igual. Neon Auth siempre firma `"role": "authenticated"`, aunque el usuario tenga otros roles, así que el JWT no sirve para esto. Tampoco se lee `neon_auth.user`, porque las vistas previas usan la base de `dev`, que tiene una copia vieja de los usuarios (#42, 2026-11-08).
    - **Nota (2026-11-02, issue #28):**
      - **SDK:** `@neon/auth`, porque los paquetes `@neondatabase/*` quedaron como betas antiguas.
      - **JWT:** el emisor es el *origen* de `NEON_AUTH_BASE_URL`, sin la ruta, y la API lo calcula así. El token dura 15 minutos y trae `name` e `image`, que la API usa para crear el perfil.

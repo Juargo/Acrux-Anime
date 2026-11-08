@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import type { FranchiseOverride } from '@acrux/domain';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -76,7 +77,10 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
 // The API: the marks, and a profile whose counter mode PATCH saves unless `failPatch`.
-function fakeApi(marks: MarkDto[], options: { failPatch?: boolean } = {}) {
+function fakeApi(
+  marks: MarkDto[],
+  options: { failPatch?: boolean; overrides?: FranchiseOverride[] } = {},
+) {
   let counterMode: Profile['counterMode'] = 'franchise';
   const profile = (): Profile => ({
     displayName: 'Camila',
@@ -101,6 +105,7 @@ function fakeApi(marks: MarkDto[], options: { failPatch?: boolean } = {}) {
       return json(profile());
     }
     if (url === '/api/v1/me') return json(profile());
+    if (url === '/api/v1/franchise-overrides') return json({ items: options.overrides ?? [] });
     throw new Error(`Unexpected request ${url}`);
   });
   return fetchFn as unknown as typeof fetch & typeof fetchFn;
@@ -175,6 +180,20 @@ describe('TotalCounter', () => {
     const { counter } = renderCounter({ marks: [seen(1), seen(2), seen(9), seen(20)] });
     // Saga A misses seasons 3 and 4; the movie 20 is a complete franchise of its own.
     expect(await within(counter).findByText('1 anime')).toBeTruthy();
+  });
+
+  it('counts with the curator table applied first (RF-60)', async () => {
+    // Seasons 3 and 4 are a separate franchise for the curator, so 1 and 2 complete saga A.
+    const separate: FranchiseOverride = {
+      anilistId: 3,
+      franchiseRootId: 1,
+      role: 'separate',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    };
+    const fetchFn = fakeApi([seen(1), seen(2)], { overrides: [separate] });
+    const { counter } = renderCounter({ marks: [], fetchFn });
+    expect(await within(counter).findByText('1 anime')).toBeTruthy();
+    expect(fetchFn).toHaveBeenCalledWith('/api/v1/franchise-overrides');
   });
 
   it('counts by entries every seen entry of any format, extras included (RDI-32)', async () => {

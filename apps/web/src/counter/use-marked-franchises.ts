@@ -6,6 +6,7 @@ import type { AniListClient } from '../anilist/client';
 import { crawlFranchises } from '../anilist/franchise';
 import { catalogEntries } from '../catalog/items';
 import { useMarks } from '../catalog/use-franchise-marks';
+import { useFranchiseOverrides } from '../franchise/use-franchise-overrides';
 import type { MarkDto } from '../marks-api';
 
 interface Crawled {
@@ -64,8 +65,10 @@ export function useCrawledFranchises(options: {
   marks: MarkDto[] | undefined;
   crawl: boolean;
   storeKey: readonly unknown[];
+  fetchFn: typeof fetch;
 }): CrawledFranchises {
   const { client, marks, storeKey } = options;
+  const overrides = useFranchiseOverrides(options.fetchFn);
   const queryClient = useQueryClient();
   const store =
     useQuery({
@@ -96,10 +99,14 @@ export function useCrawledFranchises(options: {
 
   const grouped = useMemo(() => {
     const { entries, known } = catalogEntries([...store.media.values()]);
-    return { franchises: groupFranchises(entries, []), known };
-  }, [store.media]);
+    return { franchises: groupFranchises(entries, overrides ?? []), known };
+  }, [store.media, overrides]);
 
-  const ready = marks !== undefined && !(store.requested.size === 0 && missing.length > 0);
+  // The counter waits for the curator table, so it never shows a total that then changes.
+  const ready =
+    marks !== undefined &&
+    overrides !== undefined &&
+    !(store.requested.size === 0 && missing.length > 0);
   return {
     franchises: grouped.franchises,
     known: grouped.known,
@@ -128,6 +135,7 @@ export function useMarkedFranchises(options: {
     marks: marks.data,
     crawl: options.crawl,
     storeKey: STORE_KEY,
+    fetchFn,
   });
   return {
     marks: marks.data,
