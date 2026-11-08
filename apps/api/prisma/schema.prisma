@@ -31,8 +31,8 @@ enum MarkStatus {
   @@map("mark_status")
 }
 
+// Plus is lifetime only (ADR-0036).
 enum Plan {
-  plus_annual
   plus_lifetime
 
   @@map("plan")
@@ -118,6 +118,9 @@ model Entitlement {
   // Null for the lifetime plan.
   validUntil             DateTime? @map("valid_until") @db.Timestamptz(6)
   lemonSqueezyCustomerId String?   @map("lemon_squeezy_customer_id")
+  // The order that granted Plus, so a refund takes back only that purchase (RF-56).
+  lemonSqueezyOrderId    String?   @unique @map("lemon_squeezy_order_id")
+  purchasedAt            DateTime? @map("purchased_at") @db.Timestamptz(6)
   updatedAt              DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
@@ -125,7 +128,8 @@ model Entitlement {
   @@map("entitlement")
 }
 
-// Provider event ids already processed, so a webhook is never applied twice.
+// Webhook events already processed, so a webhook is never applied twice. Lemon Squeezy
+// sends no event id, so the key is "<event name>:<order id>".
 model BillingEvent {
   eventId    String   @id @map("event_id")
   eventName  String   @map("event_name")

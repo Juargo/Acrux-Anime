@@ -254,7 +254,7 @@ describe('profile repository', () => {
       await prisma.anilistLink.create({
         data: { userId: id, anilistUserId, accessTokenEncrypted: Buffer.from('x') },
       });
-      await prisma.entitlement.create({ data: { userId: id, plan: 'plus_annual' } });
+      await prisma.entitlement.create({ data: { userId: id, plan: 'plus_lifetime' } });
     }
 
     expect(await profiles.remove(userId)).toBe(true);
