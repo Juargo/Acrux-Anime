@@ -10,10 +10,11 @@ El rol se asigna solo desde la consola o la CLI de Neon (ADR-0034). El usuario n
 2. Asigna el rol:
 
    ```sh
-   neon neon-auth user set-role <user-id> --roles curator
+   pnpm dlx neonctl neon-auth user set-role <user-id> \
+     --project-id <project-id> --branch production --roles authenticated curator
    ```
 
-   Para quitarlo, asigna otro rol, por ejemplo `--roles authenticated`.
+   El ID del proyecto aparece en `pnpm dlx neonctl projects list`. Conserva `authenticated`, el rol por defecto, junto a `curator`. Para quitar el rol de curador, asigna solo `--roles authenticated`.
 3. El rol viaja en el claim `role` del JWT de la sesión. El cambio llega a la API cuando se renueva el token, en hasta 15 minutos; para verlo antes, cierra sesión y vuelve a entrar.
 4. Comprueba en **Perfil** que aparece la fila **Curaduría**.
 
