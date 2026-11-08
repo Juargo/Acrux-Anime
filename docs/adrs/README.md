@@ -55,6 +55,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0035](./0035-respaldos-en-backblaze-b2.md) | Respaldos en Backblaze B2, en lugar de Cloudflare R2 | Aceptado | Sesión 2026-11-01 |
 | [0036](./0036-monetizacion-con-anuncios-y-plus-vitalicio.md) | Monetización con anuncios no intrusivos y Plus vitalicio | Aceptado | Sesión 2026-11-06 |
 | [0037](./0037-e2e-contra-la-app-construida-en-ci.md) | Pruebas E2E contra la app construida en CI, con Neon Auth simulado | Aceptado | Sesión 2026-11-07 |
+| [0038](./0038-red-de-anuncios-y-espacios.md) | Red de anuncios (Google AdSense) y espacios | Aceptado | Sesión 2026-11-08 |
 
 ## Trazabilidad con las reuniones
 
@@ -93,6 +94,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-11-01: respaldos en Backblaze B2, sin medio de pago | 0035 (reemplaza R2 en 0022, 0028 y 0034) |
 | Sesión 2026-11-06: anuncios no intrusivos y Plus solo vitalicio | 0036 (reemplaza el plan anual de 0025 y DD-28) |
 | Sesión 2026-11-07: E2E contra la app construida en CI (#47) | 0037 (reemplaza el E2E contra la vista previa de 0027 y 0029) |
+| Sesión 2026-11-08: red de anuncios y espacios (P-13) | 0038 (complementa el punto 5 de 0036) |
 | Sesión 2026-10-27: repo público, región São Paulo, lista privada por defecto | 0027, 0020, 0028 |
 | Sesión 2026-10-27: monorepo con pnpm workspaces aceptado (solo web) | 0002 |
 | D13 | 0010 |
