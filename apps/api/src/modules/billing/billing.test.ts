@@ -118,7 +118,7 @@ describe('POST /api/v1/billing/checkout', () => {
     expect(calls).toEqual([]);
   });
 
-  it('answers 503 while billing is off, so nothing can be charged (S11)', async () => {
+  it('@CA-RF50-02 answers 503 while billing is off, so nothing can be charged (S11)', async () => {
     const response = await request(appWith(undefined))
       .post('/api/v1/billing/checkout')
       .set(...bearer);
@@ -217,7 +217,7 @@ describe('POST /api/v1/webhooks/lemon-squeezy', () => {
     ]);
   });
 
-  it('answers 200 to a repeated event without applying it again (S9)', async () => {
+  it('@CA-RF50-03 answers 200 to a repeated event without applying it again (S9)', async () => {
     const { repository, results } = fakeEntitlements();
     results.grant = 'duplicate';
 
@@ -230,7 +230,7 @@ describe('POST /api/v1/webhooks/lemon-squeezy', () => {
     expect(response.body).toEqual({ result: 'duplicate' });
   });
 
-  it('rejects a bad signature before reading the event (S3)', async () => {
+  it('@CA-RF50-04 rejects a bad signature before reading the event (S3)', async () => {
     const { repository, grants } = fakeEntitlements();
     const payload = orderEvent('order_created');
 
@@ -332,7 +332,7 @@ describe('POST /api/v1/webhooks/lemon-squeezy', () => {
     ]);
   });
 
-  it('keeps Plus after a partial refund', async () => {
+  it('@CA-RF56-02 keeps Plus after a partial refund', async () => {
     const { repository, revokes } = fakeEntitlements();
 
     const response = await deliver(

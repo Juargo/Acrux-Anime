@@ -124,7 +124,7 @@ describe('PlusScreen', () => {
     expect(within(page).getByText('Pago seguro con Lemon Squeezy.')).toBeTruthy();
   });
 
-  it('opens the checkout the API creates and records plus_checkout_started (S2, S8)', async () => {
+  it('@CA-RF50-01 opens the checkout the API creates and records plus_checkout_started (S2, S8)', async () => {
     const user = userEvent.setup();
     const { checkouts, openCheckout, onPlusCheckoutStarted } = renderAt('/perfil/plus');
 
@@ -139,7 +139,7 @@ describe('PlusScreen', () => {
     expect(onPlusCheckoutStarted).toHaveBeenCalledTimes(1);
   });
 
-  it('says nothing was charged when the checkout cannot start, and retries (M23)', async () => {
+  it('@CA-RF57-02 says nothing was charged when the checkout cannot start, and retries (M23)', async () => {
     const user = userEvent.setup();
     const { checkouts, openCheckout } = renderAt('/perfil/plus', { checkoutStatus: 502 });
 
@@ -175,7 +175,7 @@ describe('PlusScreen', () => {
     expect(within(page).queryByRole('button', { name: 'Comprar Plus' })).toBeNull();
   });
 
-  it('confirms the purchase once the webhook grants Plus and records plus_purchased (M22, S8)', async () => {
+  it('@CA-RF57-01 confirms the purchase once the webhook grants Plus and records plus_purchased (M22, S8)', async () => {
     const { onPlusPurchased } = renderAt('/perfil/plus?compra=lista', {
       polls: [free, { ...free, plan: 'plus' }],
     });
@@ -189,7 +189,7 @@ describe('PlusScreen', () => {
     );
   });
 
-  it('says the payment is still pending when the confirmation does not arrive (RF-57)', async () => {
+  it('@CA-RF57-03 says the payment is still pending when the confirmation does not arrive (RF-57)', async () => {
     const { onPlusPurchased } = renderAt('/perfil/plus?compra=lista', {
       polls: [free, free, free],
     });
@@ -216,7 +216,7 @@ describe('PlusScreen', () => {
     expect(within(plusRow).getByText('Activo ›')).toBeTruthy();
   });
 
-  it('hides the Plus row from a free user while billing is off', async () => {
+  it('@CA-RF50-02 hides the Plus row from a free user while billing is off', async () => {
     renderAt('/perfil', { profile: { ...free, plusAvailable: false } });
     await screen.findByRole('region', { name: 'Perfil' });
     expect(screen.queryByRole('link', { name: /Acrux Plus/ })).toBeNull();

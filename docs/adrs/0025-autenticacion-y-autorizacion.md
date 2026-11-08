@@ -56,6 +56,7 @@
 
 - El checkout lo crea la API con el `user_id` en los datos personalizados; Lemon Squeezy lo devuelve en los webhooks.
 - El webhook verifica la firma HMAC (`X-Signature`) **antes** de leer el cuerpo, descarta eventos repetidos (`billing_event`) y actualiza `entitlement` en una transacción (ADR-0022).
+- **Nota (2026-11-08, épica #50):** Lemon Squeezy no manda un id de evento. La clave de `billing_event` es `<evento>:<id de la orden>`, porque cada orden se crea una vez y se reembolsa una vez. Detalle en `docs/runbooks/plus.md`.
 
 ### Borrado de cuenta
 

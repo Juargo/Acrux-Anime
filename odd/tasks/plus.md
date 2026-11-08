@@ -31,7 +31,7 @@ Branch: `feat/plus`. Delivery: single-pr (same as #42, #43 and #47; commits spli
 | T3 | S3, S4, S9, A2, A3 | `POST /api/v1/webhooks/lemon-squeezy`: raw body, HMAC check, Zod payload, idempotent apply | inline; Risk item 2 (guard) | done | RED 17 failing, GREEN API 312/312, depcruise clean |
 | T4 | S5, S6, S10 | `requirePlan('plus')` reading the database; `plan` and `plusAvailable` in `/me` | inline; Risk item 2 (guard) | done | RED 8 failing, GREEN API 322/322 |
 | T5 | S7, S8 | Web: plan row and Plus screen in Perfil, checkout redirect, return states, events | inline | done | RED no route, GREEN web 338/338 |
-| T6 | all | ADR-0025 note on the idempotency key, billing runbook, OpenAPI, Gherkin RF-50/RF-56/RF-57, E2E | inline | pending | |
+| T6 | all | ADR-0025 note on the idempotency key, billing runbook, OpenAPI, Gherkin RF-50/RF-56/RF-57, E2E | inline | done | API 322/322, web 338/338, E2E 14/14 (chromium + webkit), RF-50/56/57 criteria all tagged |
 
 ## Log
 
@@ -39,3 +39,16 @@ Branch: `feat/plus`. Delivery: single-pr (same as #42, #43 and #47; commits spli
 - **L2** (2026-11-08): the scope agreed in the previous turn was "compra de Plus en H4: checkout en Lemon Squeezy, webhook con firma e idempotencia, y `requirePlan('plus')`. Quedaría apagado detrás de un interruptor".
 - **L3** (2026-11-08): the explorer mapped the code. The `entitlement` and `billing_event` tables already exist (initial migration), the `billing` module has no routes, and `express.json` parses every body globally (`apps/api/src/app.ts:16`), so the webhook needs the raw body. Lemon Squeezy docs checked: `X-Signature` is an HMAC-SHA256 hex digest of the raw body, `X-Event-Name` names the event, a non-200 reply is retried up to three more times, and there is no event id (A2).
 - **L4** (2026-11-08): forecast of about 1,300 authored lines. Delivery is single-pr, as in the earlier features. T1, T3 and T4 get their own commits because they name high-risk items.
+- **L5** (2026-11-08): T1–T4 committed (20b34e1, cf9dc01, e2625b7, 4ad4e24). RDD is off globally, so no native review ran. An independent verifier checked T1, T3 and T4, which touch Risk items 1, 2 and 3 (`app.ts`). It found no blockers and reported five advisories:
+  1. The migration was not atomic if a `plus_annual` row existed. Fixed in b3b3898 with a guard that stops before any change.
+  2. A body over 100kb answers 500, not 413. This already happens at the baseline on every JSON route. Left as is.
+  3. A POST to an unknown `/api/v1/webhooks/*` path answers 404 instead of 400. Harmless.
+  4. `unknown_user` uses up the order. Documented in `docs/runbooks/plus.md`.
+  5. A second paid order for the same user overwrites the order id. Documented in the runbook.
+- **L6** (2026-11-08): T5 (45c5f52) follows Figma M21–M24, adapted to ADR-0036's one-time payment:
+  - one offer;
+  - no renewal or cancellation;
+  - M25 (the grace period) does not apply; "pago pendiente" means waiting for the webhook.
+
+  No price is shown in the app, because the regional price is set in Lemon Squeezy.
+- **L7** (2026-11-08): T6 added the runbook, the ADR-0025 note on the idempotency key, the Gherkin files RF-50, RF-56 and RF-57, and E2E journeys driven by signed webhooks. The E2E API runs with placeholder `LEMON_SQUEEZY_*` values. Next step: open the PR when the stakeholder asks.

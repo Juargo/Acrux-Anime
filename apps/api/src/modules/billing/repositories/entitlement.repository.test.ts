@@ -120,7 +120,7 @@ describe('entitlement repository', () => {
     expect(await prisma.billingEvent.count({ where: { eventId: 'order_created:1003' } })).toBe(1);
   });
 
-  it('takes Plus back on a refund and keeps the profile and its marks (S4)', async () => {
+  it('@CA-RF56-01 takes Plus back on a refund and keeps the profile and its marks (S4)', async () => {
     const entitlements = createEntitlementRepository(prisma);
     const userId = await newUser();
     await prisma.mark.create({ data: { userId, anilistId: 21, status: 'seen' } });
