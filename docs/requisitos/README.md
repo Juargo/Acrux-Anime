@@ -62,4 +62,4 @@ Conflictos y vacíos detectados en la revisión del 2026-10-27. Ningún pendient
 | P-10 | ~~Almacén del límite de peticiones de la API sin elegir.~~ **Resuelto (2026-11-02):** Upstash Redis (ADR-0028, punto 6). | ADR-0028 | — |
 | P-11 | **Requisitos de Obsidian sin actualizar** a "solo web" (acción derivada de ADR-0031). Este directorio pasa a ser la fuente vigente. | ADR-0031 | — |
 | P-12 | ~~Lista de espera sin modelar.~~ **Resuelto (2026-10-27):** Buttondown con doble confirmación (ADR-0033). Sigue abierta la tabla de reportes de sagas (RDI-18), que no bloquea H1. | ADR-0022, ADR-0033 | — |
-| P-13 | **Red de anuncios y espacios sin elegir.** Falta decidir la red, qué pantallas llevan anuncios y si se muestran anuncios no personalizados sin consentimiento. | ADR-0036 | H4 |
+| P-13 | ~~Red de anuncios y espacios sin elegir.~~ **Resuelto (2026-11-08):** Google AdSense, con anuncios en Inicio, Mi lista, la ficha de franquicia y la pantalla de tarjeta (fuera de la tarjeta). Sin consentimiento se muestran anuncios no personalizados; en la UE, el Reino Unido y Suiza decide el CMP de Google (ADR-0038). | ADR-0036, ADR-0038 | H4 |
