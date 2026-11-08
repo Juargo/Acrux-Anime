@@ -5,6 +5,7 @@ import { CatalogScreen } from '../catalog/CatalogScreen';
 import { CuratorScreen } from '../curator/CuratorScreen';
 import { FranchiseScreen } from '../franchise/FranchiseScreen';
 import { MyListScreen } from '../my-list/MyListScreen';
+import { PlusScreen } from '../plus/PlusScreen';
 import { AboutScreen } from '../profile/AboutScreen';
 import { DeleteAccountScreen } from '../profile/DeleteAccountScreen';
 import { PrivacyScreen } from '../profile/PrivacyScreen';
@@ -44,6 +45,21 @@ function PrivacyPage() {
 
 function ProfilePage() {
   return <ProfileScreen {...useSignedIn()} />;
+}
+
+function PlusPage() {
+  const context = useSignedIn();
+  return (
+    <PlusScreen
+      initial={context.profile}
+      getToken={context.getToken}
+      fetchFn={context.fetchFn}
+      openCheckout={context.openCheckout}
+      polling={context.plusPolling}
+      onCheckoutStarted={context.onPlusCheckoutStarted}
+      onPurchased={context.onPlusPurchased}
+    />
+  );
 }
 
 function DeleteAccountPage() {
@@ -94,5 +110,6 @@ export const signedInRoutes: RouteObject[] = [
   { path: 'perfil/editar', element: <ProfileEditorPage /> },
   { path: 'perfil/borrar-cuenta', element: <DeleteAccountPage /> },
   { path: 'perfil/acerca-de', element: <AboutScreen /> },
+  { path: 'perfil/plus', element: <PlusPage /> },
   { path: 'curador', element: <CuratorPage /> },
 ];

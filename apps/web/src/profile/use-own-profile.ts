@@ -31,5 +31,10 @@ export function useOwnProfile(options: {
     },
     [getToken, fetchFn, queryClient],
   );
-  return [profile, save] as const;
+  // Replaces the shared profile with a newer one read from /me, such as after buying Plus.
+  const replace = useCallback(
+    (next: Profile) => queryClient.setQueryData<Profile>(PROFILE_KEY, next),
+    [queryClient],
+  );
+  return [profile, save, replace] as const;
 }

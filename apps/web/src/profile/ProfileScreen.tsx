@@ -117,6 +117,16 @@ export function ProfileScreen({
 
       <h2 className="profile__group">{t('profile.accountAndPrivacy')}</h2>
       <ul className="profile__rows">
+        {(profile.plan === 'plus' || profile.plusAvailable) && (
+          <li>
+            <Link className="profile__row" to="/perfil/plus">
+              <span>{t('profile.plus')}</span>
+              <span className="profile__value">
+                {t(profile.plan === 'plus' ? 'profile.planPlus' : 'profile.planFree')} ›
+              </span>
+            </Link>
+          </li>
+        )}
         {analytics?.enabled && (
           <li>
             <AnalyticsRow />

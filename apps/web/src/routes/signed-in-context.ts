@@ -31,6 +31,11 @@ export interface SignedInContext {
   onReauthenticate?: (() => void) | undefined;
   // After DELETE /api/v1/me succeeded (#38): App signs out and says the account is gone.
   onAccountDeleted?: (() => void) | undefined;
+  // Plus (epic #50): the ADR-0030 events, and how the checkout page opens (tests inject it).
+  onPlusCheckoutStarted?: (() => void) | undefined;
+  onPlusPurchased?: (() => void) | undefined;
+  openCheckout?: ((url: string) => void) | undefined;
+  plusPolling?: { intervalMs: number; attempts: number } | undefined;
 }
 
 export const useSignedIn = () => useOutletContext<SignedInContext>();

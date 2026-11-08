@@ -30,7 +30,7 @@ Branch: `feat/plus`. Delivery: single-pr (same as #42, #43 and #47; commits spli
 | T2 | S2, S11, A1 | Billing env vars, Lemon Squeezy checkout adapter, `POST /api/v1/billing/checkout` | inline | done | RED missing module + 6 failing, GREEN API 295/295 |
 | T3 | S3, S4, S9, A2, A3 | `POST /api/v1/webhooks/lemon-squeezy`: raw body, HMAC check, Zod payload, idempotent apply | inline; Risk item 2 (guard) | done | RED 17 failing, GREEN API 312/312, depcruise clean |
 | T4 | S5, S6, S10 | `requirePlan('plus')` reading the database; `plan` and `plusAvailable` in `/me` | inline; Risk item 2 (guard) | done | RED 8 failing, GREEN API 322/322 |
-| T5 | S7, S8 | Web: plan row and Plus screen in Perfil, checkout redirect, return states, events | inline | pending | |
+| T5 | S7, S8 | Web: plan row and Plus screen in Perfil, checkout redirect, return states, events | inline | done | RED no route, GREEN web 338/338 |
 | T6 | all | ADR-0025 note on the idempotency key, billing runbook, OpenAPI, Gherkin RF-50/RF-56/RF-57, E2E | inline | pending | |
 
 ## Log

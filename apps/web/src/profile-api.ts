@@ -26,6 +26,10 @@ export interface Profile {
   analyticsId: string | null;
   // The session has the curator role (#42). Only shows the curator screen; the API checks.
   curator?: boolean;
+  // The plan read from the database (epic #50). Only shows; the API checks every Plus route.
+  plan?: 'free' | 'plus';
+  // Whether Plus can be bought here; false while billing is off (ADR-0036).
+  plusAvailable?: boolean;
 }
 
 export interface ProfileChanges {

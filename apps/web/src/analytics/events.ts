@@ -19,5 +19,8 @@ export function eventCallbacks(analytics: Analytics) {
     onViewed: (event: PublicProfileViewedEvent) =>
       analytics.capture('public_profile_viewed', event),
     onRateLimited: (event: { attempt: number }) => analytics.capture('anilist_rate_limited', event),
+    // Plus (epic #50, RN-M4): no amount or order, only that it happened.
+    onPlusCheckoutStarted: () => analytics.capture('plus_checkout_started', {}),
+    onPlusPurchased: () => analytics.capture('plus_purchased', {}),
   };
 }

@@ -33,6 +33,10 @@ export function Home(props: {
   sessionStartedAt?: string | undefined;
   onReauthenticate?: (() => void) | undefined;
   onAccountDeleted?: (() => void) | undefined;
+  onPlusCheckoutStarted?: (() => void) | undefined;
+  onPlusPurchased?: (() => void) | undefined;
+  openCheckout?: ((url: string) => void) | undefined;
+  plusPolling?: { intervalMs: number; attempts: number } | undefined;
   // Tests inject the browser's install event and environment (#44).
   install?: { store?: InstallStore; environment?: InstallEnvironment } | undefined;
 }) {
@@ -103,6 +107,10 @@ export function Home(props: {
             sessionStartedAt: props.sessionStartedAt,
             onReauthenticate: props.onReauthenticate,
             onAccountDeleted: props.onAccountDeleted,
+            onPlusCheckoutStarted: props.onPlusCheckoutStarted,
+            onPlusPurchased: props.onPlusPurchased,
+            openCheckout: props.openCheckout,
+            plusPolling: props.plusPolling,
           } satisfies SignedInContext
         }
       />
