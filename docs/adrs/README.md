@@ -53,9 +53,10 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0033](./0033-lista-de-espera-con-buttondown.md) | Lista de espera con Buttondown | Aceptado | Sesión 2026-10-27 |
 | [0034](./0034-neon-para-postgres-y-autenticacion.md) | Neon para Postgres y autenticación, en lugar de Supabase | Aceptado | Sesión 2026-10-28 |
 | [0035](./0035-respaldos-en-backblaze-b2.md) | Respaldos en Backblaze B2, en lugar de Cloudflare R2 | Aceptado | Sesión 2026-11-01 |
-| [0036](./0036-monetizacion-con-anuncios-y-plus-vitalicio.md) | Monetización con anuncios no intrusivos y Plus vitalicio | Aceptado | Sesión 2026-11-06 |
+| [0036](./0036-monetizacion-con-anuncios-y-plus-vitalicio.md) | Monetización con anuncios no intrusivos y Plus vitalicio | Aceptado (temas de tarjeta fuera de Plus en ADR-0039) | Sesión 2026-11-06 |
 | [0037](./0037-e2e-contra-la-app-construida-en-ci.md) | Pruebas E2E contra la app construida en CI, con Neon Auth simulado | Aceptado | Sesión 2026-11-07 |
 | [0038](./0038-red-de-anuncios-y-espacios.md) | Red de anuncios (Google AdSense) y espacios | Aceptado | Sesión 2026-11-08 |
+| [0039](./0039-temas-de-tarjeta-fuera-de-plus.md) | Temas de tarjeta fuera de Plus, como compras sueltas a futuro | Aceptado | Sesión 2026-11-09 |
 
 ## Trazabilidad con las reuniones
 
@@ -95,6 +96,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-11-06: anuncios no intrusivos y Plus solo vitalicio | 0036 (reemplaza el plan anual de 0025 y DD-28) |
 | Sesión 2026-11-07: E2E contra la app construida en CI (#47) | 0037 (reemplaza el E2E contra la vista previa de 0027 y 0029) |
 | Sesión 2026-11-08: red de anuncios y espacios (P-13) | 0038 (complementa el punto 5 de 0036) |
+| Sesión 2026-11-09: temas de tarjeta fuera de Plus, como compras sueltas | 0039 (modifica el punto 2 de 0036) |
 | Sesión 2026-10-27: repo público, región São Paulo, lista privada por defecto | 0027, 0020, 0028 |
 | Sesión 2026-10-27: monorepo con pnpm workspaces aceptado (solo web) | 0002 |
 | D13 | 0010 |
