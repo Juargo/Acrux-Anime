@@ -5,7 +5,7 @@ import { startCheckout } from '../billing-api';
 import { useOwnProfile } from '../profile/use-own-profile';
 import { fetchMe, type Profile } from '../profile-api';
 
-const BENEFITS = ['themes', 'stats', 'wrapped', 'badges'] as const;
+const BENEFITS = ['stats', 'wrapped', 'badges'] as const;
 
 // Lemon Squeezy confirms the order by webhook a few seconds after the buyer comes back.
 const DEFAULT_POLLING = { intervalMs: 2000, attempts: 30 };

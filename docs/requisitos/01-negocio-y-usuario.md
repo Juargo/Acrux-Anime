@@ -15,7 +15,7 @@
 | RN-03 | Compartir es la función central y el motor de crecimiento orgánico, no un extra. | Must | Estudio de mercado |
 | RN-04 | Antes de construir en serio se valida la demanda. No hay fecha fija de lanzamiento; se avanza por hitos con umbral. | Must | Decisión 26-oct; ADR-0031 |
 | RN-05 | Freemium con anuncios no intrusivos para los usuarios gratuitos. Marcar, el contador y la tarjeta básica son gratis para siempre. Nunca hay anuncios en la tarjeta compartida, en el perfil público, en el inicio de sesión ni en el borrado de cuenta. | Must | Estudio de mercado; ADR-0036 |
-| RN-06 | Plan **Plus** de pago único que quita los anuncios y agrega plantillas y temas extra de tarjeta, estadísticas avanzadas, Wrapped completo, insignias e íconos. | Must | Estudio de mercado; ADR-0036 |
+| RN-06 | Plan **Plus** de pago único que quita los anuncios y agrega estadísticas avanzadas, Wrapped completo, insignias e íconos. Los temas y plantillas extra de tarjeta se venderán aparte (ADR-0039). | Must | Estudio de mercado; ADR-0036, ADR-0039 |
 | RN-07 | Precio de referencia de Plus: pago vitalicio de ~US$19,99, con precio regional para Latinoamérica. No hay suscripción mensual ni anual. | Should | Estudio de mercado; DD-28; modificado por ADR-0036 |
 | RN-08 | El producto opera legalmente con el catálogo y los datos de AniList, incluido el escenario de ingresos sobre el umbral de uso comercial gratuito. Ni Plus se cobra ni se muestran anuncios sin autorización y licencia de AniList. | Must | Estudio §5.2; ADR-0024; ADR-0036 |
 
@@ -74,7 +74,7 @@ Estimaciones del estudio (no verificadas): SAM de 1,6–6 M de hispanohablantes 
 | RU-07 | Cualquier usuario | ver qué me falta de una saga ("3/5 temporadas") | saber qué ver después | Should |
 | RU-08 | Otaku que comparte | tener un enlace público a mi perfil | que otros vean mi lista sin crear una cuenta | Must |
 | RU-09 | Cualquier usuario | decidir si mi lista es pública o privada | controlar qué muestro | Must |
-| RU-10 | Usuario Plus | usar temas y plantillas extra, estadísticas y un Wrapped | personalizar y presumir mi historial | Should |
+| RU-10 | Usuario Plus | usar estadísticas y un Wrapped | personalizar y presumir mi historial | Should |
 | RU-11 | Hispanohablante | usar la app en español (o inglés) | entenderla sin esfuerzo | Must |
 | RU-12 | Cualquier usuario | descargar mis datos y borrar mi cuenta | tener control sobre mi información | Must |
 

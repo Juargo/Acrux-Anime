@@ -109,13 +109,13 @@ describe('PlusScreen', () => {
     const page = await screen.findByRole('region', { name: 'Acrux Plus' });
     expect(within(page).getByText('Más estilo para tu historial de anime.')).toBeTruthy();
     for (const benefit of [
-      'Todos los temas para tu tarjeta',
       'Estadísticas avanzadas',
       'Tu Wrapped anual',
       'Insignias e íconos de la app',
     ]) {
       expect(within(page).getByText(benefit)).toBeTruthy();
     }
+    expect(within(page).queryByText('Todos los temas para tu tarjeta')).toBeNull();
     expect(within(page).getByText('Pago único, para siempre. Sin suscripción.')).toBeTruthy();
     expect(
       within(page).getByText('Lo básico sigue gratis: marcar, contar y tu tarjeta Clásica.'),

@@ -19,7 +19,7 @@ Compra de Plus vitalicio (épica #50, ADR-0025, ADR-0036). Plus es un pago únic
      - Todo lo demás responde 200 `ignored`: otros eventos, órdenes `pending`, `failed` o `fraudulent`, reembolsos parciales y otras tiendas o variantes.
   4. Registra el evento en `billing_event` y cambia `entitlement` en una sola transacción. Un evento repetido responde 200 `duplicate` y no cambia nada.
 - **Idempotencia:** Lemon Squeezy no manda un id de evento, así que la clave es `<evento>:<id de la orden>` (por ejemplo `order_created:1001`). Cada orden se crea una vez y se reembolsa una vez.
-- **`requirePlan('plus')`:** una ruta con `plan: 'plus'` lee el plan de `entitlement` en cada petición y responde 403 `plan.plus_required` a quien no lo tiene. El plan nunca se toma del cliente ni del JWT. Por ahora ninguna ruta lo usa: cada función de Plus (RF-52 a RF-55) lo aplica cuando se construye.
+- **`requirePlan('plus')`:** una ruta con `plan: 'plus'` lee el plan de `entitlement` en cada petición y responde 403 `plan.plus_required` a quien no lo tiene. El plan nunca se toma del cliente ni del JWT. Por ahora ninguna ruta lo usa: cada función de Plus (RF-53 a RF-55) lo aplica cuando se construye.
 - **`GET /api/v1/me`:** trae `plan` (`free` o `plus`, leído de la base) y `plusAvailable`, que indica si se puede comprar en este entorno.
 - **En la app** (Perfil → Acrux Plus, `/perfil/plus`): pantallas de Figma M21–M24, adaptadas al pago único.
   - Ofrece el pago único y abre el checkout. Si no se pudo iniciar, avisa que no se cobró nada.

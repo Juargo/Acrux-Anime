@@ -54,5 +54,5 @@
 1. **Primer ingreso:** inicia sesión con Google → declara su edad → Acrux crea la cuenta → carga en ráfaga de sagas populares → marca → crea su primera tarjeta. Vincular AniList se ofrece y se puede omitir.
 2. **Vincular AniList:** autoriza a Acrux en AniList (código de autorización intercambiado en la API) → Acrux trae su lista, la agrupa en franquicias y la combina con lo marcado (gana "Vista") → resumen de importación ("AniList tenía 214 entradas. En Acrux las agrupamos en 63 sagas.").
 3. **Marcar:** marca en Acrux → actualización optimista → se guarda en la API → si tiene AniList, la escritura entra en una cola que respeta el límite (dónde corre la cola está pendiente, P-03).
-4. **Comprar Plus:** prueba el tema en su tarjeta → elige plan → checkout de Lemon Squeezy → webhook firmado → Acrux activa Plus. Lo mismo al fallar el pago o al reembolsarse.
+4. **Comprar Plus:** checkout de Lemon Squeezy → webhook firmado → Acrux activa Plus. Lo mismo al fallar el pago o al reembolsarse.
 5. **Borrar la cuenta:** reautenticación si la sesión supera 24 horas → aviso de pérdida de Plus → borrado en una transacción → confirmación.

@@ -25,7 +25,6 @@ No hay rol de moderador: no hay reseñas ni foros.
 | Hacer pública o privada su lista | ❌ | ✅ | ✅ | ✅ | Filtro por `user_id` |
 | Reportar una saga mal armada | ❌ | ✅ | ✅ | ✅ | Usuario autenticado |
 | Usar la app sin anuncios | ✅ (perfil público sin anuncios) | ❌ | ✅ | ✅ | `requirePlan('plus')` |
-| Temas y plantillas Plus | ❌ | Vista previa con marca de agua | ✅ | ✅ | `requirePlan('plus')` |
 | Estadísticas avanzadas y Wrapped | ❌ | ❌ | ✅ | ✅ | `requirePlan('plus')` |
 | Insignias e íconos | ❌ | ❌ | ✅ | ✅ | `requirePlan('plus')` |
 | Editar la tabla de correcciones y atender reportes | ❌ | ❌ | ❌ | ✅ | `requireRole('curator')` |
