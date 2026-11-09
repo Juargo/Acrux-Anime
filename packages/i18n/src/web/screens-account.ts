@@ -117,7 +117,6 @@ export const accountEs = {
     title: 'Acrux Plus',
     tagline: 'Más estilo para tu historial de anime.',
     benefits: {
-      themes: 'Todos los temas para tu tarjeta',
       stats: 'Estadísticas avanzadas',
       wrapped: 'Tu Wrapped anual',
       badges: 'Insignias e íconos de la app',
@@ -381,7 +380,6 @@ export const accountEn = {
     title: 'Acrux Plus',
     tagline: 'More style for your anime history.',
     benefits: {
-      themes: 'Every theme for your card',
       stats: 'Advanced stats',
       wrapped: 'Your yearly Wrapped',
       badges: 'Badges and app icons',

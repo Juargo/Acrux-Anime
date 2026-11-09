@@ -69,7 +69,7 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 |---|---|---|---|---|
 | RF-50 | El usuario compra Plus vitalicio, de pago único, con Lemon Squeezy. Sin prueba gratis. | Must | H4 | ADR-0025, DD-27–DD-29, ADR-0036 · M21/D21 |
 | RF-51 | Plus vive en la cuenta: sigue activo al iniciar sesión en otro navegador o dispositivo. *(Reemplaza "restaurar compra", propio de las tiendas.)* | Must | H4 | Figma flujo 5 |
-| RF-52 | Plus desbloquea plantillas y temas extra de tarjeta. Antes de pagar, el usuario prueba el tema en su propia tarjeta con marca de agua. | Must | H4 | Figma flujo 5 · M20/D20 |
+| RF-52 | ~~Plus desbloquea plantillas y temas extra de tarjeta.~~ **Fuera de Plus (2026-11-09):** los temas y plantillas extra se venderán como compras sueltas; el modelo está pendiente (P-14). Se mantiene que, antes de pagar, el usuario prueba el tema en su propia tarjeta con marca de agua. | Could | Por definir | Figma flujo 5 · M20/D20; ADR-0039 |
 | RF-53 | Plus desbloquea estadísticas avanzadas. | Should | H4 | — |
 | RF-54 | Plus desbloquea un Wrapped anual compartible. Contenido por definir. | Should | H4 | — |
 | RF-55 | Plus desbloquea insignias e íconos. | Could | H4 | — |

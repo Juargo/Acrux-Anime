@@ -1,6 +1,6 @@
 # ADR-0036: Monetización con anuncios no intrusivos y Plus vitalicio
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado. El punto 2 lo modifica ADR-0039: los temas de tarjeta salen de Plus.
 - **Fecha:** 2026-11-06
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-11-06.
