@@ -18,8 +18,6 @@ Todo lo de esta lista debe estar resuelto, o descartado con su motivo, antes del
   - La pantalla de borrado (Figma M19) debe avisar que se pierde Plus y que no se reembolsa solo.
   - El cliente de Lemon Squeezy sigue existiendo después del borrado; hay que definir si se borra y cómo ([`runbooks/borrado-de-cuenta.md`](./runbooks/borrado-de-cuenta.md)).
 
-- **Tema de tarjeta Manga (RF-52).** Hoy hay dos temas: Clásica, que es gratis, y Neón, que es de Plus. Manga aparece en Figma solo como nombre de un chip y no tiene diseño. Falta diseñarlo y agregarlo al enum `card_theme` (decisión del 2026-11-09).
-- **Colores de Neón.** Se tomaron a ojo de la vista previa de Figma (M20). Falta revisarlos contra el diseño.
 
 ## Anuncios (P-13, ADR-0038)
 
