@@ -15,6 +15,7 @@ const view: ProfileView = {
   shownTotal: null,
   shownMode: null,
   cardShared: false,
+  cardTheme: 'clasica',
   createdAt: new Date('2026-11-01T12:00:00.000Z'),
 };
 const repository = {

@@ -1,0 +1,31 @@
+RF-52: card themes unlocked by Plus (epic #50). Branch feat/temas-tarjeta, single PR.
+Test runner: Vitest (api with Testcontainers, web with jsdom) and Playwright E2E.
+
+## Specs
+
+- S1 (RF-52, verbatim): "Plus desbloquea plantillas y temas extra de tarjeta. Antes de pagar, el usuario prueba el tema en su propia tarjeta con marca de agua."
+- S2 (user decision, 2026-11-09): "Solo Neón ahora". Clásica is free and Neón needs Plus. Manga is left out until it has a design, and is tracked in docs/deuda-tecnica.md.
+- S3 (Figma M07/M20/D20/M22, Flujo 5):
+  - Theme chips go under the card: `Clásica`, `🔒 Neón`.
+  - A free user who picks Neón sees their own card in Neón with the watermark "VISTA PREVIA".
+  - The CTA reads "El tema Neón es de Plus" / "Tu tarjeta básica sigue siendo gratis.", with the buttons "Ver Acrux Plus" and "Seguir con Clásica". It is a sheet on mobile and a bar on desktop.
+  - After the purchase, "Tu tema Neón ya está aplicado." (M22, F2 "se aplica lo que intentaba usar").
+- S4 (assumption, ADR-0025, 02-usuarios-y-roles):
+  - The theme is stored on the account. Only Plus can save a theme other than Clásica (403 `plan.plus_required`).
+  - Without Plus, the effective theme is Clásica, so a refund falls back without rewriting data (RF-56).
+  - The plan is never taken from the client.
+- S5 (assumption):
+  - Sharing and downloading always use the effective theme. A free user never exports the watermarked preview, so Compartir and Descargar are disabled during the preview.
+  - The public profile and og.png do not change.
+
+## Tasks
+
+- T1 [S2, S4] API: `card_theme` enum and column (additive migration), `cardTheme` in GET and PATCH `/me`, plan check. Route: inline. Risk: items 1 and 2.
+- T2 [S1, S3, S5] Web: ShareCard theme and watermark, chips, CTA, export rules, i18n. Route: inline.
+- T3 [S3] Apply the chosen theme after the purchase (M22), plus RF-52.feature, E2E, runbook and deuda técnica (Manga). Route: inline.
+
+## Log
+
+- L1 (2026-11-09, user): "deja todo los pendientes en deuda técnica para antes del lanzamiento. Continuemos con los pasos que indicas #50"
+- L2 (2026-11-09, user): Manga → "Solo Neón ahora (Recommended)".
+- L3: Explorer map. ShareCard (`apps/web/src/components/ShareCard.tsx`) has no theme. The PNG comes from html-to-image of the DOM node (`apps/web/src/card/image.ts`). Profile has no theme field. Figma Neón instances are 43:2627 (D20) and 42:2555 (M20).

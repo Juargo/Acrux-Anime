@@ -412,6 +412,7 @@ describe('GET /api/v1/me', () => {
           shownTotal: null,
           shownMode: null,
           cardShared: false,
+          cardTheme: 'clasica',
           createdAt: new Date('2026-11-01T12:00:00.000Z'),
           analyticsId: '0123456789abcdef0123456789abcdef',
         };
@@ -436,6 +437,7 @@ describe('GET /api/v1/me', () => {
       shownTotal: null,
       shownMode: null,
       cardShared: false,
+      cardTheme: 'clasica',
       createdAt: '2026-11-01T12:00:00.000Z',
       analyticsId: '0123456789abcdef0123456789abcdef',
       curator: false,
@@ -485,6 +487,7 @@ describe('PATCH /api/v1/me', () => {
           shownTotal: changes.shown?.total ?? null,
           shownMode: changes.shown?.mode ?? null,
           cardShared: changes.cardShared ?? false,
+          cardTheme: changes.cardTheme ?? 'clasica',
           createdAt: new Date('2026-11-01T12:00:00.000Z'),
           analyticsId: null,
         };
@@ -522,6 +525,7 @@ describe('PATCH /api/v1/me', () => {
       shownTotal: null,
       shownMode: null,
       cardShared: false,
+      cardTheme: 'clasica',
       createdAt: '2026-11-01T12:00:00.000Z',
       analyticsId: null,
       curator: false,

@@ -53,6 +53,7 @@ describe('profile repository', () => {
       shownTotal: null,
       shownMode: null,
       cardShared: false,
+      cardTheme: 'clasica',
       createdAt: expect.any(Date),
     });
   });
@@ -99,6 +100,20 @@ describe('profile repository', () => {
     expect((await profiles.findOrCreate(userId, initial)).locale).toBe('en');
     expect((await profiles.update(userId, initial, { counterMode: 'entry' })).locale).toBe('en');
     expect((await profiles.update(userId, initial, { locale: null })).locale).toBeNull();
+  });
+
+  it('saves the card theme and keeps it on later changes (RF-52)', async () => {
+    const profiles = createProfileRepository(prisma);
+    const userId = '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f7a';
+    const initial = { displayName: 'Camila', avatarUrl: null };
+    expect((await profiles.update(userId, initial, { cardTheme: 'neon' })).cardTheme).toBe('neon');
+    expect((await profiles.findOrCreate(userId, initial)).cardTheme).toBe('neon');
+    expect((await profiles.update(userId, initial, { counterMode: 'entry' })).cardTheme).toBe(
+      'neon',
+    );
+    expect((await profiles.update(userId, initial, { cardTheme: 'clasica' })).cardTheme).toBe(
+      'clasica',
+    );
   });
 
   it('gives the next profile with the same name the next free handle', async () => {

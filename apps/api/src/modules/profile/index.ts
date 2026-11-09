@@ -1,6 +1,6 @@
 import type { Response } from 'express';
 import { z } from 'zod';
-import type { PlanReader } from '../../http/plan.js';
+import type { PlanReader, UserPlan } from '../../http/plan.js';
 import { ProblemError } from '../../http/problem.js';
 import type { Module } from '../../http/routes.js';
 import type { Session } from '../../http/session.js';
@@ -11,6 +11,8 @@ const counterMode = z.enum(['franchise', 'entry']);
 // The languages of the web app (@acrux/i18n locales, ADR-0010).
 const locale = z.enum(['es', 'en']);
 export const avatarPreset = z.enum(['violeta', 'verde', 'amarillo', 'coral', 'noche', 'lavanda']);
+// RF-52: Clásica is free and Neón needs Plus.
+const cardTheme = z.enum(['clasica', 'neon']);
 
 // RF-07 and Figma M06 ("5/30"): trimmed, then the rules the editor checks too (@acrux/domain).
 const displayName = z
@@ -29,6 +31,9 @@ const profileSchema = z.object({
   shownTotal: z.number().int().nullable().describe('The last counter the owner saw'),
   shownMode: counterMode.nullable(),
   cardShared: z.boolean().describe('Whether a card was ever shared (#36)'),
+  cardTheme: cardTheme.describe(
+    'The card theme (RF-52); always clasica without Plus, so a refund falls back (RF-56)',
+  ),
   createdAt: z.iso.datetime().describe('When the profile was created'),
   analyticsId: z
     .string()
@@ -57,6 +62,7 @@ const patchBody = z
     shown: z.strictObject({ total: z.number().int().min(0).max(1_000_000), mode: counterMode }),
     cardShared: z.literal(true),
     locale: locale.nullable(),
+    cardTheme,
   })
   .partial()
   .refine((body) => Object.keys(body).length > 0, 'At least one change');
@@ -76,10 +82,22 @@ export interface PlanInfo {
   plusAvailable: boolean;
 }
 
+const planOf = async (current: Session, plans: PlanInfo | undefined) =>
+  plans?.planOf ? plans.planOf(current.userId) : ('free' as const);
+
 // What the web shows about Plus: the plan from the database and whether it can be bought.
-async function planFields(current: Session, plans: PlanInfo | undefined) {
+// Plus themes show only while the plan is Plus; the stored choice is kept for a later purchase.
+function withPlan<T extends { cardTheme: string }>(
+  view: T,
+  current: Session,
+  plan: UserPlan,
+  plans: PlanInfo | undefined,
+) {
   return {
-    plan: plans?.planOf ? await plans.planOf(current.userId) : ('free' as const),
+    ...view,
+    cardTheme: plan === 'plus' ? view.cardTheme : 'clasica',
+    curator: isCurator(current),
+    plan,
     plusAvailable: plans?.plusAvailable ?? false,
   };
 }
@@ -104,11 +122,8 @@ export function createProfileModule(
         },
         handler: async (_request, response) => {
           const { profiles: service, current } = session(profiles, response);
-          response.json({
-            ...(await service.me(current)),
-            curator: isCurator(current),
-            ...(await planFields(current, plans)),
-          });
+          const view = await service.me(current);
+          response.json(withPlan(view, current, await planOf(current, plans), plans));
         },
       },
       {
@@ -116,11 +131,12 @@ export function createProfileModule(
         path: '/api/v1/me',
         docs: {
           summary:
-            'Change the counter mode, the list visibility, the shown counter, the first share or the language',
+            'Change the counter mode, the list visibility, the shown counter, the first share, the language or the card theme',
           requestBody: patchBody,
           responses: {
             200: { description: 'The profile after the change', schema: profileSchema },
             400: { description: 'The body is not a known change' },
+            403: { description: 'A card theme other than clasica needs Plus (RF-52)' },
             503: { description: 'The database is not configured' },
           },
         },
@@ -132,11 +148,13 @@ export function createProfileModule(
           if (!body.success) {
             throw new ProblemError(400, 'profile.invalid_body', 'Invalid profile body');
           }
-          response.json({
-            ...(await service.update(current, body.data)),
-            curator: isCurator(current),
-            ...(await planFields(current, plans)),
-          });
+          // The plan comes from the database, never from the client (RF-52, ADR-0025).
+          const plan = await planOf(current, plans);
+          if (body.data.cardTheme && body.data.cardTheme !== 'clasica' && plan !== 'plus') {
+            throw new ProblemError(403, 'plan.plus_required', 'This theme needs Plus');
+          }
+          const view = await service.update(current, body.data);
+          response.json(withPlan(view, current, plan, plans));
         },
       },
     ],

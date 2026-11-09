@@ -58,6 +58,14 @@ enum AvatarPreset {
   @@map("avatar_preset")
 }
 
+// Card themes (RF-52): Clásica is free, the rest need Plus. Manga waits for its design.
+enum CardTheme {
+  clasica
+  neon
+
+  @@map("card_theme")
+}
+
 model Profile {
   userId         String         @id @map("user_id") @db.Uuid
   displayName    String         @map("display_name")
@@ -75,6 +83,9 @@ model Profile {
   shownMode      CounterMode?   @map("shown_mode")
   // The first card shared, to offer making the list public only then (#36).
   cardSharedAt   DateTime?      @map("card_shared_at") @db.Timestamptz(6)
+  // The chosen card theme (RF-52). It is kept after a refund, but the API shows Clásica
+  // to anyone without Plus (RF-56).
+  cardTheme      CardTheme      @default(clasica) @map("card_theme")
   createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 

@@ -14,3 +14,9 @@ Característica: Plus no vence y un reembolso no borra nada
     Dado que compré Plus
     Cuando Lemon Squeezy avisa un reembolso parcial de esa compra
     Entonces sigo teniendo Plus
+
+  @CA-RF56-03
+  Escenario: Tras un reembolso la tarjeta vuelve al tema Clásica
+    Dado que compré Plus y elegí el tema Neón para mi tarjeta
+    Cuando la compra se reembolsa
+    Entonces mi tarjeta se muestra con el tema Clásica

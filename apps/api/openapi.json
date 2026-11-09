@@ -256,6 +256,14 @@
                       "type": "boolean",
                       "description": "Whether a card was ever shared (#36)"
                     },
+                    "cardTheme": {
+                      "type": "string",
+                      "enum": [
+                        "clasica",
+                        "neon"
+                      ],
+                      "description": "The card theme (RF-52); always clasica without Plus, so a refund falls back (RF-56)"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time",
@@ -297,6 +305,7 @@
                     "shownTotal",
                     "shownMode",
                     "cardShared",
+                    "cardTheme",
                     "createdAt",
                     "analyticsId",
                     "curator",
@@ -324,7 +333,7 @@
         }
       },
       "patch": {
-        "summary": "Change the counter mode, the list visibility, the shown counter, the first share or the language",
+        "summary": "Change the counter mode, the list visibility, the shown counter, the first share, the language or the card theme",
         "security": [
           {
             "session": []
@@ -413,6 +422,13 @@
                       {
                         "type": "null"
                       }
+                    ]
+                  },
+                  "cardTheme": {
+                    "type": "string",
+                    "enum": [
+                      "clasica",
+                      "neon"
                     ]
                   }
                 },
@@ -521,6 +537,14 @@
                       "type": "boolean",
                       "description": "Whether a card was ever shared (#36)"
                     },
+                    "cardTheme": {
+                      "type": "string",
+                      "enum": [
+                        "clasica",
+                        "neon"
+                      ],
+                      "description": "The card theme (RF-52); always clasica without Plus, so a refund falls back (RF-56)"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time",
@@ -562,6 +586,7 @@
                     "shownTotal",
                     "shownMode",
                     "cardShared",
+                    "cardTheme",
                     "createdAt",
                     "analyticsId",
                     "curator",
@@ -585,6 +610,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "A card theme other than clasica needs Plus (RF-52)"
           },
           "503": {
             "description": "The database is not configured"

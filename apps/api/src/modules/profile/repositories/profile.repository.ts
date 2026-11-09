@@ -5,6 +5,7 @@ type CounterMode = 'franchise' | 'entry';
 type ListVisibility = 'private' | 'public';
 export type Locale = 'es' | 'en';
 export type AvatarPreset = 'violeta' | 'verde' | 'amarillo' | 'coral' | 'noche' | 'lavanda';
+export type CardTheme = 'clasica' | 'neon';
 
 export interface ProfileView {
   displayName: string;
@@ -21,6 +22,8 @@ export interface ProfileView {
   shownMode: CounterMode | null;
   // Whether a card was ever shared (#36): the first share offers to make the list public.
   cardShared: boolean;
+  // The stored card theme (RF-52); the API shows Clásica to anyone without Plus.
+  cardTheme: CardTheme;
   // When the profile was created: signup_completed is timestamped with it (#46).
   createdAt: Date;
 }
@@ -48,6 +51,8 @@ export interface ProfileChanges {
   cardShared?: true | undefined;
   // null goes back to the browser language.
   locale?: Locale | null | undefined;
+  // Only Plus may choose a theme other than Clásica; the route checks the plan first.
+  cardTheme?: CardTheme | undefined;
 }
 
 const SELECT = {
@@ -61,6 +66,7 @@ const SELECT = {
   shownTotal: true,
   shownMode: true,
   cardSharedAt: true,
+  cardTheme: true,
   createdAt: true,
 } as const;
 
@@ -160,8 +166,16 @@ export function createProfileRepository(prisma: PrismaClient): ProfileRepository
     },
     update: async (userId, initial, changes) => {
       await create(userId, initial);
-      const { displayName, avatarPreset, counterMode, listVisibility, shown, cardShared, locale } =
-        changes;
+      const {
+        displayName,
+        avatarPreset,
+        counterMode,
+        listVisibility,
+        shown,
+        cardShared,
+        locale,
+        cardTheme,
+      } = changes;
       await prisma.profile.update({
         where: { userId },
         data: {
@@ -170,6 +184,7 @@ export function createProfileRepository(prisma: PrismaClient): ProfileRepository
           ...(locale !== undefined && { locale }),
           ...(counterMode && { counterMode }),
           ...(listVisibility && { listVisibility }),
+          ...(cardTheme && { cardTheme }),
           ...(shown && { shownTotal: shown.total, shownMode: shown.mode }),
         },
       });
