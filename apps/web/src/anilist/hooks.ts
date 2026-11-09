@@ -3,7 +3,7 @@ import { overridesVersion, useFranchiseOverrides } from '../franchise/use-franch
 import { type CatalogQuery, fetchCatalogPage, fetchGenres } from './catalog';
 import { type AniListClient, createAniListClient } from './client';
 import { fetchFranchise } from './franchise';
-import { fetchMediaByIds } from './queries';
+import { fetchMediaByIds, fetchMediaStats } from './queries';
 
 let rateLimitListener: ((details: { attempt: number }) => void) | undefined;
 
@@ -22,6 +22,15 @@ export function useMediaByIds(ids: number[], client: AniListClient = defaultClie
   return useQuery({
     queryKey: ['anilist', 'media', ids],
     queryFn: () => fetchMediaByIds(client, ids),
+    enabled: ids.length > 0,
+  });
+}
+
+// Advanced stats (RF-53): length, genres, year and format of the seen titles.
+export function useMediaStats(ids: number[], client: AniListClient = defaultClient) {
+  return useQuery({
+    queryKey: ['anilist', 'media-stats', ids],
+    queryFn: () => fetchMediaStats(client, ids),
     enabled: ids.length > 0,
   });
 }
