@@ -23,3 +23,9 @@ Característica: Temas de tarjeta con Plus
     Entonces veo mi tarjeta con Neón y la marca de agua "VISTA PREVIA"
     Y veo "El tema Neón es de Plus" con "Ver Acrux Plus" y "Seguir con Clásica"
     Y no puedo compartir ni descargar esa vista previa
+
+  @CA-RF52-04
+  Escenario: Al comprar Plus desde la vista previa se aplica el tema
+    Dado que probé el tema Neón y toqué "Ver Acrux Plus"
+    Cuando compro Plus y vuelvo a la app
+    Entonces veo "¡Ya eres Plus!" y "Tu tema Neón ya está aplicado."

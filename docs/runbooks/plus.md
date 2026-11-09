@@ -19,8 +19,14 @@ Compra de Plus vitalicio (épica #50, ADR-0025, ADR-0036). Plus es un pago únic
      - Todo lo demás responde 200 `ignored`: otros eventos, órdenes `pending`, `failed` o `fraudulent`, reembolsos parciales y otras tiendas o variantes.
   4. Registra el evento en `billing_event` y cambia `entitlement` en una sola transacción. Un evento repetido responde 200 `duplicate` y no cambia nada.
 - **Idempotencia:** Lemon Squeezy no manda un id de evento, así que la clave es `<evento>:<id de la orden>` (por ejemplo `order_created:1001`). Cada orden se crea una vez y se reembolsa una vez.
-- **`requirePlan('plus')`:** una ruta con `plan: 'plus'` lee el plan de `entitlement` en cada petición y responde 403 `plan.plus_required` a quien no lo tiene. El plan nunca se toma del cliente ni del JWT. Por ahora ninguna ruta lo usa: cada función de Plus (RF-52 a RF-55) lo aplica cuando se construye.
+- **`requirePlan('plus')`:** una ruta con `plan: 'plus'` lee el plan de `entitlement` en cada petición y responde 403 `plan.plus_required` a quien no lo tiene. El plan nunca se toma del cliente ni del JWT. Ninguna ruta lo usa todavía: el tema de tarjeta (RF-52) revisa el plan dentro de `PATCH /me`, y cada función de Plus que viene (RF-53 a RF-55) lo aplica cuando se construye.
 - **`GET /api/v1/me`:** trae `plan` (`free` o `plus`, leído de la base) y `plusAvailable`, que indica si se puede comprar en este entorno.
+- **Temas de tarjeta (RF-52):** `cardTheme` es `clasica` (gratis) o `neon` (Plus).
+  - Se guarda en la cuenta con `PATCH /api/v1/me`. Elegir `neon` sin Plus responde 403 `plan.plus_required` y no guarda nada.
+  - `/me` devuelve `clasica` a quien no tiene Plus. Tras un reembolso la tarjeta vuelve a Clásica sin borrar la elección guardada (RF-56).
+  - En la tarjeta, un usuario gratuito prueba Neón en su propia tarjeta, con la marca «VISTA PREVIA» y la invitación a Plus (Figma M20/D20). Esa vista previa no se puede compartir ni descargar.
+  - Si compra desde esa invitación, al confirmarse la compra se aplica Neón y se muestra «Tu tema Neón ya está aplicado.» (M22).
+  - Los chips de tema se ocultan a los usuarios gratuitos mientras la facturación está apagada.
 - **En la app** (Perfil → Acrux Plus, `/perfil/plus`): pantallas de Figma M21–M24, adaptadas al pago único.
   - Ofrece el pago único y abre el checkout. Si no se pudo iniciar, avisa que no se cobró nada.
   - Al volver del pago, consulta `/me` cada 2 segundos, hasta un minuto. Si el webhook dio Plus, muestra «¡Ya eres Plus!»; si no, avisa que el pago se está confirmando.

@@ -1,9 +1,9 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useSearchParams } from 'react-router';
+import { Link, useLocation, useSearchParams } from 'react-router';
 import { startCheckout } from '../billing-api';
 import { useOwnProfile } from '../profile/use-own-profile';
-import { fetchMe, type Profile } from '../profile-api';
+import { type CardTheme, fetchMe, type Profile } from '../profile-api';
 
 const BENEFITS = ['themes', 'stats', 'wrapped', 'badges'] as const;
 
@@ -11,6 +11,29 @@ const BENEFITS = ['themes', 'stats', 'wrapped', 'badges'] as const;
 const DEFAULT_POLLING = { intervalMs: 2000, attempts: 30 };
 
 type Confirmation = 'waiting' | 'confirmed' | 'pending';
+
+// RF-52, Figma M22: the Plus theme a free user was trying is applied once the purchase is
+// confirmed. The checkout leaves the app, so the choice waits in this tab's sessionStorage.
+const PENDING_THEME = 'acrux.plus.theme';
+const isPlusTheme = (value: unknown): value is CardTheme => value === 'neon';
+
+function rememberTheme(theme: CardTheme | null) {
+  try {
+    if (theme) sessionStorage.setItem(PENDING_THEME, theme);
+    else sessionStorage.removeItem(PENDING_THEME);
+  } catch {
+    // Without storage the purchase still works; the theme is chosen again on the card.
+  }
+}
+
+function pendingTheme(): CardTheme | null {
+  try {
+    const value = sessionStorage.getItem(PENDING_THEME);
+    return isPlusTheme(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Container: Acrux Plus (epic #50, RF-50, RF-57). Figma M21–M24, adapted to the one-time
@@ -36,7 +59,10 @@ export function PlusScreen({
 }) {
   const { t } = useTranslation();
   const titleId = useId();
-  const [profile, , replace] = useOwnProfile({ initial, getToken, fetchFn });
+  const [profile, save, replace] = useOwnProfile({ initial, getToken, fetchFn });
+  const location = useLocation();
+  const trying = (location.state as { theme?: unknown } | null)?.theme;
+  const [applied, setApplied] = useState<CardTheme | null>(null);
   const [params] = useSearchParams();
   const returned = params.get('compra') === 'lista';
   const [confirmation, setConfirmation] = useState<Confirmation | null>(
@@ -61,6 +87,14 @@ export function PlusScreen({
         replace(me.profile);
         setConfirmation('confirmed');
         purchased.current?.();
+        const theme = pendingTheme();
+        rememberTheme(null);
+        if (theme) {
+          save({ cardTheme: theme }).then(
+            () => !cancelled && setApplied(theme),
+            () => {},
+          );
+        }
         return;
       }
       left -= 1;
@@ -79,6 +113,7 @@ export function PlusScreen({
     setFailed(false);
     try {
       const url = await startCheckout(getToken, fetchFn);
+      rememberTheme(isPlusTheme(trying) ? trying : null);
       onCheckoutStarted?.();
       openCheckout(url);
     } catch {
@@ -97,6 +132,11 @@ export function PlusScreen({
           {t('plus.welcomeTitle')}
         </h1>
         <p className="plus__lede">{t('plus.welcomeText')}</p>
+        {applied && (
+          <p className="plus__lede" role="status">
+            {t('plus.themeApplied', { theme: t(`card.theme.${applied}`) })}
+          </p>
+        )}
         <Link className="button button--primary" to="/tarjeta">
           {t('plus.seeCard')}
         </Link>

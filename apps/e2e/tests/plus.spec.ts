@@ -1,4 +1,4 @@
-import { createHmac } from 'node:crypto';
+import { createHmac, randomInt } from 'node:crypto';
 import type { APIRequestContext } from '@playwright/test';
 import { SPY_FAMILY } from '../support/anilist.ts';
 import { markSeen } from '../support/api.ts';
@@ -7,7 +7,8 @@ import { expect, test } from '../support/fixtures.ts';
 
 // Journeys of epic #50: lifetime Plus against the real API and Postgres. Lemon Squeezy is
 // stood in for by the webhooks it would send, signed with the E2E secret.
-let nextOrder = Math.floor(Date.now() / 1000);
+// Unique per worker and per run: the webhook applies each order id only once (ADR-0025).
+let nextOrder = Date.now() * 1000 + randomInt(1000);
 
 function orderEvent(
   eventName: 'order_created' | 'order_refunded',
@@ -93,4 +94,50 @@ test('@CA-RF50-03 @CA-RF50-04 a repeated order applies once and a forged one giv
     headers: { Authorization: `Bearer ${user.token}` },
   });
   expect(await after.json()).toMatchObject({ plan: 'plus', plusAvailable: true });
+});
+
+test('@CA-RF52-03 @CA-RF52-01 @CA-RF56-03 a free user tries Neón with a watermark, a Plus user keeps it, a refund goes back to Clásica', async ({
+  page,
+  request,
+  signedIn: user,
+}) => {
+  await markSeen(request, user, [SPY_FAMILY.rootId]);
+  const headers = { Authorization: `Bearer ${user.token}` };
+  // Skip the first card's name and avatar step (#39).
+  await request.patch(`${API_URL}/api/v1/me`, { headers, data: { cardShared: true } });
+  const orderId = String(nextOrder++);
+  const chip = (name: string) => page.locator('.card-styles__chip', { hasText: name });
+  const card = page.getByRole('figure', { name: 'Vista previa de tu tarjeta' });
+
+  await page.goto('/tarjeta');
+  await expect(page.getByRole('heading', { name: 'Tu tarjeta' })).toBeVisible();
+  await chip('Neón').click();
+  await expect(card.locator('.share-card--neon')).toBeVisible();
+  await expect(card.getByText('VISTA PREVIA')).toBeVisible();
+  const offer = page.getByRole('region', { name: 'El tema Neón es de Plus' });
+  await expect(offer.getByRole('link', { name: 'Ver Acrux Plus' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Descargar imagen' })).toBeDisabled();
+  const refused = await request.patch(`${API_URL}/api/v1/me`, {
+    headers,
+    data: { cardTheme: 'neon' },
+  });
+  expect(refused.status()).toBe(403);
+
+  expect(
+    await (await deliver(request, orderEvent('order_created', orderId, user.id))).json(),
+  ).toEqual({ result: 'applied' });
+  await page.reload();
+  await chip('Neón').click();
+  await expect(card.locator('.share-card--neon')).toBeVisible();
+  await expect(card.getByText('VISTA PREVIA')).toHaveCount(0);
+  await expect
+    .poll(
+      async () => (await (await request.get(`${API_URL}/api/v1/me`, { headers })).json()).cardTheme,
+    )
+    .toBe('neon');
+
+  await deliver(request, orderEvent('order_refunded', orderId, user.id));
+  await page.reload();
+  await expect(card).toBeVisible();
+  await expect(card.locator('.share-card--neon')).toHaveCount(0);
 });

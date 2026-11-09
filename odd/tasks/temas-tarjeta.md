@@ -22,7 +22,7 @@ Test runner: Vitest (api with Testcontainers, web with jsdom) and Playwright E2E
 
 - [x] T1 [S2, S4] API: `card_theme` enum and column (additive migration), `cardTheme` in GET and PATCH `/me`, plan check. Route: inline. Risk: items 1 and 2. Commit a18c961; API suite 329/329.
 - [x] T2 [S1, S3, S5] Web: ShareCard theme and watermark, chips, CTA, export rules, i18n. Route: inline. Web suite 342/342.
-- T3 [S3] Apply the chosen theme after the purchase (M22), plus RF-52.feature, E2E, runbook and deuda técnica (Manga). Route: inline.
+- [x] T3 [S3] Apply the chosen theme after the purchase (M22), plus RF-52.feature, E2E, runbook and deuda técnica (Manga). Route: inline. Web 344/344, E2E 16/16 (chromium + webkit).
 
 ## Log
 
@@ -30,3 +30,4 @@ Test runner: Vitest (api with Testcontainers, web with jsdom) and Playwright E2E
 - L2 (2026-11-09, user): Manga → "Solo Neón ahora (Recommended)".
 - L3: Explorer map. ShareCard (`apps/web/src/components/ShareCard.tsx`) has no theme. The PNG comes from html-to-image of the DOM node (`apps/web/src/card/image.ts`). Profile has no theme field. Figma Neón instances are 43:2627 (D20) and 42:2555 (M20).
 - L4: The Neón colors are approximated from the Figma M20 preview (magenta #ff4fb8 to cyan #3ee0f0 border; #5a2468 to #1d5a66 background). The CTA uses D20's short copy and does not promise stats or Wrapped. The chips are native radios (Biome useSemanticElements).
+- L5: E2E order ids collided across Playwright workers because both seeded from the same second, so the second order answered `duplicate`. Each worker now seeds from Date.now()*1000 plus randomInt. The E2E server serves the built dist, so run `pnpm --filter @acrux/e2e build:apps` first.

@@ -14,6 +14,7 @@ import { signedInRoutes } from '../routes/signed-in-routes';
 // ADR-0036: no annual plan, no renewal and no grace period).
 afterEach(async () => {
   cleanup();
+  sessionStorage.clear();
   vi.useRealTimers();
   await setLocale('es');
 });
@@ -41,7 +42,7 @@ const free: Profile = {
 };
 
 function renderAt(
-  path: string,
+  path: string | { pathname: string; search?: string; state?: unknown },
   options: {
     profile?: Profile;
     checkoutStatus?: number;
@@ -52,9 +53,15 @@ function renderAt(
   const profile = options.profile ?? free;
   const polls = [...(options.polls ?? [])];
   const checkouts: RequestInit[] = [];
+  const patches: unknown[] = [];
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
     if (url.startsWith('/api/v1/me/marks?')) return json({ items: [], nextCursor: null });
-    if (url === '/api/v1/me' && init?.method === 'PATCH') return json(profile);
+    if (url === '/api/v1/me' && init?.method === 'PATCH') {
+      const body = JSON.parse(init.body as string);
+      // The header counter saves the shown total on its own (#37).
+      if (!('shown' in body)) patches.push(body);
+      return json({ ...profile, plan: 'plus', ...body });
+    }
     if (url === '/api/v1/me') return json(polls.shift() ?? profile);
     if (url === '/api/v1/billing/checkout') {
       checkouts.push(init ?? {});
@@ -98,7 +105,7 @@ function renderAt(
       <RouterProvider router={router} />
     </QueryClientProvider>,
   );
-  return { fetchFn, checkouts, openCheckout, onPlusCheckoutStarted, onPlusPurchased };
+  return { fetchFn, checkouts, patches, openCheckout, onPlusCheckoutStarted, onPlusPurchased };
 }
 
 const plusPage = () => screen.getByRole('region', { name: 'Acrux Plus' });
@@ -220,6 +227,32 @@ describe('PlusScreen', () => {
     renderAt('/perfil', { profile: { ...free, plusAvailable: false } });
     await screen.findByRole('region', { name: 'Perfil' });
     expect(screen.queryByRole('link', { name: /Acrux Plus/ })).toBeNull();
+  });
+
+  it('@CA-RF52-04 applies the theme the buyer was trying once Plus is confirmed (M22)', async () => {
+    const user = userEvent.setup();
+    const first = renderAt({ pathname: '/perfil/plus', state: { theme: 'neon' } });
+    await user.click(await screen.findByRole('button', { name: 'Comprar Plus' }));
+    await vi.waitFor(() => expect(first.openCheckout).toHaveBeenCalledOnce());
+    cleanup();
+
+    // The checkout leaves the app; the buyer comes back to a fresh page.
+    const { patches } = renderAt('/perfil/plus?compra=lista', {
+      polls: [free, { ...free, plan: 'plus' }],
+    });
+
+    expect(await screen.findByRole('heading', { name: '¡Ya eres Plus!' })).toBeTruthy();
+    expect(await screen.findByText('Tu tema Neón ya está aplicado.')).toBeTruthy();
+    expect(patches).toEqual([{ cardTheme: 'neon' }]);
+  });
+
+  it('applies no theme after a purchase started from Perfil', async () => {
+    const { patches } = renderAt('/perfil/plus?compra=lista', {
+      polls: [{ ...free, plan: 'plus' }],
+    });
+    expect(await screen.findByRole('heading', { name: '¡Ya eres Plus!' })).toBeTruthy();
+    expect(screen.queryByText('Tu tema Neón ya está aplicado.')).toBeNull();
+    expect(patches).toEqual([]);
   });
 
   it('is in English for an English account (#43)', async () => {
