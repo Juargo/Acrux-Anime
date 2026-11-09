@@ -20,8 +20,8 @@ Test runner: Vitest (api with Testcontainers, web with jsdom) and Playwright E2E
 
 ## Tasks
 
-- T1 [S2, S4] API: `card_theme` enum and column (additive migration), `cardTheme` in GET and PATCH `/me`, plan check. Route: inline. Risk: items 1 and 2.
-- T2 [S1, S3, S5] Web: ShareCard theme and watermark, chips, CTA, export rules, i18n. Route: inline.
+- [x] T1 [S2, S4] API: `card_theme` enum and column (additive migration), `cardTheme` in GET and PATCH `/me`, plan check. Route: inline. Risk: items 1 and 2. Commit a18c961; API suite 329/329.
+- [x] T2 [S1, S3, S5] Web: ShareCard theme and watermark, chips, CTA, export rules, i18n. Route: inline. Web suite 342/342.
 - T3 [S3] Apply the chosen theme after the purchase (M22), plus RF-52.feature, E2E, runbook and deuda técnica (Manga). Route: inline.
 
 ## Log
@@ -29,3 +29,4 @@ Test runner: Vitest (api with Testcontainers, web with jsdom) and Playwright E2E
 - L1 (2026-11-09, user): "deja todo los pendientes en deuda técnica para antes del lanzamiento. Continuemos con los pasos que indicas #50"
 - L2 (2026-11-09, user): Manga → "Solo Neón ahora (Recommended)".
 - L3: Explorer map. ShareCard (`apps/web/src/components/ShareCard.tsx`) has no theme. The PNG comes from html-to-image of the DOM node (`apps/web/src/card/image.ts`). Profile has no theme field. Figma Neón instances are 43:2627 (D20) and 42:2555 (M20).
+- L4: The Neón colors are approximated from the Figma M20 preview (magenta #ff4fb8 to cyan #3ee0f0 border; #5a2468 to #1d5a66 background). The CTA uses D20's short copy and does not promise stats or Wrapped. The chips are native radios (Biome useSemanticElements).

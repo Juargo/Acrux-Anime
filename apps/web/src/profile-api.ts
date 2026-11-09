@@ -5,6 +5,9 @@ import { apiError } from './api-errors';
 
 export type AvatarPreset = 'violeta' | 'verde' | 'amarillo' | 'coral' | 'noche' | 'lavanda';
 
+// Card themes (RF-52): Clásica is free and Neón needs Plus.
+export type CardTheme = 'clasica' | 'neon';
+
 export interface Profile {
   displayName: string;
   avatarUrl: string | null;
@@ -21,6 +24,8 @@ export interface Profile {
   shownMode: 'franchise' | 'entry' | null;
   // Whether a card was ever shared (#36).
   cardShared: boolean;
+  // The card theme (RF-52); the API sends clasica to anyone without Plus.
+  cardTheme?: CardTheme;
   // When the profile was created, and the salted id analytics knows the user by (#46).
   createdAt: string;
   analyticsId: string | null;
@@ -40,6 +45,7 @@ export interface ProfileChanges {
   shown?: { total: number; mode: Profile['counterMode'] };
   cardShared?: true;
   locale?: Locale | null;
+  cardTheme?: CardTheme;
 }
 
 export type MeResult =

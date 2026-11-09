@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { AvatarPreset } from '../profile-api';
+import type { AvatarPreset, CardTheme } from '../profile-api';
 import { Avatar } from './Avatar';
 import { QrCode } from './QrCode';
 
@@ -18,6 +18,9 @@ export interface ShareCardProps {
   // The QR to the public profile (RF-32): a URL draws it, true draws the sample's placeholder.
   qr?: string | boolean;
   hidden?: boolean;
+  // RF-52: the theme, and the "VISTA PREVIA" watermark while a free user tries a Plus theme.
+  theme?: CardTheme;
+  watermark?: string | null;
 }
 
 /**
@@ -36,12 +39,18 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
     url,
     qr = false,
     hidden = false,
+    theme = 'clasica',
+    watermark = null,
   },
   ref,
 ) {
   const { t } = useTranslation();
   return (
-    <div className="share-card" ref={ref} aria-hidden={hidden || undefined}>
+    <div
+      className={theme === 'clasica' ? 'share-card' : `share-card share-card--${theme}`}
+      ref={ref}
+      aria-hidden={hidden || undefined}
+    >
       <div className="share-card__user">
         {avatarPreset || avatarUrl ? (
           <Avatar
@@ -88,6 +97,11 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
             )}
           </div>
         </div>
+      )}
+      {watermark && (
+        <span className="share-card__watermark" aria-hidden="true">
+          {watermark}
+        </span>
       )}
       <div className="share-card__footer">
         <span className="share-card__url">{url}</span>

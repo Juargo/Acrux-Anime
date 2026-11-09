@@ -482,6 +482,90 @@ describe('CardScreen', () => {
   });
 });
 
+describe('card themes (RF-52)', () => {
+  const styles = () => screen.getByRole('group', { name: 'Estilo' });
+  const theme = () =>
+    card().querySelector('.share-card')?.classList.contains('share-card--neon')
+      ? 'neon'
+      : 'clasica';
+  const watermark = () => card().querySelector('.share-card__watermark');
+
+  async function preview() {
+    await screen.findByRole('heading', { name: 'Tu tarjeta' });
+    const share = screen.getByRole('button', { name: 'Compartir' });
+    await vi.waitFor(() => expect((share as HTMLButtonElement).disabled).toBe(false));
+  }
+
+  it('@CA-RF52-03 lets a free user try Neón on their own card with a watermark, and offers Plus', async () => {
+    const user = userEvent.setup();
+    const { patches } = renderCard([mark(20, 'seen')], { plan: 'free', plusAvailable: true });
+    await preview();
+    expect(
+      (within(styles()).getByRole('radio', { name: 'Clásica' }) as HTMLInputElement).checked,
+    ).toBe(true);
+    expect(theme()).toBe('clasica');
+    expect(watermark()).toBeNull();
+
+    await user.click(within(styles()).getByRole('radio', { name: 'Neón (Plus)' }));
+
+    expect(theme()).toBe('neon');
+    expect(watermark()?.textContent).toBe('VISTA PREVIA');
+    const offer = screen.getByRole('region', { name: 'El tema Neón es de Plus' });
+    within(offer).getByText('Tu tarjeta básica sigue siendo gratis.');
+    expect(within(offer).getByRole('link', { name: 'Ver Acrux Plus' }).getAttribute('href')).toBe(
+      '/perfil/plus',
+    );
+    // The preview is never exported: sharing and downloading wait for Clásica (S5).
+    expect((screen.getByRole('button', { name: 'Compartir' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+    expect(
+      (screen.getByRole('button', { name: 'Descargar imagen' }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(patches).toEqual([]);
+
+    await user.click(within(offer).getByRole('button', { name: 'Seguir con Clásica' }));
+
+    expect(theme()).toBe('clasica');
+    expect(watermark()).toBeNull();
+    expect(screen.queryByRole('region', { name: 'El tema Neón es de Plus' })).toBeNull();
+    await preview();
+    expect(patches).toEqual([]);
+  });
+
+  it('@CA-RF52-01 saves Neón for a Plus user and shares the card with it, without a watermark', async () => {
+    const user = userEvent.setup();
+    const { patches } = renderCard([mark(20, 'seen')], { plan: 'plus', plusAvailable: true });
+    await preview();
+
+    await user.click(within(styles()).getByRole('radio', { name: 'Neón' }));
+
+    await vi.waitFor(() => expect(patches).toEqual([{ cardTheme: 'neon' }]));
+    expect(theme()).toBe('neon');
+    expect(watermark()).toBeNull();
+    expect(screen.queryByRole('region', { name: 'El tema Neón es de Plus' })).toBeNull();
+    await preview();
+    // A new image with the new theme.
+    expect(cardImage).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows the theme saved on the account', async () => {
+    renderCard([mark(20, 'seen')], { plan: 'plus', cardTheme: 'neon' });
+    await preview();
+    expect(theme()).toBe('neon');
+    expect(
+      (within(styles()).getByRole('radio', { name: 'Neón' }) as HTMLInputElement).checked,
+    ).toBe(true);
+  });
+
+  it('offers no Plus theme while Plus cannot be bought (S11)', async () => {
+    renderCard([mark(20, 'seen')], { plan: 'free', plusAvailable: false });
+    await preview();
+    expect(screen.queryByRole('group', { name: 'Estilo' })).toBeNull();
+    expect(theme()).toBe('clasica');
+  });
+});
+
 describe('CardScreen in English (RF-70)', () => {
   afterEach(async () => {
     await setLocale('es');

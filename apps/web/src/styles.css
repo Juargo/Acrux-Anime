@@ -108,6 +108,7 @@ a {
 /* Figma 27:38 · Tarjeta para compartir · Clásica, at its desktop size; --card-scale
    shrinks it for phones (M01 shows it at 167.4 × 297.6). */
 .share-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -1601,6 +1602,107 @@ label.sheet__label {
 
 .share-card__qr svg {
   display: block;
+}
+
+/* RF-52, Figma M20/D20: Neón keeps the Clásica layout with a magenta-to-cyan border and a
+   magenta-to-teal background. Colors read from the Figma preview. */
+.share-card--neon {
+  border-color: transparent;
+  background:
+    linear-gradient(150deg, #5a2468 0%, #2a2f5c 50%, #1d5a66 100%) padding-box,
+    linear-gradient(150deg, #ff4fb8 0%, #9d8cf5 50%, #3ee0f0 100%) border-box;
+}
+
+/* The "VISTA PREVIA" watermark while a free user tries a Plus theme; it is never exported. */
+.share-card__watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  color: rgb(255 255 255 / 0.28);
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* The "Estilo" chips (Figma M07, D20). */
+.card-styles {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.card-styles__chip {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  cursor: pointer;
+  position: relative;
+}
+
+.card-styles__chip:has(input:focus-visible) {
+  outline: 2px solid var(--color-accent-default);
+  outline-offset: 2px;
+}
+
+.card-styles__chip:has(input:checked) {
+  border-color: var(--color-accent-default);
+  background: var(--color-accent-default);
+  color: var(--color-text-on-accent);
+}
+
+/* M20: a sheet over the card on phones; D20: a bar under the card on desktop. */
+.card-plus-offer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  display: grid;
+  gap: 12px;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  border: 1px solid var(--color-border-default);
+  border-radius: 20px 20px 0 0;
+  background: var(--color-bg-raised);
+}
+
+.card-plus-offer__badge {
+  justify-self: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.card-plus-offer__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+
+.card-plus-offer__text {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+@media (min-width: 1024px) {
+  .card-plus-offer {
+    position: static;
+    border-radius: var(--radius-md);
+  }
 }
 
 /* Avatars (#39): Google's photo, a preset Acrux one (Figma M06) or the initial. */

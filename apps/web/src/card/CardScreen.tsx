@@ -11,7 +11,7 @@ import { type ListRow, myList } from '../my-list/items';
 import type { ListMadePublicEvent } from '../profile/PrivacyScreen';
 import { ProfileEditor } from '../profile/ProfileEditor';
 import { useOwnProfile } from '../profile/use-own-profile';
-import type { Profile } from '../profile-api';
+import type { CardTheme, Profile } from '../profile-api';
 import { defaultChoice, MAX_COVERS, shareCardContent } from './content';
 import { cardImage } from './image';
 import { shareOrDownload } from './share';
@@ -143,6 +143,64 @@ function FirstShareOffer(props: {
  * renders the 9:16 card, makes its PNG at once (so the share sheet opens within the tap) and
  * shares or downloads it.
  */
+const THEMES: CardTheme[] = ['clasica', 'neon'];
+
+/** Presentational: the "Estilo" chips (Figma M07, D20); Plus themes carry a lock for free users. */
+function CardStyles(props: {
+  selected: CardTheme;
+  locked: boolean;
+  onSelect: (theme: CardTheme) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <fieldset className="card-styles">
+      <legend className="visually-hidden">{t('card.styles')}</legend>
+      {THEMES.map((theme) => {
+        const lock = props.locked && theme !== 'clasica';
+        return (
+          <label key={theme} className="card-styles__chip">
+            <input
+              className="visually-hidden"
+              type="radio"
+              name="card-theme"
+              value={theme}
+              checked={props.selected === theme}
+              aria-label={
+                lock ? t('card.lockedTheme', { theme: t(`card.theme.${theme}`) }) : undefined
+              }
+              onChange={() => props.onSelect(theme)}
+            />
+            {lock && <span aria-hidden="true">🔒 </span>}
+            {t(`card.theme.${theme}`)}
+          </label>
+        );
+      })}
+    </fieldset>
+  );
+}
+
+/** Presentational: Figma M20 (sheet) and D20 (bar): the theme a free user tries is Plus's. */
+function PlusThemeOffer(props: { theme: CardTheme; onKeepClassic: () => void }) {
+  const { t } = useTranslation();
+  const titleId = useId();
+  const name = t(`card.theme.${props.theme}`);
+  return (
+    <section className="card-plus-offer" aria-labelledby={titleId}>
+      <span className="card-plus-offer__badge">{t('card.plusBadge')}</span>
+      <h2 className="card-plus-offer__title" id={titleId}>
+        {t('card.plusTitle', { theme: name })}
+      </h2>
+      <p className="card-plus-offer__text">{t('card.plusText')}</p>
+      <Link className="button button--primary" to="/perfil/plus" state={{ theme: props.theme }}>
+        {t('card.seePlus')}
+      </Link>
+      <button className="button button--ghost" type="button" onClick={props.onKeepClassic}>
+        {t('card.keepClassic')}
+      </button>
+    </section>
+  );
+}
+
 export function CardScreen({
   getToken,
   client = defaultClient,
@@ -193,6 +251,22 @@ export function CardScreen({
     ? shareCardContent({ list, mode, profile, chosen: step === 'preview' ? chosen : null, t })
     : null;
 
+  // RF-52: the saved theme (always clasica without Plus) and a Plus theme a free user tries.
+  const isPlus = profile.plan === 'plus';
+  const savedTheme = isPlus ? (profile.cardTheme ?? 'clasica') : 'clasica';
+  const [trying, setTrying] = useState<CardTheme | null>(null);
+  const shownTheme = trying ?? savedTheme;
+  const offersThemes = isPlus || profile.plusAvailable === true;
+
+  function selectTheme(theme: CardTheme) {
+    if (theme === 'clasica' || isPlus) {
+      setTrying(null);
+      if (theme !== savedTheme) saveProfile({ cardTheme: theme }).catch(() => {});
+      return;
+    }
+    setTrying(theme);
+  }
+
   const cardRef = useRef<HTMLDivElement>(null);
   const [image, setImage] = useState<Blob | null>(null);
   const [failed, setFailed] = useState(false);
@@ -201,13 +275,14 @@ export function CardScreen({
   const generatedRef = useRef(onCardGenerated);
   generatedRef.current = onCardGenerated;
   // A new image whenever what the card shows changes.
-  const contentKey = content ? JSON.stringify(content) : null;
+  // The watermarked preview is never exported (RF-52), so there is no image while trying.
+  const contentKey = content && !trying ? JSON.stringify({ content, theme: shownTheme }) : null;
   const coverCount = content?.covers.length ?? 0;
 
   useEffect(() => {
+    setImage(null);
     if (step !== 'preview' || !contentKey || !cardRef.current) return;
     let cancelled = false;
-    setImage(null);
     setFailed(false);
     cardImage(cardRef.current, { retry: attempt > 0 }).then(
       (blob) => {
@@ -326,8 +401,12 @@ export function CardScreen({
           covers={content.covers}
           url={`${window.location.host}/@${profile.handle}`}
           qr={`${window.location.origin}/@${profile.handle}`}
+          theme={shownTheme}
+          watermark={trying ? t('card.watermark') : null}
         />
       </figure>
+      {offersThemes && <CardStyles selected={shownTheme} locked={!isPlus} onSelect={selectTheme} />}
+      {trying && <PlusThemeOffer theme={trying} onKeepClassic={() => setTrying(null)} />}
       {failed ? (
         <div className="catalog__notice" role="alert">
           <p>{t('card.imageFailed')}</p>
@@ -340,7 +419,8 @@ export function CardScreen({
           </button>
         </div>
       ) : (
-        !image && (
+        !image &&
+        !trying && (
           <p className="catalog__state" role="status">
             {t('card.preparing')}
           </p>

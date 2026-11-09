@@ -15,3 +15,11 @@ Característica: Temas de tarjeta con Plus
     Dado que no tengo Plus
     Cuando intento guardar el tema Neón
     Entonces la API lo rechaza con "plan.plus_required" y mi tarjeta sigue en Clásica
+
+  @CA-RF52-03
+  Escenario: Un usuario gratuito prueba Neón en su propia tarjeta
+    Dado que no tengo Plus y Plus se puede comprar
+    Cuando elijo el tema Neón en mi tarjeta
+    Entonces veo mi tarjeta con Neón y la marca de agua "VISTA PREVIA"
+    Y veo "El tema Neón es de Plus" con "Ver Acrux Plus" y "Seguir con Clásica"
+    Y no puedo compartir ni descargar esa vista previa
