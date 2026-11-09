@@ -18,7 +18,6 @@ Todo lo de esta lista debe estar resuelto, o descartado con su motivo, antes del
   - La pantalla de borrado (Figma M19) debe avisar que se pierde Plus y que no se reembolsa solo.
   - El cliente de Lemon Squeezy sigue existiendo después del borrado; hay que definir si se borra y cómo ([`runbooks/borrado-de-cuenta.md`](./runbooks/borrado-de-cuenta.md)).
 
-
 ## Anuncios (P-13, ADR-0038)
 
 - **Política de privacidad.** Agregar AdSense como encargado del tratamiento, en español y en inglés. Explicar que fuera de la UE, el Reino Unido y Suiza AdSense deja cookies aunque el usuario no acepte, para frecuencia y fraude.
