@@ -10,6 +10,8 @@ interface Anime {
   format: string;
   startDate: { year: number; month: number; day: number };
   episodes: number;
+  // Minutes per episode; 24 unless given.
+  duration?: number;
   genres: string[];
   relations: { relationType: string; id: number }[];
 }
@@ -158,6 +160,20 @@ export function answer({ query, variables }: GraphQLBody): unknown {
           coverImage: { large: coverOf(anime.id) },
           format: anime.format,
           seasonYear: anime.startDate.year,
+        })),
+      },
+    };
+  }
+  if (query.includes('query MediaStats')) {
+    return {
+      Page: {
+        media: idsOf(variables).map((anime) => ({
+          id: anime.id,
+          format: anime.format,
+          seasonYear: anime.startDate.year,
+          episodes: anime.episodes,
+          duration: anime.duration ?? 24,
+          genres: anime.genres,
         })),
       },
     };
