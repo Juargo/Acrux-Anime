@@ -72,3 +72,15 @@ En Lemon Squeezy:
 - **Reembolso que llega antes que la orden:** la orden posterior responde `refunded` y no da Plus.
 - **Una entrega rechazada** (401, 400, 503 o 500) no escribe nada. Lemon Squeezy la reintenta hasta tres veces más (a los 5, 25 y 125 segundos).
 - **Borrado de cuenta:** borra el plan en cascada. El cliente de Lemon Squeezy sigue existiendo (pendiente de #50; ver `borrado-de-cuenta.md`).
+
+## Deuda técnica: revisar antes de lanzar
+
+- **Carga de la API key de producción.** En la vista previa, la primera clave daba 401. Se cargó con el prompt interactivo de `vercel env add`, y la causa no se confirmó: puede que el pegado la cortara o que fuera una clave de modo real. Se resolvió con una clave nueva:
+  1. Se creó en modo de prueba.
+  2. Se probó antes de cargarla: `GET https://api.lemonsqueezy.com/v1/users/me` respondió 200.
+  3. Se cargó desde el portapapeles: `pbpaste | vercel env add LEMON_SQUEEZY_API_KEY …`.
+
+  Para producción, antes de lanzar:
+  - Definir cómo se carga la clave sin el prompt interactivo y probarla de la misma forma.
+  - Evaluar si la API debe quitar espacios y saltos de línea al leer `LEMON_SQUEEZY_API_KEY`.
+  - Evaluar si conviene reportar a Sentry el título del error que devuelve Lemon Squeezy, sin claves ni datos personales. Hoy solo se reporta el código HTTP.
