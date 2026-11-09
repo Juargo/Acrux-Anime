@@ -1,7 +1,13 @@
 // Starts the built API (apps/api/dist) for E2E (ADR-0037). The environment is built here, so
 // a developer's own variables (Sentry, Upstash, PostHog, real Neon) never leak in. Run with
 // `node` after `pnpm --filter @acrux/e2e build:apps`.
-import { API_PORT, CURATOR_USER_ID, FAKE_NEON_API_URL, FAKE_NEON_AUTH_BASE_URL } from './env.ts';
+import {
+  API_PORT,
+  CURATOR_USER_ID,
+  FAKE_NEON_API_URL,
+  FAKE_NEON_AUTH_BASE_URL,
+  LEMON_SQUEEZY,
+} from './env.ts';
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -29,6 +35,11 @@ Object.assign(process.env, {
   NEON_API_KEY: 'e2e',
   NEON_PROJECT_ID: 'e2e',
   NEON_BRANCH_ID: 'e2e',
+  // Billing on with placeholders: the journeys deliver signed webhooks, never a real checkout.
+  LEMON_SQUEEZY_API_KEY: LEMON_SQUEEZY.apiKey,
+  LEMON_SQUEEZY_STORE_ID: LEMON_SQUEEZY.storeId,
+  LEMON_SQUEEZY_VARIANT_ID: LEMON_SQUEEZY.variantId,
+  LEMON_SQUEEZY_WEBHOOK_SECRET: LEMON_SQUEEZY.webhookSecret,
   VERCEL_ENV: 'e2e',
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'warn',
 });

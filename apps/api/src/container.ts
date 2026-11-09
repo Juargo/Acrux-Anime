@@ -3,6 +3,7 @@ import { parseEnv } from './config/env.js';
 import { createPrismaClient } from './db/client.js';
 import { type ErrorReporter, noErrorReporter } from './http/error-reporter.js';
 import { createLogger } from './http/logger.js';
+import type { PlanReader } from './http/plan.js';
 import { noRateLimiter, type RateLimiter } from './http/rate-limit.js';
 import type { Module } from './http/routes.js';
 import { createSentryReporter } from './http/sentry-reporter.js';
@@ -16,7 +17,9 @@ import {
   createAccountService,
 } from './modules/account/services/account.service.js';
 import { anilistLinkModule } from './modules/anilist-link/index.js';
-import { billingModule } from './modules/billing/index.js';
+import { createLemonSqueezyCheckout } from './modules/billing/adapters/lemon-squeezy-checkout.js';
+import { type BillingDependencies, createBillingModule } from './modules/billing/index.js';
+import { createEntitlementRepository } from './modules/billing/repositories/entitlement.repository.js';
 import { createFranchisesModule } from './modules/franchises/index.js';
 import {
   createFranchiseOverridesRepository,
@@ -47,6 +50,8 @@ export interface Container {
   profileService: ProfileService | undefined;
   marksService: MarksService | undefined;
   sessionVerifier: SessionVerifier | undefined;
+  // Reads the plan from the database for requirePlan; undefined without a database.
+  planOf?: PlanReader | undefined;
   modules: Module[];
 }
 
@@ -92,6 +97,8 @@ export function createContainer(source: Record<string, string | undefined>): Con
             analyticsSecret ? analyticsId(userId, analyticsSecret) : null,
         })
       : undefined;
+  const entitlements = prisma ? createEntitlementRepository(prisma) : undefined;
+  const planOf = entitlements?.planOf;
   const errorReporter = env.SENTRY_DSN
     ? createSentryReporter({
         dsn: env.SENTRY_DSN,
@@ -118,6 +125,7 @@ export function createContainer(source: Record<string, string | undefined>): Con
       : undefined,
     profileService,
     marksService,
+    planOf,
     modules: createModules(
       profileService,
       marksService,
@@ -127,6 +135,26 @@ export function createContainer(source: Record<string, string | undefined>): Con
         errorReporter,
       },
       prisma ? createFranchiseOverridesRepository(prisma) : undefined,
+      prisma &&
+        env.LEMON_SQUEEZY_API_KEY &&
+        env.LEMON_SQUEEZY_STORE_ID &&
+        env.LEMON_SQUEEZY_VARIANT_ID &&
+        env.LEMON_SQUEEZY_WEBHOOK_SECRET
+        ? {
+            entitlements: entitlements ?? createEntitlementRepository(prisma),
+            checkout: createLemonSqueezyCheckout({
+              apiKey: env.LEMON_SQUEEZY_API_KEY,
+              storeId: env.LEMON_SQUEEZY_STORE_ID,
+              variantId: env.LEMON_SQUEEZY_VARIANT_ID,
+            }),
+            returnUrl: env.BILLING_RETURN_URL,
+            webhookSecret: env.LEMON_SQUEEZY_WEBHOOK_SECRET,
+            storeId: env.LEMON_SQUEEZY_STORE_ID,
+            variantId: env.LEMON_SQUEEZY_VARIANT_ID,
+            errorReporter,
+          }
+        : undefined,
+      planOf,
     ),
   };
 }
@@ -138,15 +166,17 @@ export function createModules(
   publicProfileService?: PublicProfileService,
   account?: { service: AccountService | undefined; errorReporter: ErrorReporter },
   franchiseOverrides?: FranchiseOverridesRepository,
+  billing?: BillingDependencies,
+  planOf?: PlanReader,
 ): Module[] {
   return [
     systemModule,
     createAccountModule(account?.service, account?.errorReporter),
-    createProfileModule(profileService),
+    createProfileModule(profileService, { planOf, plusAvailable: billing !== undefined }),
     createMarksModule(marksService),
     createFranchisesModule(franchiseOverrides),
     createPublicProfileModule(publicProfileService),
-    billingModule,
+    createBillingModule(billing),
     anilistLinkModule,
   ];
 }

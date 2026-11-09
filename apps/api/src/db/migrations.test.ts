@@ -88,6 +88,13 @@ describe('initial schema', () => {
     expect(rows.filter((row) => !row.relrowsecurity)).toEqual([]);
   });
 
+  it('offers only the lifetime plan (ADR-0036)', async () => {
+    const { rows } = await owner.query<{ value: string }>(
+      `SELECT unnest(enum_range(NULL::plan))::text AS value`,
+    );
+    expect(rows.map((row) => row.value)).toEqual(['plus_lifetime']);
+  });
+
   it('creates profiles with a private list by default', async () => {
     await owner.query(`INSERT INTO profile (user_id, display_name) VALUES ($1, 'Camila')`, [
       USER_ID,

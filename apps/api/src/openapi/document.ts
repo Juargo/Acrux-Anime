@@ -59,6 +59,12 @@ function operation(route: RouteDefinition): ZodOpenApiOperationObject {
       content: { 'application/problem+json': { schema: problem } },
     };
   }
+  if (route.plan && !route.public) {
+    responses['403'] = {
+      description: `The user lacks the ${route.plan} plan`,
+      content: { 'application/problem+json': { schema: problem } },
+    };
+  }
   if (route.rateLimit) {
     responses['429'] = {
       description: 'Too many requests; retry after the seconds in Retry-After',

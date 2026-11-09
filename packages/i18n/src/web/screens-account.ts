@@ -47,6 +47,9 @@ export const accountEs = {
     deleteAccount: 'Borrar cuenta',
     about: 'Acerca de',
     curator: 'Curaduría',
+    plus: 'Acrux Plus',
+    planFree: 'Gratis',
+    planPlus: 'Activo',
   },
   profileEditor: {
     back: '‹ Volver',
@@ -109,6 +112,35 @@ export const accountEs = {
     terms: 'Términos',
     support: 'Soporte',
     version: 'Versión {{version}}',
+  },
+  plus: {
+    title: 'Acrux Plus',
+    tagline: 'Más estilo para tu historial de anime.',
+    benefits: {
+      themes: 'Todos los temas para tu tarjeta',
+      stats: 'Estadísticas avanzadas',
+      wrapped: 'Tu Wrapped anual',
+      badges: 'Insignias e íconos de la app',
+    },
+    oneTime: 'Pago único, para siempre. Sin suscripción.',
+    basicsFree: 'Lo básico sigue gratis: marcar, contar y tu tarjeta Clásica.',
+    buy: 'Comprar Plus',
+    secure: 'Pago seguro con Lemon Squeezy.',
+    soon: 'Acrux Plus llega pronto.',
+    failedTitle: 'No se pudo iniciar el pago',
+    failedText: 'No se te cobró nada. Vuelve a intentarlo en un momento.',
+    retry: 'Reintentar',
+    confirming: 'Confirmando tu compra…',
+    pendingTitle: 'Tu pago se está confirmando',
+    pendingText:
+      'Puede tardar unos minutos. Vuelve a esta pantalla más tarde; si se te cobró y no ves Plus, escríbenos desde Soporte.',
+    welcomeTitle: '¡Ya eres Plus!',
+    welcomeText: 'Gracias por apoyar Acrux.',
+    seeCard: 'Ver mi tarjeta',
+    lifetime: 'Plus vitalicio',
+    active: 'Activo',
+    activeText:
+      'No vence. Lo tienes en cualquier dispositivo donde inicies sesión con esta cuenta.',
   },
   curator: {
     title: 'Correcciones de franquicias',
@@ -214,6 +246,15 @@ export const accountEs = {
       invalid_body: 'No pudimos guardar esa marca. Vuelve a intentarlo.',
       unavailable: 'No pudimos acceder a tu lista. Vuelve a intentarlo.',
     },
+    billing: {
+      unavailable: 'Acrux Plus todavía no está disponible.',
+      already_plus: 'Ya tienes Plus.',
+      provider_error: 'No se pudo iniciar el pago. No se te cobró nada.',
+    },
+    plan: {
+      plus_required: 'Esto es parte de Acrux Plus.',
+      unavailable: 'No pudimos comprobar tu plan. Vuelve a intentarlo.',
+    },
     account: {
       unavailable: 'No pudimos acceder a tu cuenta. Vuelve a intentarlo.',
       auth_unavailable:
@@ -270,6 +311,9 @@ export const accountEn = {
     deleteAccount: 'Delete account',
     about: 'About',
     curator: 'Curation',
+    plus: 'Acrux Plus',
+    planFree: 'Free',
+    planPlus: 'Active',
   },
   profileEditor: {
     back: '‹ Back',
@@ -332,6 +376,34 @@ export const accountEn = {
     terms: 'Terms',
     support: 'Support',
     version: 'Version {{version}}',
+  },
+  plus: {
+    title: 'Acrux Plus',
+    tagline: 'More style for your anime history.',
+    benefits: {
+      themes: 'Every theme for your card',
+      stats: 'Advanced stats',
+      wrapped: 'Your yearly Wrapped',
+      badges: 'Badges and app icons',
+    },
+    oneTime: 'One payment, yours forever. No subscription.',
+    basicsFree: 'The basics stay free: marking, counting and your Classic card.',
+    buy: 'Buy Plus',
+    secure: 'Secure payment with Lemon Squeezy.',
+    soon: 'Acrux Plus is coming soon.',
+    failedTitle: "The payment couldn't start",
+    failedText: "You weren't charged. Please try again in a moment.",
+    retry: 'Try again',
+    confirming: 'Confirming your purchase…',
+    pendingTitle: 'Your payment is being confirmed',
+    pendingText:
+      "It can take a few minutes. Come back to this screen later; if you were charged and don't see Plus, write to us from Support.",
+    welcomeTitle: 'You are Plus!',
+    welcomeText: 'Thank you for supporting Acrux.',
+    seeCard: 'See my card',
+    lifetime: 'Lifetime Plus',
+    active: 'Active',
+    activeText: 'It never expires. You have it on every device where you sign in to this account.',
   },
   curator: {
     title: 'Franchise corrections',
@@ -434,6 +506,15 @@ export const accountEn = {
       invalid_query: "We couldn't read your list search.",
       invalid_body: "We couldn't save that mark. Please try again.",
       unavailable: "We couldn't reach your list. Please try again.",
+    },
+    billing: {
+      unavailable: "Acrux Plus isn't available yet.",
+      already_plus: 'You already have Plus.',
+      provider_error: "The payment couldn't start. You weren't charged.",
+    },
+    plan: {
+      plus_required: 'This is part of Acrux Plus.',
+      unavailable: "We couldn't check your plan. Please try again.",
     },
     account: {
       unavailable: "We couldn't reach your account. Please try again.",

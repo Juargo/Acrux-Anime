@@ -1954,6 +1954,98 @@ label.sheet__label {
   font-size: 13px;
 }
 
+/* Acrux Plus (epic #50; Figma M21–M24 adapted to the lifetime payment of ADR-0036). */
+.plus__lede,
+.plus__note,
+.plus__price {
+  margin: 0;
+}
+
+.plus__note {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.plus__price {
+  font-weight: 600;
+}
+
+.plus__benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plus__benefits li::before {
+  content: "✓";
+  margin-right: 10px;
+  color: var(--color-status-seen);
+}
+
+.plus__buy {
+  align-self: stretch;
+}
+
+.plus__plan {
+  border: 1px solid var(--color-accent-default);
+}
+
+.plus__plan p {
+  margin: 0;
+}
+
+.plus__plan-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.plus__badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-status-seen);
+  color: var(--color-text-on-accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.plus__notice {
+  border: 1px solid var(--color-status-new);
+}
+
+.plus__notice p,
+.plus__error p {
+  margin: 0;
+}
+
+.plus__error {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-status-error);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-raised);
+}
+
+.plus--welcome {
+  align-items: center;
+  text-align: center;
+}
+
+.plus__star {
+  margin: 0;
+  color: var(--color-accent-default);
+  font-size: 48px;
+  line-height: 1;
+}
+
 /* New version notice and install suggestion of the PWA (ADR-0016, #44). */
 .pwa-notice {
   position: fixed;

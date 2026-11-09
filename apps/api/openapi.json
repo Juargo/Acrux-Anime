@@ -272,6 +272,18 @@
                     "curator": {
                       "type": "boolean",
                       "description": "Whether the session has the curator role (#42); the API still checks every edit"
+                    },
+                    "plan": {
+                      "type": "string",
+                      "enum": [
+                        "free",
+                        "plus"
+                      ],
+                      "description": "The plan read from the database (epic #50); the API still checks every Plus route"
+                    },
+                    "plusAvailable": {
+                      "type": "boolean",
+                      "description": "Whether Plus can be bought in this environment; false while billing is off"
                     }
                   },
                   "required": [
@@ -287,7 +299,9 @@
                     "cardShared",
                     "createdAt",
                     "analyticsId",
-                    "curator"
+                    "curator",
+                    "plan",
+                    "plusAvailable"
                   ],
                   "additionalProperties": false
                 }
@@ -523,6 +537,18 @@
                     "curator": {
                       "type": "boolean",
                       "description": "Whether the session has the curator role (#42); the API still checks every edit"
+                    },
+                    "plan": {
+                      "type": "string",
+                      "enum": [
+                        "free",
+                        "plus"
+                      ],
+                      "description": "The plan read from the database (epic #50); the API still checks every Plus route"
+                    },
+                    "plusAvailable": {
+                      "type": "boolean",
+                      "description": "Whether Plus can be bought in this environment; false while billing is off"
                     }
                   },
                   "required": [
@@ -538,7 +564,9 @@
                     "cardShared",
                     "createdAt",
                     "analyticsId",
-                    "curator"
+                    "curator",
+                    "plan",
+                    "plusAvailable"
                   ],
                   "additionalProperties": false
                 }
@@ -1351,6 +1379,123 @@
           },
           "503": {
             "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/billing/checkout": {
+      "post": {
+        "summary": "Start buying lifetime Plus; the checkout carries the session user id",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "The Lemon Squeezy checkout page to open",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired session",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The user already has Plus"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Lemon Squeezy did not create the checkout; retry"
+          },
+          "503": {
+            "description": "Billing is not enabled in this environment"
+          }
+        }
+      }
+    },
+    "/api/v1/webhooks/lemon-squeezy": {
+      "post": {
+        "summary": "Lemon Squeezy order events: a paid order grants Plus, a refund takes it back",
+        "security": [],
+        "tags": [
+          "billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Received; a repeated event is not applied again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "string",
+                      "enum": [
+                        "applied",
+                        "duplicate",
+                        "unknown_user",
+                        "refunded",
+                        "ignored"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The signed body is not a valid order event"
+          },
+          "401": {
+            "description": "Missing or invalid X-Signature"
+          },
+          "503": {
+            "description": "Billing is not enabled in this environment"
           }
         }
       }

@@ -5,3 +5,5 @@ cc42087abb529f35ecfa6ca4b826e93074c1cffa:apps/api/src/db/migrations.test.ts:gene
 # The comment that first explained it quoted the same text, so its commit is listed too.
 df5b1411c6870a64729a18e960369c706e6d2b3f:apps/web/src/my-list/items.test.ts:generic-api-key:58
 a37e68cc948d006d780d3826e6365d45ca397ceb:.gitleaksignore:generic-api-key:4
+# False positive: the fictional webhook signing secret of the billing route tests (epic #50).
+e2625b78591847507f2307d5ab23c21a58a8c240:apps/api/src/modules/billing/billing.test.ts:generic-api-key:55

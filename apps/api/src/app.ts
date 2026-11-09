@@ -1,5 +1,6 @@
 import express, { type Express } from 'express';
 import { type Container, createContainer } from './container.js';
+import { requirePlan } from './http/plan.js';
 import { errorHandler, notFound } from './http/problem.js';
 import { rateLimit } from './http/rate-limit.js';
 import { requestId, requestLog } from './http/request-context.js';
@@ -13,6 +14,9 @@ export function createApp(container: Container): Express {
 
   app.use(requestId);
   app.use(requestLog(container.logger));
+  // Webhooks keep the raw bytes, so the signature is checked on exactly what was signed
+  // before the body is read (ADR-0025). express.json skips a body that is already read.
+  app.use('/api/v1/webhooks', express.raw({ type: () => true, limit: '100kb' }));
   app.use(express.json({ limit: '100kb' }));
 
   // Private by default: only routes marked public skip the session check (ADR-0025).
@@ -28,9 +32,15 @@ export function createApp(container: Container): Express {
           `${route.method.toUpperCase()} ${route.path} cannot be public and need a role`,
         );
       }
+      if (route.public && route.plan) {
+        throw new Error(
+          `${route.method.toUpperCase()} ${route.path} cannot be public and need a plan`,
+        );
+      }
       const role = route.role ? [requireRole(route.role)] : [];
+      const plan = route.plan ? [requirePlan(route.plan, container.planOf)] : [];
       if (route.public) app[route.method](route.path, ...limit, route.handler);
-      else app[route.method](route.path, session, ...role, ...limit, route.handler);
+      else app[route.method](route.path, session, ...role, ...plan, ...limit, route.handler);
     }
   }
 

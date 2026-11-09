@@ -22,3 +22,12 @@ export const BROWSER_NEON_AUTH_URL = `${WEB_URL}${BROWSER_NEON_AUTH_PATH}`;
 
 // The only curator the E2E API knows (CURATOR_USER_IDS, #42).
 export const CURATOR_USER_ID = 'c0a7d0e2-2f4b-4e6a-9c1d-5b8e7f6a4d3c';
+
+// Lemon Squeezy placeholders that turn billing on in the E2E API (epic #50). The journeys
+// sign webhooks with this secret; nothing ever calls the real Lemon Squeezy.
+export const LEMON_SQUEEZY = {
+  apiKey: 'e2e',
+  storeId: '11',
+  variantId: '22',
+  webhookSecret: 'e2e-webhook-secret-0123456789',
+} as const;
