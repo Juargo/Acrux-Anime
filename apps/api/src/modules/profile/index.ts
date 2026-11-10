@@ -5,6 +5,7 @@ import { ProblemError } from '../../http/problem.js';
 import type { Module } from '../../http/routes.js';
 import type { Session } from '../../http/session.js';
 import { isPlusPreset, visiblePreset } from './domain/avatar.js';
+import { BADGE_IDS, inCatalogOrder } from './domain/badges.js';
 import { displayNameProblem } from './domain/display-name.js';
 import type { ProfileService } from './services/profile.service.js';
 
@@ -30,6 +31,12 @@ const displayName = z
   .transform((value) => value.trim())
   .refine((value) => displayNameProblem(value) === null, 'Invalid display name');
 
+// RF-55: the whole list of earned badges, each known and once.
+export const badges = z
+  .array(z.enum(BADGE_IDS))
+  .max(BADGE_IDS.length)
+  .refine((ids) => new Set(ids).size === ids.length, 'Each badge once');
+
 const profileSchema = z.object({
   displayName: z.string(),
   avatarUrl: z.string().nullable(),
@@ -43,6 +50,7 @@ const profileSchema = z.object({
   shownTotal: z.number().int().nullable().describe('The last counter the owner saw'),
   shownMode: counterMode.nullable(),
   cardShared: z.boolean().describe('Whether a card was ever shared (#36)'),
+  badges: badges.describe('Badges earned by milestones (RF-55); public only with Plus'),
   createdAt: z.iso.datetime().describe('When the profile was created'),
   analyticsId: z
     .string()
@@ -71,6 +79,7 @@ const patchBody = z
     shown: z.strictObject({ total: z.number().int().min(0).max(1_000_000), mode: counterMode }),
     cardShared: z.literal(true),
     locale: locale.nullable(),
+    badges: badges.transform(inCatalogOrder),
   })
   .partial()
   .refine((body) => Object.keys(body).length > 0, 'At least one change');

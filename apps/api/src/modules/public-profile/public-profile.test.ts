@@ -98,6 +98,7 @@ describe('GET /api/v1/profiles/{handle}', () => {
       listVisibility: 'public',
       shownTotal: 48,
       shownMode: 'franchise',
+      badges: [],
     });
   });
 
@@ -112,6 +113,7 @@ describe('GET /api/v1/profiles/{handle}', () => {
       listVisibility: 'private',
       shownTotal: 7,
       shownMode: 'entry',
+      badges: [],
     });
     expect(JSON.stringify(response.body)).not.toContain(SHUT);
   });

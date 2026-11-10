@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient } from '../../../generated/prisma/client.js';
+import { type BadgeId, inCatalogOrder } from '../domain/badges.js';
 import { handleBase, handleCandidates, randomCandidate } from '../domain/handle.js';
 
 type CounterMode = 'franchise' | 'entry';
@@ -30,6 +31,8 @@ export interface ProfileView {
   shownMode: CounterMode | null;
   // Whether a card was ever shared (#36): the first share offers to make the list public.
   cardShared: boolean;
+  // Badges earned by milestones (RF-55); who sees them depends on the plan.
+  badges: BadgeId[];
   // When the profile was created: signup_completed is timestamped with it (#46).
   createdAt: Date;
 }
@@ -44,6 +47,7 @@ export interface PublicProfileRow {
   listVisibility: ListVisibility;
   shownTotal: number | null;
   shownMode: CounterMode | null;
+  badges: BadgeId[];
 }
 
 export interface ProfileChanges {
@@ -57,6 +61,8 @@ export interface ProfileChanges {
   cardShared?: true | undefined;
   // null goes back to the browser language.
   locale?: Locale | null | undefined;
+  // The whole list of earned badges, replacing the stored one (RF-55).
+  badges?: BadgeId[] | undefined;
 }
 
 const SELECT = {
@@ -70,6 +76,7 @@ const SELECT = {
   shownTotal: true,
   shownMode: true,
   cardSharedAt: true,
+  badges: true,
   createdAt: true,
 } as const;
 
@@ -79,8 +86,12 @@ type Row = Prisma.ProfileGetPayload<{ select: typeof SELECT }>;
 const asLocale = (value: string | null): Locale | null =>
   value === 'es' || value === 'en' ? value : null;
 
-const view = ({ cardSharedAt, handle, locale, ...row }: Row, assigned: string): ProfileView => ({
+const view = (
+  { cardSharedAt, handle, locale, badges, ...row }: Row,
+  assigned: string,
+): ProfileView => ({
   ...row,
+  badges: inCatalogOrder(badges),
   locale: asLocale(locale),
   handle: handle ?? assigned,
   cardShared: cardSharedAt !== null,
@@ -169,8 +180,16 @@ export function createProfileRepository(prisma: PrismaClient): ProfileRepository
     },
     update: async (userId, initial, changes) => {
       await create(userId, initial);
-      const { displayName, avatarPreset, counterMode, listVisibility, shown, cardShared, locale } =
-        changes;
+      const {
+        displayName,
+        avatarPreset,
+        counterMode,
+        listVisibility,
+        shown,
+        cardShared,
+        locale,
+        badges,
+      } = changes;
       await prisma.profile.update({
         where: { userId },
         data: {
@@ -180,6 +199,7 @@ export function createProfileRepository(prisma: PrismaClient): ProfileRepository
           ...(counterMode && { counterMode }),
           ...(listVisibility && { listVisibility }),
           ...(shown && { shownTotal: shown.total, shownMode: shown.mode }),
+          ...(badges && { badges }),
         },
       });
       if (cardShared) {
@@ -203,9 +223,12 @@ export function createProfileRepository(prisma: PrismaClient): ProfileRepository
             listVisibility: true,
             shownTotal: true,
             shownMode: true,
+            badges: true,
           },
         })
-        .then((row) => (row?.handle ? { ...row, handle: row.handle } : null)),
+        .then((row) =>
+          row?.handle ? { ...row, handle: row.handle, badges: inCatalogOrder(row.badges) } : null,
+        ),
     remove: async (userId) => {
       const [{ count }] = await prisma.$transaction([
         prisma.profile.deleteMany({ where: { userId } }),

@@ -412,6 +412,7 @@ describe('GET /api/v1/me', () => {
           shownTotal: null,
           shownMode: null,
           cardShared: false,
+          badges: [],
           createdAt: new Date('2026-11-01T12:00:00.000Z'),
           analyticsId: '0123456789abcdef0123456789abcdef',
         };
@@ -436,6 +437,7 @@ describe('GET /api/v1/me', () => {
       shownTotal: null,
       shownMode: null,
       cardShared: false,
+      badges: [],
       createdAt: '2026-11-01T12:00:00.000Z',
       analyticsId: '0123456789abcdef0123456789abcdef',
       curator: false,
@@ -485,6 +487,7 @@ describe('PATCH /api/v1/me', () => {
           shownTotal: changes.shown?.total ?? null,
           shownMode: changes.shown?.mode ?? null,
           cardShared: changes.cardShared ?? false,
+          badges: [],
           createdAt: new Date('2026-11-01T12:00:00.000Z'),
           analyticsId: null,
         };
@@ -522,6 +525,7 @@ describe('PATCH /api/v1/me', () => {
       shownTotal: null,
       shownMode: null,
       cardShared: false,
+      badges: [],
       createdAt: '2026-11-01T12:00:00.000Z',
       analyticsId: null,
       curator: false,
@@ -559,6 +563,37 @@ describe('PATCH /api/v1/me', () => {
     expect(calls).toEqual([
       { session: { userId: USER, name: 'Camila' }, changes: { avatarPreset: null } },
     ]);
+  });
+
+  describe('badges (RF-55)', () => {
+    it('@CA-RF55-01 saves the badges the browser earned, in catalog order', async () => {
+      const { calls, service } = fakeProfiles();
+      const response = await request(appWithProfiles(service))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send({ badges: ['hours_50', 'titles_10'] });
+      expect(response.status).toBe(200);
+      expect(calls).toEqual([
+        {
+          session: { userId: USER, name: 'Camila' },
+          changes: { badges: ['titles_10', 'hours_50'] },
+        },
+      ]);
+    });
+
+    it.each([
+      ['an unknown badge', { badges: ['titles_9000'] }],
+      ['a repeated badge', { badges: ['titles_10', 'titles_10'] }],
+      ['badges that are not a list', { badges: 'titles_10' }],
+    ])('rejects %s with 400', async (_case, body) => {
+      const { calls, service } = fakeProfiles();
+      const response = await request(appWithProfiles(service))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send(body);
+      expect(response.status).toBe(400);
+      expect(calls).toEqual([]);
+    });
   });
 
   describe('Plus avatars (RF-55)', () => {

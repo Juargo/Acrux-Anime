@@ -160,6 +160,7 @@ describe('GET /api/v1/me', () => {
       shownTotal: null,
       shownMode: null,
       cardShared: false,
+      badges: [],
       createdAt: new Date('2026-11-01T12:00:00.000Z'),
       analyticsId: null,
     };

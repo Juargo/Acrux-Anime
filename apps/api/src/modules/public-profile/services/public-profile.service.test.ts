@@ -18,6 +18,7 @@ function serviceFor(row: Partial<Row>, plan: UserPlan) {
       listVisibility: 'public',
       shownTotal: 48,
       shownMode: 'franchise',
+      badges: [],
       ...row,
     }),
   };
@@ -42,6 +43,17 @@ describe('public summary (RF-55)', () => {
   it('shows a Plus avatar of a Plus owner', async () => {
     const { service } = serviceFor({ avatarPreset: 'sakura' }, 'plus');
     expect((await service.summary('camila'))?.avatarPreset).toBe('sakura');
+  });
+
+  it('@CA-RF55-02 shows the badges of a Plus owner and hides those of a free one', async () => {
+    const badges = ['titles_10', 'hours_50'] as const;
+    const earned = [...badges];
+    expect(
+      (await serviceFor({ badges: earned }, 'plus').service.summary('camila'))?.badges,
+    ).toEqual(earned);
+    expect(
+      (await serviceFor({ badges: earned }, 'free').service.summary('camila'))?.badges,
+    ).toEqual([]);
   });
 
   it('keeps a free avatar whatever the plan', async () => {

@@ -1,6 +1,7 @@
 import type { PlanReader } from '../../../http/plan.js';
 import type { MarkPage, MarkPageQuery, MarksService } from '../../marks/services/marks.service.js';
 import { visiblePreset } from '../../profile/domain/avatar.js';
+import type { BadgeId } from '../../profile/domain/badges.js';
 import { isHandle } from '../../profile/domain/handle.js';
 import type { AvatarPreset } from '../../profile/repositories/profile.repository.js';
 import type { ProfileService } from '../../profile/services/profile.service.js';
@@ -14,6 +15,8 @@ export interface PublicProfileView {
   listVisibility: 'private' | 'public';
   shownTotal: number | null;
   shownMode: 'franchise' | 'entry' | null;
+  // Badges show only while the owner is Plus (RF-55).
+  badges: BadgeId[];
 }
 
 export interface PublicProfileService {
@@ -37,7 +40,11 @@ export function createPublicProfileService(
       if (!row) return null;
       const { userId: owner, ...summary } = row;
       const plan = planOf ? await planOf(owner) : 'free';
-      return { ...summary, avatarPreset: visiblePreset(summary.avatarPreset, plan) };
+      return {
+        ...summary,
+        avatarPreset: visiblePreset(summary.avatarPreset, plan),
+        badges: plan === 'plus' ? summary.badges : [],
+      };
     },
     marks: async (handle, page) => {
       const row = await find(handle);
