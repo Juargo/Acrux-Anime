@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { AniListClient } from '../anilist/client';
-import { type FranchiseEntry, fetchFranchise } from '../anilist/franchise';
+import type { CatalogClient } from '../catalog-source/client';
+import { type FranchiseEntry, fetchFranchise } from '../catalog-source/franchise';
 import { overridesQuery } from '../franchise/use-franchise-overrides';
 import { fetchMarks, type MarkDto, saveMarks } from '../marks-api';
 import type { CatalogItem } from './items';
@@ -45,7 +45,7 @@ export function useMarks(
  * changes at once and rolls back if building the franchise or saving fails (RNF-11).
  */
 export function useFranchiseMarks(options: {
-  client: AniListClient;
+  client: CatalogClient;
   getToken: (() => Promise<string | null>) | undefined;
   fetchFn: typeof fetch;
   onFranchiseMarked: ((event: FranchiseMarkedEvent) => void) | undefined;
@@ -65,13 +65,13 @@ export function useFranchiseMarks(options: {
         .fetchQuery(overridesQuery(fetchFn))
         .catch(() => undefined);
       const franchise = await fetchFranchise(client, item.coreIds, overrides);
-      if (franchise.core.length === 0) throw new Error('Franchise not found on AniList');
+      if (franchise.core.length === 0) throw new Error('Franchise not found in the catalog');
       const coreSize = franchise.core.length;
       if (item.dimmed) {
         const entries = uniqueEntries([
           ...franchise.core,
           ...franchise.extras,
-          ...item.entryIds.map((animeId) => ({ animeId, malId: null })),
+          ...item.entryIds.map((animeId) => ({ animeId })),
         ]);
         await saveMarks(token, { status: null, entries }, fetchFn);
         return {
@@ -96,7 +96,6 @@ export function useFranchiseMarks(options: {
               current,
               item.coreIds.map((animeId) => ({
                 animeId,
-                malId: null,
                 status: 'seen',
                 markedAt,
               })),

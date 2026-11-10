@@ -2,8 +2,8 @@ import { useId, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { AdSlot } from '../ads/AdSlot';
-import type { AniListClient } from '../anilist/client';
-import { defaultClient } from '../anilist/hooks';
+import type { CatalogClient } from '../catalog-source/client';
+import { defaultClient } from '../catalog-source/hooks';
 import { useCounterMode } from '../counter/use-counter-mode';
 import { useMarkedFranchises } from '../counter/use-marked-franchises';
 import type { CounterMode } from '../counter/use-total-counter';
@@ -68,7 +68,7 @@ export function MyListScreen({
   counterMode,
 }: {
   getToken: () => Promise<string | null>;
-  client?: AniListClient | undefined;
+  client?: CatalogClient | undefined;
   fetchFn?: typeof fetch | undefined;
   counterMode: CounterMode;
 }) {

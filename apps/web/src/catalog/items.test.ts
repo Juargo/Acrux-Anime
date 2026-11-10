@@ -1,41 +1,48 @@
-import type { Mark } from '@acrux/domain';
+import type { Mark, RelationType } from '@acrux/domain';
 import { describe, expect, it } from 'vitest';
-import type { CatalogMedia, RelatedMedia } from '../anilist/catalog';
+import type { CatalogAnime } from '../catalog-source/client';
+import { anime } from '../catalog-source/test-support';
 import { toCatalogItems } from './items';
 
 const NOW = '2026-11-03T12:00:00Z';
-const cover = (id: number) => `https://img.anili.st/media/${id}.jpg`;
+const cover = (id: number) => `https://cdn.example.test/anime/${id}.jpg`;
 
-function related(id: number, year: number, extra: Partial<RelatedMedia> = {}): RelatedMedia {
-  return {
-    id,
-    type: 'ANIME',
-    format: 'TV',
-    idMal: null,
-    isAdult: false,
-    title: { romaji: `Romaji ${id}`, english: `English ${id}`, native: null },
-    coverImage: { large: cover(id) },
-    startDate: { year, month: 1, day: 1 },
+// A neighbour: an anime the page lacks but a hit points at.
+function related(id: number, year: number, extra: Partial<CatalogAnime> = {}): CatalogAnime {
+  return anime(id, {
+    title: `Title ${id}`,
+    titleEnglish: `English ${id}`,
+    startDate: `${year}-01-01`,
+    year,
     ...extra,
-  };
+  });
 }
 
+// A hit of the page, with its relations to other anime.
 function hit(
   id: number,
   year: number,
-  edges: [string, RelatedMedia][] = [],
-  extra: Partial<CatalogMedia> = {},
-): CatalogMedia {
-  return {
-    ...related(id, year),
-    relations: { edges: edges.map(([relationType, node]) => ({ relationType, node })) },
+  links: [RelationType, number][] = [],
+  extra: Partial<CatalogAnime> = {},
+): CatalogAnime {
+  return related(id, year, {
+    relations: links.map(([type, target]) => ({ type, id: target })),
     ...extra,
-  };
+  });
 }
+
+const item = (rootId: number, title: string, dimmed = false) => ({
+  rootId,
+  title,
+  coverUrl: cover(rootId),
+  dimmed,
+  coreIds: expect.any(Array),
+  entryIds: expect.any(Array),
+});
 
 describe('toCatalogItems', () => {
   it('splits a franchise the curator marked as separate (RF-60)', () => {
-    const hits = [hit(1, 2020), hit(2, 2021, [['PREQUEL', related(1, 2020)]])];
+    const hits = [hit(1, 2020), hit(2, 2021, [['PREQUEL', 1]])];
     const separate = {
       animeId: 2,
       franchiseRootId: 1,
@@ -43,116 +50,94 @@ describe('toCatalogItems', () => {
       updatedAt: '2026-11-07T12:00:00.000Z',
     };
 
-    expect(toCatalogItems(hits, [], NOW).map((item) => item.coreIds)).toEqual([[1, 2]]);
-    expect(toCatalogItems(hits, [], NOW, [separate]).map((item) => item.coreIds)).toEqual([
+    expect(toCatalogItems(hits, [], [], NOW).map((entry) => entry.coreIds)).toEqual([[1, 2]]);
+    expect(toCatalogItems(hits, [], [], NOW, [separate]).map((entry) => entry.coreIds)).toEqual([
       [1],
       [2],
     ]);
   });
 
   it('@CA-RF12-01 shows one item per franchise with cover and title', () => {
-    const season1 = related(154587, 2023);
     const items = toCatalogItems(
-      [
-        hit(154587, 2023, [['SEQUEL', related(182255, 2026)]]),
-        hit(182255, 2026, [['PREQUEL', season1]]),
-      ],
+      [hit(154587, 2023, [['SEQUEL', 182255]]), hit(182255, 2026, [['PREQUEL', 154587]])],
+      [],
       [],
       NOW,
     );
 
-    expect(items).toEqual([
-      {
-        rootId: 154587,
-        title: 'English 154587',
-        coverUrl: cover(154587),
-        dimmed: false,
-        coreIds: expect.any(Array),
-        entryIds: expect.any(Array),
-      },
-    ]);
+    expect(items).toEqual([item(154587, 'English 154587')]);
   });
 
   it('titles the item with the earliest known entry, even when only a sequel matched', () => {
-    const items = toCatalogItems([hit(20958, 2017, [['PREQUEL', related(16498, 2013)]])], [], NOW);
+    const items = toCatalogItems(
+      [hit(20958, 2017, [['PREQUEL', 16498]])],
+      [related(16498, 2013)],
+      [],
+      NOW,
+    );
 
-    expect(items).toEqual([
-      {
-        rootId: 16498,
-        title: 'English 16498',
-        coverUrl: cover(16498),
-        dimmed: false,
-        coreIds: expect.any(Array),
-        entryIds: expect.any(Array),
-      },
-    ]);
+    expect(items).toEqual([item(16498, 'English 16498')]);
   });
 
   it('keeps the order of the first hit of each franchise across pages', () => {
     const items = toCatalogItems(
-      [hit(1, 2020), hit(2, 2021), hit(3, 2022, [['PREQUEL', related(1, 2020)]])],
+      [hit(1, 2020), hit(2, 2021), hit(3, 2022, [['PREQUEL', 1]])],
+      [],
       [],
       NOW,
     );
 
-    expect(items.map((item) => item.rootId)).toEqual([1, 2]);
+    expect(items.map((entry) => entry.rootId)).toEqual([1, 2]);
   });
 
   it('shows a matched side story as its parent franchise', () => {
     const items = toCatalogItems(
-      [
-        hit(5, 2021, [['PARENT', related(1, 2020)]]),
-        hit(1, 2020, [['SIDE_STORY', related(5, 2021)]]),
-      ],
+      [hit(5, 2021, [['PARENT', 1]]), hit(1, 2020, [['SIDE_STORY', 5]])],
+      [],
       [],
       NOW,
     );
 
-    expect(items.map((item) => item.rootId)).toEqual([1]);
+    expect(items.map((entry) => entry.rootId)).toEqual([1]);
   });
 
   it('keeps spin-offs and remakes as their own items', () => {
     const items = toCatalogItems(
-      [hit(121, 2003, [['ALTERNATIVE', related(5114, 2009)]]), hit(5114, 2009)],
+      [hit(121, 2003, [['ALTERNATIVE', 5114]]), hit(5114, 2009)],
+      [],
       [],
       NOW,
     );
 
-    expect(items.map((item) => item.rootId)).toEqual([121, 5114]);
+    expect(items.map((entry) => entry.rootId)).toEqual([121, 5114]);
   });
 
-  it('never lets adult, music or non-anime neighbours into an item', () => {
+  it('ignores relations to entries the catalog did not send, such as adult or manga ones', () => {
+    // The API leaves adult titles out of `related`, so these ids have no entry here.
     const items = toCatalogItems(
       [
         hit(10, 2020, [
-          ['PREQUEL', related(11, 2010, { isAdult: true })],
-          ['PREQUEL', related(12, 2011, { format: 'MUSIC' })],
-          ['PREQUEL', related(13, 2012, { type: 'MANGA', format: 'MANGA' })],
+          ['PREQUEL', 11],
+          ['PREQUEL', 12],
+          ['PREQUEL', 13],
         ]),
       ],
+      [],
       [],
       NOW,
     );
 
-    expect(items).toEqual([
-      {
-        rootId: 10,
-        title: 'English 10',
-        coverUrl: cover(10),
-        dimmed: false,
-        coreIds: expect.any(Array),
-        entryIds: expect.any(Array),
-      },
-    ]);
+    expect(items).toEqual([{ ...item(10, 'English 10'), coreIds: [10], entryIds: [10] }]);
   });
 
-  it('falls back to romaji, then to the native title, and to the hit cover', () => {
+  it('falls back to the title of the source, then to the Japanese one, and to the hit cover', () => {
     const items = toCatalogItems(
       [
-        hit(1, 2020, [], { title: { romaji: 'Sousou no Frieren', english: null, native: null } }),
-        hit(2, 2021, [['PREQUEL', related(3, 2019, { coverImage: { large: null } })]]),
-        hit(4, 2022, [], { title: { romaji: null, english: null, native: '葬送' } }),
+        hit(1, 2020, [], { title: 'Sousou no Frieren', titleEnglish: null }),
+        hit(2, 2021, [['PREQUEL', 3]]),
+        hit(4, 2022, [], { title: '', titleEnglish: null, titleJapanese: '葬送' }),
       ],
+      [related(3, 2019, { coverUrl: null })],
       [],
       NOW,
     );
@@ -171,7 +156,8 @@ describe('toCatalogItems', () => {
       { animeId: 3, status: 'seen', markedAt: '2025-01-01T00:00:00Z' },
     ];
     const items = toCatalogItems(
-      [hit(1, 2020, [['SEQUEL', related(2, 2021)]]), hit(3, 2022), hit(4, 2023)],
+      [hit(1, 2020, [['SEQUEL', 2]]), hit(3, 2022), hit(4, 2023)],
+      [related(2, 2021)],
       marks,
       NOW,
     );
@@ -186,17 +172,18 @@ describe('toCatalogItems', () => {
 
 describe('toCatalogItems ids', () => {
   it('keeps the known core and extras of each item for marking', () => {
-    const [item] = toCatalogItems(
+    const [first] = toCatalogItems(
       [
         hit(1, 2020, [
-          ['SEQUEL', related(2, 2021)],
-          ['SIDE_STORY', related(3, 2021)],
+          ['SEQUEL', 2],
+          ['SIDE_STORY', 3],
         ]),
       ],
+      [related(2, 2021), related(3, 2021)],
       [],
       NOW,
     );
 
-    expect(item).toMatchObject({ coreIds: [1, 2], entryIds: [1, 2, 3] });
+    expect(first).toMatchObject({ coreIds: [1, 2], entryIds: [1, 2, 3] });
   });
 });

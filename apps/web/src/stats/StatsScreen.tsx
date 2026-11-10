@@ -1,11 +1,11 @@
 import { type ReactNode, useId, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { formatLabel, genreLabel } from '../anilist/catalog';
-import type { AniListClient } from '../anilist/client';
-import { useMediaStats } from '../anilist/hooks';
-import { anilistErrorMessage } from '../anilist/messages';
 import { useMarks } from '../catalog/use-franchise-marks';
+import { formatLabel, genreLabel } from '../catalog-source/catalog';
+import type { CatalogClient } from '../catalog-source/client';
+import { useAnimeByIds } from '../catalog-source/hooks';
+import { catalogErrorMessage } from '../catalog-source/messages';
 import { useOwnProfile } from '../profile/use-own-profile';
 import type { Profile } from '../profile-api';
 import { computeStats, type Stats } from './compute';
@@ -14,7 +14,7 @@ interface StatsScreenProps {
   profile: Profile;
   getToken: () => Promise<string | null>;
   fetchFn?: typeof fetch | undefined;
-  client?: AniListClient | undefined;
+  client?: CatalogClient | undefined;
 }
 
 /**
@@ -37,7 +37,7 @@ export function StatsScreen({
     () => (marks.data ?? []).filter((mark) => mark.status === 'seen').map((mark) => mark.animeId),
     [marks.data],
   );
-  const media = useMediaStats(seenIds, client);
+  const media = useAnimeByIds(seenIds, client);
   const stats = useMemo(() => (media.data ? computeStats(media.data) : undefined), [media.data]);
 
   let body: ReactNode;
@@ -53,7 +53,7 @@ export function StatsScreen({
     );
   } else if (media.isError) {
     body = (
-      <Failure message={anilistErrorMessage(media.error, t)} retry={() => void media.refetch()} />
+      <Failure message={catalogErrorMessage(media.error, t)} retry={() => void media.refetch()} />
     );
   } else if (!stats) {
     body = <p className="stats__status">{t('stats.loading')}</p>;

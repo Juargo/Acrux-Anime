@@ -1,11 +1,11 @@
 import { type RouteObject, useParams } from 'react-router';
-import type { AniListClient } from '../anilist/client';
+import type { CatalogClient } from '../catalog-source/client';
 import { PublicProfileScreen, type PublicProfileViewedEvent } from './PublicProfileScreen';
 
 // "/@jorge": a path segment that starts with @ (Figma M07 "acrux.app/@jorge"). Any other
 // single segment no route of the app knows lands here too and shows "Perfil no disponible".
 function PublicProfilePage(props: {
-  client?: AniListClient | undefined;
+  client?: CatalogClient | undefined;
   fetchFn?: typeof fetch | undefined;
   onViewed?: ((event: PublicProfileViewedEvent) => void) | undefined;
 }) {
@@ -17,7 +17,7 @@ function PublicProfilePage(props: {
 // Outside the session gate of App: visitors need no account (RF-40).
 export function publicProfileRoute(
   props: {
-    client?: AniListClient | undefined;
+    client?: CatalogClient | undefined;
     fetchFn?: typeof fetch | undefined;
     onViewed?: ((event: PublicProfileViewedEvent) => void) | undefined;
   } = {},

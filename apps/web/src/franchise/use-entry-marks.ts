@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { FranchiseEntry } from '../anilist/franchise';
 import { MARKS_KEY, type MarkMessage } from '../catalog/use-franchise-marks';
+import type { FranchiseEntry } from '../catalog-source/franchise';
 import { deleteMark, type MarkDto, putMark } from '../marks-api';
 
 export interface EntryMarkChange {
@@ -37,7 +37,7 @@ export function useEntryMarks(options: {
         await deleteMark(getToken, entry.animeId, fetchFn);
         return null;
       }
-      return putMark(getToken, entry.animeId, { status, malId: entry.malId }, fetchFn);
+      return putMark(getToken, entry.animeId, { status }, fetchFn);
     },
     onMutate: async ({ entry, status }) => {
       setMessage(null);
@@ -47,7 +47,6 @@ export function useEntryMarks(options: {
         ?.find((mark) => mark.animeId === entry.animeId);
       const optimistic: MarkDto | null = status && {
         animeId: entry.animeId,
-        malId: entry.malId,
         status,
         markedAt: new Date().toISOString(),
       };

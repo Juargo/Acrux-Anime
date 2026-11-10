@@ -5,7 +5,7 @@ export const CARD_WIDTH = 1080;
 const CARD_NODE = { width: 324, height: 576 };
 
 /**
- * Renders the card in the browser (ADR-0024: AniList's CDN and Google's avatars answer with
+ * Renders the card in the browser (ADR-0024: the cover CDN and Google's avatars answer with
  * CORS, so the canvas stays readable). The images are fetched without a referrer, as the
  * avatar is shown. html-to-image keeps a failed image for the whole page, so a retry fetches
  * the images again.

@@ -3,12 +3,12 @@ import { type ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { AdSlot } from '../ads/AdSlot';
-import type { AniListClient } from '../anilist/client';
-import { defaultClient, useFranchise } from '../anilist/hooks';
-import { anilistErrorMessage } from '../anilist/messages';
 import { useOnline } from '../catalog/hooks';
 import type { CatalogItem } from '../catalog/items';
 import { type FranchiseMarkedEvent, useFranchiseMarks } from '../catalog/use-franchise-marks';
+import type { CatalogClient } from '../catalog-source/client';
+import { defaultClient, useFranchise } from '../catalog-source/hooks';
+import { catalogErrorMessage } from '../catalog-source/messages';
 import { FranchiseDetailView } from './FranchiseDetail';
 import { useEntryMarks } from './use-entry-marks';
 
@@ -26,7 +26,7 @@ export function FranchiseScreen({
   onEntryMarkedSeen,
 }: {
   animeId: number;
-  client?: AniListClient | undefined;
+  client?: CatalogClient | undefined;
   getToken: () => Promise<string | null>;
   fetchFn?: typeof fetch | undefined;
   onFranchiseMarked?: ((event: FranchiseMarkedEvent) => void) | undefined;
@@ -74,7 +74,7 @@ export function FranchiseScreen({
   } else if (query.isError) {
     body = (
       <div className="catalog__notice" role="alert">
-        <p>{anilistErrorMessage(query.error, t)}</p>
+        <p>{catalogErrorMessage(query.error, t)}</p>
         <button className="button button--secondary" type="button" onClick={() => query.refetch()}>
           {t('franchise.retry')}
         </button>

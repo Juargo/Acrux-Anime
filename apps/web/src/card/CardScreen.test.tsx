@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
+
+import type { RelationType } from '@acrux/domain';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CatalogMedia, RelatedMedia } from '../anilist/catalog';
-import type { AniListClient } from '../anilist/client';
+import type { CatalogAnime } from '../catalog-source/client';
+import { anime, fakeCatalogClient, serveFranchises } from '../catalog-source/test-support';
 import { setLocale } from '../i18n';
 import type { MarkDto } from '../marks-api';
 import type { Profile } from '../profile-api';
@@ -37,43 +39,25 @@ const titles: Record<number, string> = {
   40: 'Saga D',
   50: 'Saga E',
 };
-const edges: Record<number, [string, number][]> = { 1: [['SEQUEL', 2]], 2: [['PREQUEL', 1]] };
-const cover = (id: number) => `https://s4.anilist.co/media/${id}.jpg`;
+const edges: Record<number, [RelationType, number][]> = { 1: [['SEQUEL', 2]], 2: [['PREQUEL', 1]] };
+const cover = (id: number) => `https://cdn.example.test/anime/${id}.jpg`;
 
-function node(id: number): RelatedMedia {
-  return {
-    id,
-    idMal: null,
-    type: 'ANIME',
-    format: id < 20 ? 'TV' : 'MOVIE',
-    isAdult: false,
-    title: { romaji: titles[id] ?? `Media ${id}`, english: null, native: null },
-    coverImage: { large: cover(id) },
-    startDate: { year: 2000 + id, month: 1, day: 1 },
-  };
-}
+const row = (id: number): CatalogAnime | undefined =>
+  id in titles
+    ? anime(id, {
+        title: titles[id] ?? `Media ${id}`,
+        format: id < 20 ? 'TV' : 'MOVIE',
+        coverUrl: cover(id),
+        startDate: `${2000 + id}-01-01`,
+        year: 2000 + id,
+        relations: (edges[id] ?? []).map(([type, target]) => ({ type, id: target })),
+      })
+    : undefined;
 
-const media = (id: number): CatalogMedia => ({
-  ...node(id),
-  relations: {
-    edges: (edges[id] ?? []).map(([relationType, target]) => ({
-      relationType,
-      node: node(target),
-    })),
-  },
-});
-
-const client = {
-  request: vi.fn(async (_query: string, variables: Record<string, unknown>, schema) =>
-    schema.parse({
-      Page: { media: (variables.ids as number[]).filter((id) => id in titles).map(media) },
-    }),
-  ),
-} as unknown as AniListClient;
+const client = fakeCatalogClient({ franchises: async (seeds) => serveFranchises(row, seeds) });
 
 const mark = (animeId: number, status: MarkDto['status'], day = 10): MarkDto => ({
   animeId,
-  malId: null,
   status,
   markedAt: `2026-10-${String(day).padStart(2, '0')}T12:00:00.000Z`,
 });

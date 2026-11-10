@@ -2,7 +2,6 @@
 
 export interface MarkDto {
   animeId: number;
-  malId: number | null;
   status: 'seen' | 'watching';
   markedAt: string;
 }
@@ -10,7 +9,7 @@ export interface MarkDto {
 export interface MarkBatch {
   // null removes the marks of these entries.
   status: 'seen' | 'watching' | null;
-  entries: { animeId: number; malId?: number | null }[];
+  entries: { animeId: number }[];
 }
 
 export type MarksErrorKind = 'signed-out' | 'unavailable' | 'failed';
@@ -100,7 +99,7 @@ export async function saveMarks(
 export async function putMark(
   getToken: GetToken,
   animeId: number,
-  mark: { status: 'seen' | 'watching'; malId?: number | null },
+  mark: { status: 'seen' | 'watching' },
   fetchFn: typeof fetch = fetch,
 ): Promise<MarkDto> {
   return (await call(
