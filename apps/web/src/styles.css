@@ -2338,3 +2338,23 @@ label.sheet__label {
   height: 22px;
   font-size: 0.75rem;
 }
+
+/* RF-58 · Espacio de anuncio: reserva su alto y nunca tapa contenido. */
+.ad-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 16px 0;
+}
+
+.ad-slot__label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.ad-slot__unit {
+  display: block;
+  min-height: 100px;
+}
