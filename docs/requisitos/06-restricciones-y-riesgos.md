@@ -46,7 +46,7 @@
 | R-02 | Costo de la licencia comercial de AniList desconocido. | Consultarlo en el correo de autorización. |
 | R-03 | *Retirado.* Prueba cerrada de Google Play. | No aplica (solo web). |
 | R-04 | Errores en el agrupamiento de sagas populares. | Tabla del curador (RF-60), reportes (RF-62) y pruebas con sagas reales (ADR-0029). |
-| R-05 | MyAnimeList como plan B también exige autorización y, por bloquear CORS, obligaría a volver a un proxy en la API. | Pedirla en paralelo; guardar `mal_id` en cada marca. |
+| R-05 | MyAnimeList como plan B: respondió (2026-11-06) que su API se puede usar comercialmente sin licencia, con crédito y enlace. Por CORS obligaría a volver a un proxy en la API, y migrar exige reescribir el agrupamiento y los IDs guardados. | Plan B preparado (ADR-0041): client ID registrado y `mal_id` guardado en cada marca. Migrar solo si AniList no autoriza. |
 | R-06 | Una ráfaga de 30 sagas populares requiere varias consultas por saga y choca con el límite de 30 por minuto. | IDs de las sagas curadas en la base (DD-17), consultas por lotes y caché (P-02). |
 | R-07 | Las portadas del CDN de AniList podrían no servirse con CORS y bloquear la generación de la tarjeta en el navegador. | Spike de CORS antes de construir la tarjeta (ADR-0024). |
 | R-08 | Lista privada por defecto puede reducir los perfiles públicos, el motor viral. | Invitación a hacerla pública al compartir (RF-35). |
