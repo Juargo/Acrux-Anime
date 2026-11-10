@@ -1,5 +1,5 @@
-import { SPY_FAMILY } from '../support/anilist.ts';
 import { markSeen } from '../support/api.ts';
+import { SPY_FAMILY } from '../support/catalog.ts';
 import { API_URL, CURATOR_USER_ID } from '../support/env.ts';
 import { expect, test } from '../support/fixtures.ts';
 import { createUser, installNeonAuth } from '../support/neon-auth.ts';

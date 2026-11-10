@@ -1,5 +1,5 @@
-import { FRIEREN } from '../support/anilist.ts';
 import { makeListPublic, markSeen, profileOf } from '../support/api.ts';
+import { FRIEREN } from '../support/catalog.ts';
 import { API_URL } from '../support/env.ts';
 import { expect, test, visitorContext } from '../support/fixtures.ts';
 import { authUserDeleted, createUser } from '../support/neon-auth.ts';
