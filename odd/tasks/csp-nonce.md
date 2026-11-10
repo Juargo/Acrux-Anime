@@ -18,7 +18,7 @@ Objetivo: servir el HTML de la app con una CSP con nonce por pedido, como exige 
 | T1 | S1, S2, S3, S5 | inline | hecho | 7c43b13 |
 | T2 | S4 | inline | hecho | 9aef524 |
 | T3 | S6 | inline | hecho | (este commit) |
-| T4 | S1–S5 | verificador independiente (riesgo ítems 2 y 5) + vista previa | pendiente | — |
+| T4 | S1–S5 | verificador independiente (riesgo ítems 2 y 5) + vista previa | verificador: sin bloqueos; falta la vista previa | — |
 
 ## Log
 
@@ -35,3 +35,7 @@ Objetivo: servir el HTML de la app con una CSP con nonce por pedido, como exige 
   - En Chromium, sirviendo `dist` con el handler: la app monta, el service worker se registra y no hay avisos de CSP.
   - Con un script inline, un `onerror` y un script externo inyectados en el HTML, los tres quedan bloqueados por la CSP.
   - Los tests se escribieron junto con el código, sin RED previo.
+- **L5:** Verificador independiente:
+  - S1 a S4 pasan, sin bloqueos. S5 pasa en la configuración.
+  - Queda por comprobar en la vista previa que la CSP de la función gane sobre la cabecera estática de `vercel.json`, y que `dist/index.html` viaje con la función.
+  - Si la cabecera estática gana, la app funciona igual que hoy, pero los anuncios quedarían bloqueados. En ese caso hay que acotar la cabecera estática.
