@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAnalyticsState } from '../analytics/AnalyticsContext';
 import { useOwnProfile } from '../profile/use-own-profile';
 import type { Profile } from '../profile-api';
-import { useSignedIn } from '../routes/signed-in-context';
+import { type SignedInContext, useSignedIn } from '../routes/signed-in-context';
 
 /**
  * Presentational with one effect: an AdSense unit (RF-58), only for a free user and only
@@ -40,9 +40,19 @@ export function AdSlotView({ plan }: { plan: Profile['plan'] }) {
   );
 }
 
-/** Container: the slot of a signed-in screen, with the live plan (a purchase hides it). */
+/**
+ * Container: the slot of a signed-in screen, with the live plan (a purchase hides it).
+ * Nothing at all without AdSense, or outside the signed-in layout (screens tested alone).
+ */
 export function AdSlot() {
-  const { profile: initial, getToken, fetchFn } = useSignedIn();
+  const { ads } = useAnalyticsState();
+  const context = useSignedIn() as SignedInContext | undefined;
+  if (!ads?.enabled || !context) return null;
+  return <LiveAdSlot context={context} />;
+}
+
+function LiveAdSlot({ context }: { context: SignedInContext }) {
+  const { profile: initial, getToken, fetchFn } = context;
   const [profile] = useOwnProfile({ initial, getToken, fetchFn });
   return <AdSlotView plan={profile.plan} />;
 }

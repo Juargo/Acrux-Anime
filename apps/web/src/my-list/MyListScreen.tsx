@@ -1,6 +1,7 @@
 import { useId, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import { AdSlot } from '../ads/AdSlot';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
 import { useCounterMode } from '../counter/use-counter-mode';
@@ -115,6 +116,8 @@ export function MyListScreen({
               <dd>{list.stats.watching}</dd>
             </div>
           </dl>
+          {/* RF-58, ADR-0038: inside the list, between the stats and the tabs. */}
+          <AdSlot />
           <div className="my-list__tabs" role="tablist" aria-label={t('myList.title')}>
             {(['watching', 'seen'] as const).map((value) => (
               <button

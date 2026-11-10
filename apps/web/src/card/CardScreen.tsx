@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
+import { AdSlot } from '../ads/AdSlot';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
 import { ShareCard } from '../components/ShareCard';
@@ -365,6 +366,8 @@ export function CardScreen({
           {t('card.download')}
         </button>
       </div>
+      {/* RF-58, ADR-0038: outside the card, so never in the shared image (RF-33). */}
+      <AdSlot />
       {offer && (
         <FirstShareOffer state={offer} onAccept={makePublic} onClose={() => setOffer(null)} />
       )}
