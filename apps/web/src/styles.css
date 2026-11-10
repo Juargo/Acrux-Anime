@@ -1867,7 +1867,6 @@ label.sheet__label {
   margin: 0;
 }
 
-.delete-account__kept,
 .delete-account__note {
   color: var(--color-text-secondary);
 }

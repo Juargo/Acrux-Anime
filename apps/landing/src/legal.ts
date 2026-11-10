@@ -22,6 +22,8 @@ export interface LegalPage {
 }
 
 export const CONTACT_EMAIL = 'jorgeretamal.jjra@gmail.com';
+// Credit link requested by MyAnimeList's support (ADR-0043, point 7); `{mal}` in a paragraph renders it.
+export const MAL_URL = 'https://myanimelist.net';
 const OWNER = 'Jorge Retamal';
 const RESPONSE_TIME = { es: '3 días hábiles', en: '3 business days' };
 
@@ -148,9 +150,9 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
           ],
         },
         {
-          title: 'Catálogo y AniList',
+          title: 'Catálogo y MyAnimeList',
           paragraphs: [
-            'Los datos del catálogo los provee AniList. Acrux no está afiliada a AniList ni cuenta con su respaldo. Los títulos e imágenes de cada anime pertenecen a sus dueños.',
+            'Los datos del catálogo los provee {mal}. Acrux no está afiliada a {mal} ni cuenta con su respaldo. Los títulos e imágenes de cada anime pertenecen a sus dueños.',
           ],
         },
         {
@@ -300,9 +302,9 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
           ],
         },
         {
-          title: 'Catalog and AniList',
+          title: 'Catalog and MyAnimeList',
           paragraphs: [
-            'Catalog data is provided by AniList. Acrux is not affiliated with or endorsed by AniList. Anime titles and images belong to their owners.',
+            'Catalog data is provided by {mal}. Acrux is not affiliated with or endorsed by {mal}. Anime titles and images belong to their owners.',
           ],
         },
         {

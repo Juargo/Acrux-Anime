@@ -117,8 +117,8 @@ describe('CuratorScreen', () => {
     const { saves } = renderCurator({ curator: true });
     await screen.findByRole('list', { name: 'Correcciones' });
 
-    await user.type(field('ID de AniList de la entrada'), '99147');
-    await user.type(field('ID de AniList de la franquicia'), '16498');
+    await user.type(field('ID de MyAnimeList de la entrada'), '99147');
+    await user.type(field('ID de MyAnimeList de la franquicia'), '16498');
     await user.click(screen.getByRole('radio', { name: /^Núcleo/ }));
     await user.click(screen.getByRole('button', { name: 'Guardar corrección' }));
 
@@ -141,8 +141,8 @@ describe('CuratorScreen', () => {
     const list = await screen.findByRole('list', { name: 'Correcciones' });
     await user.click(within(list).getByRole('button', { name: /Cambiar/ }));
 
-    expect(field('ID de AniList de la entrada').value).toBe('20811');
-    expect(field('ID de AniList de la franquicia').value).toBe('16498');
+    expect(field('ID de MyAnimeList de la entrada').value).toBe('20811');
+    expect(field('ID de MyAnimeList de la franquicia').value).toBe('16498');
     expect((screen.getByRole('radio', { name: /^Extra/ }) as HTMLInputElement).checked).toBe(true);
   });
 
@@ -151,8 +151,8 @@ describe('CuratorScreen', () => {
     renderCurator({ curator: true, saveStatus: 403 });
     await screen.findByRole('list', { name: 'Correcciones' });
 
-    await user.type(field('ID de AniList de la entrada'), '99147');
-    await user.type(field('ID de AniList de la franquicia'), '16498');
+    await user.type(field('ID de MyAnimeList de la entrada'), '99147');
+    await user.type(field('ID de MyAnimeList de la franquicia'), '16498');
     await user.click(screen.getByRole('radio', { name: /^Separada/ }));
     await user.click(screen.getByRole('button', { name: 'Guardar corrección' }));
 

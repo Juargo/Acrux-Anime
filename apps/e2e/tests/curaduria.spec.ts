@@ -31,8 +31,8 @@ test('@CA-RF60-01 the curator splits a saga from /curador and the counter follow
 
   await page.goto('/perfil');
   await page.getByRole('link', { name: /Curaduría/ }).click();
-  await page.getByLabel('ID de AniList de la entrada').fill(String(SPY_FAMILY.part2Id));
-  await page.getByLabel('ID de AniList de la franquicia').fill(String(SPY_FAMILY.rootId));
+  await page.getByLabel('ID de MyAnimeList de la entrada').fill(String(SPY_FAMILY.part2Id));
+  await page.getByLabel('ID de MyAnimeList de la franquicia').fill(String(SPY_FAMILY.rootId));
   await page.getByRole('radio', { name: /^Separada/ }).check();
   await page.getByRole('button', { name: 'Guardar corrección' }).click();
   await expect(page.getByText('Corrección guardada.')).toBeVisible();

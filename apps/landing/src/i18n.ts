@@ -96,7 +96,7 @@ const copy = {
       deleteAccount: { label: 'Borrar mi cuenta', href: '/soporte#borrar-cuenta' },
       analytics: 'Preferencias de analítica',
       attribution:
-        '© 2026 Acrux · Datos del catálogo provistos por AniList. Acrux no está afiliada a AniList.',
+        '© 2026 Acrux · Datos del catálogo provistos por {mal}. Acrux no está afiliada a {mal}.',
     },
   },
   en: {
@@ -192,7 +192,7 @@ const copy = {
       deleteAccount: { label: 'Delete my account', href: '/en/support#delete-account' },
       analytics: 'Analytics preferences',
       attribution:
-        '© 2026 Acrux · Catalog data provided by AniList. Acrux is not affiliated with AniList.',
+        '© 2026 Acrux · Catalog data provided by {mal}. Acrux is not affiliated with {mal}.',
     },
   },
 } as const;

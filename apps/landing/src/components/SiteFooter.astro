@@ -2,6 +2,7 @@
 import { PUBLIC_POSTHOG_KEY } from 'astro:env/client';
 import type { Locale } from '@acrux/i18n';
 import { getCopy } from '../i18n';
+import { MAL_URL } from '../legal';
 import Logo from './Logo.astro';
 
 // Footer shared by the landing and the legal pages (Figma D40/D42).
@@ -43,7 +44,20 @@ const otherHref = Astro.props.otherHref ?? t.otherLocale.href;
         </ul>
       </nav>
     </div>
-    <p class="site-footer__attribution">{t.footer.attribution}</p>
+    <p class="site-footer__attribution">
+      {
+        t.footer.attribution.split('{mal}').map((part, index) => (
+          <>
+            {index > 0 && (
+              <a href={MAL_URL} target="_blank" rel="noreferrer">
+                MyAnimeList
+              </a>
+            )}
+            {part}
+          </>
+        ))
+      }
+    </p>
   </div>
 </footer>
 
