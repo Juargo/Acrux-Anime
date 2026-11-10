@@ -30,7 +30,7 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
 | T3 | Cliente de MyAnimeList en la API, conversión a la tabla y carga por demanda de lo que falta | S2, S4, S7 | inline | — | bloqueada: falta el client ID | — |
 | T4 | Trabajo programado de carga y refresco (riesgo ítem 5) | S2, S7 | inline | — | pendiente | — |
 | T5 | Web: cliente del catálogo en lugar del de AniList, mensajes de error, simulación en E2E | S3, S4 | delegada (contexto) | `feat/catalogo-myanimelist-03-web` | hecho | b915149, b9da917 |
-| T6b | Los IDs guardados pasan a ser de MyAnimeList, junto con el cambio de fuente de la web (riesgo ítem 1) | S5 | inline | `feat/catalogo-myanimelist-04-ids-mal` | hecho; falta el verificador | (este commit) |
+| T6b | Los IDs guardados pasan a ser de MyAnimeList, junto con el cambio de fuente de la web (riesgo ítem 1) | S5 | inline | `feat/catalogo-myanimelist-04-ids-mal` | hecho; verificador sin bloqueos abiertos | d2f1eba, 4271c3f |
 | T7 | Crédito, CSP, i18n, landing, eventos y documentación | S6, S8 | inline | — | pendiente | — |
 | T8 | Verificador independiente (T4 y T6) y vista previa | S1–S8 | verificador | — | pendiente | — |
 
@@ -86,3 +86,12 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
   - RED: los tres casos nuevos de contrato devolvían 200 y la prueba de conversión fallaba por falta de la migración. Después: API 388 tests en 29 archivos, web 391, typecheck, `openapi:check`, depcruise y `biome ci` sin errores.
   - La prueba de conversión corre los archivos de migración uno por uno sobre una base aparte, con IDs cruzados, duplicados y marcas sin `mal_id`.
   - Riesgo: ítem 1 (modifica y mueve datos guardados) e ítem 3 (quita un campo del contrato). Corresponde verificador independiente.
+- **L16:** Verificador independiente de T6b sobre `d2f1eba` contra `b9da917`, en una copia aparte:
+  - Conservación: 4.023 marcas de 60 usuarios (intercambios, ciclo de 3, duplicados con empates, marcas sin `mal_id`) y 3 overrides. Resultado: 3.378 en `mark` más 645 en `mark_anilist`, ninguna perdida, duplicada ni alterada; los 3 overrides, intactos en `franchise_override_anilist`.
+  - Esquema: clave `(user_id, anime_id)`, RLS en las 10 tablas, `acrux_api` sin acceso a las tablas nuevas, `acrux_backup` las lee, borrado en cascada, `prisma migrate diff` sin diferencias.
+  - Mutó la migración cinco veces y la prueba de conversión detectó las cinco.
+  - **Bloqueo B1:** Prisma no envuelve la migración en una transacción; con un fallo a mitad, las marcas quedaban a medio convertir. Corregido en `4271c3f` con `BEGIN … COMMIT`.
+  - Recomprobación de B1 sobre `4271c3f`: con un error inyectado antes del `COMMIT` no se aplica nada; sin el error, la conversión conserva todo y `_prisma_migrations` la registra como terminada; `migrations.test.ts` 37 de 37. Bloqueo cerrado.
+  - No hizo comparación pedido por pedido de las rutas contra la versión anterior ni pruebas HTTP en vivo; se apoyó en las suites.
+  - Avisos sin corregir: la exportación de la cuenta no incluye `mark_anilist`; entre duplicados gana la marca «vista» aunque la «viendo» sea más antigua.
+- **L17:** La CSP (`apps/web/vercel.json`) no se toca en T7: el PR #109 la mueve a `apps/web/api/_csp.ts` y todavía no está en `main`, y el servidor de portadas de MyAnimeList está sin confirmar. Pasa a T3.
