@@ -1,5 +1,5 @@
-// Initial model of ADR-0022 (issue #22). The catalog is not stored: only AniList and
-// MAL ids (RDI-13, RDI-20). user_id is the uuid of the Neon Auth user (ADR-0034).
+// Initial model of ADR-0022 (issue #22). The catalog is copied from MyAnimeList into the
+// anime table (ADR-0043); the other tables hold only AniList and MAL ids (RDI-13, RDI-20). user_id is the uuid of the Neon Auth user (ADR-0034).
 
 generator client {
   provider = "prisma-client"
@@ -152,4 +152,36 @@ model FranchiseOverride {
   updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("franchise_override")
+}
+
+// The catalog copied from MyAnimeList (ADR-0043); the id is MyAnimeList's.
+model Anime {
+  id              Int       @id
+  title           String
+  titleEnglish    String?   @map("title_english")
+  titleJapanese   String?   @map("title_japanese")
+  // Every name of the anime in lower case, for the search by name.
+  searchText      String    @map("search_text")
+  coverUrl        String?   @map("cover_url")
+  // TV, MOVIE, OVA, ONA, SPECIAL or MUSIC.
+  format          String?
+  // A partial date is stored as its first day.
+  startDate       DateTime? @map("start_date") @db.Date
+  year            Int?
+  episodes        Int?
+  durationMinutes Int?      @map("duration_minutes")
+  genres          String[]  @default([])
+  // Users with the anime in their list at the source: the popularity order.
+  members         Int       @default(0)
+  // Never served (RF-11).
+  adult           Boolean   @default(false)
+  // [{ type, id }] with the relation names of @acrux/domain.
+  relations       Json      @default("[]")
+  // When the detail, relations included, was last read; null while only the list fields are known.
+  detailedAt      DateTime? @map("detailed_at") @db.Timestamptz(6)
+  fetchedAt       DateTime  @default(now()) @map("fetched_at") @db.Timestamptz(6)
+
+  @@index([members(sort: Desc), id])
+  @@index([year])
+  @@map("anime")
 }
