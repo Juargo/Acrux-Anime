@@ -592,6 +592,26 @@ describe('PATCH /api/v1/me', () => {
       expect(calls).toEqual([]);
     });
 
+    it('refuses a Plus avatar sent along with other changes, saving none of them', async () => {
+      const { calls, service } = fakeProfiles();
+      const response = await request(appOnPlan(service, 'free'))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send({ displayName: 'Cami', avatarPreset: 'sakura' });
+      expect(response.status).toBe(403);
+      expect(calls).toEqual([]);
+    });
+
+    it.each(['Sakura', 'SAKURA', 'sakura '])('rejects the preset %j with 400', async (preset) => {
+      const { calls, service } = fakeProfiles();
+      const response = await request(appOnPlan(service, 'free'))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send({ avatarPreset: preset });
+      expect(response.status).toBe(400);
+      expect(calls).toEqual([]);
+    });
+
     it('saves a Plus avatar for a Plus user', async () => {
       const { calls, service } = fakeProfiles();
       const response = await request(appOnPlan(service, 'plus'))
