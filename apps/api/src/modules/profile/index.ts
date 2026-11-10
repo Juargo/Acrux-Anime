@@ -1,16 +1,28 @@
 import type { Response } from 'express';
 import { z } from 'zod';
-import type { PlanReader } from '../../http/plan.js';
+import type { PlanReader, UserPlan } from '../../http/plan.js';
 import { ProblemError } from '../../http/problem.js';
 import type { Module } from '../../http/routes.js';
 import type { Session } from '../../http/session.js';
+import { isPlusPreset, visiblePreset } from './domain/avatar.js';
 import { displayNameProblem } from './domain/display-name.js';
 import type { ProfileService } from './services/profile.service.js';
 
 const counterMode = z.enum(['franchise', 'entry']);
 // The languages of the web app (@acrux/i18n locales, ADR-0010).
 const locale = z.enum(['es', 'en']);
-export const avatarPreset = z.enum(['violeta', 'verde', 'amarillo', 'coral', 'noche', 'lavanda']);
+// sakura, aurora and eclipse need Plus (RF-55).
+export const avatarPreset = z.enum([
+  'violeta',
+  'verde',
+  'amarillo',
+  'coral',
+  'noche',
+  'lavanda',
+  'sakura',
+  'aurora',
+  'eclipse',
+]);
 
 // RF-07 and Figma M06 ("5/30"): trimmed, then the rules the editor checks too (@acrux/domain).
 const displayName = z
@@ -21,7 +33,9 @@ const displayName = z
 const profileSchema = z.object({
   displayName: z.string(),
   avatarUrl: z.string().nullable(),
-  avatarPreset: avatarPreset.nullable().describe("A preset Acrux avatar; null shows Google's"),
+  avatarPreset: avatarPreset
+    .nullable()
+    .describe("A preset Acrux avatar; null shows Google's. A Plus preset reads null without Plus"),
   locale: locale.nullable().describe('The chosen language; null follows the browser (#43)'),
   listVisibility: z.enum(['private', 'public']),
   counterMode,
@@ -76,10 +90,22 @@ export interface PlanInfo {
   plusAvailable: boolean;
 }
 
+const planOf = async (current: Session, plans: PlanInfo | undefined): Promise<UserPlan> =>
+  plans?.planOf ? plans.planOf(current.userId) : 'free';
+
 // What the web shows about Plus: the plan from the database and whether it can be bought.
-async function planFields(current: Session, plans: PlanInfo | undefined) {
+// A Plus avatar shows only while the plan is Plus; the stored one is kept (RF-55, RF-56).
+function withPlan<T extends { avatarPreset: z.infer<typeof avatarPreset> | null }>(
+  view: T,
+  current: Session,
+  plan: UserPlan,
+  plans: PlanInfo | undefined,
+) {
   return {
-    plan: plans?.planOf ? await plans.planOf(current.userId) : ('free' as const),
+    ...view,
+    avatarPreset: visiblePreset(view.avatarPreset, plan),
+    curator: isCurator(current),
+    plan,
     plusAvailable: plans?.plusAvailable ?? false,
   };
 }
@@ -104,11 +130,8 @@ export function createProfileModule(
         },
         handler: async (_request, response) => {
           const { profiles: service, current } = session(profiles, response);
-          response.json({
-            ...(await service.me(current)),
-            curator: isCurator(current),
-            ...(await planFields(current, plans)),
-          });
+          const view = await service.me(current);
+          response.json(withPlan(view, current, await planOf(current, plans), plans));
         },
       },
       {
@@ -121,6 +144,7 @@ export function createProfileModule(
           responses: {
             200: { description: 'The profile after the change', schema: profileSchema },
             400: { description: 'The body is not a known change' },
+            403: { description: 'A Plus avatar needs Plus (RF-55)' },
             503: { description: 'The database is not configured' },
           },
         },
@@ -132,11 +156,13 @@ export function createProfileModule(
           if (!body.success) {
             throw new ProblemError(400, 'profile.invalid_body', 'Invalid profile body');
           }
-          response.json({
-            ...(await service.update(current, body.data)),
-            curator: isCurator(current),
-            ...(await planFields(current, plans)),
-          });
+          // The plan comes from the database, never from the client (ADR-0025).
+          const plan = await planOf(current, plans);
+          if (isPlusPreset(body.data.avatarPreset) && plan !== 'plus') {
+            throw new ProblemError(403, 'plan.plus_required', 'This avatar needs Plus');
+          }
+          const view = await service.update(current, body.data);
+          response.json(withPlan(view, current, plan, plans));
         },
       },
     ],

@@ -4,7 +4,16 @@ import { handleBase, handleCandidates, randomCandidate } from '../domain/handle.
 type CounterMode = 'franchise' | 'entry';
 type ListVisibility = 'private' | 'public';
 export type Locale = 'es' | 'en';
-export type AvatarPreset = 'violeta' | 'verde' | 'amarillo' | 'coral' | 'noche' | 'lavanda';
+export type AvatarPreset =
+  | 'violeta'
+  | 'verde'
+  | 'amarillo'
+  | 'coral'
+  | 'noche'
+  | 'lavanda'
+  | 'sakura'
+  | 'aurora'
+  | 'eclipse';
 
 export interface ProfileView {
   displayName: string;

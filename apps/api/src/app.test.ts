@@ -561,6 +561,81 @@ describe('PATCH /api/v1/me', () => {
     ]);
   });
 
+  describe('Plus avatars (RF-55)', () => {
+    function appOnPlan(profileService: Container['profileService'], plan: 'free' | 'plus') {
+      const base = createContainer({});
+      const planOf = async () => plan;
+      return createApp({
+        ...base,
+        profileService,
+        sessionVerifier: async () => ({ userId: USER, name: 'Camila' }),
+        modules: createModules(
+          profileService,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          planOf,
+        ),
+      });
+    }
+
+    it('@CA-RF55-03 refuses a Plus avatar to a free user with 403 and changes nothing', async () => {
+      const { calls, service } = fakeProfiles();
+      const response = await request(appOnPlan(service, 'free'))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send({ avatarPreset: 'sakura' });
+      expect(response.status).toBe(403);
+      expect(response.body).toMatchObject({ code: 'plan.plus_required' });
+      expect(calls).toEqual([]);
+    });
+
+    it('saves a Plus avatar for a Plus user', async () => {
+      const { calls, service } = fakeProfiles();
+      const response = await request(appOnPlan(service, 'plus'))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send({ avatarPreset: 'aurora' });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({ avatarPreset: 'aurora', plan: 'plus' });
+      expect(calls).toEqual([
+        { session: { userId: USER, name: 'Camila' }, changes: { avatarPreset: 'aurora' } },
+      ]);
+    });
+
+    it('still lets a free user pick a free avatar', async () => {
+      const { service } = fakeProfiles();
+      const response = await request(appOnPlan(service, 'free'))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send({ avatarPreset: 'coral' });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({ avatarPreset: 'coral' });
+    });
+
+    it.each([
+      ['free', null],
+      ['plus', 'eclipse'],
+    ] as const)(
+      'shows a stored Plus avatar to a %s user as %s, keeping it for a later purchase (RF-56)',
+      async (plan, shown) => {
+        const { service } = fakeProfiles();
+        const stored = {
+          ...service,
+          me: async () => ({
+            ...(await service.update({ userId: USER }, {})),
+            avatarPreset: 'eclipse' as const,
+          }),
+        };
+        const response = await request(appOnPlan(stored, plan)).get('/api/v1/me').set(auth);
+        expect(response.status).toBe(200);
+        expect(response.body.avatarPreset).toBe(shown);
+      },
+    );
+  });
+
   it('accepts an emoji joined with ZWJ', async () => {
     const { service } = fakeProfiles();
     const response = await request(appWithProfiles(service))

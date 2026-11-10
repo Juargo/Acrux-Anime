@@ -67,9 +67,11 @@ export function createContainer(source: Record<string, string | undefined>): Con
     marksRepository && profileService
       ? createMarksService(marksRepository, profileService)
       : undefined;
+  const entitlements = prisma ? createEntitlementRepository(prisma) : undefined;
+  const planOf = entitlements?.planOf;
   const publicProfileService =
     profileService && marksService
-      ? createPublicProfileService(profileService, marksService)
+      ? createPublicProfileService(profileService, marksService, planOf)
       : undefined;
   const analyticsSecret = env.ANALYTICS_ID_SECRET;
   const accountService =
@@ -97,8 +99,6 @@ export function createContainer(source: Record<string, string | undefined>): Con
             analyticsSecret ? analyticsId(userId, analyticsSecret) : null,
         })
       : undefined;
-  const entitlements = prisma ? createEntitlementRepository(prisma) : undefined;
-  const planOf = entitlements?.planOf;
   const errorReporter = env.SENTRY_DSN
     ? createSentryReporter({
         dsn: env.SENTRY_DSN,

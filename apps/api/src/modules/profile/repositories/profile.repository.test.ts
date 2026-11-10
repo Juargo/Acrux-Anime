@@ -239,6 +239,10 @@ describe('profile repository', () => {
 
     const google = await profiles.update(userId, initial, { avatarPreset: null });
     expect(google.avatarPreset).toBeNull();
+
+    // The Plus presets of RF-55 are stored as they are; the API decides who sees them.
+    const plus = await profiles.update(userId, initial, { avatarPreset: 'eclipse' });
+    expect(plus.avatarPreset).toBe('eclipse');
   });
 
   it("removes the profile with the user's marks, AniList link and plan, and nobody else's", async () => {

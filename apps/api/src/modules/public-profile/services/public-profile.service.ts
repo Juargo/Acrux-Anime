@@ -1,5 +1,8 @@
+import type { PlanReader } from '../../../http/plan.js';
 import type { MarkPage, MarkPageQuery, MarksService } from '../../marks/services/marks.service.js';
+import { visiblePreset } from '../../profile/domain/avatar.js';
 import { isHandle } from '../../profile/domain/handle.js';
+import type { AvatarPreset } from '../../profile/repositories/profile.repository.js';
 import type { ProfileService } from '../../profile/services/profile.service.js';
 
 // What any visitor sees of a profile (RF-40, Figma M14/M15): never the owner's id or email.
@@ -7,7 +10,7 @@ export interface PublicProfileView {
   handle: string;
   displayName: string;
   avatarUrl: string | null;
-  avatarPreset: 'violeta' | 'verde' | 'amarillo' | 'coral' | 'noche' | 'lavanda' | null;
+  avatarPreset: AvatarPreset | null;
   listVisibility: 'private' | 'public';
   shownTotal: number | null;
   shownMode: 'franchise' | 'entry' | null;
@@ -23,6 +26,8 @@ export interface PublicProfileService {
 export function createPublicProfileService(
   profiles: Pick<ProfileService, 'findByHandle'>,
   marks: Pick<MarksService, 'listOf'>,
+  // Without a plan reader everyone reads as free, so Plus extras stay hidden (RF-55).
+  planOf?: PlanReader,
 ): PublicProfileService {
   // An invalid handle is looked up as nothing, so it answers like an unknown one.
   const find = (handle: string) => (isHandle(handle) ? profiles.findByHandle(handle) : null);
@@ -30,8 +35,9 @@ export function createPublicProfileService(
     summary: async (handle) => {
       const row = await find(handle);
       if (!row) return null;
-      const { userId: _owner, ...summary } = row;
-      return summary;
+      const { userId: owner, ...summary } = row;
+      const plan = planOf ? await planOf(owner) : 'free';
+      return { ...summary, avatarPreset: visiblePreset(summary.avatarPreset, plan) };
     },
     marks: async (handle, page) => {
       const row = await find(handle);

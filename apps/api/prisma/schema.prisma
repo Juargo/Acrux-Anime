@@ -47,6 +47,7 @@ enum FranchiseRole {
 }
 
 // The preset Acrux avatars of Figma M06 (#39); null on the profile means Google's.
+// sakura, aurora and eclipse need Plus (RF-55).
 enum AvatarPreset {
   violeta
   verde
@@ -54,6 +55,9 @@ enum AvatarPreset {
   coral
   noche
   lavanda
+  sakura
+  aurora
+  eclipse
 
   @@map("avatar_preset")
 }
