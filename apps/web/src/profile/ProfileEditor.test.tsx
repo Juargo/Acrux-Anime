@@ -130,6 +130,38 @@ describe('ProfileEditor', () => {
     await vi.waitFor(() => expect(patches).toEqual([{ avatarPreset: null }]));
   });
 
+  describe('Plus avatars (RF-55)', () => {
+    it('@CA-RF55-03 shows the Plus avatars locked to a free user, with the way to Plus', async () => {
+      renderEditor({ profile: { plan: 'free', plusAvailable: true } });
+      const group = await screen.findByRole('group', { name: 'Exclusivos de Plus' });
+      for (const preset of ['sakura', 'aurora', 'eclipse']) {
+        expect(
+          within(group).getByRole<HTMLInputElement>('radio', { name: `Avatar ${preset}` }).disabled,
+        ).toBe(true);
+      }
+      const cta = within(group).getByRole('link', { name: 'Ver Acrux Plus' });
+      expect(cta.getAttribute('href')).toBe('/perfil/plus');
+    });
+
+    it('says Plus arrives soon while billing is off', async () => {
+      renderEditor({ profile: { plan: 'free', plusAvailable: false } });
+      const group = await screen.findByRole('group', { name: 'Exclusivos de Plus' });
+      within(group).getByText('Acrux Plus llega pronto.');
+      expect(within(group).queryByRole('link')).toBeNull();
+    });
+
+    it('lets a Plus user pick a Plus avatar', async () => {
+      const user = userEvent.setup();
+      const { patches } = renderEditor({ profile: { plan: 'plus', plusAvailable: true } });
+
+      await user.click(await screen.findByRole('radio', { name: 'Avatar aurora' }));
+      await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+      await vi.waitFor(() => expect(patches).toEqual([{ avatarPreset: 'aurora' }]));
+      expect(screen.queryByRole('link', { name: 'Ver Acrux Plus' })).toBeNull();
+    });
+  });
+
   it('offers no Google photo when there is none', async () => {
     renderEditor({ profile: { avatarUrl: null } });
     await screen.findByRole('heading', { name: 'Así aparecerás en tu tarjeta' });

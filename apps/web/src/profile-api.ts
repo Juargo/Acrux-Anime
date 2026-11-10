@@ -3,7 +3,17 @@
 import type { Locale } from '@acrux/i18n';
 import { apiError } from './api-errors';
 
-export type AvatarPreset = 'violeta' | 'verde' | 'amarillo' | 'coral' | 'noche' | 'lavanda';
+export type AvatarPreset =
+  | 'violeta'
+  | 'verde'
+  | 'amarillo'
+  | 'coral'
+  | 'noche'
+  | 'lavanda'
+  // Plus only (RF-55): the API refuses them without Plus and reads them as null.
+  | 'sakura'
+  | 'aurora'
+  | 'eclipse';
 
 export interface Profile {
   displayName: string;

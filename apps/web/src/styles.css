@@ -1654,6 +1654,32 @@ label.sheet__label {
   color: var(--color-text-on-accent);
 }
 
+/* RF-55: the Plus-only presets. */
+.avatar--sakura {
+  background: linear-gradient(135deg, #ffb3cf, #c3b8ff);
+  color: #0b0d1c;
+}
+
+.avatar--aurora {
+  background: linear-gradient(135deg, #5ee0d6, #9d8cf5);
+  color: #1b1f3b;
+}
+
+.avatar--eclipse {
+  background: radial-gradient(circle at 30% 30%, #2a2f55, #0b0d1c 70%);
+  color: #ffd166;
+}
+
+.profile-editor__avatars--plus input:disabled + .avatar {
+  opacity: 0.45;
+}
+
+.profile-editor__plus {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
 /* Figma M06 · Nombre y avatar. */
 .profile-editor {
   display: flex;

@@ -1,8 +1,9 @@
 import { DISPLAY_NAME_MAX, displayNameProblem } from '@acrux/domain';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 import { errorCode, errorMessage } from '../api-errors';
-import { AVATAR_PRESETS, Avatar, PresetArt } from '../components/Avatar';
+import { AVATAR_PRESETS, Avatar, PLUS_AVATAR_PRESETS, PresetArt } from '../components/Avatar';
 import type { AvatarPreset, Profile, ProfileChanges } from '../profile-api';
 import { useOwnProfile } from './use-own-profile';
 
@@ -40,6 +41,22 @@ export function ProfileEditor({
   const trimmed = name.trim();
   const problem = displayNameProblem(trimmed);
   const valid = problem === null;
+  const isPlus = profile.plan === 'plus';
+  const presetChoice = (key: AvatarPreset, locked = false) => (
+    <label key={key} className="profile-editor__choice">
+      <input
+        type="radio"
+        name="avatar"
+        aria-label={t('profileEditor.preset', { name: t(`avatar.${key}`) })}
+        checked={preset === key}
+        disabled={locked}
+        onChange={() => setPreset(key)}
+      />
+      <span className={`avatar avatar--${key}`} aria-hidden="true">
+        <PresetArt />
+      </span>
+    </label>
+  );
 
   async function finish() {
     const changes: ProfileChanges = {};
@@ -99,20 +116,20 @@ export function ProfileEditor({
             />
           </label>
         )}
-        {AVATAR_PRESETS.map((key) => (
-          <label key={key} className="profile-editor__choice">
-            <input
-              type="radio"
-              name="avatar"
-              aria-label={t('profileEditor.preset', { name: t(`avatar.${key}`) })}
-              checked={preset === key}
-              onChange={() => setPreset(key)}
-            />
-            <span className={`avatar avatar--${key}`} aria-hidden="true">
-              <PresetArt />
-            </span>
-          </label>
-        ))}
+        {AVATAR_PRESETS.map((key) => presetChoice(key))}
+      </fieldset>
+      {/* RF-55: three more presets for Plus; a free user sees them locked, with the way to Plus. */}
+      <fieldset className="profile-editor__avatars profile-editor__avatars--plus">
+        <legend className="profile-editor__legend">{t('profileEditor.plusPresets')}</legend>
+        {PLUS_AVATAR_PRESETS.map((key) => presetChoice(key, !isPlus))}
+        {!isPlus &&
+          (profile.plusAvailable ? (
+            <Link className="profile-editor__plus" to="/perfil/plus">
+              {t('plus.seePlus')}
+            </Link>
+          ) : (
+            <p className="profile-editor__plus">{t('plus.soon')}</p>
+          ))}
       </fieldset>
       <label className="profile-editor__label" htmlFor={inputId}>
         {t('profileEditor.nameLabel')}

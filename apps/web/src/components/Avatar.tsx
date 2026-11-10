@@ -11,6 +11,9 @@ export const AVATAR_PRESETS: AvatarPreset[] = [
   'lavanda',
 ];
 
+// The presets only Plus can pick (RF-55); the API refuses them without Plus.
+export const PLUS_AVATAR_PRESETS: AvatarPreset[] = ['sakura', 'aurora', 'eclipse'];
+
 const SPARKLE = 'M12 3c.5 4.6 3.4 7.5 8 8-4.6.5-7.5 3.4-8 8-.5-4.6-3.4-7.5-8-8 4.6-.5 7.5-3.4 8-8Z';
 
 /** The Acrux sparkle on the preset's color; size and color come from the .avatar classes. */

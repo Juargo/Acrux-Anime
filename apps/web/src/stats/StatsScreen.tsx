@@ -204,7 +204,7 @@ function Locked({ plusAvailable }: { plusAvailable: boolean }) {
         </h2>
         {plusAvailable ? (
           <Link className="button" to="/perfil/plus">
-            {t('stats.seePlus')}
+            {t('plus.seePlus')}
           </Link>
         ) : (
           <p className="stats__note">{t('plus.soon')}</p>
