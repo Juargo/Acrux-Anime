@@ -260,6 +260,19 @@ export const accountEs = {
     deny: 'Rechazar',
     grant: 'Aceptar',
   },
+  ads: {
+    row: 'Anuncios personalizados',
+    consent: { granted: 'Aceptados', denied: 'Rechazados', undecided: 'Sin decidir' },
+    bannerTitle: 'Tu privacidad en Acrux',
+    bannerText: 'Elige qué nos dejas usar. Puedes cambiarlo cuando quieras desde tu perfil.',
+    analyticsHint: 'Para saber si Acrux le sirve a más gente. Sin cookies hasta que aceptes.',
+    personalizeHint:
+      'Anuncios según tus intereses. Si no aceptas, igual verás anuncios, pero no personalizados.',
+    denyAll: 'Rechazar todo',
+    save: 'Guardar elección',
+    grantAll: 'Aceptar todo',
+    label: 'Publicidad',
+  },
   // One message per API problem `code` (ADR-0023); `generic` covers unknown codes.
   errors: {
     generic: 'Algo salió mal. Vuelve a intentarlo.',
@@ -561,6 +574,19 @@ export const accountEn = {
     more: 'Learn more',
     deny: 'Decline',
     grant: 'Accept',
+  },
+  ads: {
+    row: 'Personalized ads',
+    consent: { granted: 'Accepted', denied: 'Declined', undecided: 'Undecided' },
+    bannerTitle: 'Your privacy on Acrux',
+    bannerText: 'Choose what we may use. You can change it anytime from your profile.',
+    analyticsHint: 'To learn whether Acrux is useful to more people. No cookies until you accept.',
+    personalizeHint:
+      "Ads based on your interests. If you decline, you'll still see ads, just not personalized.",
+    denyAll: 'Decline all',
+    save: 'Save choice',
+    grantAll: 'Accept all',
+    label: 'Advertisement',
   },
   errors: {
     generic: 'Something went wrong. Please try again.',
