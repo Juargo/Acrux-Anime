@@ -15,7 +15,7 @@ El workflow semanal (`.github/workflows/weekly.yml`) corre ZAP baseline contra `
 - **10109 Modern Web Application:** es informativo; sólo avisa que la app es una SPA.
 - **10049 Storable but Non-Cacheable Content** y **10050 Retrieved from Cache:** son informativos y describen el caché de la CDN de Vercel.
 - **10015 Re-examine Cache-control Directives:** el HTML de la app usa `max-age=0, must-revalidate` a propósito, para que cada visita reciba la versión desplegada.
-- **90004 Cross-Origin-Embedder-Policy:** la app no necesita aislamiento entre orígenes (no usa `SharedArrayBuffer`). `require-corp` bloquearía las portadas de AniList y los avatares de Google, que no envían `Cross-Origin-Resource-Policy`, y Safari no admite `credentialless`.
+- **90004 Cross-Origin-Embedder-Policy:** la app no necesita aislamiento entre orígenes (no usa `SharedArrayBuffer`). `require-corp` bloquearía las portadas del catálogo (de MyAnimeList, ADR-0043; antes de AniList) y los avatares de Google, que no envían `Cross-Origin-Resource-Policy`, y Safari no admite `credentialless`.
 
 ## Un hallazgo nuevo
 

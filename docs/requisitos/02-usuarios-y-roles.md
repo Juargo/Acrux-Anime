@@ -2,7 +2,7 @@
 
 ## Roles
 
-La identidad es la cuenta de Google (Neon Auth, ADR-0034). AniList es un vínculo opcional, no un medio de inicio de sesión (ADR-0025). Esto reemplaza la nota de Obsidian que hacía depender el rol de usuario de un inicio de sesión con AniList.
+La identidad es la cuenta de Google (Neon Auth, ADR-0034). AniList era un vínculo opcional, no un medio de inicio de sesión (ADR-0025); el vínculo sale del alcance del lanzamiento (ADR-0043, punto 8). Esto reemplaza la nota de Obsidian que hacía depender el rol de usuario de un inicio de sesión con AniList.
 
 | Rol | Quién es | Cómo accede |
 |---|---|---|

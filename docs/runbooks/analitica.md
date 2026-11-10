@@ -13,7 +13,6 @@ La web app envía a PostHog (nube de la UE) los eventos de ADR-0030 solo despué
 | `card_shared` | Comparte o descarga la tarjeta | `method` |
 | `list_made_public` | Hace pública la lista | `source` |
 | `public_profile_viewed` | Alguien abre un perfil público | `listVisibility` |
-| `anilist_rate_limited` | AniList responde 429 | `attempt` |
 | `account_deleted` | Borra su cuenta; se envía sin identificar, después de olvidar a la persona | ninguna |
 | `$pageview`, `$web_vitals` | Cada pantalla; LCP, INP y CLS | los de PostHog |
 
@@ -48,7 +47,6 @@ Crear en PostHog un tablero con estos *insights*. La vista previa y producción 
 | Retención D7 y D30 (RN-M3) | Retention | Evento inicial `signup_completed`; evento de regreso la acción «Vuelve a marcar o compartir»; intervalos diarios; leer los días 7 y 30 |
 | Visitas a perfiles públicos | Trends con fórmula | `public_profile_viewed` / `card_shared`, semanal |
 | Core Web Vitals en móvil (RNF-10) | Web analytics → Web vitals | Filtro `$device_type = Mobile`; metas LCP < 2,5 s, INP < 200 ms, CLS < 0,1 (p75) |
-| Límite de AniList | Trends | `anilist_rate_limited`, total diario |
 
 Antes, crear dos acciones en PostHog (*Data management → Actions*):
 

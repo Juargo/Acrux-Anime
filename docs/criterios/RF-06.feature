@@ -8,7 +8,7 @@ Característica: Borrar la cuenta
   Escenario: Borrar mi cuenta y todos mis datos
     Dado que inicié sesión hace menos de 24 horas, marqué franquicias y mi lista es pública
     Cuando toco "Borrar mi cuenta para siempre" y lo confirmo
-    Entonces se borran mi perfil, mis marcas y mi enlace con AniList, y los datos de otros usuarios no cambian
+    Entonces se borran mi perfil y mis marcas, y los datos de otros usuarios no cambian
     Y vuelvo a la pantalla de inicio de sesión
     Y mi enlace público ya no muestra mi perfil
 

@@ -30,7 +30,7 @@ Anuncios para usuarios gratuitos (RF-58), que Plus quita (RF-59). La decisión e
 
 ## Antes de activar
 
-1. Recibir la autorización de AniList (#6), como exige ADR-0036, punto 4.
+1. Leer el acuerdo de la API de MyAnimeList (https://myanimelist.net/static/apiagreement.html) y confirmar que permite mostrar anuncios con sus datos. El soporte de MyAnimeList autorizó el uso comercial por correo (2026-11-06), pero el texto del acuerdo prohíbe generar ingresos con una aplicación comercial sin autorización escrita (ADR-0043). AniList ya no es la fuente, así que su autorización (#6) dejó de ser el bloqueo que exigía ADR-0036, punto 4.
 2. Confirmar si con la Ley 21.719 (Chile) las cookies de frecuencia y fraude de AdSense necesitan consentimiento (ADR-0038). Si lo necesitan, sin consentimiento hay que pasar a anuncios limitados o a ninguno.
 3. Publicar contenido en `acruxanime.com` y pedir la cuenta de AdSense con ese sitio.
 4. **Decidir la CSP.** Google solo soporta una política estricta basada en nonce (`'strict-dynamic'`) y no una lista de dominios permitidos ([AdSense Help](https://support.google.com/adsense/answer/16283098)). Hoy la web es una SPA estática con `script-src 'self'` (`apps/web/vercel.json`). Hay tres opciones:

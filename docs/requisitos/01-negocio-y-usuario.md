@@ -17,18 +17,18 @@
 | RN-05 | Freemium con anuncios no intrusivos para los usuarios gratuitos. Marcar, el contador y la tarjeta básica son gratis para siempre. Nunca hay anuncios en la tarjeta compartida, en el perfil público, en el inicio de sesión ni en el borrado de cuenta. | Must | Estudio de mercado; ADR-0036 |
 | RN-06 | Plan **Plus** de pago único que quita los anuncios y agrega estadísticas avanzadas, Wrapped completo, insignias y avatares exclusivos (ADR-0040). Los temas y plantillas extra de tarjeta se venderán aparte (ADR-0039). | Must | Estudio de mercado; ADR-0036, ADR-0039 |
 | RN-07 | Precio de referencia de Plus: pago vitalicio de ~US$19,99, con precio regional para Latinoamérica. No hay suscripción mensual ni anual. | Should | Estudio de mercado; DD-28; modificado por ADR-0036 |
-| RN-08 | El producto opera legalmente con el catálogo y los datos de AniList, incluido el escenario de ingresos sobre el umbral de uso comercial gratuito. Ni Plus se cobra ni se muestran anuncios sin autorización y licencia de AniList. | Must | Estudio §5.2; ADR-0024; ADR-0036 |
+| RN-08 | El producto opera legalmente con el catálogo y los datos de MyAnimeList (ADR-0043), con crédito y enlace. Antes de cobrar Plus o mostrar anuncios se lee el acuerdo de la API de MyAnimeList, que prohíbe generar ingresos sin autorización escrita (R-01). | Must | Estudio §5.2; ADR-0024; ADR-0036 |
 
 ## Hitos
 
 | Hito | Entrega | Condición para avanzar |
 |---|---|---|
 | **H1. Validación** | Entrevistas, encuesta y landing de prueba en `acruxanime.com` con lista de espera y medición en PostHog. Correos de autorización a AniList y MyAnimeList. | Se cumplen los umbrales de validación |
-| **H2. Beta cerrada** | Web app en `app.acruxanime.com` para 30 a 50 testers: login con Google, marcar franquicias, contador, tarjeta, perfil público y borrado de cuenta. Sin cobro. | RN-M1 a RN-M3 medidas y autorización escrita de AniList |
-| **H3. Lanzamiento público** | Apertura a todos, en español e inglés. | Licencia comercial de AniList, Vercel Pro y Lemon Squeezy configurado |
+| **H2. Beta cerrada** | Web app en `app.acruxanime.com` para 30 a 50 testers: login con Google, marcar franquicias, contador, tarjeta, perfil público y borrado de cuenta. Sin cobro. | RN-M1 a RN-M3 medidas y autorización escrita de la fuente de datos (cubierta con MyAnimeList desde 2026-11-10, ADR-0043) |
+| **H3. Lanzamiento público** | Apertura a todos, en español e inglés. | ~~Licencia comercial de AniList~~ (sin objeto, ADR-0043), Vercel Pro y Lemon Squeezy configurado |
 | **H4. Monetización** | Anuncios no intrusivos y Plus vitalicio sin anuncios (ADR-0036). | — |
 
-Si AniList y MyAnimeList responden que no, se detiene el avance después de H1 y se reconsidera el modelo (ADR-0031).
+Si AniList y MyAnimeList responden que no, se detiene el avance después de H1 y se reconsidera el modelo (ADR-0031). MyAnimeList respondió que sí (2026-11-06) y es la fuente desde 2026-11-10 (ADR-0041, ADR-0043).
 
 ## Plan de validación (H1)
 
@@ -66,7 +66,7 @@ Estimaciones del estudio (no verificadas): SAM de 1,6–6 M de hispanohablantes 
 | ID | Como… | Quiero… | Para… | Prioridad |
 |---|---|---|---|---|
 | RU-01 | Fan casual | entrar con mi cuenta de Google sin crear otra cuenta | empezar en segundos | Must |
-| RU-02 | Usuario de AniList | vincular mi cuenta de AniList | no llevar dos listas | Should |
+| RU-02 | Usuario de AniList | vincular mi cuenta de AniList | no llevar dos listas | Should (fuera del alcance del lanzamiento, ADR-0043) |
 | RU-03 | Cualquier usuario | ver cada anime como un solo ítem con todas sus temporadas, películas y OVAs | entender qué he visto de una saga | Must |
 | RU-04 | Cualquier usuario | marcar una franquicia como vista o viendo con un toque | registrar sin fricción | Must |
 | RU-05 | Cualquier usuario | ver cuántos animes he visto de verdad, y poder contar por entradas | elegir el conteo que prefiero | Must |

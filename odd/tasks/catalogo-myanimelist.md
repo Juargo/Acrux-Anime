@@ -31,7 +31,7 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
 | T4 | Trabajo programado de carga y refresco (riesgo ítem 5) | S2, S7 | inline | — | pendiente | — |
 | T5 | Web: cliente del catálogo en lugar del de AniList, mensajes de error, simulación en E2E | S3, S4 | delegada (contexto) | `feat/catalogo-myanimelist-03-web` | hecho | b915149, b9da917 |
 | T6b | Los IDs guardados pasan a ser de MyAnimeList, junto con el cambio de fuente de la web (riesgo ítem 1) | S5 | inline | `feat/catalogo-myanimelist-04-ids-mal` | hecho; verificador sin bloqueos abiertos | d2f1eba, 4271c3f |
-| T7 | Crédito, CSP, i18n, landing, eventos y documentación | S6, S8 | inline | — | pendiente | — |
+| T7 | Crédito en «Acerca de» y en la landing, textos del curador, textos legales y documentación. La CSP pasó a T3 (L17) | S6, S8 | delegada (contexto) | `feat/catalogo-myanimelist-05-credito` | hecho; S6 parcial | (este commit y el anterior) |
 | T8 | Verificador independiente (T4 y T6) y vista previa | S1–S8 | verificador | — | pendiente | — |
 
 ## Log
@@ -95,3 +95,13 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
   - No hizo comparación pedido por pedido de las rutas contra la versión anterior ni pruebas HTTP en vivo; se apoyó en las suites.
   - Avisos sin corregir: la exportación de la cuenta no incluye `mark_anilist`; entre duplicados gana la marca «vista» aunque la «viendo» sea más antigua.
 - **L17:** La CSP (`apps/web/vercel.json`) no se toca en T7: el PR #109 la mueve a `apps/web/api/_csp.ts` y todavía no está en `main`, y el servidor de portadas de MyAnimeList está sin confirmar. Pasa a T3.
+- **L18:** T7 (escritor delegado), dentro de la superficie autorizada (35 archivos):
+  - Crédito a MyAnimeList con enlace en «Acerca de», en el pie de la landing y en la sección legal «Catálogo y MyAnimeList». No se quitó ni agregó ninguna afirmación legal; solo cambió la fuente.
+  - Textos del curador en los dos idiomas. Se quitó de la pantalla de borrado la línea «No se toca: tu lista de AniList.».
+  - Documentación: requisitos 01 a 06, 7 criterios, 7 runbooks y deuda técnica. Las etiquetas `@CA-` son las mismas 73 antes y después.
+  - RED: 6 tests de la web fallaron al cambiar primero las expectativas. `credit.test.ts` de la landing se escribió después del código, sin RED.
+  - Después: web 391, landing 31, e2e (unitarios) 10, typecheck, `biome ci` sin errores. Comprobación del orquestador: repetí web y landing.
+  - El orquestador quitó el selector `.delete-account__kept` de `apps/web/src/styles.css`, que quedó sin uso.
+  - Riesgo: ninguno.
+  - **S6 queda parcial:** solo «Acerca de» y la landing dan crédito. Catálogo, detalle de franquicia, Mi lista, perfil público, tarjeta, estadísticas e insignias muestran datos del catálogo sin crédito. Agregarlo es una decisión de diseño del stakeholder.
+  - Para el stakeholder: `@CA-RF28-03` (deshacer una escritura pendiente en AniList) solo tiene sentido con el vínculo de AniList; quedó marcado como fuera de alcance. En `RF-06.feature`, «mis marcas y mi enlace con AniList» pasó a «mis marcas». Además de los pedidos, se reescribieron RES-22, RES-23, RES-24, RES-31, R-02 y R-07, con nota fechada.
