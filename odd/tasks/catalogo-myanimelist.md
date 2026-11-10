@@ -1,6 +1,6 @@
 # Catálogo propio con datos de MyAnimeList (ADR-0043)
 
-Objetivo: reemplazar AniList por MyAnimeList como fuente de datos, con un catálogo propio en Neon servido por la API. Rama `feat/catalogo-myanimelist`. Entrega: `ask-on-risk`; estrategia de cadena pendiente de la respuesta del stakeholder. Runner: Vitest (`pnpm --filter @acrux/web test`, `pnpm --filter @acrux/api test`, `pnpm --filter @acrux/domain test`).
+Objetivo: reemplazar AniList por MyAnimeList como fuente de datos, con un catálogo propio en Neon servido por la API. Rama `feat/catalogo-myanimelist`. Entrega: `ask-on-risk`, cadena `feature-branch-chain`: cada PR hijo apunta a esta rama y `main` recibe un solo merge al final. Runner: Vitest (`pnpm --filter @acrux/web test`, `pnpm --filter @acrux/api test`, `pnpm --filter @acrux/domain test`).
 
 ## Specs
 
@@ -20,19 +20,18 @@ Supuestos, no pedidos por el stakeholder:
 
 ## Tasks
 
-Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T6 y T7 deben llegar a producción juntas: la web no puede leer de MyAnimeList con marcas guardadas por ID de AniList.
+Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deben llegar a producción juntas: la web no puede leer de MyAnimeList con marcas guardadas por ID de AniList.
 
-| ID | Qué | Specs | Ruta | Estado | Commit |
-|---|---|---|---|---|---|
-| T1 | ADR-0043 y este documento | S1, S2 | inline | hecho | (este commit) |
-| T2 | Dominio sin nombres ni valores de AniList; el adaptador de AniList sigue funcionando | S3 | inline | pendiente | — |
-| T3 | Cliente de MyAnimeList en la API, tabla de catálogo y conversión al dominio | S2, S4, S7 | inline | bloqueada: falta el client ID | — |
-| T4 | Trabajo programado de carga y refresco (riesgo ítem 5) | S2, S7 | inline | pendiente | — |
-| T5 | Módulo de catálogo en la API: catálogo, géneros, animes por ID, franquicia | S2, S3, S4 | inline | pendiente | — |
-| T6 | Web: cliente del catálogo en lugar del de AniList, mensajes de error, simulación en E2E | S3, S4 | por decidir | pendiente | — |
-| T7 | Cambio de clave de marcas y overrides, contratos y rutas (riesgo ítems 1 y 3) | S5 | inline | pendiente | — |
-| T8 | Crédito, CSP, i18n, landing, eventos y documentación | S6, S8 | inline | pendiente | — |
-| T9 | Verificador independiente (T4 y T7) y vista previa | S1–S8 | verificador | pendiente | — |
+| ID | Qué | Specs | Ruta | Rama hija | Estado | Commit |
+|---|---|---|---|---|---|---|
+| T1 | ADR-0043 y este documento | S1, S2 | inline | (rama de integración) | hecho | fcbc943 |
+| T2 | API: tabla de catálogo y módulo de catálogo (catálogo con filtros, animes por ID, franquicia, géneros), servidos desde Neon | S2, S3, S4 | inline | `feat/catalogo-myanimelist-01-api` | en curso | — |
+| T3 | Cliente de MyAnimeList en la API, conversión a la tabla y carga por demanda de lo que falta | S2, S4, S7 | inline | — | bloqueada: falta el client ID | — |
+| T4 | Trabajo programado de carga y refresco (riesgo ítem 5) | S2, S7 | inline | — | pendiente | — |
+| T5 | Web: cliente del catálogo en lugar del de AniList, mensajes de error, simulación en E2E | S3, S4 | por decidir | — | pendiente | — |
+| T6 | Cambio de clave de marcas y overrides, contratos, rutas y nombres del dominio (riesgo ítems 1 y 3) | S5 | inline | — | pendiente | — |
+| T7 | Crédito, CSP, i18n, landing, eventos y documentación | S6, S8 | inline | — | pendiente | — |
+| T8 | Verificador independiente (T4 y T6) y vista previa | S1–S8 | verificador | — | pendiente | — |
 
 ## Log
 
@@ -44,3 +43,8 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T6 y T7 deb
   - API de MyAnimeList: sin CORS (probado con `curl`, sin client ID); la referencia oficial no se pudo leer; los campos vienen de clientes de la comunidad y están sin confirmar.
   - No se sabe cuántas marcas de producción tienen `mal_id` nulo.
 - **L5:** El lanzamiento directo se salta los umbrales de H1 y la beta de H2 (ADR-0031). Esa decisión necesita su propio ADR y queda fuera de este documento.
+- **L6 (2026-11-10):** «si», a la pregunta «¿Encadeno los PRs sobre una rama de integración?».
+- **L7:** Cambio de plan después de leer el código:
+  - Se quitó la tarea «dominio sin nombres de AniList» como tarea aparte. El vocabulario de relaciones y formatos de `@acrux/domain` ya alcanza para los valores de MyAnimeList. Renombrar `anilistId` toca 380 referencias en la web y en la API, y solo tiene sentido junto con el cambio de contratos (T6).
+  - La tabla y el módulo de catálogo (T2) no dependen de la forma de las respuestas de MyAnimeList, así que van primero. El client ID solo bloquea T3 y T4.
+  - Ruta de T2: inline; es una sola unidad y no hay otra independiente para lanzar en paralelo.
