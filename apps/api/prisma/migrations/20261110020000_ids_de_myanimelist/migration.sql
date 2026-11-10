@@ -3,6 +3,10 @@
 --
 -- Nothing is lost in silence: what cannot be converted is moved to a table kept aside.
 -- Checked on 2026-11-10: production holds no marks and no curator rows.
+--
+-- One transaction: Prisma does not wrap a migration, and a failure midway must not leave
+-- the marks half converted.
+BEGIN;
 
 -- The curator table holds AniList ids only, with no MyAnimeList id to convert them with.
 CREATE TABLE "franchise_override_anilist" (
@@ -68,3 +72,5 @@ ALTER TABLE "mark" ADD CONSTRAINT "mark_pkey" PRIMARY KEY ("user_id", "anime_id"
 -- the owner and the backup role do.
 ALTER TABLE "franchise_override_anilist" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "mark_anilist" ENABLE ROW LEVEL SECURITY;
+
+COMMIT;
