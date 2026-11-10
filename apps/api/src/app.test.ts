@@ -58,7 +58,7 @@ const testModule: Module = {
 };
 
 describe('createApp', () => {
-  it('registers the seven API modules of ADR-0019 plus the system module', () => {
+  it('registers the seven API modules of ADR-0019, the catalog (ADR-0043) and the system module', () => {
     const names = createContainer({}).modules.map((module) => module.name);
     expect(names).toEqual([
       'system',
@@ -66,6 +66,7 @@ describe('createApp', () => {
       'profile',
       'marks',
       'franchises',
+      'catalog',
       'public-profile',
       'billing',
       'anilist-link',

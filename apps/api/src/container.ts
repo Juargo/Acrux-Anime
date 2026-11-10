@@ -20,6 +20,12 @@ import { anilistLinkModule } from './modules/anilist-link/index.js';
 import { createLemonSqueezyCheckout } from './modules/billing/adapters/lemon-squeezy-checkout.js';
 import { type BillingDependencies, createBillingModule } from './modules/billing/index.js';
 import { createEntitlementRepository } from './modules/billing/repositories/entitlement.repository.js';
+import { createCatalogModule } from './modules/catalog/index.js';
+import { createCatalogRepository } from './modules/catalog/repositories/catalog.repository.js';
+import {
+  type CatalogService,
+  createCatalogService,
+} from './modules/catalog/services/catalog.service.js';
 import { createFranchisesModule } from './modules/franchises/index.js';
 import {
   createFranchiseOverridesRepository,
@@ -155,11 +161,13 @@ export function createContainer(source: Record<string, string | undefined>): Con
           }
         : undefined,
       planOf,
+      prisma ? createCatalogService(createCatalogRepository(prisma)) : undefined,
     ),
   };
 }
 
-// The seven API modules of ADR-0019 plus the system module, in a stable order.
+// The seven API modules of ADR-0019, the catalog (ADR-0043) and the system module, in a
+// stable order.
 export function createModules(
   profileService: ProfileService | undefined,
   marksService: MarksService | undefined,
@@ -168,6 +176,7 @@ export function createModules(
   franchiseOverrides?: FranchiseOverridesRepository,
   billing?: BillingDependencies,
   planOf?: PlanReader,
+  catalog?: CatalogService,
 ): Module[] {
   return [
     systemModule,
@@ -175,6 +184,7 @@ export function createModules(
     createProfileModule(profileService, { planOf, plusAvailable: billing !== undefined }),
     createMarksModule(marksService),
     createFranchisesModule(franchiseOverrides),
+    createCatalogModule(catalog),
     createPublicProfileModule(publicProfileService),
     createBillingModule(billing),
     anilistLinkModule,
