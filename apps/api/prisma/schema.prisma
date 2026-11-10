@@ -1,5 +1,5 @@
 // Initial model of ADR-0022 (issue #22). The catalog is copied from MyAnimeList into the
-// anime table (ADR-0043); the other tables hold only AniList and MAL ids (RDI-13, RDI-20). user_id is the uuid of the Neon Auth user (ADR-0034).
+// anime table (ADR-0043); marks and the curator table hold only its ids (RDI-13, RDI-20). user_id is the uuid of the Neon Auth user (ADR-0034).
 
 generator client {
   provider = "prisma-client"
@@ -84,8 +84,9 @@ model Profile {
   createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  marks       Mark[]
-  anilistLink AnilistLink?
+  marks        Mark[]
+  marksAnilist MarkAnilist[]
+  anilistLink  AnilistLink?
   entitlement Entitlement?
 
   @@map("profile")
@@ -93,8 +94,7 @@ model Profile {
 
 model Mark {
   userId    String     @map("user_id") @db.Uuid
-  animeId Int        @map("anime_id")
-  malId     Int?       @map("mal_id")
+  animeId   Int        @map("anime_id")
   status    MarkStatus
   // Kept for the yearly summary (Wrapped).
   markedAt  DateTime   @default(now()) @map("marked_at") @db.Timestamptz(6)
@@ -144,7 +144,7 @@ model BillingEvent {
   @@map("billing_event")
 }
 
-// Curator corrections to the AniList relation graph; only the curator edits them.
+// Curator corrections to the relation graph of the catalog; only the curator edits them.
 model FranchiseOverride {
   animeId       Int           @id @map("anime_id")
   franchiseRootId Int           @map("franchise_root_id")
@@ -184,4 +184,30 @@ model Anime {
   @@index([members(sort: Desc), id])
   @@index([year])
   @@map("anime")
+}
+
+// Marks that could not be converted to MyAnimeList ids (ADR-0043), kept aside with the
+// reason: no_mal_id or duplicate. The API never reads them.
+model MarkAnilist {
+  userId    String     @map("user_id") @db.Uuid
+  anilistId Int        @map("anilist_id")
+  malId     Int?       @map("mal_id")
+  status    MarkStatus
+  markedAt  DateTime   @map("marked_at") @db.Timestamptz(6)
+  reason    String
+
+  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@id([userId, anilistId])
+  @@map("mark_anilist")
+}
+
+// The curator table as it was with AniList ids (ADR-0043), kept aside. The API never reads it.
+model FranchiseOverrideAnilist {
+  anilistId       Int           @id @map("anilist_id")
+  franchiseRootId Int           @map("franchise_root_id")
+  role            FranchiseRole
+  updatedAt       DateTime      @map("updated_at") @db.Timestamptz(6)
+
+  @@map("franchise_override_anilist")
 }

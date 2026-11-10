@@ -14,12 +14,12 @@ const MAX_PAGE = 1000;
 const id = z.number().int().min(1).max(INT4_MAX);
 const status = z.enum(['seen', 'watching']);
 
-const putBody = z.strictObject({ status, malId: id.nullable().optional() });
+const putBody = z.strictObject({ status });
 const batchBody = z
   .strictObject({
     status: status.nullable(),
     entries: z
-      .array(z.strictObject({ animeId: id, malId: id.nullable().optional() }))
+      .array(z.strictObject({ animeId: id }))
       .min(1)
       .max(MAX_BATCH),
   })
@@ -29,7 +29,7 @@ const batchBody = z
   );
 
 const markSchema = z
-  .object({ animeId: id, malId: id.nullable(), status, markedAt: z.iso.datetime() })
+  .object({ animeId: id, status, markedAt: z.iso.datetime() })
   .meta({ id: 'Mark' });
 const animeIdParam = z.int().min(1).max(INT4_MAX);
 

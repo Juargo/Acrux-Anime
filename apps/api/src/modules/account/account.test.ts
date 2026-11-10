@@ -96,7 +96,7 @@ async function seed(userId: string, anilistUserId: number) {
   const { profileService, marksService } = setup();
   await profileService.me({ userId, name: userId === USER ? 'Camila' : 'Nami' });
   await marksService.put({ userId }, 10, { status: 'seen' });
-  await marksService.put({ userId }, 20, { status: 'watching', malId: 5114 });
+  await marksService.put({ userId }, 20, { status: 'watching' });
   await prisma.anilistLink.create({
     data: { userId, anilistUserId, accessTokenEncrypted: Buffer.from('secret') },
   });
@@ -131,8 +131,8 @@ describe('GET /api/v1/me/export', () => {
         createdAt: expect.any(String),
       },
       marks: [
-        { animeId: 10, malId: null, status: 'seen', markedAt: expect.any(String) },
-        { animeId: 20, malId: 5114, status: 'watching', markedAt: expect.any(String) },
+        { animeId: 10, status: 'seen', markedAt: expect.any(String) },
+        { animeId: 20, status: 'watching', markedAt: expect.any(String) },
       ],
     });
   });

@@ -46,7 +46,6 @@ describe('fetchPublicProfile', () => {
 describe('fetchPublicMarks', () => {
   const mark = (animeId: number) => ({
     animeId,
-    malId: null,
     status: 'seen',
     markedAt: '2026-10-10T12:00:00.000Z',
   });
