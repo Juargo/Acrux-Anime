@@ -25,7 +25,7 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
 | ID | Qué | Specs | Ruta | Rama hija | Estado | Commit |
 |---|---|---|---|---|---|---|
 | T1 | ADR-0043 y este documento | S1, S2 | inline | (rama de integración) | hecho | fcbc943 |
-| T2 | API: tabla de catálogo y módulo de catálogo (catálogo con filtros, animes por ID, franquicia, géneros), servidos desde Neon | S2, S3, S4 | inline | `feat/catalogo-myanimelist-01-api` | en curso | — |
+| T2 | API: tabla de catálogo y módulo de catálogo (catálogo con filtros, animes por ID, franquicia, géneros), servidos desde Neon | S2, S3, S4 | inline | `feat/catalogo-myanimelist-01-api` | hecho | d94c27b, 419a8ab |
 | T3 | Cliente de MyAnimeList en la API, conversión a la tabla y carga por demanda de lo que falta | S2, S4, S7 | inline | — | bloqueada: falta el client ID | — |
 | T4 | Trabajo programado de carga y refresco (riesgo ítem 5) | S2, S7 | inline | — | pendiente | — |
 | T5 | Web: cliente del catálogo en lugar del de AniList, mensajes de error, simulación en E2E | S3, S4 | por decidir | — | pendiente | — |
@@ -48,3 +48,12 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
   - Se quitó la tarea «dominio sin nombres de AniList» como tarea aparte. El vocabulario de relaciones y formatos de `@acrux/domain` ya alcanza para los valores de MyAnimeList. Renombrar `anilistId` toca 380 referencias en la web y en la API, y solo tiene sentido junto con el cambio de contratos (T6).
   - La tabla y el módulo de catálogo (T2) no dependen de la forma de las respuestas de MyAnimeList, así que van primero. El client ID solo bloquea T3 y T4.
   - Ruta de T2: inline; es una sola unidad y no hay otra independiente para lanzar en paralelo.
+- **L8:** T2 hecha en `feat/catalogo-myanimelist-01-api`:
+  - `d94c27b`: tabla `anime` (migración `20261110000000_catalogo`, con RLS y permisos para `acrux_api`) y repositorio.
+  - `419a8ab`: servicio y módulo `catalog` con cuatro rutas públicas y cacheables: `GET /api/v1/catalog/anime`, `/anime/by-ids`, `/franchises` y `/genres`.
+  - RED observado antes de implementar: 20 tests fallando en 3 archivos. Después: API con 381 tests en 29 archivos, typecheck, `openapi:check`, depcruise y `biome ci` pasan. Las pruebas del repositorio corren contra Postgres 17 con las migraciones reales.
+  - La búsqueda ordena por popularidad, no por parecido con el nombre como hacía AniList.
+  - La tabla todavía está vacía: la llenan T3 y T4.
+  - Revisión nativa: apagada (`gentle-ai review mode status`: off, global).
+  - Riesgo: ninguno. Tabla nueva y rutas nuevas; no cambia datos ni contratos existentes.
+- **L9:** Orden revisado: conviene hacer la parte de API de T6 (clave y contratos) antes que la web (T5), para que la web cambie de fuente y de nombres una sola vez. T6 necesita saber qué hay guardado en producción.
