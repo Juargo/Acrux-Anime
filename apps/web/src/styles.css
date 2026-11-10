@@ -1670,7 +1670,7 @@ label.sheet__label {
   color: #ffd166;
 }
 
-.profile-editor__avatars--plus input:disabled + .avatar {
+.profile-editor__locked {
   opacity: 0.45;
 }
 
@@ -2234,4 +2234,68 @@ label.sheet__label {
 .stats__offer-title {
   margin: 0;
   font-size: 1rem;
+}
+
+/* RF-55 · Insignias. */
+.badges {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.badges__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--color-bg-raised);
+}
+
+.badges__state {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.badges__item--earned .badges__state {
+  color: var(--color-status-seen);
+  font-weight: 600;
+}
+
+.badges__item .stats__fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+}
+
+.badge-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-accent-default);
+  color: var(--color-text-on-accent);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.badge-mark--hours {
+  background: var(--color-status-new);
+}
+
+.badge-mark--genres {
+  background: var(--color-status-seen);
+}
+
+.badge-mark--locked {
+  filter: grayscale(1);
+  opacity: 0.4;
 }

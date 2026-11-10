@@ -52,7 +52,10 @@ export function ProfileEditor({
         disabled={locked}
         onChange={() => setPreset(key)}
       />
-      <span className={`avatar avatar--${key}`} aria-hidden="true">
+      <span
+        className={`avatar avatar--${key}${locked ? ' profile-editor__locked' : ''}`}
+        aria-hidden="true"
+      >
         <PresetArt />
       </span>
     </label>

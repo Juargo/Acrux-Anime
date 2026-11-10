@@ -8,6 +8,8 @@ export interface Stats {
   // Seen titles whose episodes or duration AniList does not know: counted, without time.
   unknownLength: number;
   genres: { genre: string; count: number; share: number }[];
+  // Distinct genres among the seen titles, for the badges (RF-55).
+  genreCount: number;
   decades: { decade: number; count: number }[];
   formats: { format: string; count: number }[];
 }
@@ -34,7 +36,8 @@ export function computeStats(seen: StatsMedia[]): Stats {
   }
 
   const titles = seen.length;
-  const genres = [...tally(seen.flatMap((item) => item.genres))]
+  const genreCounts = tally(seen.flatMap((item) => item.genres));
+  const genres = [...genreCounts]
     .sort(([a, countA], [b, countB]) => countB - countA || a.localeCompare(b))
     .slice(0, TOP_GENRES)
     .map(([genre, count]) => ({ genre, count, share: count / titles }));
@@ -51,5 +54,14 @@ export function computeStats(seen: StatsMedia[]): Stats {
     .sort(([a, countA], [b, countB]) => countB - countA || a.localeCompare(b))
     .map(([format, count]) => ({ format, count }));
 
-  return { titles, episodes, minutes, unknownLength, genres, decades, formats };
+  return {
+    titles,
+    episodes,
+    minutes,
+    unknownLength,
+    genres,
+    genreCount: genreCounts.size,
+    decades,
+    formats,
+  };
 }

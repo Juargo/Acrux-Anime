@@ -40,6 +40,8 @@ export interface Profile {
   plan?: 'free' | 'plus';
   // Whether Plus can be bought here; false while billing is off (ADR-0036).
   plusAvailable?: boolean;
+  // Badge ids earned by milestones (RF-55), in catalog order; public only with Plus.
+  badges?: string[];
 }
 
 export interface ProfileChanges {
@@ -50,6 +52,8 @@ export interface ProfileChanges {
   shown?: { total: number; mode: Profile['counterMode'] };
   cardShared?: true;
   locale?: Locale | null;
+  // The whole list of earned badges (RF-55).
+  badges?: string[];
 }
 
 export type MeResult =

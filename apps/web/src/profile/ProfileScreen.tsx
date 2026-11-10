@@ -109,6 +109,14 @@ export function ProfileScreen({
           </Link>
         </li>
         <li>
+          <Link className="profile__row" to="/perfil/insignias">
+            <span>{t('profile.badges')}</span>
+            <span className="profile__value" aria-hidden="true">
+              ›
+            </span>
+          </Link>
+        </li>
+        <li>
           <Link className="profile__row" to="/privacidad">
             <span>{t('profile.yourList')}</span>
             <span className="profile__value">
