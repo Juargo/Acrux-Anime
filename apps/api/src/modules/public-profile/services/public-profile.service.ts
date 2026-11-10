@@ -1,9 +1,8 @@
 import type { PlanReader } from '../../../http/plan.js';
 import type { MarkPage, MarkPageQuery, MarksService } from '../../marks/services/marks.service.js';
-import { visiblePreset } from '../../profile/domain/avatar.js';
+import { type AvatarPreset, visiblePreset } from '../../profile/domain/avatar.js';
 import type { BadgeId } from '../../profile/domain/badges.js';
 import { isHandle } from '../../profile/domain/handle.js';
-import type { AvatarPreset } from '../../profile/repositories/profile.repository.js';
 import type { ProfileService } from '../../profile/services/profile.service.js';
 
 // What any visitor sees of a profile (RF-40, Figma M14/M15): never the owner's id or email.

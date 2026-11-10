@@ -1,6 +1,9 @@
 import type { UserPlan } from '../../../http/plan.js';
 import type { AvatarPreset } from '../repositories/profile.repository.js';
 
+// Re-exported so other modules use the type without reaching into the repository.
+export type { AvatarPreset };
+
 // The preset Acrux avatars of Figma M06 (#39): the app's color tokens with the Acrux sparkle.
 // apps/web/src/components/Avatar.tsx draws the same ones.
 export const AVATAR_PRESETS: Record<AvatarPreset, { background: string; star: string }> = {
