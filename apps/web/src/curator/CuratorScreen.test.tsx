@@ -31,7 +31,7 @@ const base: Profile = {
 };
 
 const existing = {
-  anilistId: 20811,
+  animeId: 20811,
   franchiseRootId: 16498,
   role: 'extra',
   updatedAt: '2026-11-01T10:00:00.000Z',
@@ -75,8 +75,8 @@ function renderCurator(options: { curator: boolean; saveStatus?: number; path?: 
       const body = JSON.parse(init.body as string);
       saves.push({ url, body });
       if (options.saveStatus) return json({ status: options.saveStatus }, options.saveStatus);
-      const anilistId = Number(url.split('/').at(-1));
-      return json({ anilistId, ...body, updatedAt: '2026-11-07T12:00:00.000Z' });
+      const animeId = Number(url.split('/').at(-1));
+      return json({ animeId, ...body, updatedAt: '2026-11-07T12:00:00.000Z' });
     }
     if (url.startsWith('/api/v1/me/marks?')) return json({ items: [], nextCursor: null });
     if (url === '/api/v1/me') return json({ ...base, curator: options.curator });

@@ -57,7 +57,7 @@ describe('marks service on Postgres', () => {
     const user = newUser();
     const mark = await marks.put(user, 16498, { status: 'seen', malId: 16498 });
     expect(mark).toEqual({
-      anilistId: 16498,
+      animeId: 16498,
       malId: 16498,
       status: 'seen',
       markedAt: expect.any(Date),
@@ -71,7 +71,7 @@ describe('marks service on Postgres', () => {
     const past = new Date('2020-01-01T00:00:00.000Z');
     await marks.put(user, 1, { status: 'watching' });
     await prisma.mark.update({
-      where: { userId_anilistId: { userId: user.userId, anilistId: 1 } },
+      where: { userId_animeId: { userId: user.userId, animeId: 1 } },
       data: { markedAt: past },
     });
     const again = await marks.put(user, 1, { status: 'watching' });
@@ -88,24 +88,24 @@ describe('marks service on Postgres', () => {
     expect((await marks.put(user, 2, { status: 'seen', malId: null })).malId).toBeNull();
   });
 
-  it('lists the marks ordered by anilistId', async () => {
+  it('lists the marks ordered by animeId', async () => {
     const user = newUser();
     await marks.put(user, 30, { status: 'seen' });
     await marks.put(user, 4, { status: 'seen' });
     await marks.put(user, 17, { status: 'watching' });
     const page = await marks.list(user, { limit: 500 });
-    expect(page.items.map((mark) => mark.anilistId)).toEqual([4, 17, 30]);
+    expect(page.items.map((mark) => mark.animeId)).toEqual([4, 17, 30]);
     expect(page.nextCursor).toBeNull();
   });
 
-  it('pages the marks after the cursor, with the last anilistId as the next cursor', async () => {
+  it('pages the marks after the cursor, with the last animeId as the next cursor', async () => {
     const user = newUser();
     for (const id of [30, 4, 17]) await marks.put(user, id, { status: 'seen' });
     const first = await marks.list(user, { limit: 2 });
-    expect(first.items.map((mark) => mark.anilistId)).toEqual([4, 17]);
+    expect(first.items.map((mark) => mark.animeId)).toEqual([4, 17]);
     expect(first.nextCursor).toBe(17);
     const second = await marks.list(user, { after: 17, limit: 2 });
-    expect(second.items.map((mark) => mark.anilistId)).toEqual([30]);
+    expect(second.items.map((mark) => mark.animeId)).toEqual([30]);
     expect(second.nextCursor).toBeNull();
     const exact = await marks.list(user, { limit: 3 });
     expect(exact.nextCursor).toBeNull();
@@ -129,9 +129,9 @@ describe('marks service on Postgres', () => {
     await marks.put(user, 20958, { status: 'watching' });
     const written = await marks.batch(user, {
       status: 'seen',
-      entries: [{ anilistId: 16498, malId: 16498 }, { anilistId: 20958 }, { anilistId: 99147 }],
+      entries: [{ animeId: 16498, malId: 16498 }, { animeId: 20958 }, { animeId: 99147 }],
     });
-    expect(written.map((mark) => [mark.anilistId, mark.status])).toEqual([
+    expect(written.map((mark) => [mark.animeId, mark.status])).toEqual([
       [16498, 'seen'],
       [20958, 'seen'],
       [99147, 'seen'],
@@ -143,11 +143,11 @@ describe('marks service on Postgres', () => {
   it('keeps markedAt in a batch for entries that already had the same status', async () => {
     const user = newUser();
     const past = new Date('2020-01-01T00:00:00.000Z');
-    await marks.batch(user, { status: 'seen', entries: [{ anilistId: 8 }, { anilistId: 18 }] });
+    await marks.batch(user, { status: 'seen', entries: [{ animeId: 8 }, { animeId: 18 }] });
     await prisma.mark.updateMany({ where: { userId: user.userId }, data: { markedAt: past } });
     const after = await marks.batch(user, {
       status: 'seen',
-      entries: [{ anilistId: 8 }, { anilistId: 28 }],
+      entries: [{ animeId: 8 }, { animeId: 28 }],
     });
     expect(after[0]?.markedAt).toEqual(past);
     expect(after[1]?.markedAt.getTime()).toBeGreaterThan(past.getTime());
@@ -160,23 +160,23 @@ describe('marks service on Postgres', () => {
     await expect(
       marks.batch(user, {
         status: 'seen',
-        entries: [{ anilistId: 9 }, { anilistId: 10 }, { anilistId: 2 ** 40 }],
+        entries: [{ animeId: 9 }, { animeId: 10 }, { animeId: 2 ** 40 }],
       }),
     ).rejects.toThrow();
     const list = (await marks.list(user, { limit: 500 })).items;
-    expect(list.map((mark) => [mark.anilistId, mark.status])).toEqual([[9, 'watching']]);
+    expect(list.map((mark) => [mark.animeId, mark.status])).toEqual([[9, 'watching']]);
   });
 
   it('removes only the listed marks with a null status', async () => {
     const user = newUser();
     await marks.batch(user, {
       status: 'seen',
-      entries: [{ anilistId: 11 }, { anilistId: 12 }, { anilistId: 13 }],
+      entries: [{ animeId: 11 }, { animeId: 12 }, { animeId: 13 }],
     });
     expect(
-      await marks.batch(user, { status: null, entries: [{ anilistId: 11 }, { anilistId: 12 }] }),
+      await marks.batch(user, { status: null, entries: [{ animeId: 11 }, { animeId: 12 }] }),
     ).toEqual([]);
-    expect((await marks.list(user, { limit: 500 })).items.map((mark) => mark.anilistId)).toEqual([
+    expect((await marks.list(user, { limit: 500 })).items.map((mark) => mark.animeId)).toEqual([
       13,
     ]);
   });
@@ -199,7 +199,7 @@ describe('marks isolation between users (ADR-0029)', () => {
   }
 
   async function marksOf(userId: string) {
-    return prisma.mark.findMany({ where: { userId }, orderBy: { anilistId: 'asc' } });
+    return prisma.mark.findMany({ where: { userId }, orderBy: { animeId: 'asc' } });
   }
 
   it('B cannot read the marks of A', async () => {
@@ -211,39 +211,39 @@ describe('marks isolation between users (ADR-0029)', () => {
     expect(response.body).toEqual({ items: [], nextCursor: null });
   });
 
-  it('B deleting the anilistId of A leaves the mark of A intact', async () => {
+  it('B deleting the animeId of A leaves the mark of A intact', async () => {
     await marks.put({ userId: A }, 101, { status: 'seen' });
     const response = await request(app())
       .delete('/api/v1/me/marks/101')
       .set('Authorization', `Bearer ${B}`);
     expect(response.status).toBe(204);
-    expect((await marksOf(A)).some((mark) => mark.anilistId === 101)).toBe(true);
+    expect((await marksOf(A)).some((mark) => mark.animeId === 101)).toBe(true);
   });
 
-  it('B removing in batch the anilistIds of A leaves the marks of A intact', async () => {
+  it('B removing in batch the animeIds of A leaves the marks of A intact', async () => {
     await marks.batch(
       { userId: A },
-      { status: 'seen', entries: [{ anilistId: 102 }, { anilistId: 103 }] },
+      { status: 'seen', entries: [{ animeId: 102 }, { animeId: 103 }] },
     );
     const response = await request(app())
       .post('/api/v1/me/marks:batch')
       .set('Authorization', `Bearer ${B}`)
-      .send({ status: null, entries: [{ anilistId: 102 }, { anilistId: 103 }] });
+      .send({ status: null, entries: [{ animeId: 102 }, { animeId: 103 }] });
     expect(response.status).toBe(200);
-    const ofA = (await marksOf(A)).map((mark) => mark.anilistId);
+    const ofA = (await marksOf(A)).map((mark) => mark.animeId);
     expect(ofA).toEqual(expect.arrayContaining([102, 103]));
   });
 
-  it('B marking the anilistId of A creates a mark of B without changing the one of A', async () => {
+  it('B marking the animeId of A creates a mark of B without changing the one of A', async () => {
     const ofA = await marks.put({ userId: A }, 104, { status: 'watching', malId: 4 });
     const response = await request(app())
       .put('/api/v1/me/marks/104')
       .set('Authorization', `Bearer ${B}`)
       .send({ status: 'seen' });
     expect(response.status).toBe(200);
-    const stored = (await marksOf(A)).find((mark) => mark.anilistId === 104);
+    const stored = (await marksOf(A)).find((mark) => mark.animeId === 104);
     expect(stored).toMatchObject({ status: 'watching', malId: 4, markedAt: ofA.markedAt });
-    expect((await marksOf(B)).find((mark) => mark.anilistId === 104)).toMatchObject({
+    expect((await marksOf(B)).find((mark) => mark.animeId === 104)).toMatchObject({
       status: 'seen',
       malId: null,
     });

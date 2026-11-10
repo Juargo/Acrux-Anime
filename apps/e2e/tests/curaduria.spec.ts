@@ -42,7 +42,7 @@ test('@CA-RF60-01 the curator splits a saga from /curador and the counter follow
   const table = await (await request.get(`${API_URL}/api/v1/franchise-overrides`)).json();
   expect(table.items).toContainEqual(
     expect.objectContaining({
-      anilistId: SPY_FAMILY.part2Id,
+      animeId: SPY_FAMILY.part2Id,
       franchiseRootId: SPY_FAMILY.rootId,
       role: 'separate',
     }),

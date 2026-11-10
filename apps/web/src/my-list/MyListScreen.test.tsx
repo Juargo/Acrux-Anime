@@ -63,8 +63,8 @@ function fakeAniList() {
   return { client: { request } as unknown as AniListClient, request };
 }
 
-const mark = (anilistId: number, status: MarkDto['status'], day = 10): MarkDto => ({
-  anilistId,
+const mark = (animeId: number, status: MarkDto['status'], day = 10): MarkDto => ({
+  animeId,
   malId: null,
   status,
   markedAt: `2026-10-${String(day).padStart(2, '0')}T12:00:00.000Z`,

@@ -66,9 +66,9 @@ function fakeAniList() {
   return { client: { request } as unknown as AniListClient, request };
 }
 
-const seen = (anilistId: number): MarkDto => ({
-  anilistId,
-  malId: anilistId + 1000,
+const seen = (animeId: number): MarkDto => ({
+  animeId,
+  malId: animeId + 1000,
   status: 'seen',
   markedAt: '2025-01-01T00:00:00.000Z',
 });
@@ -185,7 +185,7 @@ describe('TotalCounter', () => {
   it('counts with the curator table applied first (RF-60)', async () => {
     // Seasons 3 and 4 are a separate franchise for the curator, so 1 and 2 complete saga A.
     const separate: FranchiseOverride = {
-      anilistId: 3,
+      animeId: 3,
       franchiseRootId: 1,
       role: 'separate',
       updatedAt: '2024-01-01T00:00:00.000Z',

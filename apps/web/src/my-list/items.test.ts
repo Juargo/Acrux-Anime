@@ -38,8 +38,8 @@ const known = new Map(
   [1, 2, 3, 9, 20].map((id) => [id, media(id, id === 20 ? 'MOVIE' : id === 9 ? 'OVA' : 'TV')]),
 );
 
-const mark = (anilistId: number, status: Mark['status'], day: number): Mark => ({
-  anilistId,
+const mark = (animeId: number, status: Mark['status'], day: number): Mark => ({
+  animeId,
   status,
   markedAt: `2026-10-${String(day).padStart(2, '0')}T12:00:00.000Z`,
 });

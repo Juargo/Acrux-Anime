@@ -83,19 +83,19 @@ export function groupFranchises(
   );
   const overrideOf = new Map(
     [...overrides]
-      .filter((row) => catalog.has(row.anilistId) && catalog.has(row.franchiseRootId))
-      .sort((a, b) => a.anilistId - b.anilistId)
-      .map((row) => [row.anilistId, row]),
+      .filter((row) => catalog.has(row.animeId) && catalog.has(row.franchiseRootId))
+      .sort((a, b) => a.animeId - b.animeId)
+      .map((row) => [row.animeId, row]),
   );
   const forcedExtra = (id: number) => overrideOf.get(id)?.role === 'extra';
 
   const sets = new EntrySets(catalog.keys());
   for (const row of overrideOf.values()) {
     sets.pin(row.franchiseRootId, row.franchiseRootId);
-    if (row.role === 'separate') sets.pin(row.anilistId, row.anilistId);
+    if (row.role === 'separate') sets.pin(row.animeId, row.animeId);
   }
   for (const row of overrideOf.values()) {
-    if (row.role === 'core') sets.union(row.anilistId, row.franchiseRootId);
+    if (row.role === 'core') sets.union(row.animeId, row.franchiseRootId);
   }
   for (const entry of catalog.values()) {
     if (forcedExtra(entry.id)) continue;
@@ -170,7 +170,7 @@ export function groupFranchises(
   }
   for (const row of overrideOf.values()) {
     const franchise = franchiseOf.get(row.franchiseRootId);
-    if (row.role === 'extra' && franchise) franchise.extras.push(row.anilistId);
+    if (row.role === 'extra' && franchise) franchise.extras.push(row.animeId);
   }
 
   const relate = (a: Franchise | undefined, b: Franchise | undefined) => {
@@ -187,7 +187,7 @@ export function groupFranchises(
   }
   for (const row of overrideOf.values()) {
     if (row.role === 'separate') {
-      relate(franchiseOf.get(row.anilistId), franchiseOf.get(row.franchiseRootId));
+      relate(franchiseOf.get(row.animeId), franchiseOf.get(row.franchiseRootId));
     }
   }
 

@@ -131,8 +131,8 @@ describe('GET /api/v1/me/export', () => {
         createdAt: expect.any(String),
       },
       marks: [
-        { anilistId: 10, malId: null, status: 'seen', markedAt: expect.any(String) },
-        { anilistId: 20, malId: 5114, status: 'watching', markedAt: expect.any(String) },
+        { animeId: 10, malId: null, status: 'seen', markedAt: expect.any(String) },
+        { animeId: 20, malId: 5114, status: 'watching', markedAt: expect.any(String) },
       ],
     });
   });

@@ -44,8 +44,8 @@ describe('fetchPublicProfile', () => {
 });
 
 describe('fetchPublicMarks', () => {
-  const mark = (anilistId: number) => ({
-    anilistId,
+  const mark = (animeId: number) => ({
+    animeId,
     malId: null,
     status: 'seen',
     markedAt: '2026-10-10T12:00:00.000Z',
@@ -58,7 +58,7 @@ describe('fetchPublicMarks', () => {
         : json({ items: [mark(10), mark(20)], nextCursor: '20' }),
     );
     const marks = await fetchPublicMarks('camila', fetchFn as unknown as typeof fetch);
-    expect(marks?.map((item) => item.anilistId)).toEqual([10, 20, 30]);
+    expect(marks?.map((item) => item.animeId)).toEqual([10, 20, 30]);
     expect(fetchFn.mock.calls.map((call) => call[0])).toEqual([
       '/api/v1/profiles/camila/marks?limit=1000',
       '/api/v1/profiles/camila/marks?limit=1000&cursor=20',

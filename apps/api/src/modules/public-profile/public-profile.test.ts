@@ -135,12 +135,12 @@ describe('GET /api/v1/profiles/{handle}/marks', () => {
     const first = await request(app()).get('/api/v1/profiles/camila/marks?limit=2');
     expect(first.status).toBe(200);
     expect(first.headers['cache-control']).toBe('no-store');
-    expect(first.body.items.map((mark: { anilistId: number }) => mark.anilistId)).toEqual([10, 20]);
-    expect(first.body.items[1]).toMatchObject({ anilistId: 20, status: 'watching' });
+    expect(first.body.items.map((mark: { animeId: number }) => mark.animeId)).toEqual([10, 20]);
+    expect(first.body.items[1]).toMatchObject({ animeId: 20, status: 'watching' });
     expect(first.body.nextCursor).toBe('20');
 
     const second = await request(app()).get('/api/v1/profiles/camila/marks?limit=2&cursor=20');
-    expect(second.body).toMatchObject({ items: [{ anilistId: 30 }], nextCursor: null });
+    expect(second.body).toMatchObject({ items: [{ animeId: 30 }], nextCursor: null });
   });
 
   it('@CA-RF42-01 answers a private list exactly as an unknown handle', async () => {

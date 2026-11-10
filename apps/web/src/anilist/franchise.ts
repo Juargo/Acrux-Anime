@@ -40,7 +40,7 @@ type FranchiseMedia = z.infer<typeof franchiseMediaSchema>;
 const pageSchema = z.object({ Page: z.object({ media: z.array(franchiseMediaSchema) }) });
 
 export interface FranchiseEntry {
-  anilistId: number;
+  animeId: number;
   malId: number | null;
 }
 
@@ -144,9 +144,9 @@ export async function fetchFranchise(
   const franchise = franchises.find((candidate) =>
     candidate.core.some((member) => member.id === seed),
   );
-  const toEntry = (anilistId: number): FranchiseEntry => ({
-    anilistId,
-    malId: known.get(anilistId)?.idMal ?? null,
+  const toEntry = (animeId: number): FranchiseEntry => ({
+    animeId,
+    malId: known.get(animeId)?.idMal ?? null,
   });
   return {
     core: franchise?.core.map((member) => toEntry(member.id)) ?? [],
@@ -162,16 +162,16 @@ function describe(
   fetched: ReadonlyMap<number, FranchiseMedia>,
 ): FranchiseDetail {
   const coverOf = (id: number) => known.get(id)?.coverImage?.large ?? null;
-  const toDetail = (anilistId: number): FranchiseEntryDetail => {
-    const media = known.get(anilistId);
+  const toDetail = (animeId: number): FranchiseEntryDetail => {
+    const media = known.get(animeId);
     return {
-      anilistId,
+      animeId,
       malId: media?.idMal ?? null,
       title: media ? displayTitle(media) : '',
       format: media?.format ?? null,
       year: media?.startDate.year ?? null,
-      episodes: fetched.get(anilistId)?.episodes ?? null,
-      coverUrl: coverOf(anilistId),
+      episodes: fetched.get(animeId)?.episodes ?? null,
+      coverUrl: coverOf(animeId),
     };
   };
   const titleOf = new Map(franchises.map((other) => [other.rootId, other.title]));

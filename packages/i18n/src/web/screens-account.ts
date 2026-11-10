@@ -294,7 +294,7 @@ export const accountEs = {
       unavailable: 'No pudimos cargar este perfil. Vuelve a intentarlo.',
     },
     marks: {
-      invalid_anilist_id: 'Ese anime no es válido.',
+      invalid_anime_id: 'Ese anime no es válido.',
       invalid_query: 'No pudimos leer la búsqueda de tu lista.',
       invalid_body: 'No pudimos guardar esa marca. Vuelve a intentarlo.',
       unavailable: 'No pudimos acceder a tu lista. Vuelve a intentarlo.',
@@ -608,7 +608,7 @@ export const accountEn = {
       unavailable: "We couldn't load this profile. Please try again.",
     },
     marks: {
-      invalid_anilist_id: 'That anime is not valid.',
+      invalid_anime_id: 'That anime is not valid.',
       invalid_query: "We couldn't read your list search.",
       invalid_body: "We couldn't save that mark. Please try again.",
       unavailable: "We couldn't reach your list. Please try again.",

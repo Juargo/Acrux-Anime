@@ -30,7 +30,7 @@ Tocar una corrección de la lista la carga en el formulario para cambiarla.
 - **No hay borrado.** Si se borrara una fila, una entrada podría volver al núcleo con su fecha de estreno original y deshacer una franquicia que alguien ya había completado. Para deshacer una corrección, guárdala con otro rol.
 - **Una corrección nunca resta.** Una entrada que entra al núcleo cuenta desde el momento de la corrección, así que no deshace franquicias ya completas (RF-60, `packages/domain/src/franchise/progress.ts`).
 - **Solo corrige entradas relacionadas en AniList.** La app arma cada franquicia siguiendo las secuelas y precuelas, y una corrección solo se aplica si las dos entradas están en ese conjunto. Las OVA, películas e historias paralelas que AniList ya relaciona con la saga sí se pueden corregir.
-- **La API decide.** La pantalla solo se muestra al curador, y además `PUT /api/v1/franchise-overrides/{anilistId}` responde 403 a cualquier sesión sin el rol.
+- **La API decide.** La pantalla solo se muestra al curador, y además `PUT /api/v1/franchise-overrides/{animeId}` responde 403 a cualquier sesión sin el rol.
 
 ## Carga inicial
 

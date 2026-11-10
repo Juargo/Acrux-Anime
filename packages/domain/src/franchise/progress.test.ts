@@ -19,13 +19,13 @@ const franchise: Franchise = {
   related: [],
 };
 
-const seen = (anilistId: number, markedAt = '2024-01-01T00:00:00Z'): Mark => ({
-  anilistId,
+const seen = (animeId: number, markedAt = '2024-01-01T00:00:00Z'): Mark => ({
+  animeId,
   status: 'seen',
   markedAt,
 });
-const watching = (anilistId: number, markedAt = '2024-01-01T00:00:00Z'): Mark => ({
-  anilistId,
+const watching = (animeId: number, markedAt = '2024-01-01T00:00:00Z'): Mark => ({
+  animeId,
   status: 'watching',
   markedAt,
 });

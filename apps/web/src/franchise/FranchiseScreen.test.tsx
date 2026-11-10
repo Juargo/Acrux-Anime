@@ -99,9 +99,9 @@ function fakeAniList(fail = 0) {
   return { request } as unknown as AniListClient;
 }
 
-const mark = (anilistId: number, status = 'seen', markedAt = '2025-01-01T00:00:00.000Z') => ({
-  anilistId,
-  malId: anilistId + 1000,
+const mark = (animeId: number, status = 'seen', markedAt = '2025-01-01T00:00:00.000Z') => ({
+  animeId,
+  malId: animeId + 1000,
   status,
   markedAt,
 });
@@ -130,7 +130,7 @@ function renderAt(
       if (url === '/api/v1/me/marks:batch') {
         return json({
           items: body.status
-            ? body.entries.map((entry: { anilistId: number }) => mark(entry.anilistId, body.status))
+            ? body.entries.map((entry: { animeId: number }) => mark(entry.animeId, body.status))
             : [],
         });
       }
@@ -320,7 +320,7 @@ describe('franchise detail', () => {
       method: 'POST',
       body: {
         status: 'seen',
-        entries: [101, 102, 103, 104, 105].map((id) => ({ anilistId: id, malId: id + 1000 })),
+        entries: [101, 102, 103, 104, 105].map((id) => ({ animeId: id, malId: id + 1000 })),
       },
     });
     expect(await screen.findByRole('button', { name: 'Quitar saga de vistas' })).toBeTruthy();
@@ -338,7 +338,7 @@ describe('franchise detail', () => {
     await waitFor(() => expect(writes(fetchFn)).toHaveLength(1));
     expect(writes(fetchFn)[0]?.body).toEqual({
       status: null,
-      entries: [101, 102, 103, 104, 105, 109].map((id) => ({ anilistId: id, malId: id + 1000 })),
+      entries: [101, 102, 103, 104, 105, 109].map((id) => ({ animeId: id, malId: id + 1000 })),
     });
   });
 

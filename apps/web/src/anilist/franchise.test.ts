@@ -66,7 +66,7 @@ describe('fetchFranchise', () => {
     const { client } = fakeClient();
     // Automatic grouping leaves the side story 9 out of the core; the curator puts it in.
     const sideStoryInCore = {
-      anilistId: 9,
+      animeId: 9,
       franchiseRootId: 1,
       role: 'core' as const,
       updatedAt: '2026-11-07T12:00:00.000Z',
@@ -74,9 +74,9 @@ describe('fetchFranchise', () => {
 
     const franchise = await fetchFranchise(client, [3], [sideStoryInCore]);
 
-    expect(franchise.core.map((entry) => entry.anilistId)).toEqual([1, 9, 2, 3, 4]);
+    expect(franchise.core.map((entry) => entry.animeId)).toEqual([1, 9, 2, 3, 4]);
     expect(franchise.extras).toEqual([]);
-    expect(franchise.detail?.core.map((entry) => entry.anilistId)).toContain(9);
+    expect(franchise.detail?.core.map((entry) => entry.animeId)).toContain(9);
   });
 
   it('follows sequels and prequels until the whole core is known', async () => {
@@ -85,12 +85,12 @@ describe('fetchFranchise', () => {
     const franchise = await fetchFranchise(client, [3]);
 
     expect(franchise.core).toEqual([
-      { anilistId: 1, malId: 1001 },
-      { anilistId: 2, malId: 1002 },
-      { anilistId: 3, malId: 1003 },
-      { anilistId: 4, malId: 1004 },
+      { animeId: 1, malId: 1001 },
+      { animeId: 2, malId: 1002 },
+      { animeId: 3, malId: 1003 },
+      { animeId: 4, malId: 1004 },
     ]);
-    expect(franchise.extras).toEqual([{ anilistId: 9, malId: 1009 }]);
+    expect(franchise.extras).toEqual([{ animeId: 9, malId: 1009 }]);
     // Seed 3, then 2 and 4, then 1: one batch per hop, never the side story or the spin-off.
     expect(request.mock.calls.map(([, variables]) => variables.ids)).toEqual([[3], [2, 4], [1]]);
   });
@@ -104,9 +104,9 @@ describe('fetchFranchise', () => {
     expect(detail?.title).toBe('Entry 1');
     expect(detail?.coverUrl).toBe('https://img.anili.st/media/1.jpg');
     expect(detail?.genres).toEqual(['Action', 'Supernatural']);
-    expect(detail?.core.map((entry) => entry.anilistId)).toEqual([1, 2, 3, 4]);
+    expect(detail?.core.map((entry) => entry.animeId)).toEqual([1, 2, 3, 4]);
     expect(detail?.core[0]).toEqual({
-      anilistId: 1,
+      animeId: 1,
       malId: 1001,
       title: 'Entry 1',
       format: 'TV',
@@ -117,7 +117,7 @@ describe('fetchFranchise', () => {
     // Extras are one hop away: AniList's relation node carries no episode count.
     expect(detail?.extras).toEqual([
       {
-        anilistId: 9,
+        animeId: 9,
         malId: 1009,
         title: 'Entry 9',
         format: 'TV',

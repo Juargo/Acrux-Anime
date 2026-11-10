@@ -17,7 +17,7 @@ export class FranchiseOverridesError extends Error {
 
 const id = z.int().min(1);
 const override = z.object({
-  anilistId: id,
+  animeId: id,
   franchiseRootId: id,
   role: z.enum(['core', 'extra', 'separate']),
   updatedAt: z.iso.datetime(),
@@ -47,7 +47,7 @@ export async function fetchFranchiseOverrides(
 
 export async function saveFranchiseOverride(
   getToken: () => Promise<string | null>,
-  anilistId: number,
+  animeId: number,
   correction: { franchiseRootId: number; role: OverrideRole },
   fetchFn: typeof fetch = fetch,
 ): Promise<FranchiseOverride> {
@@ -55,7 +55,7 @@ export async function saveFranchiseOverride(
   if (!token) throw new FranchiseOverridesError('signed-out');
   let response: Response;
   try {
-    response = await fetchFn(`/api/v1/franchise-overrides/${anilistId}`, {
+    response = await fetchFn(`/api/v1/franchise-overrides/${animeId}`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(correction),
