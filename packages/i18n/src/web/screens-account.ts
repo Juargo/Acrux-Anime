@@ -159,7 +159,7 @@ export const accountEs = {
     benefits: {
       stats: 'Estadísticas avanzadas',
       wrapped: 'Tu Wrapped anual',
-      badges: 'Insignias e íconos de la app',
+      badges: 'Insignias y avatares exclusivos',
     },
     oneTime: 'Pago único, para siempre. Sin suscripción.',
     basicsFree: 'Lo básico sigue gratis: marcar, contar y tu tarjeta Clásica.',
@@ -463,7 +463,7 @@ export const accountEn = {
     benefits: {
       stats: 'Advanced stats',
       wrapped: 'Your yearly Wrapped',
-      badges: 'Badges and app icons',
+      badges: 'Badges and exclusive avatars',
     },
     oneTime: 'One payment, yours forever. No subscription.',
     basicsFree: 'The basics stay free: marking, counting and your Classic card.',

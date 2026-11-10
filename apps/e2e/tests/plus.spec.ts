@@ -1,9 +1,9 @@
 import { createHmac, randomInt } from 'node:crypto';
 import type { APIRequestContext } from '@playwright/test';
 import { FRIEREN, SPY_FAMILY } from '../support/anilist.ts';
-import { markSeen } from '../support/api.ts';
+import { markSeen, profileOf } from '../support/api.ts';
 import { API_URL, LEMON_SQUEEZY } from '../support/env.ts';
-import { expect, test } from '../support/fixtures.ts';
+import { expect, test, visitorContext } from '../support/fixtures.ts';
 
 // Journeys of epic #50: lifetime Plus against the real API and Postgres. Lemon Squeezy is
 // stood in for by the webhooks it would send, signed with the E2E secret.
@@ -122,4 +122,51 @@ test('@CA-RF53-02 @CA-RF53-01 stats show hours to a free user and everything onc
     'Años 2020',
   );
   await expect(stats.getByRole('region', { name: /son de Plus/ })).toHaveCount(0);
+});
+
+test('@CA-RF55-01 @CA-RF55-02 @CA-RF55-03 badges and Plus avatars show to others once Plus is paid', async ({
+  page,
+  browser,
+  request,
+  signedIn: user,
+}) => {
+  const { handle } = await profileOf(request, user);
+  // Frieren and Spy x Family seen: Adventure, Drama, Fantasy, Action and Comedy, five genres.
+  // Marks are the user's own, so the curator journey's correction of Spy x Family is untouched.
+  await markSeen(request, user, [FRIEREN.rootId, 182255, SPY_FAMILY.rootId, SPY_FAMILY.part2Id]);
+
+  // A free user earns the badge and sees the Plus avatars locked.
+  await page.goto('/perfil');
+  await page.getByRole('link', { name: /Insignias/ }).click();
+  const badges = page.getByRole('region', { name: 'Insignias' });
+  await expect(badges.getByText('1 de 9 ganadas')).toBeVisible();
+  await expect(
+    badges.getByRole('listitem', { name: '5 géneros distintos' }).getByText('Ganada'),
+  ).toBeVisible();
+  await expect(badges.getByRole('link', { name: 'Ver Acrux Plus' })).toBeVisible();
+  await page.goto('/perfil/editar');
+  await expect(page.getByRole('radio', { name: 'Avatar aurora' })).toBeDisabled();
+
+  // Visitors see no badges while the owner is free.
+  const visitor = await visitorContext(browser);
+  const visitorPage = await visitor.newPage();
+  await visitorPage.goto(`/@${handle}`);
+  await expect(visitorPage.getByRole('heading', { level: 1, name: user.name })).toBeVisible();
+  await expect(visitorPage.getByRole('list', { name: 'Insignias' })).toHaveCount(0);
+
+  const paid = await deliver(request, orderEvent('order_created', String(nextOrder++), user.id));
+  expect(await paid.json()).toEqual({ result: 'applied' });
+
+  // With Plus the avatar can be picked, and visitors see it with the badges.
+  await page.reload();
+  await page.getByRole('radio', { name: 'Avatar aurora' }).check();
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await expect(page).toHaveURL(/\/perfil$/);
+
+  await visitorPage.reload();
+  await expect(
+    visitorPage.getByRole('list', { name: 'Insignias' }).getByRole('listitem'),
+  ).toHaveAttribute('aria-label', '5 géneros distintos');
+  await expect(visitorPage.locator('.public-profile__avatar.avatar--aurora')).toBeVisible();
+  await visitor.close();
 });
