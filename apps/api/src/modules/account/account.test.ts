@@ -127,6 +127,7 @@ describe('GET /api/v1/me/export', () => {
         shownTotal: null,
         shownMode: null,
         cardShared: false,
+        badges: [],
         createdAt: expect.any(String),
       },
       marks: [

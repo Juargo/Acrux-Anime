@@ -2,6 +2,7 @@ import { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AvatarPreset } from '../profile-api';
 import { Avatar } from './Avatar';
+import { BadgeRow } from './BadgeRow';
 import { QrCode } from './QrCode';
 
 export interface ShareCardProps {
@@ -17,6 +18,8 @@ export interface ShareCardProps {
   url: string;
   // The QR to the public profile (RF-32): a URL draws it, true draws the sample's placeholder.
   qr?: string | boolean;
+  // The owner's badges (RF-55); the caller passes them only for Plus.
+  badges?: readonly string[];
   hidden?: boolean;
 }
 
@@ -33,6 +36,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
     total,
     label,
     covers,
+    badges = [],
     url,
     qr = false,
     hidden = false,
@@ -67,6 +71,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
       <div className="share-card__total">
         <span className="share-card__count">{total}</span>
         <span className="share-card__label">{label}</span>
+        <BadgeRow ids={badges} className="share-card__badges" />
       </div>
       {covers.length > 0 && (
         <div className="share-card__watching">

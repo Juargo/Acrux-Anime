@@ -53,6 +53,7 @@ describe('profile repository', () => {
       shownTotal: null,
       shownMode: null,
       cardShared: false,
+      badges: [],
       createdAt: expect.any(Date),
     });
   });
@@ -202,6 +203,7 @@ describe('profile repository', () => {
       listVisibility: 'private',
       shownTotal: 12,
       shownMode: 'entry',
+      badges: [],
     });
     expect(await profiles.findByHandle('nadie_aqui')).toBeNull();
   });
@@ -239,6 +241,16 @@ describe('profile repository', () => {
 
     const google = await profiles.update(userId, initial, { avatarPreset: null });
     expect(google.avatarPreset).toBeNull();
+
+    // Badges start empty and are stored as the API validated them (RF-55).
+    expect(google.badges).toEqual([]);
+    const earned = await profiles.update(userId, initial, { badges: ['titles_10', 'genres_5'] });
+    expect(earned.badges).toEqual(['titles_10', 'genres_5']);
+    expect((await profiles.findByHandle(before.handle))?.badges).toEqual(['titles_10', 'genres_5']);
+
+    // The Plus presets of RF-55 are stored as they are; the API decides who sees them.
+    const plus = await profiles.update(userId, initial, { avatarPreset: 'eclipse' });
+    expect(plus.avatarPreset).toBe('eclipse');
   });
 
   it("removes the profile with the user's marks, AniList link and plan, and nobody else's", async () => {

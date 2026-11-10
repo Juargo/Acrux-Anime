@@ -55,6 +55,8 @@ describe('computeStats (RF-53)', () => {
       { genre: 'Mystery', count: 1, share: 0.25 },
       { genre: 'Romance', count: 1, share: 0.25 },
     ]);
+    // Every distinct genre counts for the badges, not only the top five (RF-55).
+    expect(stats.genreCount).toBe(7);
   });
 
   it('groups titles by release decade, oldest first, and leaves out unknown years', () => {
@@ -92,6 +94,7 @@ describe('computeStats (RF-53)', () => {
       minutes: 0,
       unknownLength: 0,
       genres: [],
+      genreCount: 0,
       decades: [],
       formats: [],
     });

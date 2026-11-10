@@ -47,6 +47,7 @@ enum FranchiseRole {
 }
 
 // The preset Acrux avatars of Figma M06 (#39); null on the profile means Google's.
+// sakura, aurora and eclipse need Plus (RF-55).
 enum AvatarPreset {
   violeta
   verde
@@ -54,6 +55,9 @@ enum AvatarPreset {
   coral
   noche
   lavanda
+  sakura
+  aurora
+  eclipse
 
   @@map("avatar_preset")
 }
@@ -75,6 +79,8 @@ model Profile {
   shownMode      CounterMode?   @map("shown_mode")
   // The first card shared, to offer making the list public only then (#36).
   cardSharedAt   DateTime?      @map("card_shared_at") @db.Timestamptz(6)
+  // Badge ids earned by milestones (RF-55); the API checks them against its catalog.
+  badges         String[]       @default([])
   createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 

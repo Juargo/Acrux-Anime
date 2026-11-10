@@ -57,6 +57,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0037](./0037-e2e-contra-la-app-construida-en-ci.md) | Pruebas E2E contra la app construida en CI, con Neon Auth simulado | Aceptado | Sesión 2026-11-07 |
 | [0038](./0038-red-de-anuncios-y-espacios.md) | Red de anuncios (Google AdSense) y espacios | Aceptado | Sesión 2026-11-08 |
 | [0039](./0039-temas-de-tarjeta-fuera-de-plus.md) | Temas de tarjeta fuera de Plus, como compras sueltas a futuro | Aceptado | Sesión 2026-11-09 |
+| [0040](./0040-insignias-por-hitos-y-avatares-plus.md) | Insignias por hitos y avatares exclusivos como «insignias e íconos» de Plus | Aceptado | Sesión 2026-11-09 |
 
 ## Trazabilidad con las reuniones
 
@@ -97,6 +98,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-11-07: E2E contra la app construida en CI (#47) | 0037 (reemplaza el E2E contra la vista previa de 0027 y 0029) |
 | Sesión 2026-11-08: red de anuncios y espacios (P-13) | 0038 (complementa el punto 5 de 0036) |
 | Sesión 2026-11-09: temas de tarjeta fuera de Plus, como compras sueltas | 0039 (modifica el punto 2 de 0036) |
+| Sesión 2026-11-09: insignias por hitos y avatares exclusivos (RF-55) | 0040 (complementa el punto 2 de 0036) |
 | Sesión 2026-10-27: repo público, región São Paulo, lista privada por defecto | 0027, 0020, 0028 |
 | Sesión 2026-10-27: monorepo con pnpm workspaces aceptado (solo web) | 0002 |
 | D13 | 0010 |

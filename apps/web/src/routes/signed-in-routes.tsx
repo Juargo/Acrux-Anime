@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { type RouteObject, useNavigate, useParams } from 'react-router';
+import { BadgesScreen } from '../badges/BadgesScreen';
 import { CardScreen } from '../card/CardScreen';
 import { CatalogScreen } from '../catalog/CatalogScreen';
 import { CuratorScreen } from '../curator/CuratorScreen';
@@ -52,6 +53,18 @@ function StatsPage() {
   const context = useSignedIn();
   return (
     <StatsScreen
+      profile={context.profile}
+      getToken={context.getToken}
+      fetchFn={context.fetchFn}
+      client={context.client}
+    />
+  );
+}
+
+function BadgesPage() {
+  const context = useSignedIn();
+  return (
+    <BadgesScreen
       profile={context.profile}
       getToken={context.getToken}
       fetchFn={context.fetchFn}
@@ -125,5 +138,6 @@ export const signedInRoutes: RouteObject[] = [
   { path: 'perfil/acerca-de', element: <AboutScreen /> },
   { path: 'perfil/plus', element: <PlusPage /> },
   { path: 'perfil/estadisticas', element: <StatsPage /> },
+  { path: 'perfil/insignias', element: <BadgesPage /> },
   { path: 'curador', element: <CuratorPage /> },
 ];

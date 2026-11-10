@@ -412,6 +412,7 @@ describe('GET /api/v1/me', () => {
           shownTotal: null,
           shownMode: null,
           cardShared: false,
+          badges: [],
           createdAt: new Date('2026-11-01T12:00:00.000Z'),
           analyticsId: '0123456789abcdef0123456789abcdef',
         };
@@ -436,6 +437,7 @@ describe('GET /api/v1/me', () => {
       shownTotal: null,
       shownMode: null,
       cardShared: false,
+      badges: [],
       createdAt: '2026-11-01T12:00:00.000Z',
       analyticsId: '0123456789abcdef0123456789abcdef',
       curator: false,
@@ -485,6 +487,7 @@ describe('PATCH /api/v1/me', () => {
           shownTotal: changes.shown?.total ?? null,
           shownMode: changes.shown?.mode ?? null,
           cardShared: changes.cardShared ?? false,
+          badges: [],
           createdAt: new Date('2026-11-01T12:00:00.000Z'),
           analyticsId: null,
         };
@@ -522,6 +525,7 @@ describe('PATCH /api/v1/me', () => {
       shownTotal: null,
       shownMode: null,
       cardShared: false,
+      badges: [],
       createdAt: '2026-11-01T12:00:00.000Z',
       analyticsId: null,
       curator: false,
@@ -559,6 +563,132 @@ describe('PATCH /api/v1/me', () => {
     expect(calls).toEqual([
       { session: { userId: USER, name: 'Camila' }, changes: { avatarPreset: null } },
     ]);
+  });
+
+  describe('badges (RF-55)', () => {
+    it('@CA-RF55-01 saves the badges the browser earned, in catalog order', async () => {
+      const { calls, service } = fakeProfiles();
+      const response = await request(appWithProfiles(service))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send({ badges: ['hours_50', 'titles_10'] });
+      expect(response.status).toBe(200);
+      expect(calls).toEqual([
+        {
+          session: { userId: USER, name: 'Camila' },
+          changes: { badges: ['titles_10', 'hours_50'] },
+        },
+      ]);
+    });
+
+    it.each([
+      ['an unknown badge', { badges: ['titles_9000'] }],
+      ['a repeated badge', { badges: ['titles_10', 'titles_10'] }],
+      ['badges that are not a list', { badges: 'titles_10' }],
+    ])('rejects %s with 400', async (_case, body) => {
+      const { calls, service } = fakeProfiles();
+      const response = await request(appWithProfiles(service))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send(body);
+      expect(response.status).toBe(400);
+      expect(calls).toEqual([]);
+    });
+  });
+
+  describe('Plus avatars (RF-55)', () => {
+    function appOnPlan(profileService: Container['profileService'], plan: 'free' | 'plus') {
+      const base = createContainer({});
+      const planOf = async () => plan;
+      return createApp({
+        ...base,
+        profileService,
+        sessionVerifier: async () => ({ userId: USER, name: 'Camila' }),
+        modules: createModules(
+          profileService,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          planOf,
+        ),
+      });
+    }
+
+    it('@CA-RF55-03 refuses a Plus avatar to a free user with 403 and changes nothing', async () => {
+      const { calls, service } = fakeProfiles();
+      const response = await request(appOnPlan(service, 'free'))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send({ avatarPreset: 'sakura' });
+      expect(response.status).toBe(403);
+      expect(response.body).toMatchObject({ code: 'plan.plus_required' });
+      expect(calls).toEqual([]);
+    });
+
+    it('refuses a Plus avatar sent along with other changes, saving none of them', async () => {
+      const { calls, service } = fakeProfiles();
+      const response = await request(appOnPlan(service, 'free'))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send({ displayName: 'Cami', avatarPreset: 'sakura' });
+      expect(response.status).toBe(403);
+      expect(calls).toEqual([]);
+    });
+
+    it.each(['Sakura', 'SAKURA', 'sakura '])('rejects the preset %j with 400', async (preset) => {
+      const { calls, service } = fakeProfiles();
+      const response = await request(appOnPlan(service, 'free'))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send({ avatarPreset: preset });
+      expect(response.status).toBe(400);
+      expect(calls).toEqual([]);
+    });
+
+    it('saves a Plus avatar for a Plus user', async () => {
+      const { calls, service } = fakeProfiles();
+      const response = await request(appOnPlan(service, 'plus'))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send({ avatarPreset: 'aurora' });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({ avatarPreset: 'aurora', plan: 'plus' });
+      expect(calls).toEqual([
+        { session: { userId: USER, name: 'Camila' }, changes: { avatarPreset: 'aurora' } },
+      ]);
+    });
+
+    it('still lets a free user pick a free avatar', async () => {
+      const { service } = fakeProfiles();
+      const response = await request(appOnPlan(service, 'free'))
+        .patch('/api/v1/me')
+        .set(auth)
+        .send({ avatarPreset: 'coral' });
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({ avatarPreset: 'coral' });
+    });
+
+    it.each([
+      ['free', null],
+      ['plus', 'eclipse'],
+    ] as const)(
+      'shows a stored Plus avatar to a %s user as %s, keeping it for a later purchase (RF-56)',
+      async (plan, shown) => {
+        const { service } = fakeProfiles();
+        const stored = {
+          ...service,
+          me: async () => ({
+            ...(await service.update({ userId: USER }, {})),
+            avatarPreset: 'eclipse' as const,
+          }),
+        };
+        const response = await request(appOnPlan(stored, plan)).get('/api/v1/me').set(auth);
+        expect(response.status).toBe(200);
+        expect(response.body.avatarPreset).toBe(shown);
+      },
+    );
   });
 
   it('accepts an emoji joined with ZWJ', async () => {

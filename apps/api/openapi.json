@@ -183,14 +183,17 @@
                             "amarillo",
                             "coral",
                             "noche",
-                            "lavanda"
+                            "lavanda",
+                            "sakura",
+                            "aurora",
+                            "eclipse"
                           ]
                         },
                         {
                           "type": "null"
                         }
                       ],
-                      "description": "A preset Acrux avatar; null shows Google's"
+                      "description": "A preset Acrux avatar; null shows Google's. A Plus preset reads null without Plus"
                     },
                     "locale": {
                       "anyOf": [
@@ -256,6 +259,25 @@
                       "type": "boolean",
                       "description": "Whether a card was ever shared (#36)"
                     },
+                    "badges": {
+                      "maxItems": 9,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "titles_10",
+                          "titles_50",
+                          "titles_100",
+                          "titles_250",
+                          "hours_50",
+                          "hours_200",
+                          "hours_500",
+                          "genres_5",
+                          "genres_10"
+                        ]
+                      },
+                      "description": "Badges earned by milestones (RF-55); public only with Plus"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time",
@@ -297,6 +319,7 @@
                     "shownTotal",
                     "shownMode",
                     "cardShared",
+                    "badges",
                     "createdAt",
                     "analyticsId",
                     "curator",
@@ -353,7 +376,10 @@
                           "amarillo",
                           "coral",
                           "noche",
-                          "lavanda"
+                          "lavanda",
+                          "sakura",
+                          "aurora",
+                          "eclipse"
                         ]
                       },
                       {
@@ -414,6 +440,24 @@
                         "type": "null"
                       }
                     ]
+                  },
+                  "badges": {
+                    "maxItems": 9,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "titles_10",
+                        "titles_50",
+                        "titles_100",
+                        "titles_250",
+                        "hours_50",
+                        "hours_200",
+                        "hours_500",
+                        "genres_5",
+                        "genres_10"
+                      ]
+                    }
                   }
                 },
                 "additionalProperties": false
@@ -448,14 +492,17 @@
                             "amarillo",
                             "coral",
                             "noche",
-                            "lavanda"
+                            "lavanda",
+                            "sakura",
+                            "aurora",
+                            "eclipse"
                           ]
                         },
                         {
                           "type": "null"
                         }
                       ],
-                      "description": "A preset Acrux avatar; null shows Google's"
+                      "description": "A preset Acrux avatar; null shows Google's. A Plus preset reads null without Plus"
                     },
                     "locale": {
                       "anyOf": [
@@ -521,6 +568,25 @@
                       "type": "boolean",
                       "description": "Whether a card was ever shared (#36)"
                     },
+                    "badges": {
+                      "maxItems": 9,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "titles_10",
+                          "titles_50",
+                          "titles_100",
+                          "titles_250",
+                          "hours_50",
+                          "hours_200",
+                          "hours_500",
+                          "genres_5",
+                          "genres_10"
+                        ]
+                      },
+                      "description": "Badges earned by milestones (RF-55); public only with Plus"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time",
@@ -562,6 +628,7 @@
                     "shownTotal",
                     "shownMode",
                     "cardShared",
+                    "badges",
                     "createdAt",
                     "analyticsId",
                     "curator",
@@ -585,6 +652,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "A Plus avatar needs Plus (RF-55)"
           },
           "503": {
             "description": "The database is not configured"
@@ -1796,13 +1866,17 @@
                   "amarillo",
                   "coral",
                   "noche",
-                  "lavanda"
+                  "lavanda",
+                  "sakura",
+                  "aurora",
+                  "eclipse"
                 ]
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "A Plus avatar reads null without Plus (RF-55)"
           },
           "listVisibility": {
             "type": "string",
@@ -1837,6 +1911,25 @@
                 "type": "null"
               }
             ]
+          },
+          "badges": {
+            "maxItems": 9,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "titles_10",
+                "titles_50",
+                "titles_100",
+                "titles_250",
+                "hours_50",
+                "hours_200",
+                "hours_500",
+                "genres_5",
+                "genres_10"
+              ]
+            },
+            "description": "The owner's badges; empty unless the owner is Plus (RF-55)"
           }
         },
         "required": [
@@ -1846,7 +1939,8 @@
           "avatarPreset",
           "listVisibility",
           "shownTotal",
-          "shownMode"
+          "shownMode",
+          "badges"
         ],
         "additionalProperties": false
       }

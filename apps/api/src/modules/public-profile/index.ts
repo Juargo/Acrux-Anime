@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ProblemError } from '../../http/problem.js';
 import type { Module } from '../../http/routes.js';
 import { markPageSchema, pageQueryDocs, pageToJson, parsePage } from '../marks/index.js';
+import { avatarPreset, badges } from '../profile/index.js';
 import { notFoundPage, profileImage, sharePage } from './og.js';
 import type { PublicProfileService } from './services/public-profile.service.js';
 
@@ -12,10 +13,11 @@ const summarySchema = z
     handle: z.string(),
     displayName: z.string(),
     avatarUrl: z.string().nullable(),
-    avatarPreset: z.enum(['violeta', 'verde', 'amarillo', 'coral', 'noche', 'lavanda']).nullable(),
+    avatarPreset: avatarPreset.nullable().describe('A Plus avatar reads null without Plus (RF-55)'),
     listVisibility: z.enum(['private', 'public']),
     shownTotal: z.number().int().nullable().describe("The owner's last counter"),
     shownMode: counterMode.nullable(),
+    badges: badges.describe("The owner's badges; empty unless the owner is Plus (RF-55)"),
   })
   .meta({ id: 'PublicProfile' });
 const handleParam = z.string().regex(/^[a-z0-9_]{3,20}$/);

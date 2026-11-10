@@ -111,7 +111,7 @@ describe('PlusScreen', () => {
     for (const benefit of [
       'Estadísticas avanzadas',
       'Tu Wrapped anual',
-      'Insignias e íconos de la app',
+      'Insignias y avatares exclusivos',
     ]) {
       expect(within(page).getByText(benefit)).toBeTruthy();
     }

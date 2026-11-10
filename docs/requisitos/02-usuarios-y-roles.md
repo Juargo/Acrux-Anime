@@ -26,7 +26,7 @@ No hay rol de moderador: no hay reseñas ni foros.
 | Reportar una saga mal armada | ❌ | ✅ | ✅ | ✅ | Usuario autenticado |
 | Usar la app sin anuncios | ✅ (perfil público sin anuncios) | ❌ | ✅ | ✅ | `requirePlan('plus')` |
 | Estadísticas avanzadas y Wrapped | ❌ | ❌ | ✅ | ✅ | `requirePlan('plus')` |
-| Insignias e íconos | ❌ | ❌ | ✅ | ✅ | `requirePlan('plus')` |
+| Insignias en el perfil público y la tarjeta; avatares exclusivos | ❌ | ❌ | ✅ | ✅ | La API lee el plan: 403 `plan.plus_required` al elegir un avatar exclusivo; el perfil público oculta insignias y avatares sin Plus (ADR-0040) |
 | Editar la tabla de correcciones y atender reportes | ❌ | ❌ | ❌ | ✅ | `requireRole('curator')` |
 | Ver métricas agregadas | ❌ | ❌ | ❌ | ✅ | `requireRole('curator')` |
 

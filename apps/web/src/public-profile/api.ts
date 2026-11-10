@@ -11,6 +11,8 @@ export interface PublicProfile {
   // The owner's last counter (L3 of odd/tasks/perfil-publico.md), null until they open the app.
   shownTotal: number | null;
   shownMode: 'franchise' | 'entry' | null;
+  // Badge ids; the API returns them only while the owner is Plus (RF-55).
+  badges?: string[];
 }
 
 // `code` is the API problem's (ADR-0023), when the API answered with one.

@@ -23,6 +23,8 @@ export interface ShareCardContent {
   avatarUrl: string | null;
   avatarPreset: Profile['avatarPreset'];
   covers: CardCover[];
+  // The earned badges, only while the owner is Plus (RF-55).
+  badges: string[];
 }
 
 // The step "¿Qué estás viendo ahora?" (M05) starts with the first franchises in Viendo checked.
@@ -37,7 +39,8 @@ export function defaultChoice(watching: ListRow[]): string[] {
 export function shareCardContent(input: {
   list: MyList;
   mode: CounterMode;
-  profile: Pick<Profile, 'displayName' | 'avatarUrl'> & Partial<Pick<Profile, 'avatarPreset'>>;
+  profile: Pick<Profile, 'displayName' | 'avatarUrl'> &
+    Partial<Pick<Profile, 'avatarPreset' | 'plan' | 'badges'>>;
   chosen: string[] | null;
   t?: TFunction;
 }): ShareCardContent {
@@ -51,6 +54,7 @@ export function shareCardContent(input: {
     initial: name.charAt(0).toUpperCase() || '?',
     avatarUrl: profile.avatarUrl,
     avatarPreset: profile.avatarPreset ?? null,
+    badges: profile.plan === 'plus' ? (profile.badges ?? []) : [],
     covers: list.watching
       .filter((row) => chosen.has(row.id))
       .slice(0, MAX_COVERS)

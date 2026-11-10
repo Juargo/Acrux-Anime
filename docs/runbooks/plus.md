@@ -19,7 +19,7 @@ Compra de Plus vitalicio (épica #50, ADR-0025, ADR-0036). Plus es un pago únic
      - Todo lo demás responde 200 `ignored`: otros eventos, órdenes `pending`, `failed` o `fraudulent`, reembolsos parciales y otras tiendas o variantes.
   4. Registra el evento en `billing_event` y cambia `entitlement` en una sola transacción. Un evento repetido responde 200 `duplicate` y no cambia nada.
 - **Idempotencia:** Lemon Squeezy no manda un id de evento, así que la clave es `<evento>:<id de la orden>` (por ejemplo `order_created:1001`). Cada orden se crea una vez y se reembolsa una vez.
-- **`requirePlan('plus')`:** una ruta con `plan: 'plus'` lee el plan de `entitlement` en cada petición y responde 403 `plan.plus_required` a quien no lo tiene. El plan nunca se toma del cliente ni del JWT. Por ahora ninguna ruta lo usa: las funciones de Plus que viven en el servidor lo aplican cuando se construyen (RF-54, RF-55).
+- **`requirePlan('plus')`:** una ruta con `plan: 'plus'` lee el plan de `entitlement` en cada petición y responde 403 `plan.plus_required` a quien no lo tiene. El plan nunca se toma del cliente ni del JWT. Por ahora ninguna ruta lo usa. RF-55 comprueba el plan por campo, dentro de `PATCH /me` y del perfil público, porque esas rutas también las usan quienes no tienen Plus. RF-54 lo aplicará si su Wrapped vive en el servidor.
 - **`GET /api/v1/me`:** trae `plan` (`free` o `plus`, leído de la base) y `plusAvailable`, que indica si se puede comprar en este entorno.
 - **En la app** (Perfil → Acrux Plus, `/perfil/plus`): pantallas de Figma M21–M24, adaptadas al pago único.
   - Ofrece el pago único y abre el checkout. Si no se pudo iniciar, avisa que no se cobró nada.
@@ -31,6 +31,13 @@ Compra de Plus vitalicio (épica #50, ADR-0025, ADR-0036). Plus es un pago únic
   - Cualquier usuario ve horas, episodios y títulos vistos. Un título sin episodios o duración conocidos cuenta como título pero no suma tiempo.
   - Con Plus se ven los cinco géneros favoritos, las décadas de estreno y los formatos. Sin Plus, esa parte ni se dibuja: muestra un bloqueo con «Ver Acrux Plus», o «Acrux Plus llega pronto» si el cobro está apagado.
   - El bloqueo es solo de la app, porque los datos son las marcas del propio usuario cruzadas con datos públicos de AniList. El plan sale de `/me`.
+- **Insignias (RF-55, Perfil → Insignias, `/perfil/insignias`, ADR-0040):**
+  - Se calculan en el navegador con las mismas estadísticas. Hay nueve: 10, 50, 100 y 250 títulos; 50, 200 y 500 horas; 5 y 10 géneros distintos.
+  - La pantalla guarda las ganadas con `PATCH /me {badges}`, también para usuarios gratuitos. La API acepta solo ids conocidos y los guarda en `profile.badges`.
+  - `GET /profiles/:handle` devuelve `badges` vacío salvo que el dueño tenga Plus. La tarjeta las dibuja solo con Plus.
+- **Avatares exclusivos (RF-55):**
+  - `sakura`, `aurora` y `eclipse`. Sin Plus, `PATCH /me` responde 403 `plan.plus_required`.
+  - Sin Plus se leen como nulos en `/me`, en el perfil público y en la imagen OG. El valor guardado se conserva: un reembolso los oculta y una compra nueva los devuelve.
 
 ## Interruptor
 
