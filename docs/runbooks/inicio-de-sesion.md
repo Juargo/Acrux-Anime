@@ -19,7 +19,7 @@ La SPA inicia sesión con Google mediante Neon Auth (ADR-0034), es decir, Better
 | Neon, proveedor Google | Client ID y Client Secret propios, no los compartidos de Neon |
 | Neon, dominios de confianza | `https://app.acruxanime.com` y, mientras se prueba #28, `https://app-git-feat-login-google-juargos-projects.vercel.app`. Nunca `*.vercel.app`: cualquier sitio de Vercel recibiría la sesión. *Allow localhost* desactivado |
 | Vercel, proyecto `app` | `VITE_NEON_AUTH_URL` y `NEON_AUTH_BASE_URL` con la Auth URL; `DATABASE_URL` con el rol `acrux_api` |
-| `apps/web/vercel.json` | El origen de la Auth URL en `connect-src` de la CSP |
+| `apps/web/api/_csp.ts` y `apps/web/vercel.json` | El origen de la Auth URL en `connect-src` de la CSP (el HTML y los archivos estáticos, ADR-0042) |
 
 Una sola instancia de Neon Auth, la de `production`, sirve a producción y a las vistas previas. Las vistas previas escriben el perfil en la base de su rama, así que un mismo usuario puede tener perfiles distintos en `dev` y en `production`.
 

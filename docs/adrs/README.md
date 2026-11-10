@@ -59,6 +59,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0039](./0039-temas-de-tarjeta-fuera-de-plus.md) | Temas de tarjeta fuera de Plus, como compras sueltas a futuro | Aceptado | Sesión 2026-11-09 |
 | [0040](./0040-insignias-por-hitos-y-avatares-plus.md) | Insignias por hitos y avatares exclusivos como «insignias e íconos» de Plus | Aceptado | Sesión 2026-11-09 |
 | [0041](./0041-myanimelist-como-plan-b.md) | MyAnimeList como plan B de la fuente de datos | Aceptado | Respuesta de MAL, 2026-11-06 |
+| [0042](./0042-csp-estricta-con-nonce.md) | CSP estricta con nonce para el HTML de la app | Aceptado | Sesión 2026-11-10 |
 
 ## Trazabilidad con las reuniones
 
@@ -101,6 +102,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-11-09: temas de tarjeta fuera de Plus, como compras sueltas | 0039 (modifica el punto 2 de 0036) |
 | Sesión 2026-11-09: insignias por hitos y avatares exclusivos (RF-55) | 0040 (complementa el punto 2 de 0036) |
 | Respuesta de MyAnimeList (2026-11-06): uso comercial sin licencia | 0041 (complementa el punto 4 de 0036) |
+| Sesión 2026-11-10: CSP con nonce para AdSense | 0042 (modifica el punto 5 de 0028 y la caché de 0016) |
 | Sesión 2026-10-27: repo público, región São Paulo, lista privada por defecto | 0027, 0020, 0028 |
 | Sesión 2026-10-27: monorepo con pnpm workspaces aceptado (solo web) | 0002 |
 | D13 | 0010 |

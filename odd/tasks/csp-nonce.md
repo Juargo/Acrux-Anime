@@ -15,9 +15,9 @@ Objetivo: servir el HTML de la app con una CSP con nonce por pedido, como exige 
 
 | ID | Specs | Ruta | Estado | Commit |
 |---|---|---|---|---|
-| T1 | S1, S2, S3, S5 | inline | pendiente | — |
-| T2 | S4 | inline | pendiente | — |
-| T3 | S6 | inline | pendiente | — |
+| T1 | S1, S2, S3, S5 | inline | hecho | 7c43b13 |
+| T2 | S4 | inline | hecho | 9aef524 |
+| T3 | S6 | inline | hecho | (este commit) |
 | T4 | S1–S5 | verificador independiente (riesgo ítems 2 y 5) + vista previa | pendiente | — |
 
 ## Log
@@ -30,3 +30,8 @@ Objetivo: servir el HTML de la app con una CSP con nonce por pedido, como exige 
   - La regla de reescritura del fallback de la SPA apunta a la función.
   - Según la documentación de Vercel, las cabeceras de la función tienen prioridad sobre las de `vercel.json`. Hay que comprobarlo en la vista previa con `curl -I`.
   - Se descartó el middleware: tendría que volver a pedir el HTML y eso choca con la protección de las vistas previas.
+- **L4:** T1 y T2:
+  - Web: 398 tests; typecheck y biome ci pasan.
+  - En Chromium, sirviendo `dist` con el handler: la app monta, el service worker se registra y no hay avisos de CSP.
+  - Con un script inline, un `onerror` y un script externo inyectados en el HTML, los tres quedan bloqueados por la CSP.
+  - Los tests se escribieron junto con el código, sin RED previo.
