@@ -11,6 +11,7 @@ import { DeleteAccountScreen } from '../profile/DeleteAccountScreen';
 import { PrivacyScreen } from '../profile/PrivacyScreen';
 import { ProfileEditor } from '../profile/ProfileEditor';
 import { ProfileScreen } from '../profile/ProfileScreen';
+import { StatsScreen } from '../stats/StatsScreen';
 import { useSignedIn } from './signed-in-context';
 
 function CatalogPage() {
@@ -45,6 +46,18 @@ function PrivacyPage() {
 
 function ProfilePage() {
   return <ProfileScreen {...useSignedIn()} />;
+}
+
+function StatsPage() {
+  const context = useSignedIn();
+  return (
+    <StatsScreen
+      profile={context.profile}
+      getToken={context.getToken}
+      fetchFn={context.fetchFn}
+      client={context.client}
+    />
+  );
 }
 
 function PlusPage() {
@@ -111,5 +124,6 @@ export const signedInRoutes: RouteObject[] = [
   { path: 'perfil/borrar-cuenta', element: <DeleteAccountPage /> },
   { path: 'perfil/acerca-de', element: <AboutScreen /> },
   { path: 'perfil/plus', element: <PlusPage /> },
+  { path: 'perfil/estadisticas', element: <StatsPage /> },
   { path: 'curador', element: <CuratorPage /> },
 ];

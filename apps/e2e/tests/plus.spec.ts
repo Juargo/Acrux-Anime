@@ -1,13 +1,14 @@
-import { createHmac } from 'node:crypto';
+import { createHmac, randomInt } from 'node:crypto';
 import type { APIRequestContext } from '@playwright/test';
-import { SPY_FAMILY } from '../support/anilist.ts';
+import { FRIEREN, SPY_FAMILY } from '../support/anilist.ts';
 import { markSeen } from '../support/api.ts';
 import { API_URL, LEMON_SQUEEZY } from '../support/env.ts';
 import { expect, test } from '../support/fixtures.ts';
 
 // Journeys of epic #50: lifetime Plus against the real API and Postgres. Lemon Squeezy is
 // stood in for by the webhooks it would send, signed with the E2E secret.
-let nextOrder = Math.floor(Date.now() / 1000);
+// Workers start together: seconds alone would give two of them the same order ids.
+let nextOrder = Date.now() * 1000 + randomInt(1000);
 
 function orderEvent(
   eventName: 'order_created' | 'order_refunded',
@@ -93,4 +94,32 @@ test('@CA-RF50-03 @CA-RF50-04 a repeated order applies once and a forged one giv
     headers: { Authorization: `Bearer ${user.token}` },
   });
   expect(await after.json()).toMatchObject({ plan: 'plus', plusAvailable: true });
+});
+
+test('@CA-RF53-02 @CA-RF53-01 stats show hours to a free user and everything once Plus is paid', async ({
+  page,
+  request,
+  signedIn: user,
+}) => {
+  // Both Frieren seasons: (28 + 10) episodes × 24 minutes = 15.2 hours.
+  await markSeen(request, user, [FRIEREN.rootId, 182255]);
+
+  await page.goto('/perfil');
+  await page.getByRole('link', { name: /Estadísticas/ }).click();
+  const stats = page.getByRole('region', { name: 'Estadísticas' });
+  await expect(stats.getByText('Horas vistas')).toBeVisible();
+  await expect(stats.locator('.stats__number')).toHaveText(['15', '38', '2']);
+  const locked = stats.getByRole('region', { name: 'Géneros, décadas y formatos son de Plus' });
+  await expect(locked.getByRole('link', { name: 'Ver Acrux Plus' })).toBeVisible();
+  await expect(stats.getByRole('list', { name: 'Géneros favoritos' })).toHaveCount(0);
+
+  const paid = await deliver(request, orderEvent('order_created', String(nextOrder++), user.id));
+  expect(await paid.json()).toEqual({ result: 'applied' });
+
+  await page.reload();
+  await expect(stats.getByRole('list', { name: 'Géneros favoritos' })).toContainText('Aventura');
+  await expect(stats.getByRole('list', { name: 'Por década de estreno' })).toContainText(
+    'Años 2020',
+  );
+  await expect(stats.getByRole('region', { name: /son de Plus/ })).toHaveCount(0);
 });

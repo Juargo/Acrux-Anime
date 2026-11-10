@@ -2104,3 +2104,108 @@ label.sheet__label {
   background: var(--color-accent-default);
   color: var(--color-text-on-accent);
 }
+
+/* Advanced stats (RF-53, epic #50). No Figma frame yet: the secondary screen layout. */
+.stats__status,
+.stats__note {
+  color: var(--color-text-secondary);
+}
+
+.stats__status {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.stats__totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.stats__total {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-raised);
+}
+
+.stats__label {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.stats__number {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.stats__note {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.stats__bars {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stats__bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 8px;
+}
+
+.stats__value {
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.stats__fill {
+  grid-column: 1 / -1;
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-accent-default);
+}
+
+.stats__locked {
+  position: relative;
+  display: grid;
+  min-height: 180px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-raised);
+  overflow: hidden;
+}
+
+.stats__placeholder {
+  display: grid;
+  gap: 18px;
+  align-content: center;
+  padding: 24px;
+  filter: blur(6px);
+  opacity: 0.6;
+}
+
+.stats__offer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.stats__offer-title {
+  margin: 0;
+  font-size: 1rem;
+}
