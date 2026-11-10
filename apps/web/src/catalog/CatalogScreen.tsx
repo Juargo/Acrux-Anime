@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AdSlot } from '../ads/AdSlot';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient, useCatalog, useGenres } from '../anilist/hooks';
 import { anilistErrorMessage } from '../anilist/messages';
@@ -100,6 +101,8 @@ export function CatalogScreen({
           {countLabel(t('catalog.format'), filters.formats.length)}
         </button>
       </div>
+      {/* RF-58, ADR-0038: between sections, after the filters; never while loading or failing. */}
+      {online && !catalog.isPending && !catalog.isLoadingError && <AdSlot />}
 
       {marking.message && (
         <p className="catalog__message" role={marking.message.kind}>

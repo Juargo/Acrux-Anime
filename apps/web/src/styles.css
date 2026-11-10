@@ -1921,6 +1921,29 @@ label.sheet__label {
   line-height: 20px;
 }
 
+.consent__choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 10px;
+  cursor: pointer;
+}
+
+.consent__choice input {
+  margin-top: 3px;
+}
+
+.consent__choice-name {
+  display: block;
+  font-weight: 600;
+}
+
+.consent__choice-hint {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
 .consent__actions {
   display: flex;
   flex-wrap: wrap;
@@ -2314,4 +2337,24 @@ label.sheet__label {
   width: 22px;
   height: 22px;
   font-size: 0.75rem;
+}
+
+/* RF-58 · Espacio de anuncio: reserva su alto y nunca tapa contenido. */
+.ad-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 16px 0;
+}
+
+.ad-slot__label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.ad-slot__unit {
+  display: block;
+  min-height: 100px;
 }

@@ -2,8 +2,9 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ADS_CONSENT_KEY, createAds } from '../ads/ads';
 import { setLocale } from '../i18n';
-import { AnalyticsProvider, AnalyticsRow } from './AnalyticsContext';
+import { AdsRow, AnalyticsProvider, AnalyticsRow } from './AnalyticsContext';
 import { type Analytics, CONSENT_KEY, createAnalytics, type PostHogLike } from './analytics';
 import { ConsentBanner } from './ConsentBanner';
 import { eventCallbacks } from './events';
@@ -13,8 +14,11 @@ afterEach(() => {
   window.localStorage.clear();
 });
 
-function setup(options: { consent?: string; key?: string } = {}) {
+function setup(
+  options: { consent?: string; key?: string; ads?: boolean; adsConsent?: string } = {},
+) {
   if (options.consent) window.localStorage.setItem(CONSENT_KEY, options.consent);
+  if (options.adsConsent) window.localStorage.setItem(ADS_CONSENT_KEY, options.adsConsent);
   const client = {
     init: vi.fn(),
     capture: vi.fn(),
@@ -29,13 +33,20 @@ function setup(options: { consent?: string; key?: string } = {}) {
     load: async () => client as unknown as PostHogLike,
     clearCookies: () => {},
   });
+  const ads = createAds({
+    client: options.ads ? 'ca-pub-123' : undefined,
+    slot: options.ads ? '456' : undefined,
+    storage: window.localStorage,
+    inject: vi.fn(),
+  });
   render(
-    <AnalyticsProvider analytics={analytics}>
+    <AnalyticsProvider analytics={analytics} ads={ads}>
       <AnalyticsRow />
+      <AdsRow />
       <ConsentBanner />
     </AnalyticsProvider>,
   );
-  return { analytics, client };
+  return { analytics, ads, client };
 }
 
 const banner = () => screen.queryByRole('region', { name: '¿Nos ayudas a medir?' });
@@ -127,5 +138,77 @@ describe('ConsentBanner in English (#43)', () => {
     screen.getByRole('button', { name: 'Accept' });
     expect(screen.getByRole('button', { name: /Analytics/ }).textContent).toContain('Undecided');
     expect(screen.queryByRole('button', { name: 'Rechazar' })).toBeNull();
+  });
+});
+
+// RF-58 and S3 of odd/tasks/anuncios.md: with AdSense configured, analytics and personalized ads
+// are asked separately, and each one is changed on its own from Perfil.
+describe('ConsentBanner with ads (RF-58)', () => {
+  const privacy = () => screen.queryByRole('region', { name: 'Tu privacidad en Acrux' });
+  const choice = (name: string) => screen.getByRole('checkbox', { name }) as HTMLInputElement;
+
+  it('@CA-RF58-02 asks analytics and personalized ads separately, unchecked', () => {
+    setup({ ads: true });
+    expect(privacy()).not.toBeNull();
+    expect(banner()).toBeNull();
+    expect(choice('Analítica').checked).toBe(false);
+    expect(choice('Anuncios personalizados').checked).toBe(false);
+    screen.getByRole('button', { name: 'Rechazar todo' });
+    screen.getByRole('button', { name: 'Guardar elección' });
+    screen.getByRole('button', { name: 'Aceptar todo' });
+  });
+
+  it('accepts both with "Aceptar todo"', async () => {
+    const user = userEvent.setup();
+    const { analytics, ads, client } = setup({ ads: true });
+    await user.click(screen.getByRole('button', { name: 'Aceptar todo' }));
+    expect(analytics.consent()).toBe('granted');
+    expect(ads.consent()).toBe('granted');
+    await vi.waitFor(() => expect(client.init).toHaveBeenCalled());
+    expect(privacy()).toBeNull();
+  });
+
+  it('declines both with "Rechazar todo"', async () => {
+    const user = userEvent.setup();
+    const { analytics, ads, client } = setup({ ads: true });
+    await user.click(screen.getByRole('button', { name: 'Rechazar todo' }));
+    expect(analytics.consent()).toBe('denied');
+    expect(ads.consent()).toBe('denied');
+    expect(client.init).not.toHaveBeenCalled();
+    expect(privacy()).toBeNull();
+  });
+
+  it('saves each choice on its own', async () => {
+    const user = userEvent.setup();
+    const { analytics, ads } = setup({ ads: true });
+    await user.click(choice('Anuncios personalizados'));
+    await user.click(screen.getByRole('button', { name: 'Guardar elección' }));
+    expect(analytics.consent()).toBe('denied');
+    expect(ads.consent()).toBe('granted');
+    expect(window.localStorage.getItem(ADS_CONSENT_KEY)).toBe('granted');
+  });
+
+  it('asks again when only the ads choice is missing', () => {
+    setup({ ads: true, consent: 'granted' });
+    expect(privacy()).not.toBeNull();
+    expect(choice('Analítica').checked).toBe(true);
+  });
+
+  it('changes personalized ads from its Perfil row, keeping analytics', async () => {
+    const user = userEvent.setup();
+    const { analytics, ads } = setup({ ads: true, consent: 'granted', adsConsent: 'granted' });
+    expect(privacy()).toBeNull();
+    await user.click(screen.getByRole('button', { name: /Anuncios personalizados/ }));
+    await user.click(choice('Anuncios personalizados'));
+    await user.click(screen.getByRole('button', { name: 'Guardar elección' }));
+    expect(ads.consent()).toBe('denied');
+    expect(analytics.consent()).toBe('granted');
+    screen.getByRole('button', { name: /Anuncios personalizados.*Rechazados/ });
+  });
+
+  it('shows no ads row and keeps the analytics banner without AdSense', () => {
+    setup();
+    expect(banner()).not.toBeNull();
+    expect(screen.queryByRole('button', { name: /Anuncios personalizados/ })).toBeNull();
   });
 });

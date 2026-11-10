@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { AnalyticsRow, useAnalyticsState } from '../analytics/AnalyticsContext';
+import { AdsRow, AnalyticsRow, useAnalyticsState } from '../analytics/AnalyticsContext';
 import { errorMessage } from '../api-errors';
 import { Avatar } from '../components/Avatar';
 import { useCounterMode } from '../counter/use-counter-mode';
@@ -37,7 +37,7 @@ export function ProfileScreen({
   const [savingMode, setSavingMode] = useState(false);
   const [modeFailed, setModeFailed] = useState(false);
   const titleId = useId();
-  const { analytics } = useAnalyticsState();
+  const { analytics, ads } = useAnalyticsState();
   const data = useDataDownload({ getToken, fetchFn });
   const name = profile.displayName.trim() || t('app.noName');
 
@@ -146,6 +146,11 @@ export function ProfileScreen({
         {analytics?.enabled && (
           <li>
             <AnalyticsRow />
+          </li>
+        )}
+        {ads?.enabled && (
+          <li>
+            <AdsRow />
           </li>
         )}
         <li>

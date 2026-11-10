@@ -75,8 +75,8 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 | RF-55 | Plus desbloquea insignias e íconos (ADR-0040). Las insignias se ganan por hitos: 10, 50, 100 y 250 títulos vistos; 50, 200 y 500 horas; 5 y 10 géneros distintos. Todos ven su progreso en Perfil → Insignias, y con Plus se muestran en el perfil público y en la tarjeta. Los íconos son tres avatares exclusivos de Plus; sin Plus, la API los rechaza y los lee como nulos. | Could | H4 | `docs/criterios/RF-55.feature` |
 | RF-56 | Plus no vence. Si se reembolsa la compra, el usuario vuelve a ser gratuito y conserva su lista, su total y sus tarjetas. | Must | H4 | Figma flujo 5; ADR-0036 |
 | RF-57 | La app informa la confirmación, el error de pago y el pago pendiente, y muestra el plan en Ajustes. | Must | H4 | M22–M25/D22–D25; ADR-0036 |
-| RF-58 | El usuario gratuito ve anuncios no intrusivos que no tapan contenido. Nunca aparecen en la tarjeta compartida, en el perfil público, en el inicio de sesión ni en el borrado de cuenta. La red es Google AdSense y los espacios son Inicio, Mi lista, la ficha de franquicia y la pantalla de tarjeta, siempre fuera de la tarjeta. | Must | H4 | ADR-0036, ADR-0038 |
-| RF-59 | Plus quita todos los anuncios en cualquier navegador o dispositivo donde el usuario inicie sesión. | Must | H4 | ADR-0036 |
+| RF-58 | El usuario gratuito ve anuncios no intrusivos que no tapan contenido. Nunca aparecen en la tarjeta compartida, en el perfil público, en el inicio de sesión ni en el borrado de cuenta. La red es Google AdSense y los espacios son Inicio, Mi lista, la ficha de franquicia y la pantalla de tarjeta, siempre fuera de la tarjeta. Sin la configuración de AdSense no se carga nada; el consentimiento pide «Analítica» y «Anuncios personalizados» por separado. | Must | H4 | ADR-0036, ADR-0038, `docs/criterios/RF-58.feature`, `docs/runbooks/anuncios.md` |
+| RF-59 | Plus quita todos los anuncios en cualquier navegador o dispositivo donde el usuario inicie sesión. Con Plus no se carga el script de AdSense. | Must | H4 | ADR-0036, ADR-0038, `docs/criterios/RF-59.feature` |
 
 ## 7. Curación
 

@@ -20,10 +20,11 @@ Todo lo de esta lista debe estar resuelto, o descartado con su motivo, antes del
 
 ## Anuncios (P-13, ADR-0038)
 
-- **Política de privacidad.** Agregar AdSense como encargado del tratamiento, en español y en inglés. Explicar que fuera de la UE, el Reino Unido y Suiza AdSense deja cookies aunque el usuario no acepte, para frecuencia y fraude.
-- **Consentimiento.** Extender el aviso de consentimiento a la publicidad:
-  - en la UE, el Reino Unido y Suiza, el CMP de Google con IAB TCF;
-  - en el resto, el banner propio (RNF-39).
+Los espacios, el consentimiento separado y la política de privacidad ya están construidos, apagados hasta configurar AdSense. Los pasos para activarlos están en [`runbooks/anuncios.md`](./runbooks/anuncios.md). Falta lo siguiente:
+
+- **CSP.** Decidir cómo se permite AdSense: con nonce por petición, con una lista de dominios o abriendo `script-src`. Google solo soporta el nonce.
+- **Ley 21.719.** Confirmar si en Chile las cookies de frecuencia y fraude necesitan consentimiento.
+- **Cuenta de AdSense.** Pedirla después de la autorización de AniList (#6). Después publicar `ads.txt` y configurar el mensaje TCF para la UE, el Reino Unido y Suiza.
 
 ## Contenido
 

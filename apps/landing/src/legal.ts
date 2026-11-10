@@ -35,7 +35,7 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
           'Qué datos guarda Acrux, para qué los usa, con quién los comparte y cómo ejercer tus derechos.',
       },
       title: 'Política de privacidad',
-      updated: 'Última actualización: 2 de noviembre de 2026',
+      updated: 'Última actualización: 10 de noviembre de 2026',
       sections: [
         {
           title: 'Quién es responsable',
@@ -59,7 +59,15 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
         {
           title: 'Con quién los compartimos',
           paragraphs: [
-            'Solo con los servicios que hacen funcionar Acrux, bajo acuerdos de tratamiento de datos: Neon (base de datos e inicio de sesión), Vercel (servidores), PostHog (analítica), Sentry (errores), Lemon Squeezy (pagos), Backblaze (respaldos), Upstash (límite de peticiones) y Buttondown (lista de espera). No vendemos tus datos.',
+            'Solo con los servicios que hacen funcionar Acrux, bajo acuerdos de tratamiento de datos: Neon (base de datos e inicio de sesión), Vercel (servidores), PostHog (analítica), Sentry (errores), Lemon Squeezy (pagos), Backblaze (respaldos), Upstash (límite de peticiones), Buttondown (lista de espera) y, cuando activemos los anuncios, Google AdSense (publicidad). No vendemos tus datos.',
+          ],
+        },
+        {
+          title: 'Publicidad',
+          paragraphs: [
+            'Cuando activemos los anuncios, quienes usen Acrux sin Plus verán anuncios de Google AdSense en el inicio, Mi lista, la ficha de cada franquicia y la pantalla de la tarjeta, nunca dentro de la tarjeta que compartes ni en tu perfil público. Con Plus no se cargan anuncios.',
+            'Los anuncios personalizados según tus intereses solo se muestran si los aceptas, y puedes cambiar esa decisión desde tu perfil. Si no los aceptas, verás anuncios no personalizados.',
+            'Aunque no aceptes los anuncios personalizados, fuera de la Unión Europea, el Reino Unido y Suiza Google puede usar cookies o identificadores para limitar cuántas veces ves un anuncio y para prevenir fraude. En la Unión Europea, el Reino Unido y Suiza, la elección se hace en el aviso de privacidad de Google.',
           ],
         },
         {
@@ -179,7 +187,7 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
           'What data Acrux keeps, why, who it shares it with and how to exercise your rights.',
       },
       title: 'Privacy policy',
-      updated: 'Last updated: November 2, 2026',
+      updated: 'Last updated: November 10, 2026',
       sections: [
         {
           title: 'Who is responsible',
@@ -203,7 +211,15 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
         {
           title: 'Who we share it with',
           paragraphs: [
-            'Only with the services that run Acrux, under data processing agreements: Neon (database and sign-in), Vercel (servers), PostHog (analytics), Sentry (errors), Lemon Squeezy (payments), Backblaze (backups), Upstash (rate limiting) and Buttondown (waitlist). We do not sell your data.',
+            'Only with the services that run Acrux, under data processing agreements: Neon (database and sign-in), Vercel (servers), PostHog (analytics), Sentry (errors), Lemon Squeezy (payments), Backblaze (backups), Upstash (rate limiting), Buttondown (waitlist) and, once we turn ads on, Google AdSense (advertising). We do not sell your data.',
+          ],
+        },
+        {
+          title: 'Advertising',
+          paragraphs: [
+            'Once we turn ads on, people who use Acrux without Plus will see Google AdSense ads on the home screen, My list, each franchise page and the card screen, never inside the card you share or on your public profile. With Plus, no ads load.',
+            'Ads personalized to your interests show only if you accept them, and you can change that choice from your profile. If you decline, you will see non-personalized ads.',
+            'Even if you decline personalized ads, outside the European Union, the United Kingdom and Switzerland Google may use cookies or identifiers to limit how often you see an ad and to prevent fraud. In the European Union, the United Kingdom and Switzerland, the choice is made in Google’s privacy message.',
           ],
         },
         {

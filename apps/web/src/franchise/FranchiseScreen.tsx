@@ -2,6 +2,7 @@ import { franchiseProgress } from '@acrux/domain';
 import { type ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import { AdSlot } from '../ads/AdSlot';
 import type { AniListClient } from '../anilist/client';
 import { defaultClient, useFranchise } from '../anilist/hooks';
 import { anilistErrorMessage } from '../anilist/messages';
@@ -116,6 +117,8 @@ export function FranchiseScreen({
         </p>
       )}
       {body}
+      {/* RF-58, ADR-0038: under the detail, only once it is shown (no ads on loading or errors). */}
+      {detail && progress && !query.isError && <AdSlot />}
     </section>
   );
 }

@@ -4,6 +4,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import { App } from './App';
+import { createAds } from './ads/ads';
 import { AnalyticsProvider } from './analytics/AnalyticsContext';
 import { createAnalytics, type PostHogLike } from './analytics/analytics';
 import { ConsentBanner } from './analytics/ConsentBanner';
@@ -52,6 +53,12 @@ const analytics = createAnalytics({
     }
   },
 });
+// AdSense for free users (RF-58, ADR-0038), off until both ids are set.
+const ads = createAds({
+  client: import.meta.env.VITE_ADSENSE_CLIENT,
+  slot: import.meta.env.VITE_ADSENSE_SLOT,
+  storage: localStore(),
+});
 const events = eventCallbacks(analytics);
 onAniListRateLimited(events.onRateLimited);
 
@@ -78,7 +85,7 @@ createRoot(root, {
   onRecoverableError: onReactError,
 }).render(
   <StrictMode>
-    <AnalyticsProvider analytics={analytics}>
+    <AnalyticsProvider analytics={analytics} ads={ads}>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
       </QueryClientProvider>
