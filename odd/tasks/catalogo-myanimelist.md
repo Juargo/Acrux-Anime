@@ -26,7 +26,7 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
 |---|---|---|---|---|---|---|
 | T1 | ADR-0043 y este documento | S1, S2 | inline | (rama de integración) | hecho | fcbc943 |
 | T2 | API: tabla de catálogo y módulo de catálogo (catálogo con filtros, animes por ID, franquicia, géneros), servidos desde Neon | S2, S3, S4 | inline | `feat/catalogo-myanimelist-01-api` | hecho | d94c27b, 419a8ab |
-| T6a | Nombre neutral del ID: `anilistId` pasa a `animeId` en la API, la web, el dominio y las columnas; los valores no cambian (riesgo ítems 1 y 3) | S5 | inline | `feat/catalogo-myanimelist-02-id-neutral` | hecho; falta el verificador | (este commit) |
+| T6a | Nombre neutral del ID: `anilistId` pasa a `animeId` en la API, la web, el dominio y las columnas; los valores no cambian (riesgo ítems 1 y 3) | S5 | inline | `feat/catalogo-myanimelist-02-id-neutral` | hecho; verificador sin bloqueos | 513914c |
 | T3 | Cliente de MyAnimeList en la API, conversión a la tabla y carga por demanda de lo que falta | S2, S4, S7 | inline | — | bloqueada: falta el client ID | — |
 | T4 | Trabajo programado de carga y refresco (riesgo ítem 5) | S2, S7 | inline | — | pendiente | — |
 | T5 | Web: cliente del catálogo en lugar del de AniList, mensajes de error, simulación en E2E | S3, S4 | por decidir | — | pendiente | — |
@@ -64,3 +64,10 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
   - **T6b**, el cambio de significado, va junto con la web (T5).
   - Sin RED previo: es un renombre; las suites existentes son la red de seguridad. Después del cambio: typecheck de todo el repo; tests de API 381, web 389, dominio 45, landing 26, e2e (unitarios) 5; `biome ci` sin errores; `openapi:check` al día. Los E2E con navegador no se corrieron en local.
   - Riesgo: ítem 3 (cambian nombres de campos, rutas y códigos de error de la API, pedido por la migración) e ítem 1 (renombre de columnas con datos). Corresponde verificador independiente.
+- **L12:** Verificador independiente de T6a sobre `513914c` contra `438e6a2`, en una copia aparte: S5 pasa en lo que cubre T6a, sin bloqueos.
+  - Datos: con filas en `mark` y `franchise_override`, el hash y la cantidad de filas son iguales antes y después de la migración; clave primaria, RLS, permisos y política intactos; `prisma migrate diff` sin diferencias.
+  - El diff normalizado solo contiene el renombre, la migración nueva y tres reacomodos de formato. Las consultas a AniList, `anilist_link` y los eventos no cambiaron.
+  - No comparó respuestas HTTP en vivo entre las dos versiones; se apoyó en la suite de la API.
+  - Aviso: queda la constante local `ANILIST_ID` en `apps/web/src/curator/CuratorScreen.tsx:17`; se revisa en T5.
+  - Comprobación del orquestador: la búsqueda de nombres viejos solo devuelve esa constante.
+- **L13:** Ruta de T5: delegada a un escritor, por contexto (sesión larga). T5 cubre solo la web, los E2E y los textos de la web. La baja de `mal_id` en la API y la conversión de IDs guardados quedan como T6b, inline, después.
