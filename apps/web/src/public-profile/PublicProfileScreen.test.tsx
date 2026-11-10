@@ -113,6 +113,22 @@ const coverTitles = (name: string) =>
   [...section(name).querySelectorAll('img')].map((img) => img.getAttribute('alt'));
 
 describe('PublicProfileScreen', () => {
+  it('@CA-RF55-02 shows the badges the API returns for a Plus owner', async () => {
+    renderProfile('/@camila', { ...camila, badges: ['titles_10', 'hours_50'] });
+    const badges = await screen.findByRole('list', { name: 'Insignias' });
+    expect(
+      within(badges)
+        .getAllByRole('listitem')
+        .map((item) => item.getAttribute('aria-label')),
+    ).toEqual(['10 títulos vistos', '50 horas vistas']);
+  });
+
+  it('shows no badges when the API returns none', async () => {
+    renderProfile('/@camila', { ...camila, badges: [] });
+    await screen.findByRole('heading', { name: 'Camila' });
+    expect(screen.queryByRole('list', { name: 'Insignias' })).toBeNull();
+  });
+
   it('@CA-RF40-01 shows the counter, what is being watched and the recent sagas of a public list', async () => {
     const { onViewed } = renderProfile('/@camila', camila, [
       mark(1, 'seen', 3),

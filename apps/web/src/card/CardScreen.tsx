@@ -324,6 +324,7 @@ export function CardScreen({
           total={content.total}
           label={content.label}
           covers={content.covers}
+          badges={content.badges}
           url={`${window.location.host}/@${profile.handle}`}
           qr={`${window.location.origin}/@${profile.handle}`}
         />

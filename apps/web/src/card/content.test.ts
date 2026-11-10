@@ -38,6 +38,24 @@ describe('shareCardContent', () => {
     });
   });
 
+  it('@CA-RF55-02 carries the badges only while the owner is Plus', () => {
+    const earned = { ...profile, badges: ['titles_10', 'hours_50'] };
+    const plus = shareCardContent({
+      list: list([]),
+      mode: 'franchise',
+      profile: { ...earned, plan: 'plus' },
+      chosen: null,
+    });
+    expect(plus.badges).toEqual(['titles_10', 'hours_50']);
+    const free = shareCardContent({
+      list: list([]),
+      mode: 'franchise',
+      profile: { ...earned, plan: 'free' },
+      chosen: null,
+    });
+    expect(free.badges).toEqual([]);
+  });
+
   it('falls back to "Sin nombre" and "?" without a name', () => {
     const card = shareCardContent({
       list: list([]),

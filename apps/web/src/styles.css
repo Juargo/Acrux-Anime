@@ -2299,3 +2299,19 @@ label.sheet__label {
   filter: grayscale(1);
   opacity: 0.4;
 }
+
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.share-card__badges .badge-mark {
+  width: 22px;
+  height: 22px;
+  font-size: 0.75rem;
+}

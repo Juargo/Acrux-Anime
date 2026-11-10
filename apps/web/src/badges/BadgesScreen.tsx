@@ -5,6 +5,7 @@ import type { AniListClient } from '../anilist/client';
 import { useMediaStats } from '../anilist/hooks';
 import { anilistErrorMessage } from '../anilist/messages';
 import { useMarks } from '../catalog/use-franchise-marks';
+import { BadgeMark } from '../components/BadgeRow';
 import { useOwnProfile } from '../profile/use-own-profile';
 import type { Profile } from '../profile-api';
 import { computeStats } from '../stats/compute';
@@ -144,26 +145,6 @@ function BadgeList({ progress }: { progress: BadgeProgress[] }) {
         );
       })}
     </ul>
-  );
-}
-
-const SYMBOL: Record<BadgeProgress['kind'], string> = { titles: '★', hours: '⏱', genres: '◆' };
-
-/** Presentational: the round mark of a badge, dimmed until it is earned. */
-export function BadgeMark({
-  kind,
-  earned = true,
-}: {
-  kind: BadgeProgress['kind'];
-  earned?: boolean;
-}) {
-  return (
-    <span
-      className={`badge-mark badge-mark--${kind}${earned ? '' : ' badge-mark--locked'}`}
-      aria-hidden="true"
-    >
-      {SYMBOL[kind]}
-    </span>
   );
 }
 

@@ -7,6 +7,7 @@ import type { AniListClient } from '../anilist/client';
 import { defaultClient } from '../anilist/hooks';
 import { errorMessage } from '../api-errors';
 import { Avatar } from '../components/Avatar';
+import { BadgeRow } from '../components/BadgeRow';
 import { Logo } from '../components/Logo';
 import { useCrawledFranchises } from '../counter/use-marked-franchises';
 import { type ListRow, myList } from '../my-list/items';
@@ -253,6 +254,7 @@ export function PublicProfileScreen({
           />
           <h1 className="public-profile__name">{name}</h1>
           <p className="public-profile__handle">@{data.handle}</p>
+          <BadgeRow ids={data.badges ?? []} className="public-profile__badges" />
           {data.shownTotal !== null && (
             <p className="public-profile__total">
               <span className="public-profile__count">{data.shownTotal}</span>
