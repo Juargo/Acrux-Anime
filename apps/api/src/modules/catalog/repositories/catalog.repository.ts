@@ -74,7 +74,9 @@ export interface CatalogStore {
 
 // Formats whose relations nothing follows: music videos, promotional videos and commercials.
 const NO_DETAIL_FORMATS = ['MUSIC', 'PV', 'CM'];
-const SAVE_BATCH = 100;
+// Rows saved at once. Each upsert is its own statement: a list is safe to save twice, and one
+// transaction of a hundred statements passed its 5 s limit against a database in another region.
+const SAVE_BATCH = 8;
 
 const columns = {
   id: true,
@@ -167,7 +169,7 @@ export function createCatalogRepository(prisma: PrismaClient): CatalogRepository
 
     saveListed: async (rows) => {
       for (let start = 0; start < rows.length; start += SAVE_BATCH) {
-        await prisma.$transaction(
+        await Promise.all(
           rows.slice(start, start + SAVE_BATCH).map((row) => {
             const fields = listFields(row);
             return prisma.anime.upsert({
