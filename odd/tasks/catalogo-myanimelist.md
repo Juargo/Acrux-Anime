@@ -143,3 +143,8 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
   - No se corrió: E2E de Playwright, el workflow, los privilegios por defecto de Neon ni el entorno `catalog-production`.
   - Avisos sin corregir: un ciclo de relaciones asimétrico de 3 o más entradas se releería sin fin (no reproducido); `relations` puede incluir IDs de títulos para adultos, sin sus datos.
   - Corregido: dos comentarios que aún decían «AniList ids».
+- **L29 (2026-11-11):** «si», a la pregunta «¿Pusheo las ocho ramas y abro el PR de seguimiento en borrador más los siete PRs encadenados?».
+  - PR de seguimiento #110 (borrador, contra `main`). Encadenados, cada uno contra la rama del anterior: #111 `01-api`, #112 `02-id-neutral`, #113 `03-web`, #114 `04-ids-mal`, #115 `05-credito`, #116 `06-lanzamiento`, #117 `07-fuente`.
+  - Los siete pasan las 400 líneas; cada cuerpo recomienda `size:exception` con su motivo.
+  - Checks observados en #110 y #117: Commitlint, auditoría de dependencias, gitleaks, Quality, E2E y los despliegues de Vercel en verde; en #117 también la migración de la base de vista previa. Los de #111 a #116 no se revisaron uno por uno.
+  - Queda: revisión y merge en orden (decisión del stakeholder) y la puesta en marcha de `docs/runbooks/catalogo.md`.
