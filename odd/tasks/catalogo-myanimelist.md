@@ -111,3 +111,4 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
   - **S6 queda cubierta** en las pantallas de la app. La imagen de la tarjeta que se comparte no lleva crédito: cambiarla es otra decisión de diseño.
   - Riesgo: ninguno.
 - **L20 (2026-11-10):** «ok», a «¿Escribo el ADR del lanzamiento directo?». ADR-0044 en la rama `feat/catalogo-myanimelist-06-lanzamiento`, fuera de las specs de esta feature: modifica las condiciones de H1 y H2 de ADR-0031, y actualiza RN-04, la tabla de hitos y RES-02. Deja tres puntos por decidir: Plus en el lanzamiento, registro abierto y lista de espera. Solo documentación; riesgo: ninguno.
+- **L21 (2026-11-10):** «Cualquier cobro apagado por ahora», a «¿Plus sale con el cobro activo en el lanzamiento, o lo lanzamos apagado?». ADR-0044 punto 3: Plus se lanza sin facturación (variables `LEMON_SQUEEZY_*` sin configurar en producción). Solo documentación.

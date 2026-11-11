@@ -3,7 +3,7 @@
 - **Estado:** Aceptado
 - **Fecha:** 2026-11-10
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
-- **Origen:** Sesión con el stakeholder, 2026-11-10: «Voy a dejar los anuncios para más adelante. Quiero comenzar con el lanzamiento directo de la app.»
+- **Origen:** Sesión con el stakeholder, 2026-11-10: «Voy a dejar los anuncios para más adelante. Quiero comenzar con el lanzamiento directo de la app.» y «Cualquier cobro apagado por ahora».
 
 **Modifica:** ADR-0031, en lo referido a las condiciones para pasar de H1 a H2 y de H2 a H3. La decisión «solo web» y la metodología de ADR-0031 siguen vigentes.
 
@@ -32,8 +32,9 @@
 
 1. **El lanzamiento público (H3) no espera los umbrales de H1 ni la beta cerrada de H2.** Los umbrales de validación dejan de ser una condición para avanzar.
 2. **Los anuncios quedan para más adelante.** El código de RF-58 y RF-59 sigue en la app, apagado: no se configuran las variables `VITE_ADSENSE_*` (ADR-0038).
-3. **Las métricas RN-M1 a RN-M3 se miden después del lanzamiento**, con los mismos eventos de PostHog (ADR-0030). Sus metas «por definir tras la beta» pasan a definirse con los datos del lanzamiento.
-4. **Las condiciones técnicas y legales del lanzamiento no cambian:**
+3. **Todo cobro queda apagado por ahora.** Plus se lanza sin facturación: no se configuran las variables `LEMON_SQUEEZY_*` en producción, así que `/me` responde `plusAvailable: false` y la app muestra «Acrux Plus llega pronto» (`docs/runbooks/plus.md`). Lemon Squeezy en modo real deja de ser condición del lanzamiento. Antes de prender cualquier cobro, el stakeholder lee el acuerdo de la API de MyAnimeList, que prohíbe generar ingresos sin autorización escrita (RN-08, R-01).
+4. **Las métricas RN-M1 a RN-M3 se miden después del lanzamiento**, con los mismos eventos de PostHog (ADR-0030). Sus metas «por definir tras la beta» pasan a definirse con los datos del lanzamiento.
+5. **Las condiciones técnicas y legales del lanzamiento no cambian:**
    - la fuente de datos autorizada es MyAnimeList, con crédito y enlace (ADR-0041, ADR-0043). El catálogo propio tiene que estar cargado antes de abrir;
    - paso a Vercel Pro antes de cualquier uso comercial (ADR-0020);
    - revisión de seguridad y pendientes de `docs/deuda-tecnica.md` marcados como previos al lanzamiento.
@@ -44,6 +45,7 @@
 - **Negativas / riesgos:**
   - Sin beta, un defecto llega a todos los usuarios. Se mitiga con las pruebas E2E, el seguimiento de errores y un despliegue que se puede revertir.
   - Sin encuesta no hay dato previo de disposición a pagar. El precio de Plus (RN-07) queda sin validar.
+  - Sin anuncios ni Plus, la app no genera ingresos en el lanzamiento y los costos corren por cuenta del stakeholder.
   - RN-04 y RES-02 («primero se valida la demanda») dejan de describir el plan y se actualizan.
 - **Acciones derivadas:**
   - Actualizar RN-04, la tabla de hitos y RES-02 en `docs/requisitos`.
@@ -51,6 +53,5 @@
 
 ## Pendiente de decidir
 
-- **Plus en el lanzamiento:** si se lanza con el cobro activo (Lemon Squeezy en modo real) o con Plus apagado. Antes de cobrar, el stakeholder lee el acuerdo de la API de MyAnimeList, que prohíbe generar ingresos sin autorización escrita (RN-08, R-01).
 - **Registro:** si el alta queda abierta a cualquiera desde el primer día.
 - **Lista de espera y landing:** qué pasa con el botón «Únete a la beta» (RF-80) y con quienes ya se anotaron.

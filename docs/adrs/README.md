@@ -104,7 +104,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-11-09: insignias por hitos y avatares exclusivos (RF-55) | 0040 (complementa el punto 2 de 0036) |
 | Respuesta de MyAnimeList (2026-11-06): uso comercial sin licencia | 0041 (complementa el punto 4 de 0036) |
 | Sesión 2026-11-10: migración a MyAnimeList con catálogo propio | 0043 (ejecuta el punto 4 de 0041; reemplaza el consumo desde el navegador de 0024) |
-| Sesión 2026-11-10: lanzamiento público directo, anuncios para más adelante | 0044 (modifica las condiciones de H1 y H2 de 0031) |
+| Sesión 2026-11-10: lanzamiento público directo, anuncios y cobro apagados por ahora | 0044 (modifica las condiciones de H1 y H2 de 0031) |
 | Sesión 2026-10-27: repo público, región São Paulo, lista privada por defecto | 0027, 0020, 0028 |
 | Sesión 2026-10-27: monorepo con pnpm workspaces aceptado (solo web) | 0002 |
 | D13 | 0010 |

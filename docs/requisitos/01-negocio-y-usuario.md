@@ -28,7 +28,7 @@
 | **H3. Lanzamiento público** | Apertura a todos, en español e inglés. | ~~Licencia comercial de AniList~~ (sin objeto, ADR-0043), Vercel Pro y Lemon Squeezy configurado |
 | **H4. Monetización** | Anuncios no intrusivos y Plus vitalicio sin anuncios (ADR-0036). | — |
 
-**Desde 2026-11-10 (ADR-0044)** el lanzamiento público (H3) no espera los umbrales de H1 ni la beta de H2, y los anuncios de H4 quedan para más adelante. RN-M1 a RN-M3 se miden después del lanzamiento.
+**Desde 2026-11-10 (ADR-0044)** el lanzamiento público (H3) no espera los umbrales de H1 ni la beta de H2, y la monetización de H4 (anuncios y cobro de Plus) queda apagada por ahora. RN-M1 a RN-M3 se miden después del lanzamiento.
 
 Si AniList y MyAnimeList responden que no, se detiene el avance después de H1 y se reconsidera el modelo (ADR-0031). MyAnimeList respondió que sí (2026-11-06) y es la fuente desde 2026-11-10 (ADR-0041, ADR-0043).
 
