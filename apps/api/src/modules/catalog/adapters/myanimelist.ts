@@ -75,6 +75,31 @@ const FORMATS: Record<string, string> = {
   cm: 'CM',
 };
 
+// MyAnimeList sends genres, themes and demographics in one field (77 values). The catalog keeps
+// its genres, plus Ecchi; themes, demographics and the erotic genres stay out of the filter, the
+// statistics and the badges.
+const GENRES = new Set([
+  'Action',
+  'Adventure',
+  'Avant Garde',
+  'Award Winning',
+  'Boys Love',
+  'Comedy',
+  'Drama',
+  'Ecchi',
+  'Fantasy',
+  'Girls Love',
+  'Gourmet',
+  'Horror',
+  'Mystery',
+  'Romance',
+  'Sci-Fi',
+  'Slice of Life',
+  'Sports',
+  'Supernatural',
+  'Suspense',
+]);
+
 // The relation names of @acrux/domain (RDI-30). A remake comes as an alternative version.
 const RELATIONS: Record<string, string> = {
   sequel: 'SEQUEL',
@@ -107,7 +132,7 @@ export function toCatalogAnime(source: SourceAnime): CatalogAnimeInput {
     .map((name) => name.toLowerCase());
   const startDate = toStartDate(source.start_date);
   const seconds = positive(source.average_episode_duration);
-  const genres = (source.genres ?? []).map((genre) => genre.name);
+  const sourceGenres = (source.genres ?? []).map((genre) => genre.name);
   const relations: Relation[] | undefined = source.related_anime?.map((related) => ({
     type: RELATIONS[related.relation_type] ?? 'OTHER',
     id: related.node.id,
@@ -125,10 +150,10 @@ export function toCatalogAnime(source: SourceAnime): CatalogAnimeInput {
     year: startDate?.getUTCFullYear() ?? null,
     episodes: positive(source.num_episodes),
     durationMinutes: seconds === null ? null : Math.max(1, Math.round(seconds / 60)),
-    genres,
+    genres: sourceGenres.filter((genre) => GENRES.has(genre)),
     members: source.num_list_users ?? 0,
     // MyAnimeList marks hentai as nsfw "gray", the same as ecchi: the rating tells them apart.
-    adult: source.rating === 'rx' || source.nsfw === 'black' || genres.includes('Hentai'),
+    adult: source.rating === 'rx' || source.nsfw === 'black' || sourceGenres.includes('Hentai'),
     ...(relations === undefined ? {} : { relations }),
   };
 }

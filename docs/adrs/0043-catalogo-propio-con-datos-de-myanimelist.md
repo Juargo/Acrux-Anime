@@ -79,4 +79,6 @@ La API reenvía cada pedido a MyAnimeList y guarda la respuesta.
 - **Contenido para adultos.** `nsfw` no sirve para distinguirlo: MyAnimeList marca el hentai como `gray`, igual que el ecchi. Un anime es para adultos si su clasificación es `rx` o tiene el género Hentai. Las listas se piden con `nsfw=true`, porque sin eso MyAnimeList omite también los títulos `gray` que sí se muestran.
 - **Portadas.** `cdn.myanimelist.net` envía `Access-Control-Allow-Origin: *`, así que la tarjeta para compartir las lee sin pasar por la API.
 - **Carga.** El trabajo lista todo el catálogo en unos 62 pedidos y lee 6.000 detalles por semana, uno por segundo. La primera carga se hace con dos corridas manuales de 16.000 detalles (`docs/runbooks/catalogo.md`).
-- **Géneros.** El campo `genres` mezcla géneros, temas y demografías: son 77 valores entre los títulos que se muestran. Falta decidir cuáles ofrece el filtro.
+- **Géneros.** El campo `genres` mezcla géneros, temas y demografías: son 77 valores entre los títulos que se muestran. El catálogo guarda solo los géneros, más Ecchi (decisión del stakeholder, 2026-11-11):
+  - Action, Adventure, Avant Garde, Award Winning, Boys Love, Comedy, Drama, Ecchi, Fantasy, Girls Love, Gourmet, Horror, Mystery, Romance, Sci-Fi, Slice of Life, Sports, Supernatural y Suspense.
+  - Los temas (School, Isekai…), las demografías (Shounen, Kids…) y los géneros eróticos no se guardan. El filtro, los géneros favoritos y las insignias por géneros usan esa lista.

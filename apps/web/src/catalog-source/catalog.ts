@@ -74,7 +74,7 @@ export function fetchCatalogPage(
   return client.browse(browseParams(query), page);
 }
 
-// The catalog names genres in English; the app shows the curated names of ADR-0010.
+// The catalog names genres in English; the app shows a Spanish name for each one.
 type GenreName = keyof typeof webSpanish.genres;
 const isGenreName = (genre: string): genre is GenreName => Object.hasOwn(webSpanish.genres, genre);
 

@@ -130,6 +130,18 @@ describe('toCatalogAnime', () => {
     expect(row.relations).toEqual([{ type, id: 2 }]);
   });
 
+  // MyAnimeList sends themes and demographics in the same field as the genres.
+  it('keeps the genres and leaves out themes, demographics and erotica', () => {
+    const names = ['Comedy', 'School', 'Shounen', 'Isekai', 'Erotica', 'Ecchi', 'Award Winning'];
+    const row = toCatalogAnime({ id: 1, title: 'A', genres: names.map((name) => ({ name })) });
+    expect(row.genres).toEqual(['Comedy', 'Ecchi', 'Award Winning']);
+  });
+
+  it('still flags the adult genre, which the row does not keep', () => {
+    const row = toCatalogAnime({ id: 1, title: 'A', genres: [{ name: 'Hentai' }] });
+    expect(row).toMatchObject({ adult: true, genres: [] });
+  });
+
   // MyAnimeList marks hentai as nsfw "gray", like ecchi; the rating and the genre tell them apart.
   it.each([
     [{ rating: 'rx', nsfw: 'gray' }, true],

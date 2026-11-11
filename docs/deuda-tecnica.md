@@ -45,7 +45,6 @@ Los espacios, el consentimiento separado y la política de privacidad ya están 
 Pendientes de la migración.
 
 - **Puesta en marcha del catálogo.** Falta desplegar el rol `acrux_catalog`, cargar los secretos y hacer la primera carga (`docs/runbooks/catalogo.md`). Hasta entonces la tabla `anime` de producción está vacía.
-- **Géneros de MyAnimeList.** El filtro recibe 77 valores, porque MyAnimeList mezcla géneros, temas y demografías. Solo 15 tienen traducción. También cambian las insignias por géneros y los géneros favoritos de las estadísticas.
 - **CSP con el PR #109.** `apps/web/vercel.json` ya permite `cdn.myanimelist.net`. El PR #109 mueve la CSP a `apps/web/api/_csp.ts`: al integrarlo hay que llevar ese cambio y quitar los orígenes de AniList.
 - **Carga por demanda sin límite propio.** Depende del límite público de la API (60 por minuto por IP) y de la caché de 5 minutos. Si Upstash no está configurado, no hay límite.
 - **Exportación de la cuenta.** `GET /api/v1/me/export` no incluye las marcas de `mark_anilist`, las que no se pudieron convertir a MyAnimeList.

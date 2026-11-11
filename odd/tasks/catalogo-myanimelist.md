@@ -129,3 +129,8 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
   - Prueba real en un Postgres local desechable, con el rol `acrux_catalog`: 30.758 animes en 2 min 49 s y 40 detalles. Con la API levantada sobre esa base: búsqueda, catálogo por año, franquicia de Frieren (3 entradas y 3 relacionadas), Kimetsu no Yaiba 9 entradas en 1,5 s la primera vez y 13 ms la segunda; un ID de adultos y uno inexistente vuelven como `missing`.
   - Riesgo: ítems 1 (escritura en la tabla del catálogo), 2 (rol y secreto nuevos) y 5 (workflow nuevo). Queda para el verificador de T8.
   - Hallazgo para el stakeholder: MyAnimeList entrega 77 géneros (géneros, temas y demografías mezclados).
+- **L27 (2026-11-11):** «si», a la pregunta «¿Dejo el filtro y las estadísticas solo con esos géneros?».
+  - El conversor guarda solo los géneros de MyAnimeList más Ecchi (19 valores); los temas, las demografías y los géneros eróticos no se guardan. Un título con el género Hentai sigue marcado como adulto.
+  - Con eso el filtro, los géneros favoritos y las insignias por géneros usan la misma lista. Traducciones: se agregaron las 6 que faltaban y salieron las 5 que ya no aparecen.
+  - RED: 2 fallas en `myanimelist.test.ts`. GREEN: ver el commit.
+  - Riesgo: ninguno. La tabla de producción todavía no tiene catálogo cargado.

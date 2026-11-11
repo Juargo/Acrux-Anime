@@ -84,7 +84,7 @@ describe('fetchGenres', () => {
 
 describe('labels', () => {
   it('fall back to the raw value when the name is not in the translations', () => {
-    expect(genreLabel('Gourmet')).toBe('Gourmet');
+    expect(genreLabel('Isekai')).toBe('Isekai');
     expect(formatLabel('CM')).toBe('CM');
   });
 });
