@@ -664,7 +664,7 @@
     },
     "/api/v1/me/marks": {
       "get": {
-        "summary": "Marks of the signed-in user, ordered by anilistId, one page at a time",
+        "summary": "Marks of the signed-in user, ordered by animeId, one page at a time",
         "security": [
           {
             "session": []
@@ -744,7 +744,7 @@
         }
       }
     },
-    "/api/v1/me/marks/{anilistId}": {
+    "/api/v1/me/marks/{animeId}": {
       "put": {
         "summary": "Mark one entry; the same status again keeps markedAt",
         "security": [
@@ -758,7 +758,7 @@
         "parameters": [
           {
             "in": "path",
-            "name": "anilistId",
+            "name": "animeId",
             "schema": {
               "type": "integer",
               "minimum": 1,
@@ -814,7 +814,7 @@
             }
           },
           "400": {
-            "description": "Invalid anilistId, unknown fields or an invalid body"
+            "description": "Invalid animeId, unknown fields or an invalid body"
           },
           "401": {
             "description": "Missing, invalid or expired session",
@@ -861,7 +861,7 @@
         "parameters": [
           {
             "in": "path",
-            "name": "anilistId",
+            "name": "animeId",
             "schema": {
               "type": "integer",
               "minimum": 1,
@@ -875,7 +875,7 @@
             "description": "Not marked anymore"
           },
           "400": {
-            "description": "The anilistId is not a positive integer"
+            "description": "The animeId is not a positive integer"
           },
           "401": {
             "description": "Missing, invalid or expired session",
@@ -949,7 +949,7 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "anilistId": {
+                        "animeId": {
                           "type": "integer",
                           "minimum": 1,
                           "maximum": 2147483647
@@ -968,7 +968,7 @@
                         }
                       },
                       "required": [
-                        "anilistId"
+                        "animeId"
                       ],
                       "additionalProperties": false
                     }
@@ -1051,7 +1051,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Every correction, ordered by anilistId",
+            "description": "Every correction, ordered by animeId",
             "content": {
               "application/json": {
                 "schema": {
@@ -1095,7 +1095,7 @@
         }
       }
     },
-    "/api/v1/franchise-overrides/{anilistId}": {
+    "/api/v1/franchise-overrides/{animeId}": {
       "put": {
         "summary": "Save the correction of one entry; there is no delete, set another role instead (RF-60)",
         "security": [
@@ -1109,7 +1109,7 @@
         "parameters": [
           {
             "in": "path",
-            "name": "anilistId",
+            "name": "animeId",
             "schema": {
               "type": "integer",
               "minimum": 1,
@@ -1160,7 +1160,7 @@
             }
           },
           "400": {
-            "description": "Invalid anilistId, unknown fields or an invalid body"
+            "description": "Invalid animeId, unknown fields or an invalid body"
           },
           "401": {
             "description": "Missing, invalid or expired session",
@@ -1599,7 +1599,7 @@
     },
     "/api/v1/profiles/{handle}/marks": {
       "get": {
-        "summary": "Marks of a public list, ordered by anilistId, one page at a time",
+        "summary": "Marks of a public list, ordered by animeId, one page at a time",
         "security": [],
         "tags": [
           "public-profile"
@@ -2022,7 +2022,7 @@
             "items": {
               "type": "object",
               "properties": {
-                "anilistId": {
+                "animeId": {
                   "type": "integer",
                   "minimum": -9007199254740991,
                   "maximum": 9007199254740991
@@ -2053,7 +2053,7 @@
                 }
               },
               "required": [
-                "anilistId",
+                "animeId",
                 "malId",
                 "status",
                 "markedAt"
@@ -2105,7 +2105,7 @@
       "Mark": {
         "type": "object",
         "properties": {
-          "anilistId": {
+          "animeId": {
             "type": "integer",
             "minimum": 1,
             "maximum": 2147483647
@@ -2136,7 +2136,7 @@
           }
         },
         "required": [
-          "anilistId",
+          "animeId",
           "malId",
           "status",
           "markedAt"
@@ -2146,7 +2146,7 @@
       "FranchiseOverride": {
         "type": "object",
         "properties": {
-          "anilistId": {
+          "animeId": {
             "type": "integer",
             "minimum": 1,
             "maximum": 2147483647
@@ -2171,7 +2171,7 @@
           }
         },
         "required": [
-          "anilistId",
+          "animeId",
           "franchiseRootId",
           "role",
           "updatedAt"

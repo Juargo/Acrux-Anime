@@ -80,7 +80,7 @@ export function useCrawledFranchises(options: {
     }).data ?? empty();
 
   const missing = useMemo(() => {
-    const wanted = new Set([...(marks ?? []).map((mark) => mark.anilistId), ...store.pending]);
+    const wanted = new Set([...(marks ?? []).map((mark) => mark.animeId), ...store.pending]);
     return [...wanted].filter((id) => !store.requested.has(id)).sort((a, b) => a - b);
   }, [marks, store]);
 

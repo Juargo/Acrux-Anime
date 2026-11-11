@@ -16,16 +16,16 @@ const role = z.enum(['core', 'extra', 'separate']);
 
 const putBody = z.strictObject({ franchiseRootId: id, role });
 const overrideSchema = z
-  .object({ anilistId: id, franchiseRootId: id, role, updatedAt: z.iso.datetime() })
+  .object({ animeId: id, franchiseRootId: id, role, updatedAt: z.iso.datetime() })
   .meta({ id: 'FranchiseOverride' });
 
 const unavailable = { description: 'The database is not configured' };
 
 // Decimal digits only: Number() would also accept '1e3', ' 7' or '0x10'.
-function parseAnilistId(value: unknown): number {
+function parseAnimeId(value: unknown): number {
   const parsed = typeof value === 'string' && /^[1-9]\d{0,9}$/.test(value) ? Number(value) : 0;
   if (parsed < 1 || parsed > INT4_MAX) {
-    throw new ProblemError(400, 'franchises.invalid_anilist_id', 'Invalid anilistId');
+    throw new ProblemError(400, 'franchises.invalid_anime_id', 'Invalid animeId');
   }
   return parsed;
 }
@@ -60,7 +60,7 @@ export function createFranchisesModule(
           summary: 'The curator table, applied before automatic grouping (RF-60)',
           responses: {
             200: {
-              description: 'Every correction, ordered by anilistId',
+              description: 'Every correction, ordered by animeId',
               schema: z.object({ items: z.array(overrideSchema) }),
             },
             503: unavailable,
@@ -75,28 +75,28 @@ export function createFranchisesModule(
       },
       {
         method: 'put',
-        path: '/api/v1/franchise-overrides/:anilistId',
+        path: '/api/v1/franchise-overrides/:animeId',
         role: 'curator',
         rateLimit: 'write',
         docs: {
           summary:
             'Save the correction of one entry; there is no delete, set another role instead (RF-60)',
-          params: { anilistId: id },
+          params: { animeId: id },
           requestBody: putBody,
           responses: {
             200: { description: 'The stored correction', schema: overrideSchema },
-            400: { description: 'Invalid anilistId, unknown fields or an invalid body' },
+            400: { description: 'Invalid animeId, unknown fields or an invalid body' },
             503: unavailable,
           },
         },
         handler: async (request, response) => {
           const overrides = start(repository, response);
-          const anilistId = parseAnilistId(request.params.anilistId);
+          const animeId = parseAnimeId(request.params.animeId);
           const body = putBody.safeParse(request.body);
           if (!body.success) {
             throw new ProblemError(400, 'franchises.invalid_body', 'Invalid correction');
           }
-          response.json(toJson(await overrides.upsert({ anilistId, ...body.data })));
+          response.json(toJson(await overrides.upsert({ animeId, ...body.data })));
         },
       },
     ],

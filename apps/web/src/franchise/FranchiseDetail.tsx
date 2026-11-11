@@ -65,9 +65,9 @@ export function FranchiseDetailView(props: {
     <ul className="entry-list">
       {entries.map((entry) => (
         <EntryRow
-          key={entry.anilistId}
+          key={entry.animeId}
           entry={entry}
-          status={statusOf.get(entry.anilistId)}
+          status={statusOf.get(entry.animeId)}
           onChange={onChangeEntry}
         />
       ))}
@@ -181,7 +181,7 @@ function EntryRow(props: {
   const { t } = useTranslation();
   const toggle = (next: MarkStatus) =>
     onChange({
-      entry: { anilistId: entry.anilistId, malId: entry.malId },
+      entry: { animeId: entry.animeId, malId: entry.malId },
       status: status === next ? null : next,
     });
   return (

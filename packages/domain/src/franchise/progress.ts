@@ -28,9 +28,9 @@ export function franchiseProgress(
   now: string,
 ): FranchiseProgress {
   const coreIds = new Set(franchise.core.map((member) => member.id));
-  const coreMarks = marks.filter((mark) => coreIds.has(mark.anilistId));
+  const coreMarks = marks.filter((mark) => coreIds.has(mark.animeId));
   const seen = new Set(
-    coreMarks.filter((mark) => mark.status === 'seen').map((mark) => mark.anilistId),
+    coreMarks.filter((mark) => mark.status === 'seen').map((mark) => mark.animeId),
   );
   const joinedBy = (limit: number) =>
     franchise.core.filter((member) => member.joinedAt !== null && time(member.joinedAt) <= limit);
@@ -71,5 +71,5 @@ export function countCompleteFranchises(
  * entry merged or removed from the catalog still counts (RDI-34).
  */
 export function countSeenEntries(marks: readonly Mark[]): number {
-  return new Set(marks.filter((mark) => mark.status === 'seen').map((mark) => mark.anilistId)).size;
+  return new Set(marks.filter((mark) => mark.status === 'seen').map((mark) => mark.animeId)).size;
 }

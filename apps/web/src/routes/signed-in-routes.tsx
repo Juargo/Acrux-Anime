@@ -29,8 +29,8 @@ function CatalogPage() {
 // Any entry id of the franchise works, so a shared link survives a regrouping (RF-16).
 function FranchisePage() {
   const context = useSignedIn();
-  const { anilistId = '' } = useParams();
-  return <FranchiseScreen key={anilistId} anilistId={Number(anilistId)} {...context} />;
+  const { animeId = '' } = useParams();
+  return <FranchiseScreen key={animeId} animeId={Number(animeId)} {...context} />;
 }
 
 function MyListPage() {
@@ -128,7 +128,7 @@ function CuratorPage() {
 // Screens behind the session gate of App, inside the signed-in layout (routes/Home.tsx).
 export const signedInRoutes: RouteObject[] = [
   { index: true, element: <CatalogPage /> },
-  { path: 'franquicia/:anilistId', element: <FranchisePage /> },
+  { path: 'franquicia/:animeId', element: <FranchisePage /> },
   { path: 'mi-lista', element: <MyListPage /> },
   { path: 'tarjeta', element: <CardPage /> },
   { path: 'privacidad', element: <PrivacyPage /> },

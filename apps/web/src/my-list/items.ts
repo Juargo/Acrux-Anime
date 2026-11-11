@@ -76,7 +76,7 @@ export function myList(
   const complete: Sortable[] = [];
   for (const franchise of franchises) {
     const ids = new Set([...franchise.core.map((member) => member.id), ...franchise.extras]);
-    const own = marks.filter((mark) => ids.has(mark.anilistId));
+    const own = marks.filter((mark) => ids.has(mark.animeId));
     if (own.length === 0) continue;
     const progress = franchiseProgress(franchise, marks, now);
     const markedAt = own
@@ -100,16 +100,16 @@ export function myList(
 
   const seenEntries = [
     ...new Map(
-      marks.filter((mark) => mark.status === 'seen').map((mark) => [mark.anilistId, mark]),
+      marks.filter((mark) => mark.status === 'seen').map((mark) => [mark.animeId, mark]),
     ).values(),
   ].map((mark): Sortable => {
-    const media = known.get(mark.anilistId);
+    const media = known.get(mark.animeId);
     const format = media?.format ? formatLabel(media.format, t) : null;
     return {
-      id: `entry-${mark.anilistId}`,
-      href: `/franquicia/${mark.anilistId}`,
-      title: media ? displayTitle(media) : t('myList.entry', { id: String(mark.anilistId) }),
-      coverUrl: coverOf(mark.anilistId),
+      id: `entry-${mark.animeId}`,
+      href: `/franquicia/${mark.animeId}`,
+      title: media ? displayTitle(media) : t('myList.entry', { id: String(mark.animeId) }),
+      coverUrl: coverOf(mark.animeId),
       detail: [format, markedOn(mark.markedAt, t)].filter(Boolean).join(' · '),
       markedAt: mark.markedAt,
     };

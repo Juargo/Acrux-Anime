@@ -12,17 +12,17 @@ import type {
 export type { MarkEntry, MarkPage, MarkPageQuery, MarkStatus, MarkView };
 
 export interface MarksService {
-  // One page, ordered by anilistId.
+  // One page, ordered by animeId.
   list(session: Session, page: MarkPageQuery): Promise<MarkPage>;
   // Any user's marks, for the public profile (#37), which checks first that the list is public.
   listOf(userId: string, page: MarkPageQuery): Promise<MarkPage>;
   put(
     session: Session,
-    anilistId: number,
+    animeId: number,
     input: { status: MarkStatus; malId?: number | null | undefined },
   ): Promise<MarkView>;
   // Idempotent: removing a mark that does not exist is not an error.
-  remove(session: Session, anilistId: number): Promise<void>;
+  remove(session: Session, animeId: number): Promise<void>;
   // All entries in one transaction (RDI-31); a null status removes them and returns [].
   batch(
     session: Session,
@@ -42,17 +42,17 @@ export function createMarksService(
   return {
     list: (session, page) => marks.list(session.userId, page),
     listOf: (userId, page) => marks.list(userId, page),
-    put: async (session, anilistId, { status, malId }) => {
-      const [mark] = await write(session, status, [{ anilistId, malId }]);
+    put: async (session, animeId, { status, malId }) => {
+      const [mark] = await write(session, status, [{ animeId, malId }]);
       if (!mark) throw new Error('mark upsert returned no row');
       return mark;
     },
-    remove: (session, anilistId) => marks.remove(session.userId, [anilistId]),
+    remove: (session, animeId) => marks.remove(session.userId, [animeId]),
     batch: async (session, { status, entries }) => {
       if (status === null) {
         await marks.remove(
           session.userId,
-          entries.map((entry) => entry.anilistId),
+          entries.map((entry) => entry.animeId),
         );
         return [];
       }

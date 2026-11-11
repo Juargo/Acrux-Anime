@@ -58,14 +58,14 @@ export function useGenres(enabled: boolean, client: AniListClient = defaultClien
 // The franchise detail (RF-16) builds the whole franchise from any of its entries, with the
 // curator table applied first (RF-60).
 export function useFranchise(
-  anilistId: number,
+  animeId: number,
   client: AniListClient = defaultClient,
   fetchFn: typeof fetch = fetch,
 ) {
   const overrides = useFranchiseOverrides(fetchFn);
   return useQuery({
-    queryKey: ['anilist', 'franchise', anilistId, overridesVersion(overrides)],
-    queryFn: () => fetchFranchise(client, [anilistId], overrides),
-    enabled: Number.isInteger(anilistId) && anilistId > 0 && overrides !== undefined,
+    queryKey: ['anilist', 'franchise', animeId, overridesVersion(overrides)],
+    queryFn: () => fetchFranchise(client, [animeId], overrides),
+    enabled: Number.isInteger(animeId) && animeId > 0 && overrides !== undefined,
   });
 }

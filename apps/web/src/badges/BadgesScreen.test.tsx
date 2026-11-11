@@ -40,8 +40,8 @@ const free: Profile = {
 };
 const plus: Profile = { ...free, plan: 'plus' };
 
-const mark = (anilistId: number, status: MarkDto['status'] = 'seen'): MarkDto => ({
-  anilistId,
+const mark = (animeId: number, status: MarkDto['status'] = 'seen'): MarkDto => ({
+  animeId,
   malId: null,
   status,
   markedAt: '2026-10-10T12:00:00.000Z',

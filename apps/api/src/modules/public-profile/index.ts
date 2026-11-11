@@ -75,7 +75,7 @@ export function createPublicProfileModule(service: PublicProfileService | undefi
         public: true,
         rateLimit: 'public',
         docs: {
-          summary: 'Marks of a public list, ordered by anilistId, one page at a time',
+          summary: 'Marks of a public list, ordered by animeId, one page at a time',
           params: { handle: handleParam },
           query: pageQueryDocs,
           responses: {

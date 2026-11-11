@@ -37,7 +37,7 @@ describe('toCatalogItems', () => {
   it('splits a franchise the curator marked as separate (RF-60)', () => {
     const hits = [hit(1, 2020), hit(2, 2021, [['PREQUEL', related(1, 2020)]])];
     const separate = {
-      anilistId: 2,
+      animeId: 2,
       franchiseRootId: 1,
       role: 'separate' as const,
       updatedAt: '2026-11-07T12:00:00.000Z',
@@ -166,9 +166,9 @@ describe('toCatalogItems', () => {
 
   it('dims a franchise whose whole known core is seen (RF-23)', () => {
     const marks: Mark[] = [
-      { anilistId: 1, status: 'seen', markedAt: '2025-01-01T00:00:00Z' },
-      { anilistId: 2, status: 'seen', markedAt: '2025-01-01T00:00:00Z' },
-      { anilistId: 3, status: 'seen', markedAt: '2025-01-01T00:00:00Z' },
+      { animeId: 1, status: 'seen', markedAt: '2025-01-01T00:00:00Z' },
+      { animeId: 2, status: 'seen', markedAt: '2025-01-01T00:00:00Z' },
+      { animeId: 3, status: 'seen', markedAt: '2025-01-01T00:00:00Z' },
     ];
     const items = toCatalogItems(
       [hit(1, 2020, [['SEQUEL', related(2, 2021)]]), hit(3, 2022), hit(4, 2023)],

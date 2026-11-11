@@ -62,9 +62,9 @@ const anilist = {
   }),
 } as unknown as AniListClient;
 
-const seen = (anilistId: number) => ({
-  anilistId,
-  malId: anilistId,
+const seen = (animeId: number) => ({
+  animeId,
+  malId: animeId,
   status: 'seen',
   markedAt: '2026-01-01T00:00:00.000Z',
 });
@@ -120,9 +120,9 @@ describe('marking from the catalog', () => {
     expect(batchBodies(fetchFn)[0]).toEqual({
       status: 'seen',
       entries: [
-        { anilistId: 16498, malId: 16498 },
-        { anilistId: 20958, malId: 20958 },
-        { anilistId: 99147, malId: 99147 },
+        { animeId: 16498, malId: 16498 },
+        { animeId: 20958, malId: 20958 },
+        { animeId: 99147, malId: 99147 },
       ],
     });
     save(json({ items: [seen(16498), seen(20958), seen(99147)] }));
@@ -163,10 +163,10 @@ describe('marking from the catalog', () => {
     expect(batchBodies(fetchFn)[0]).toEqual({
       status: null,
       entries: [
-        { anilistId: 16498, malId: 16498 },
-        { anilistId: 20958, malId: 20958 },
-        { anilistId: 99147, malId: 99147 },
-        { anilistId: 18397, malId: 18397 },
+        { animeId: 16498, malId: 16498 },
+        { animeId: 20958, malId: 20958 },
+        { animeId: 99147, malId: 99147 },
+        { animeId: 18397, malId: 18397 },
       ],
     });
     expect((await card()).getAttribute('aria-pressed')).toBe('false');
@@ -187,8 +187,8 @@ describe('marking from the catalog', () => {
     let failFirst: (error: Error) => void = () => {};
     const fetchFn = vi.fn(async (_path: string, init?: RequestInit) => {
       if (init?.method !== 'POST') return json({ items: [], nextCursor: null });
-      const body = JSON.parse(init.body as string) as { entries: { anilistId: number }[] };
-      if (body.entries[0]?.anilistId === 16498) {
+      const body = JSON.parse(init.body as string) as { entries: { animeId: number }[] };
+      if (body.entries[0]?.animeId === 16498) {
         return new Promise<Response>((_resolve, reject) => {
           failFirst = reject;
         });

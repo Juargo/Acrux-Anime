@@ -1,7 +1,7 @@
 // Client for the user's marks (#33, ADR-0023). Marks live only in the Acrux API.
 
 export interface MarkDto {
-  anilistId: number;
+  animeId: number;
   malId: number | null;
   status: 'seen' | 'watching';
   markedAt: string;
@@ -10,7 +10,7 @@ export interface MarkDto {
 export interface MarkBatch {
   // null removes the marks of these entries.
   status: 'seen' | 'watching' | null;
-  entries: { anilistId: number; malId?: number | null }[];
+  entries: { animeId: number; malId?: number | null }[];
 }
 
 export type MarksErrorKind = 'signed-out' | 'unavailable' | 'failed';
@@ -60,7 +60,7 @@ export async function fetchMarks(
 ): Promise<MarkDto[]> {
   const marks: MarkDto[] = [];
   let cursor: string | null = null;
-  // The API pages by anilistId (#35); the counter and the list need every mark.
+  // The API pages by animeId (#35); the counter and the list need every mark.
   do {
     const path: string = `/api/v1/me/marks?limit=${PAGE_SIZE}${cursor ? `&cursor=${cursor}` : ''}`;
     const body = (await call(getToken, path, {}, fetchFn)) as {
@@ -68,7 +68,7 @@ export async function fetchMarks(
       nextCursor: string | null;
     };
     marks.push(...body.items);
-    // The cursor only moves forward (anilistId order); anything else would page forever.
+    // The cursor only moves forward (animeId order); anything else would page forever.
     if (body.nextCursor !== null && cursor !== null && Number(body.nextCursor) <= Number(cursor)) {
       throw new MarksError('failed');
     }
@@ -99,13 +99,13 @@ export async function saveMarks(
 // RF-20: one entry at a time from the franchise detail.
 export async function putMark(
   getToken: GetToken,
-  anilistId: number,
+  animeId: number,
   mark: { status: 'seen' | 'watching'; malId?: number | null },
   fetchFn: typeof fetch = fetch,
 ): Promise<MarkDto> {
   return (await call(
     getToken,
-    `/api/v1/me/marks/${anilistId}`,
+    `/api/v1/me/marks/${animeId}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -118,8 +118,8 @@ export async function putMark(
 // The API answers 204 whether or not the entry was marked.
 export async function deleteMark(
   getToken: GetToken,
-  anilistId: number,
+  animeId: number,
   fetchFn: typeof fetch = fetch,
 ): Promise<void> {
-  await call(getToken, `/api/v1/me/marks/${anilistId}`, { method: 'DELETE' }, fetchFn);
+  await call(getToken, `/api/v1/me/marks/${animeId}`, { method: 'DELETE' }, fetchFn);
 }

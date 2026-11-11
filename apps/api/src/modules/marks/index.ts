@@ -19,28 +19,28 @@ const batchBody = z
   .strictObject({
     status: status.nullable(),
     entries: z
-      .array(z.strictObject({ anilistId: id, malId: id.nullable().optional() }))
+      .array(z.strictObject({ animeId: id, malId: id.nullable().optional() }))
       .min(1)
       .max(MAX_BATCH),
   })
   .refine(
-    (body) => new Set(body.entries.map((entry) => entry.anilistId)).size === body.entries.length,
+    (body) => new Set(body.entries.map((entry) => entry.animeId)).size === body.entries.length,
     { message: 'entries must be distinct' },
   );
 
 const markSchema = z
-  .object({ anilistId: id, malId: id.nullable(), status, markedAt: z.iso.datetime() })
+  .object({ animeId: id, malId: id.nullable(), status, markedAt: z.iso.datetime() })
   .meta({ id: 'Mark' });
-const anilistIdParam = z.int().min(1).max(INT4_MAX);
+const animeIdParam = z.int().min(1).max(INT4_MAX);
 
-const invalidId = { description: 'The anilistId is not a positive integer' };
+const invalidId = { description: 'The animeId is not a positive integer' };
 const unavailable = { description: 'The database is not configured' };
 
 // Decimal digits only: Number() would also accept '1e3', ' 7' or '0x10'.
-function parseAnilistId(value: unknown): number {
+function parseAnimeId(value: unknown): number {
   const parsed = typeof value === 'string' && /^[1-9]\d{0,9}$/.test(value) ? Number(value) : 0;
   if (parsed < 1 || parsed > INT4_MAX) {
-    throw new ProblemError(400, 'marks.invalid_anilist_id', 'Invalid anilistId');
+    throw new ProblemError(400, 'marks.invalid_anime_id', 'Invalid animeId');
   }
   return parsed;
 }
@@ -116,7 +116,7 @@ export function createMarksModule(service: MarksService | undefined): Module {
         method: 'get',
         path: '/api/v1/me/marks',
         docs: {
-          summary: 'Marks of the signed-in user, ordered by anilistId, one page at a time',
+          summary: 'Marks of the signed-in user, ordered by animeId, one page at a time',
           query: pageQueryDocs,
           responses: {
             200: {
@@ -134,32 +134,32 @@ export function createMarksModule(service: MarksService | undefined): Module {
       },
       {
         method: 'put',
-        path: '/api/v1/me/marks/:anilistId',
+        path: '/api/v1/me/marks/:animeId',
         rateLimit: 'write',
         docs: {
           summary: 'Mark one entry; the same status again keeps markedAt',
-          params: { anilistId: anilistIdParam },
+          params: { animeId: animeIdParam },
           requestBody: putBody,
           responses: {
             200: { description: 'The stored mark', schema: markSchema },
-            400: { description: 'Invalid anilistId, unknown fields or an invalid body' },
+            400: { description: 'Invalid animeId, unknown fields or an invalid body' },
             503: unavailable,
           },
         },
         handler: async (request, response) => {
           const { marks, session } = start(service, response);
-          const anilistId = parseAnilistId(request.params.anilistId);
+          const animeId = parseAnimeId(request.params.animeId);
           const body = parseBody(putBody, request.body);
-          response.json(toJson(await marks.put(session, anilistId, body)));
+          response.json(toJson(await marks.put(session, animeId, body)));
         },
       },
       {
         method: 'delete',
-        path: '/api/v1/me/marks/:anilistId',
+        path: '/api/v1/me/marks/:animeId',
         rateLimit: 'write',
         docs: {
           summary: 'Unmark one entry; also 204 when it was not marked',
-          params: { anilistId: anilistIdParam },
+          params: { animeId: animeIdParam },
           responses: {
             204: { description: 'Not marked anymore' },
             400: invalidId,
@@ -168,7 +168,7 @@ export function createMarksModule(service: MarksService | undefined): Module {
         },
         handler: async (request, response) => {
           const { marks, session } = start(service, response);
-          await marks.remove(session, parseAnilistId(request.params.anilistId));
+          await marks.remove(session, parseAnimeId(request.params.animeId));
           response.status(204).end();
         },
       },

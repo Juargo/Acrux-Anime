@@ -43,7 +43,7 @@ describe('GET /api/v1/franchise-overrides', () => {
   it('gives anyone the table, ids only (RDI-15), visitors of a public profile included', async () => {
     const { repository } = fakeRepository([
       {
-        anilistId: 20811,
+        animeId: 20811,
         franchiseRootId: ATTACK_ON_TITAN,
         role: 'extra',
         updatedAt: new Date('2026-11-01T10:00:00.000Z'),
@@ -55,7 +55,7 @@ describe('GET /api/v1/franchise-overrides', () => {
     expect(response.body).toEqual({
       items: [
         {
-          anilistId: 20811,
+          animeId: 20811,
           franchiseRootId: ATTACK_ON_TITAN,
           role: 'extra',
           updatedAt: '2026-11-01T10:00:00.000Z',
@@ -71,7 +71,7 @@ describe('GET /api/v1/franchise-overrides', () => {
   });
 });
 
-describe('PUT /api/v1/franchise-overrides/:anilistId', () => {
+describe('PUT /api/v1/franchise-overrides/:animeId', () => {
   it('@CA-RF60-03 answers 403 to a user without the curator role and writes nothing', async () => {
     const { repository, writes } = fakeRepository();
     const response = await request(appAs({}, repository))
@@ -93,12 +93,12 @@ describe('PUT /api/v1/franchise-overrides/:anilistId', () => {
     expect(response.status).toBe(200);
     expect(response.headers['cache-control']).toBe('private, no-store');
     expect(response.body).toEqual({
-      anilistId: 20811,
+      animeId: 20811,
       franchiseRootId: ATTACK_ON_TITAN,
       role: 'extra',
       updatedAt: '2026-11-07T12:00:00.000Z',
     });
-    expect(writes).toEqual([{ anilistId: 20811, franchiseRootId: ATTACK_ON_TITAN, role: 'extra' }]);
+    expect(writes).toEqual([{ animeId: 20811, franchiseRootId: ATTACK_ON_TITAN, role: 'extra' }]);
   });
 
   it('accepts the three roles of the table', async () => {

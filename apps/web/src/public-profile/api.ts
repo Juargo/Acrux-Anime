@@ -65,7 +65,7 @@ export async function fetchPublicMarks(
     } | null;
     if (!body) return null;
     marks.push(...body.items);
-    // The cursor only moves forward (anilistId order); anything else would page forever.
+    // The cursor only moves forward (animeId order); anything else would page forever.
     if (body.nextCursor !== null && Number(body.nextCursor) <= Number(cursor ?? 0)) {
       throw new PublicProfileError();
     }

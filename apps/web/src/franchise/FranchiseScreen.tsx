@@ -18,14 +18,14 @@ import { useEntryMarks } from './use-entry-marks';
  * saga with the catalog's one-tap toggle.
  */
 export function FranchiseScreen({
-  anilistId,
+  animeId,
   client = defaultClient,
   getToken,
   fetchFn = fetch,
   onFranchiseMarked,
   onEntryMarkedSeen,
 }: {
-  anilistId: number;
+  animeId: number;
   client?: AniListClient | undefined;
   getToken: () => Promise<string | null>;
   fetchFn?: typeof fetch | undefined;
@@ -34,7 +34,7 @@ export function FranchiseScreen({
 }) {
   const { t } = useTranslation();
   const online = useOnline();
-  const query = useFranchise(anilistId, client, fetchFn);
+  const query = useFranchise(animeId, client, fetchFn);
   const marking = useFranchiseMarks({ client, getToken, fetchFn, onFranchiseMarked });
   const entryMarks = useEntryMarks({ getToken, fetchFn, onMarkedSeen: onEntryMarkedSeen });
   const detail = query.data?.detail;
@@ -44,11 +44,11 @@ export function FranchiseScreen({
     [detail, marking.marks],
   );
   const statusOf = useMemo(
-    () => new Map(marking.marks.map((mark) => [mark.anilistId, mark.status])),
+    () => new Map(marking.marks.map((mark) => [mark.animeId, mark.status])),
     [marking.marks],
   );
 
-  const valid = Number.isInteger(anilistId) && anilistId > 0;
+  const valid = Number.isInteger(animeId) && animeId > 0;
   let body: ReactNode;
   if (!online) {
     body = (
@@ -86,14 +86,14 @@ export function FranchiseScreen({
       progress.releasedCore > 0 &&
       progress.seenCore >= progress.releasedCore &&
       progress.state !== 'watching';
-    const coreIds = detail.core.map((entry) => entry.anilistId);
+    const coreIds = detail.core.map((entry) => entry.animeId);
     const saga: CatalogItem = {
       rootId: detail.franchise.rootId,
       title: detail.title,
       coverUrl: detail.coverUrl,
       dimmed: allSeen,
       coreIds,
-      entryIds: [...coreIds, ...detail.extras.map((entry) => entry.anilistId)],
+      entryIds: [...coreIds, ...detail.extras.map((entry) => entry.animeId)],
     };
     body = (
       <FranchiseDetailView

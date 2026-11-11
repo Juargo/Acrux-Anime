@@ -66,7 +66,7 @@ function CuratorTools({
   const overrides = useQuery(overridesQuery(fetchFn));
   const rows = overrides.data ?? [];
   const ids = useMemo(
-    () => [...new Set(rows.flatMap((row) => [row.anilistId, row.franchiseRootId]))],
+    () => [...new Set(rows.flatMap((row) => [row.animeId, row.franchiseRootId]))],
     [rows],
   );
   const media = useMediaByIds(ids, client);
@@ -103,8 +103,8 @@ function CuratorTools({
       );
       // The API's CDN keeps the table five minutes: the curator sees the change at once.
       queryClient.setQueryData<FranchiseOverride[]>(OVERRIDES_KEY, (previous = []) =>
-        [...previous.filter((row) => row.anilistId !== saved.anilistId), saved].sort(
-          (a, b) => a.anilistId - b.anilistId,
+        [...previous.filter((row) => row.animeId !== saved.animeId), saved].sort(
+          (a, b) => a.animeId - b.animeId,
         ),
       );
       setStatus({ kind: 'saved', rootId: saved.franchiseRootId });
@@ -119,7 +119,7 @@ function CuratorTools({
   }
 
   function edit(row: FranchiseOverride) {
-    setEntryId(String(row.anilistId));
+    setEntryId(String(row.animeId));
     setRootId(String(row.franchiseRootId));
     setRole(row.role);
     setStatus(null);
@@ -212,15 +212,15 @@ function CuratorTools({
       ) : (
         <ul className="profile__rows" aria-labelledby={listId}>
           {rows.map((row) => (
-            <li key={row.anilistId}>
+            <li key={row.animeId}>
               <button
                 className="profile__row"
                 type="button"
-                aria-label={t('curator.change', { title: titleOf(row.anilistId) })}
+                aria-label={t('curator.change', { title: titleOf(row.animeId) })}
                 onClick={() => edit(row)}
               >
                 <span>
-                  <span>{titleOf(row.anilistId)}</span>
+                  <span>{titleOf(row.animeId)}</span>
                   <br />
                   <small>
                     {t('curator.row', {

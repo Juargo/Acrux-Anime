@@ -34,7 +34,7 @@ export function StatsScreen({
   const [profile] = useOwnProfile({ initial, getToken, fetchFn });
   const marks = useMarks(getToken, fetchFn);
   const seenIds = useMemo(
-    () => (marks.data ?? []).filter((mark) => mark.status === 'seen').map((mark) => mark.anilistId),
+    () => (marks.data ?? []).filter((mark) => mark.status === 'seen').map((mark) => mark.animeId),
     [marks.data],
   );
   const media = useMediaStats(seenIds, client);

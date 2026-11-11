@@ -822,16 +822,16 @@ describe('/api/v1/me/marks', () => {
         calls.push({ method: 'list', args });
         return {
           items: [
-            { anilistId: 16498, malId: 16498, status: 'seen', markedAt: MARKED_AT },
-            { anilistId: 20958, malId: null, status: 'watching', markedAt: MARKED_AT },
+            { animeId: 16498, malId: 16498, status: 'seen', markedAt: MARKED_AT },
+            { animeId: 20958, malId: null, status: 'watching', markedAt: MARKED_AT },
           ],
           nextCursor: args[1].after === undefined ? null : 20958,
         };
       },
       put: async (...args) => {
         calls.push({ method: 'put', args });
-        const [, anilistId, input] = args;
-        return { anilistId, malId: input.malId ?? null, status: input.status, markedAt: MARKED_AT };
+        const [, animeId, input] = args;
+        return { animeId, malId: input.malId ?? null, status: input.status, markedAt: MARKED_AT };
       },
       remove: async (...args) => {
         calls.push({ method: 'remove', args });
@@ -842,7 +842,7 @@ describe('/api/v1/me/marks', () => {
         const status = input.status;
         if (status === null) return [];
         return input.entries.map((entry) => ({
-          anilistId: entry.anilistId,
+          animeId: entry.animeId,
           malId: entry.malId ?? null,
           status,
           markedAt: MARKED_AT,
@@ -877,9 +877,9 @@ describe('/api/v1/me/marks', () => {
       expect(response.headers['cache-control']).toBe('private, no-store');
       expect(response.body).toEqual({
         items: [
-          { anilistId: 16498, malId: 16498, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
+          { animeId: 16498, malId: 16498, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
           {
-            anilistId: 20958,
+            animeId: 20958,
             malId: null,
             status: 'watching',
             markedAt: '2026-11-03T12:00:00.000Z',
@@ -939,7 +939,7 @@ describe('/api/v1/me/marks', () => {
       expect(response.status).toBe(200);
       expect(response.headers['cache-control']).toBe('private, no-store');
       expect(response.body).toEqual({
-        anilistId: 16498,
+        animeId: 16498,
         malId: 16498,
         status: 'seen',
         markedAt: '2026-11-03T12:00:00.000Z',
@@ -972,7 +972,7 @@ describe('/api/v1/me/marks', () => {
     });
 
     it.each(['0', '-1', 'abc', '1.5', '1e3', '2147483648'])(
-      'answers 400 for the anilistId %s',
+      'answers 400 for the animeId %s',
       async (id) => {
         const { calls, service } = fakeMarks();
         const response = await request(appWithMarks(service))
@@ -982,7 +982,7 @@ describe('/api/v1/me/marks', () => {
         expect(response.status).toBe(400);
         expect(response.headers['content-type']).toContain('application/problem+json');
         expect(response.headers['cache-control']).toBe('private, no-store');
-        expect(response.body).toMatchObject({ code: 'marks.invalid_anilist_id' });
+        expect(response.body).toMatchObject({ code: 'marks.invalid_anime_id' });
         expect(calls).toEqual([]);
       },
     );
@@ -1028,20 +1028,20 @@ describe('/api/v1/me/marks', () => {
       ]);
     });
 
-    it('answers 400 for an invalid anilistId', async () => {
+    it('answers 400 for an invalid animeId', async () => {
       const { calls, service } = fakeMarks();
       const response = await request(appWithMarks(service))
         .delete('/api/v1/me/marks/abc')
         .set(auth);
       expect(response.status).toBe(400);
-      expect(response.body).toMatchObject({ code: 'marks.invalid_anilist_id' });
+      expect(response.body).toMatchObject({ code: 'marks.invalid_anime_id' });
       expect(calls).toEqual([]);
     });
   });
 
   describe('POST :batch', () => {
     const entries = (count: number) =>
-      Array.from({ length: count }, (_, index) => ({ anilistId: index + 1 }));
+      Array.from({ length: count }, (_, index) => ({ animeId: index + 1 }));
 
     it('writes every entry and returns the marks', async () => {
       const { calls, service } = fakeMarks();
@@ -1050,14 +1050,14 @@ describe('/api/v1/me/marks', () => {
         .set(auth)
         .send({
           status: 'seen',
-          entries: [{ anilistId: 16498, malId: 16498 }, { anilistId: 20958 }],
+          entries: [{ animeId: 16498, malId: 16498 }, { animeId: 20958 }],
         });
       expect(response.status).toBe(200);
       expect(response.headers['cache-control']).toBe('private, no-store');
       expect(response.body).toEqual({
         items: [
-          { anilistId: 16498, malId: 16498, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
-          { anilistId: 20958, malId: null, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
+          { animeId: 16498, malId: 16498, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
+          { animeId: 20958, malId: null, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
         ],
       });
       expect(calls).toEqual([
@@ -1065,7 +1065,7 @@ describe('/api/v1/me/marks', () => {
           method: 'batch',
           args: [
             { userId: USER, name: 'Camila' },
-            { status: 'seen', entries: [{ anilistId: 16498, malId: 16498 }, { anilistId: 20958 }] },
+            { status: 'seen', entries: [{ animeId: 16498, malId: 16498 }, { animeId: 20958 }] },
           ],
         },
       ]);
@@ -1076,10 +1076,10 @@ describe('/api/v1/me/marks', () => {
       const response = await request(appWithMarks(service))
         .post('/api/v1/me/marks:batch')
         .set(auth)
-        .send({ status: null, entries: [{ anilistId: 16498 }] });
+        .send({ status: null, entries: [{ animeId: 16498 }] });
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ items: [] });
-      expect(calls[0]?.args[1]).toEqual({ status: null, entries: [{ anilistId: 16498 }] });
+      expect(calls[0]?.args[1]).toEqual({ status: null, entries: [{ animeId: 16498 }] });
     });
 
     it('accepts 200 entries', async () => {
@@ -1095,15 +1095,15 @@ describe('/api/v1/me/marks', () => {
     it.each([
       ['no entries', { status: 'seen', entries: [] }],
       ['201 entries', { status: 'seen', entries: entries(201) }],
-      ['a repeated entry', { status: 'seen', entries: [{ anilistId: 7 }, { anilistId: 7 }] }],
-      ['a missing status', { entries: [{ anilistId: 7 }] }],
-      ['an unknown status', { status: 'dropped', entries: [{ anilistId: 7 }] }],
-      ['an unknown field', { status: 'seen', entries: [{ anilistId: 7 }], all: true }],
-      ['an unknown entry field', { status: 'seen', entries: [{ anilistId: 7, title: 'x' }] }],
-      ['a zero anilistId', { status: 'seen', entries: [{ anilistId: 0 }] }],
-      ['a string anilistId', { status: 'seen', entries: [{ anilistId: '7' }] }],
-      ['an anilistId over int4', { status: 'seen', entries: [{ anilistId: 2147483648 }] }],
-      ['a fractional malId', { status: 'seen', entries: [{ anilistId: 7, malId: 1.5 }] }],
+      ['a repeated entry', { status: 'seen', entries: [{ animeId: 7 }, { animeId: 7 }] }],
+      ['a missing status', { entries: [{ animeId: 7 }] }],
+      ['an unknown status', { status: 'dropped', entries: [{ animeId: 7 }] }],
+      ['an unknown field', { status: 'seen', entries: [{ animeId: 7 }], all: true }],
+      ['an unknown entry field', { status: 'seen', entries: [{ animeId: 7, title: 'x' }] }],
+      ['a zero animeId', { status: 'seen', entries: [{ animeId: 0 }] }],
+      ['a string animeId', { status: 'seen', entries: [{ animeId: '7' }] }],
+      ['an animeId over int4', { status: 'seen', entries: [{ animeId: 2147483648 }] }],
+      ['a fractional malId', { status: 'seen', entries: [{ animeId: 7, malId: 1.5 }] }],
     ])('answers 400 for %s', async (_case, body) => {
       const { calls, service } = fakeMarks();
       const response = await request(appWithMarks(service))
@@ -1125,7 +1125,7 @@ describe('/api/v1/me/marks', () => {
       request(app).delete('/api/v1/me/marks/1'),
       request(app)
         .post('/api/v1/me/marks:batch')
-        .send({ status: 'seen', entries: [{ anilistId: 1 }] }),
+        .send({ status: 'seen', entries: [{ animeId: 1 }] }),
     ]);
     expect(responses.map((response) => response.status)).toEqual([401, 401, 401, 401]);
   });
@@ -1139,7 +1139,7 @@ describe('/api/v1/me/marks', () => {
       request(app)
         .post('/api/v1/me/marks:batch')
         .set(auth)
-        .send({ status: 'seen', entries: [{ anilistId: 1 }] }),
+        .send({ status: 'seen', entries: [{ animeId: 1 }] }),
     ]);
     for (const response of responses) {
       expect(response.status).toBe(503);
@@ -1162,7 +1162,7 @@ describe('/api/v1/me/marks', () => {
     await request(app)
       .post('/api/v1/me/marks:batch')
       .set(auth)
-      .send({ status: 'seen', entries: [{ anilistId: 1 }] });
+      .send({ status: 'seen', entries: [{ animeId: 1 }] });
     expect(policies).toEqual(['write', 'write', 'write']);
   });
 });

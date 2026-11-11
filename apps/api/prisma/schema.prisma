@@ -93,7 +93,7 @@ model Profile {
 
 model Mark {
   userId    String     @map("user_id") @db.Uuid
-  anilistId Int        @map("anilist_id")
+  animeId Int        @map("anime_id")
   malId     Int?       @map("mal_id")
   status    MarkStatus
   // Kept for the yearly summary (Wrapped).
@@ -101,7 +101,7 @@ model Mark {
 
   profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  @@id([userId, anilistId])
+  @@id([userId, animeId])
   @@map("mark")
 }
 
@@ -146,7 +146,7 @@ model BillingEvent {
 
 // Curator corrections to the AniList relation graph; only the curator edits them.
 model FranchiseOverride {
-  anilistId       Int           @id @map("anilist_id")
+  animeId       Int           @id @map("anime_id")
   franchiseRootId Int           @map("franchise_root_id")
   role            FranchiseRole
   updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)

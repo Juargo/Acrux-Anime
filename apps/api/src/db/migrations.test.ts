@@ -108,11 +108,11 @@ describe('initial schema', () => {
   });
 
   it('rejects a duplicate mark for the same user and anime', async () => {
-    await owner.query(`INSERT INTO mark (user_id, anilist_id, status) VALUES ($1, 21, 'seen')`, [
+    await owner.query(`INSERT INTO mark (user_id, anime_id, status) VALUES ($1, 21, 'seen')`, [
       USER_ID,
     ]);
     const code = await sqlState(
-      owner.query(`INSERT INTO mark (user_id, anilist_id, status) VALUES ($1, 21, 'watching')`, [
+      owner.query(`INSERT INTO mark (user_id, anime_id, status) VALUES ($1, 21, 'watching')`, [
         USER_ID,
       ]),
     );
@@ -163,10 +163,9 @@ describe('the acrux_api role', () => {
     await api.query(`INSERT INTO profile (user_id, display_name) VALUES ($1, 'Mateo')`, [
       otherUserId,
     ]);
-    await api.query(
-      `INSERT INTO mark (user_id, anilist_id, status) VALUES ($1, 1535, 'watching')`,
-      [otherUserId],
-    );
+    await api.query(`INSERT INTO mark (user_id, anime_id, status) VALUES ($1, 1535, 'watching')`, [
+      otherUserId,
+    ]);
     await api.query(`UPDATE mark SET status = 'seen' WHERE user_id = $1`, [otherUserId]);
     const { rows } = await api.query('SELECT status FROM mark WHERE user_id = $1', [otherUserId]);
     expect(rows).toEqual([{ status: 'seen' }]);
