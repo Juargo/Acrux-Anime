@@ -42,9 +42,9 @@ Los espacios, el consentimiento separado y la política de privacidad ya están 
 
 ## Catálogo de MyAnimeList (ADR-0043)
 
-Pendientes de la migración. Los tres primeros esperan el client ID de MyAnimeList.
+Pendientes de la migración.
 
-- **Cliente de MyAnimeList y trabajo de carga.** La API todavía no tiene el cliente del servidor (`MAL_CLIENT_ID`) ni el trabajo programado que carga y refresca el catálogo; hasta entonces la tabla `anime` está vacía. Con el client ID hay que confirmar la forma de los campos, los valores de `relation_type`, `media_type` y `nsfw`, cuántos animes se cargan y a qué ritmo.
-- **CSP para el servidor de portadas.** Cuando el PR #109 llegue a `main` (mueve la CSP a `apps/web/api/_csp.ts`), agregar el servidor de imágenes de MyAnimeList a `img-src`.
-- **CORS del servidor de portadas.** La tarjeta para compartir se dibuja en el navegador y necesita que ese servidor envíe cabeceras CORS. Si no las envía, las portadas pasan por la API.
+- **Puesta en marcha del catálogo.** Falta desplegar el rol `acrux_catalog`, cargar los secretos y hacer la primera carga (`docs/runbooks/catalogo.md`). Hasta entonces la tabla `anime` de producción está vacía.
+- **CSP con el PR #109.** `apps/web/vercel.json` ya permite `cdn.myanimelist.net`. El PR #109 mueve la CSP a `apps/web/api/_csp.ts`: al integrarlo hay que llevar ese cambio y quitar los orígenes de AniList.
+- **Carga por demanda sin límite propio.** Depende del límite público de la API (60 por minuto por IP) y de la caché de 5 minutos. Si Upstash no está configurado, no hay límite.
 - **Exportación de la cuenta.** `GET /api/v1/me/export` no incluye las marcas de `mark_anilist`, las que no se pudieron convertir a MyAnimeList.

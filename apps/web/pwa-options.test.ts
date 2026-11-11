@@ -24,7 +24,7 @@ describe('pwaOptions (ADR-0016)', () => {
     expect(sizes).toEqual(['64x64 any', '192x192 any', '512x512 any', '512x512 maskable']);
   });
 
-  it('caches only the app shell: no runtime caching of the API or AniList', () => {
+  it('caches only the app shell: no runtime caching of the API or the covers', () => {
     expect(pwaOptions.workbox?.runtimeCaching).toBeUndefined();
     expect(pwaOptions.workbox?.globPatterns).toEqual(['**/*.{html,js,css,svg,png,ico,woff2}']);
     expect(denied('/api/v1/me')).toBe(true);

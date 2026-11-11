@@ -27,12 +27,12 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
 | T1 | ADR-0043 y este documento | S1, S2 | inline | (rama de integración) | hecho | fcbc943 |
 | T2 | API: tabla de catálogo y módulo de catálogo (catálogo con filtros, animes por ID, franquicia, géneros), servidos desde Neon | S2, S3, S4 | inline | `feat/catalogo-myanimelist-01-api` | hecho | d94c27b, 419a8ab |
 | T6a | Nombre neutral del ID: `anilistId` pasa a `animeId` en la API, la web, el dominio y las columnas; los valores no cambian (riesgo ítems 1 y 3) | S5 | inline | `feat/catalogo-myanimelist-02-id-neutral` | hecho; verificador sin bloqueos | 513914c |
-| T3 | Cliente de MyAnimeList en la API, conversión a la tabla y carga por demanda de lo que falta | S2, S4, S7 | inline | — | bloqueada: falta el client ID | — |
-| T4 | Trabajo programado de carga y refresco (riesgo ítem 5) | S2, S7 | inline | — | pendiente | — |
+| T3 | Cliente de MyAnimeList en la API, conversión a la tabla, carga por demanda de lo que falta y CSP para las portadas | S2, S4, S7 | inline | `feat/catalogo-myanimelist-07-fuente` | hecho | c84c17c |
+| T4 | Trabajo programado de carga y refresco, con su rol de base de datos (riesgo ítems 1, 2 y 5) | S2, S7 | inline | `feat/catalogo-myanimelist-07-fuente` | hecho; falta la puesta en marcha en producción | (este commit) |
 | T5 | Web: cliente del catálogo en lugar del de AniList, mensajes de error, simulación en E2E | S3, S4 | delegada (contexto) | `feat/catalogo-myanimelist-03-web` | hecho | b915149, b9da917 |
 | T6b | Los IDs guardados pasan a ser de MyAnimeList, junto con el cambio de fuente de la web (riesgo ítem 1) | S5 | inline | `feat/catalogo-myanimelist-04-ids-mal` | hecho; verificador sin bloqueos abiertos | d2f1eba, 4271c3f |
 | T7 | Crédito en «Acerca de» y en la landing, textos del curador, textos legales y documentación. La CSP pasó a T3 (L17) | S6, S8 | delegada (contexto) | `feat/catalogo-myanimelist-05-credito` | hecho | (este commit y el anterior) |
-| T8 | Verificador independiente (T4 y T6) y vista previa | S1–S8 | verificador | — | pendiente | — |
+| T8 | Verificador independiente (T4 y T6) y vista previa | S1–S8 | verificador | — | verificador sin bloqueos (L28); la vista previa queda pendiente del push | — |
 
 ## Log
 
@@ -121,3 +121,30 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
   - ADR-0033 retirado; RDI-08, RDI-19 y los runbooks de analítica y de límite de peticiones actualizados.
   - RED: 3 fallas en `cta.test.ts`. GREEN: landing 22 (salieron las pruebas de lo retirado), typecheck, build y `biome ci`.
   - Riesgo: ítem 5 (dependencia y variables de entorno de la landing). El lockfile solo cambia la resolución de pares, sin subir versiones.
+- **L26 (2026-11-11):** «[valor omitido] Este es el client id». El stakeholder pasó el client ID de MyAnimeList por el chat; el valor no se guarda en el repositorio ni en la memoria, y se usó desde un archivo fuera del repo. T3 y T4, inline, rama `feat/catalogo-myanimelist-07-fuente`:
+  - Comprobado contra la API real: forma de los campos, `related_anime` solo en el detalle, ranking de unos 31.000 animes de a 500, valores de formato y relación, hentai marcado como `gray` con clasificación `rx`, y CORS abierto en `cdn.myanimelist.net`. Quedó escrito en ADR-0043.
+  - T3 (`c84c17c`): adaptador `adapters/myanimelist.ts`, escritura en el repositorio (`CatalogStore`), carga por demanda en el servicio (hasta 8 detalles por pedido, el resto `pending`; búsqueda en la fuente solo si la tabla no tiene resultados; pausa de 5 minutos tras 403 o 429), `MAL_CLIENT_ID` en la configuración y CSP con `cdn.myanimelist.net`. Al guardar un detalle, los animes a los que apunta y que no apuntan de vuelta quedan para releer.
+  - T4: `services/catalog-loader.ts`, `scripts/load-catalog.ts`, workflow `catalog.yml` (martes 07:00 UTC, 6.000 detalles) y migración `20261111000000_rol_de_catalogo` con el rol `acrux_catalog`, que solo llega a la tabla `anime`.
+  - Las pruebas del adaptador, del servicio y del cargador se escribieron junto con el código, sin ver el RED por separado. El rol de base de datos sí: falló con «role "acrux_catalog" does not exist» antes de la migración.
+  - Prueba real en un Postgres local desechable, con el rol `acrux_catalog`: 30.758 animes en 2 min 49 s y 40 detalles. Con la API levantada sobre esa base: búsqueda, catálogo por año, franquicia de Frieren (3 entradas y 3 relacionadas), Kimetsu no Yaiba 9 entradas en 1,5 s la primera vez y 13 ms la segunda; un ID de adultos y uno inexistente vuelven como `missing`.
+  - Riesgo: ítems 1 (escritura en la tabla del catálogo), 2 (rol y secreto nuevos) y 5 (workflow nuevo). Queda para el verificador de T8.
+  - Hallazgo para el stakeholder: MyAnimeList entrega 77 géneros (géneros, temas y demografías mezclados).
+- **L27 (2026-11-11):** «si», a la pregunta «¿Dejo el filtro y las estadísticas solo con esos géneros?».
+  - El conversor guarda solo los géneros de MyAnimeList más Ecchi (19 valores); los temas, las demografías y los géneros eróticos no se guardan. Un título con el género Hentai sigue marcado como adulto.
+  - Con eso el filtro, los géneros favoritos y las insignias por géneros usan la misma lista. Traducciones: se agregaron las 6 que faltaban y salieron las 5 que ya no aparecen.
+  - RED: 2 fallas en `myanimelist.test.ts`. GREEN: ver el commit.
+  - Riesgo: ninguno. La tabla de producción todavía no tiene catálogo cargado.
+- **L28 (2026-11-11):** verificador independiente sobre `d86b9d5` contra `origin/main`, en una copia aparte y sin servicios remotos. Sin bloqueos; S1–S8 cumplidos.
+  - IDs guardados: con IDs cruzados, duplicados y sin `mal_id`, la migración no perdió ni duplicó marcas (9 antes; 5 en `mark` y 4 en `mark_anilist` con su motivo).
+  - Rol `acrux_catalog` en un Postgres 17 local: lee, crea y actualiza `anime`; no borra, y no llega a `mark`, `profile`, `entitlement`, `franchise_override`, `mark_anilist` ni `_prisma_migrations`.
+  - Workflow: permisos `contents: read`, secretos solo por `env`, acciones fijadas por SHA, `details` validado.
+  - Ningún camino de `/api/v1/catalog/*` sirve títulos para adultos.
+  - Observado: API 463, web 400, landing 22 y build, typecheck, `biome ci` sin errores. Comprobación propia: landing 22.
+  - No se corrió: E2E de Playwright, el workflow, los privilegios por defecto de Neon ni el entorno `catalog-production`.
+  - Avisos sin corregir: un ciclo de relaciones asimétrico de 3 o más entradas se releería sin fin (no reproducido); `relations` puede incluir IDs de títulos para adultos, sin sus datos.
+  - Corregido: dos comentarios que aún decían «AniList ids».
+- **L29 (2026-11-11):** «si», a la pregunta «¿Pusheo las ocho ramas y abro el PR de seguimiento en borrador más los siete PRs encadenados?».
+  - PR de seguimiento #110 (borrador, contra `main`). Encadenados, cada uno contra la rama del anterior: #111 `01-api`, #112 `02-id-neutral`, #113 `03-web`, #114 `04-ids-mal`, #115 `05-credito`, #116 `06-lanzamiento`, #117 `07-fuente`.
+  - Los siete pasan las 400 líneas; cada cuerpo recomienda `size:exception` con su motivo.
+  - Checks observados en #110 y #117: Commitlint, auditoría de dependencias, gitleaks, Quality, E2E y los despliegues de Vercel en verde; en #117 también la migración de la base de vista previa. Los de #111 a #116 no se revisaron uno por uno.
+  - Queda: revisión y merge en orden (decisión del stakeholder) y la puesta en marcha de `docs/runbooks/catalogo.md`.

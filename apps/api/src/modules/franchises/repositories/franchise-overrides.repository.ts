@@ -2,7 +2,7 @@ import type { PrismaClient } from '../../../generated/prisma/client.js';
 
 export type FranchiseRole = 'core' | 'extra' | 'separate';
 
-// One row of the curator table (RDI-15): AniList ids only, no titles or covers.
+// One row of the curator table (RDI-15): MyAnimeList ids only, no titles or covers.
 export interface FranchiseOverrideRow {
   animeId: number;
   franchiseRootId: number;
