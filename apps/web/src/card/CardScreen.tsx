@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router';
 import { AdSlot } from '../ads/AdSlot';
 import type { CatalogClient } from '../catalog-source/client';
 import { defaultClient } from '../catalog-source/hooks';
+import { DataCredit } from '../components/DataCredit';
 import { ShareCard } from '../components/ShareCard';
 import { useCounterMode } from '../counter/use-counter-mode';
 import { useMarkedFranchises } from '../counter/use-marked-franchises';
@@ -375,6 +376,7 @@ export function CardScreen({
         {t('card.whoSees')}{' '}
         <span>{t(profile.listVisibility === 'public' ? 'card.public' : 'card.private')} ›</span>
       </Link>
+      <DataCredit />
     </section>
   );
 }

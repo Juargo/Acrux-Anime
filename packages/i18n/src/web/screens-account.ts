@@ -2,6 +2,7 @@
 export const accountEs = {
   app: {
     noName: 'Sin nombre',
+    dataCredit: 'Datos de',
     signOut: 'Cerrar sesión',
     signOutFailed: 'No pudimos cerrar tu sesión. Vuelve a intentarlo.',
     backToProfile: '‹ Perfil',
@@ -318,6 +319,7 @@ export const accountEs = {
 export const accountEn = {
   app: {
     noName: 'No name',
+    dataCredit: 'Data from',
     signOut: 'Sign out',
     signOutFailed: "We couldn't sign you out. Please try again.",
     backToProfile: '‹ Profile',

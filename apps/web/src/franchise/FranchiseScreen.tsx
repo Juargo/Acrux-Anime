@@ -9,6 +9,7 @@ import { type FranchiseMarkedEvent, useFranchiseMarks } from '../catalog/use-fra
 import type { CatalogClient } from '../catalog-source/client';
 import { defaultClient, useFranchise } from '../catalog-source/hooks';
 import { catalogErrorMessage } from '../catalog-source/messages';
+import { DataCredit } from '../components/DataCredit';
 import { FranchiseDetailView } from './FranchiseDetail';
 import { useEntryMarks } from './use-entry-marks';
 
@@ -119,6 +120,7 @@ export function FranchiseScreen({
       {body}
       {/* RF-58, ADR-0038: under the detail, only once it is shown (no ads on loading or errors). */}
       {detail && progress && !query.isError && <AdSlot />}
+      <DataCredit />
     </section>
   );
 }

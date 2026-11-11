@@ -183,6 +183,14 @@ const pressed = (title: string, label: 'Viendo' | 'Vista') =>
   option(title, label).getAttribute('aria-pressed');
 
 describe('franchise detail', () => {
+  it('credits MyAnimeList with a link (ADR-0043)', async () => {
+    renderAt('/franquicia/101', { marks: [mark(101)] });
+    await screen.findByRole('heading', { level: 1, name: 'Temporada 1' });
+    expect((await screen.findByRole('link', { name: 'MyAnimeList' })).getAttribute('href')).toBe(
+      'https://myanimelist.net',
+    );
+  });
+
   it('@CA-RF16-01 shows 3 of 5 core entries seen and which ones are missing', async () => {
     renderAt('/franquicia/101', { marks: [mark(101), mark(102), mark(103)] });
 

@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import { MAL_URL } from '../components/DataCredit';
 
 const LANDING = 'https://acruxanime.com';
 
@@ -25,7 +26,7 @@ export function AboutScreen({ version = APP_VERSION }: { version?: string }) {
       </h1>
       <div className="privacy__status about__attribution">
         <p>{t('about.attribution')}</p>
-        <a href="https://myanimelist.net" target="_blank" rel="noreferrer">
+        <a href={MAL_URL} target="_blank" rel="noreferrer">
           MyAnimeList
         </a>
       </div>

@@ -122,6 +122,13 @@ const rowTitles = (panel: HTMLElement) =>
     .filter(Boolean);
 
 describe('MyListScreen', () => {
+  it('credits MyAnimeList with a link (ADR-0043)', async () => {
+    renderList([mark(1, 'seen', 2)]);
+    expect((await screen.findByRole('link', { name: 'MyAnimeList' })).getAttribute('href')).toBe(
+      'https://myanimelist.net',
+    );
+  });
+
   it('@CA-RF27-01 shows the 2 franchises marked as watching, with their covers', async () => {
     const user = userEvent.setup();
     renderList([mark(1, 'seen', 2), mark(2, 'watching', 5), mark(20, 'watching', 7)]);

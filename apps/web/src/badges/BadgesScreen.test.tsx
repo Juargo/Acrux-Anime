@@ -108,6 +108,13 @@ const badgeList = async () =>
   within(await badgesPage()).findByRole('list', { name: 'Tus insignias' });
 
 describe('BadgesScreen (RF-55)', () => {
+  it('credits MyAnimeList with a link (ADR-0043)', async () => {
+    renderBadges({ profile: plus });
+    expect((await screen.findByRole('link', { name: 'MyAnimeList' })).getAttribute('href')).toBe(
+      'https://myanimelist.net',
+    );
+  });
+
   it('@CA-RF55-01 earns the badges of the seen titles, keeps them and shows the progress of the rest', async () => {
     const { patches } = renderBadges({ profile: plus });
     const list = await badgeList();

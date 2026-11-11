@@ -31,7 +31,7 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
 | T4 | Trabajo programado de carga y refresco (riesgo ítem 5) | S2, S7 | inline | — | pendiente | — |
 | T5 | Web: cliente del catálogo en lugar del de AniList, mensajes de error, simulación en E2E | S3, S4 | delegada (contexto) | `feat/catalogo-myanimelist-03-web` | hecho | b915149, b9da917 |
 | T6b | Los IDs guardados pasan a ser de MyAnimeList, junto con el cambio de fuente de la web (riesgo ítem 1) | S5 | inline | `feat/catalogo-myanimelist-04-ids-mal` | hecho; verificador sin bloqueos abiertos | d2f1eba, 4271c3f |
-| T7 | Crédito en «Acerca de» y en la landing, textos del curador, textos legales y documentación. La CSP pasó a T3 (L17) | S6, S8 | delegada (contexto) | `feat/catalogo-myanimelist-05-credito` | hecho; S6 parcial | (este commit y el anterior) |
+| T7 | Crédito en «Acerca de» y en la landing, textos del curador, textos legales y documentación. La CSP pasó a T3 (L17) | S6, S8 | delegada (contexto) | `feat/catalogo-myanimelist-05-credito` | hecho | (este commit y el anterior) |
 | T8 | Verificador independiente (T4 y T6) y vista previa | S1–S8 | verificador | — | pendiente | — |
 
 ## Log
@@ -105,3 +105,8 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
   - Riesgo: ninguno.
   - **S6 queda parcial:** solo «Acerca de» y la landing dan crédito. Catálogo, detalle de franquicia, Mi lista, perfil público, tarjeta, estadísticas e insignias muestran datos del catálogo sin crédito. Agregarlo es una decisión de diseño del stakeholder.
   - Para el stakeholder: `@CA-RF28-03` (deshacer una escritura pendiente en AniList) solo tiene sentido con el vínculo de AniList; quedó marcado como fuera de alcance. En `RF-06.feature`, «mis marcas y mi enlace con AniList» pasó a «mis marcas». Además de los pedidos, se reescribieron RES-22, RES-23, RES-24, RES-31, R-02 y R-07, con nota fechada.
+- **L19 (2026-11-10):** «si», a «¿Agrego una línea "Datos de MyAnimeList" con enlace al pie de esas pantallas?». Inline, en la rama de T7:
+  - Componente `DataCredit` (`apps/web/src/components/DataCredit.tsx`), texto `app.dataCredit` («Datos de» / «Data from») y enlace a `https://myanimelist.net`, al pie de catálogo, detalle de franquicia, Mi lista, perfil público, tarjeta (la pantalla, no la imagen), estadísticas e insignias. «Acerca de» usa la misma constante `MAL_URL`.
+  - RED: una prueba por pantalla, las 7 fallaron con «Unable to find role="link" and name "MyAnimeList"». GREEN: web 398, typecheck, `biome ci` sin errores.
+  - **S6 queda cubierta** en las pantallas de la app. La imagen de la tarjeta que se comparte no lleva crédito: cambiarla es otra decisión de diseño.
+  - Riesgo: ninguno.

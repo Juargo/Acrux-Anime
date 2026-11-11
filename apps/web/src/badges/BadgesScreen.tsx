@@ -6,6 +6,7 @@ import type { CatalogClient } from '../catalog-source/client';
 import { useAnimeByIds } from '../catalog-source/hooks';
 import { catalogErrorMessage } from '../catalog-source/messages';
 import { BadgeMark } from '../components/BadgeRow';
+import { DataCredit } from '../components/DataCredit';
 import { useOwnProfile } from '../profile/use-own-profile';
 import type { Profile } from '../profile-api';
 import { computeStats } from '../stats/compute';
@@ -96,6 +97,7 @@ export function BadgesScreen({
         {t('badges.title')}
       </h1>
       {body}
+      <DataCredit />
     </section>
   );
 }
