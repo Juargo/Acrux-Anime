@@ -9,7 +9,7 @@ import type {
 
 // The curator table (#42, RF-60, ADR-0023): anyone reads it, so the browser groups
 // franchises with it (ADR-0024), visitors of a public profile included; it holds only
-// AniList ids (RDI-15). Only the curator writes it (ADR-0025).
+// MyAnimeList ids (RDI-15). Only the curator writes it (ADR-0025).
 const INT4_MAX = 2_147_483_647;
 const id = z.int().min(1).max(INT4_MAX);
 const role = z.enum(['core', 'extra', 'separate']);

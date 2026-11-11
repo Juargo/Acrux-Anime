@@ -32,7 +32,7 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
 | T5 | Web: cliente del catálogo en lugar del de AniList, mensajes de error, simulación en E2E | S3, S4 | delegada (contexto) | `feat/catalogo-myanimelist-03-web` | hecho | b915149, b9da917 |
 | T6b | Los IDs guardados pasan a ser de MyAnimeList, junto con el cambio de fuente de la web (riesgo ítem 1) | S5 | inline | `feat/catalogo-myanimelist-04-ids-mal` | hecho; verificador sin bloqueos abiertos | d2f1eba, 4271c3f |
 | T7 | Crédito en «Acerca de» y en la landing, textos del curador, textos legales y documentación. La CSP pasó a T3 (L17) | S6, S8 | delegada (contexto) | `feat/catalogo-myanimelist-05-credito` | hecho | (este commit y el anterior) |
-| T8 | Verificador independiente (T4 y T6) y vista previa | S1–S8 | verificador | — | pendiente | — |
+| T8 | Verificador independiente (T4 y T6) y vista previa | S1–S8 | verificador | — | verificador sin bloqueos (L28); la vista previa queda pendiente del push | — |
 
 ## Log
 
@@ -134,3 +134,12 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
   - Con eso el filtro, los géneros favoritos y las insignias por géneros usan la misma lista. Traducciones: se agregaron las 6 que faltaban y salieron las 5 que ya no aparecen.
   - RED: 2 fallas en `myanimelist.test.ts`. GREEN: ver el commit.
   - Riesgo: ninguno. La tabla de producción todavía no tiene catálogo cargado.
+- **L28 (2026-11-11):** verificador independiente sobre `d86b9d5` contra `origin/main`, en una copia aparte y sin servicios remotos. Sin bloqueos; S1–S8 cumplidos.
+  - IDs guardados: con IDs cruzados, duplicados y sin `mal_id`, la migración no perdió ni duplicó marcas (9 antes; 5 en `mark` y 4 en `mark_anilist` con su motivo).
+  - Rol `acrux_catalog` en un Postgres 17 local: lee, crea y actualiza `anime`; no borra, y no llega a `mark`, `profile`, `entitlement`, `franchise_override`, `mark_anilist` ni `_prisma_migrations`.
+  - Workflow: permisos `contents: read`, secretos solo por `env`, acciones fijadas por SHA, `details` validado.
+  - Ningún camino de `/api/v1/catalog/*` sirve títulos para adultos.
+  - Observado: API 463, web 400, landing 22 y build, typecheck, `biome ci` sin errores. Comprobación propia: landing 22.
+  - No se corrió: E2E de Playwright, el workflow, los privilegios por defecto de Neon ni el entorno `catalog-production`.
+  - Avisos sin corregir: un ciclo de relaciones asimétrico de 3 o más entradas se releería sin fin (no reproducido); `relations` puede incluir IDs de títulos para adultos, sin sus datos.
+  - Corregido: dos comentarios que aún decían «AniList ids».
