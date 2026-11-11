@@ -14,6 +14,7 @@ const APP_TABLES = [
   'entitlement',
   'billing_event',
   'franchise_override',
+  'anime',
 ];
 const USER_ID = '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f70';
 const backupUserId = '8c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f';
@@ -70,7 +71,7 @@ afterAll(async () => {
 });
 
 describe('initial schema', () => {
-  it('creates the six application tables', async () => {
+  it('creates the seven application tables', async () => {
     const { rows } = await owner.query<{ table_name: string }>(
       `SELECT table_name FROM information_schema.tables
        WHERE table_schema = 'public' AND table_name <> '_prisma_migrations'`,
