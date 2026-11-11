@@ -822,8 +822,8 @@ describe('/api/v1/me/marks', () => {
         calls.push({ method: 'list', args });
         return {
           items: [
-            { animeId: 16498, malId: 16498, status: 'seen', markedAt: MARKED_AT },
-            { animeId: 20958, malId: null, status: 'watching', markedAt: MARKED_AT },
+            { animeId: 16498, status: 'seen', markedAt: MARKED_AT },
+            { animeId: 20958, status: 'watching', markedAt: MARKED_AT },
           ],
           nextCursor: args[1].after === undefined ? null : 20958,
         };
@@ -831,7 +831,7 @@ describe('/api/v1/me/marks', () => {
       put: async (...args) => {
         calls.push({ method: 'put', args });
         const [, animeId, input] = args;
-        return { animeId, malId: input.malId ?? null, status: input.status, markedAt: MARKED_AT };
+        return { animeId, status: input.status, markedAt: MARKED_AT };
       },
       remove: async (...args) => {
         calls.push({ method: 'remove', args });
@@ -843,7 +843,6 @@ describe('/api/v1/me/marks', () => {
         if (status === null) return [];
         return input.entries.map((entry) => ({
           animeId: entry.animeId,
-          malId: entry.malId ?? null,
           status,
           markedAt: MARKED_AT,
         }));
@@ -877,10 +876,9 @@ describe('/api/v1/me/marks', () => {
       expect(response.headers['cache-control']).toBe('private, no-store');
       expect(response.body).toEqual({
         items: [
-          { animeId: 16498, malId: 16498, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
+          { animeId: 16498, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
           {
             animeId: 20958,
-            malId: null,
             status: 'watching',
             markedAt: '2026-11-03T12:00:00.000Z',
           },
@@ -935,39 +933,19 @@ describe('/api/v1/me/marks', () => {
       const response = await request(appWithMarks(service))
         .put('/api/v1/me/marks/16498')
         .set(auth)
-        .send({ status: 'seen', malId: 16498 });
+        .send({ status: 'seen' });
       expect(response.status).toBe(200);
       expect(response.headers['cache-control']).toBe('private, no-store');
       expect(response.body).toEqual({
         animeId: 16498,
-        malId: 16498,
         status: 'seen',
         markedAt: '2026-11-03T12:00:00.000Z',
       });
       expect(calls).toEqual([
         {
           method: 'put',
-          args: [{ userId: USER, name: 'Camila' }, 16498, { status: 'seen', malId: 16498 }],
+          args: [{ userId: USER, name: 'Camila' }, 16498, { status: 'seen' }],
         },
-      ]);
-    });
-
-    it('accepts a body without malId and with a null malId', async () => {
-      const { calls, service } = fakeMarks();
-      const app = appWithMarks(service);
-      const withoutMalId = await request(app)
-        .put('/api/v1/me/marks/1')
-        .set(auth)
-        .send({ status: 'watching' });
-      const nullMalId = await request(app)
-        .put('/api/v1/me/marks/1')
-        .set(auth)
-        .send({ status: 'watching', malId: null });
-      expect(withoutMalId.status).toBe(200);
-      expect(nullMalId.status).toBe(200);
-      expect(calls.map((call) => call.args[2])).toEqual([
-        { status: 'watching' },
-        { status: 'watching', malId: null },
       ]);
     });
 
@@ -992,8 +970,9 @@ describe('/api/v1/me/marks', () => {
       ['a missing status', {}],
       ['a null status', { status: null }],
       ['an unknown field', { status: 'seen', score: 10 }],
-      ['a malId that is not a positive integer', { status: 'seen', malId: 'x' }],
-      ['a zero malId', { status: 'seen', malId: 0 }],
+      // The anime id is the only id since ADR-0043: the contract has no malId.
+      ['a malId', { status: 'seen', malId: 16498 }],
+      ['a null malId', { status: 'seen', malId: null }],
     ])('answers 400 for %s', async (_case, body) => {
       const { calls, service } = fakeMarks();
       const response = await request(appWithMarks(service))
@@ -1050,14 +1029,14 @@ describe('/api/v1/me/marks', () => {
         .set(auth)
         .send({
           status: 'seen',
-          entries: [{ animeId: 16498, malId: 16498 }, { animeId: 20958 }],
+          entries: [{ animeId: 16498 }, { animeId: 20958 }],
         });
       expect(response.status).toBe(200);
       expect(response.headers['cache-control']).toBe('private, no-store');
       expect(response.body).toEqual({
         items: [
-          { animeId: 16498, malId: 16498, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
-          { animeId: 20958, malId: null, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
+          { animeId: 16498, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
+          { animeId: 20958, status: 'seen', markedAt: '2026-11-03T12:00:00.000Z' },
         ],
       });
       expect(calls).toEqual([
@@ -1065,7 +1044,7 @@ describe('/api/v1/me/marks', () => {
           method: 'batch',
           args: [
             { userId: USER, name: 'Camila' },
-            { status: 'seen', entries: [{ animeId: 16498, malId: 16498 }, { animeId: 20958 }] },
+            { status: 'seen', entries: [{ animeId: 16498 }, { animeId: 20958 }] },
           ],
         },
       ]);
@@ -1103,7 +1082,7 @@ describe('/api/v1/me/marks', () => {
       ['a zero animeId', { status: 'seen', entries: [{ animeId: 0 }] }],
       ['a string animeId', { status: 'seen', entries: [{ animeId: '7' }] }],
       ['an animeId over int4', { status: 'seen', entries: [{ animeId: 2147483648 }] }],
-      ['a fractional malId', { status: 'seen', entries: [{ animeId: 7, malId: 1.5 }] }],
+      ['an entry with a malId', { status: 'seen', entries: [{ animeId: 7, malId: 7 }] }],
     ])('answers 400 for %s', async (_case, body) => {
       const { calls, service } = fakeMarks();
       const response = await request(appWithMarks(service))

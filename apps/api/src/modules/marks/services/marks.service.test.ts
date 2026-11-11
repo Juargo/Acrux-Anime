@@ -55,10 +55,9 @@ function newUser() {
 describe('marks service on Postgres', () => {
   it('creates the profile on the first mark and stores the AniList and MAL ids', async () => {
     const user = newUser();
-    const mark = await marks.put(user, 16498, { status: 'seen', malId: 16498 });
+    const mark = await marks.put(user, 16498, { status: 'seen' });
     expect(mark).toEqual({
       animeId: 16498,
-      malId: 16498,
       status: 'seen',
       markedAt: expect.any(Date),
     });
@@ -79,13 +78,6 @@ describe('marks service on Postgres', () => {
     const seen = await marks.put(user, 1, { status: 'seen' });
     expect(seen.status).toBe('seen');
     expect(seen.markedAt.getTime()).toBeGreaterThan(past.getTime());
-  });
-
-  it('keeps the stored malId when it is omitted and clears it when it is null', async () => {
-    const user = newUser();
-    await marks.put(user, 2, { status: 'seen', malId: 22 });
-    expect((await marks.put(user, 2, { status: 'seen' })).malId).toBe(22);
-    expect((await marks.put(user, 2, { status: 'seen', malId: null })).malId).toBeNull();
   });
 
   it('lists the marks ordered by animeId', async () => {
@@ -129,14 +121,13 @@ describe('marks service on Postgres', () => {
     await marks.put(user, 20958, { status: 'watching' });
     const written = await marks.batch(user, {
       status: 'seen',
-      entries: [{ animeId: 16498, malId: 16498 }, { animeId: 20958 }, { animeId: 99147 }],
+      entries: [{ animeId: 16498 }, { animeId: 20958 }, { animeId: 99147 }],
     });
     expect(written.map((mark) => [mark.animeId, mark.status])).toEqual([
       [16498, 'seen'],
       [20958, 'seen'],
       [99147, 'seen'],
     ]);
-    expect(written[0]?.malId).toBe(16498);
     expect((await marks.list(user, { limit: 500 })).items).toEqual(written);
   });
 
@@ -235,17 +226,16 @@ describe('marks isolation between users (ADR-0029)', () => {
   });
 
   it('B marking the animeId of A creates a mark of B without changing the one of A', async () => {
-    const ofA = await marks.put({ userId: A }, 104, { status: 'watching', malId: 4 });
+    const ofA = await marks.put({ userId: A }, 104, { status: 'watching' });
     const response = await request(app())
       .put('/api/v1/me/marks/104')
       .set('Authorization', `Bearer ${B}`)
       .send({ status: 'seen' });
     expect(response.status).toBe(200);
     const stored = (await marksOf(A)).find((mark) => mark.animeId === 104);
-    expect(stored).toMatchObject({ status: 'watching', malId: 4, markedAt: ofA.markedAt });
+    expect(stored).toMatchObject({ status: 'watching', markedAt: ofA.markedAt });
     expect((await marksOf(B)).find((mark) => mark.animeId === 104)).toMatchObject({
       status: 'seen',
-      malId: null,
     });
   });
 });

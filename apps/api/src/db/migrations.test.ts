@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import pg from 'pg';
@@ -15,6 +17,8 @@ const APP_TABLES = [
   'billing_event',
   'franchise_override',
   'anime',
+  'mark_anilist',
+  'franchise_override_anilist',
 ];
 const USER_ID = '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f70';
 const backupUserId = '8c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f';
@@ -71,7 +75,7 @@ afterAll(async () => {
 });
 
 describe('initial schema', () => {
-  it('creates the seven application tables', async () => {
+  it('creates the nine application tables', async () => {
     const { rows } = await owner.query<{ table_name: string }>(
       `SELECT table_name FROM information_schema.tables
        WHERE table_schema = 'public' AND table_name <> '_prisma_migrations'`,
@@ -244,5 +248,166 @@ describe('the acrux_backup role', () => {
     for (const table of [...APP_TABLES, '_prisma_migrations']) {
       expect(stdout).toContain(`COPY public.${table}`);
     }
+  });
+});
+
+// ADR-0043, point 6: the stored ids become MyAnimeList ids. Runs the migration files one
+// by one on a second database, with rows written before the conversion.
+describe('the conversion to MyAnimeList ids', () => {
+  const CONVERSION = '20261110020000_ids_de_myanimelist';
+  const OTHER_USER = '7a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
+  let db: pg.Client;
+
+  beforeAll(async () => {
+    await owner.query('CREATE DATABASE conversion');
+    const url = new URL(container.getConnectionUri());
+    url.pathname = '/conversion';
+    db = new pg.Client({ connectionString: url.toString() });
+    await db.connect();
+
+    const migrationsDir = join(apiDir, 'prisma', 'migrations');
+    const names = readdirSync(migrationsDir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+    const sqlOf = (name: string) =>
+      readFileSync(join(migrationsDir, name, 'migration.sql'), 'utf8');
+    expect(names).toContain(CONVERSION);
+    // Prisma creates its history table before the first migration, which enables RLS on it.
+    await db.query('CREATE TABLE _prisma_migrations (id VARCHAR(36) PRIMARY KEY)');
+    for (const name of names.filter((candidate) => candidate < CONVERSION)) {
+      await db.query(sqlOf(name));
+    }
+
+    await db.query(
+      `INSERT INTO profile (user_id, display_name) VALUES ($1, 'Camila'), ($2, 'Nami')`,
+      [USER_ID, OTHER_USER],
+    );
+    await db.query(
+      `INSERT INTO mark (user_id, anime_id, mal_id, status, marked_at) VALUES
+        ($1, 16498, 16498, 'seen', '2026-11-01T10:00:00Z'),
+        -- Its MyAnimeList id is the AniList id of the row below: the ids cross.
+        ($1, 5114, 121, 'watching', '2026-11-02T10:00:00Z'),
+        ($1, 121, 5114, 'seen', '2026-11-03T10:00:00Z'),
+        -- Two AniList entries of one MyAnimeList anime: the seen one stays.
+        ($1, 300, 77, 'watching', '2026-11-04T10:00:00Z'),
+        ($1, 301, 77, 'seen', '2026-11-05T10:00:00Z'),
+        -- AniList never told its MyAnimeList id.
+        ($1, 999, NULL, 'seen', '2026-11-06T10:00:00Z'),
+        ($2, 16498, 16498, 'watching', '2026-11-07T10:00:00Z')`,
+      [USER_ID, OTHER_USER],
+    );
+    await db.query(
+      `INSERT INTO franchise_override (anime_id, franchise_root_id, role, updated_at)
+        VALUES (20811, 16498, 'extra', '2026-11-01T10:00:00Z')`,
+    );
+
+    await db.query(sqlOf(CONVERSION));
+  }, 60_000);
+
+  afterAll(async () => {
+    await db?.end();
+  });
+
+  it('keys every convertible mark by its MyAnimeList id, with its status and date', async () => {
+    const { rows } = await db.query(
+      `SELECT user_id, anime_id, status::text, marked_at FROM mark ORDER BY user_id, anime_id`,
+    );
+    expect(rows).toEqual([
+      {
+        user_id: USER_ID,
+        anime_id: 77,
+        status: 'seen',
+        marked_at: new Date('2026-11-05T10:00:00Z'),
+      },
+      {
+        user_id: USER_ID,
+        anime_id: 121,
+        status: 'watching',
+        marked_at: new Date('2026-11-02T10:00:00Z'),
+      },
+      {
+        user_id: USER_ID,
+        anime_id: 5114,
+        status: 'seen',
+        marked_at: new Date('2026-11-03T10:00:00Z'),
+      },
+      {
+        user_id: USER_ID,
+        anime_id: 16498,
+        status: 'seen',
+        marked_at: new Date('2026-11-01T10:00:00Z'),
+      },
+      {
+        user_id: OTHER_USER,
+        anime_id: 16498,
+        status: 'watching',
+        marked_at: new Date('2026-11-07T10:00:00Z'),
+      },
+    ]);
+  });
+
+  it('drops the mal_id column and keeps one mark per user and anime', async () => {
+    const { rows } = await db.query(
+      `SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'mark' ORDER BY column_name`,
+    );
+    expect(rows.map((row) => row.column_name)).toEqual([
+      'anime_id',
+      'marked_at',
+      'status',
+      'user_id',
+    ]);
+    expect(
+      await sqlState(
+        db.query(`INSERT INTO mark (user_id, anime_id, status) VALUES ($1, 77, 'watching')`, [
+          USER_ID,
+        ]),
+      ),
+    ).toBe('23505');
+  });
+
+  it('keeps aside, with the reason, every mark it could not convert', async () => {
+    const { rows } = await db.query(
+      `SELECT anilist_id, mal_id, status::text, marked_at, reason
+        FROM mark_anilist WHERE user_id = $1 ORDER BY anilist_id`,
+      [USER_ID],
+    );
+    expect(rows).toEqual([
+      {
+        anilist_id: 300,
+        mal_id: 77,
+        status: 'watching',
+        marked_at: new Date('2026-11-04T10:00:00Z'),
+        reason: 'duplicate',
+      },
+      {
+        anilist_id: 999,
+        mal_id: null,
+        status: 'seen',
+        marked_at: new Date('2026-11-06T10:00:00Z'),
+        reason: 'no_mal_id',
+      },
+    ]);
+  });
+
+  it('keeps aside the curator table, which holds no MyAnimeList ids, and empties it', async () => {
+    const kept = await db.query(
+      `SELECT anilist_id, franchise_root_id, role::text, updated_at FROM franchise_override_anilist`,
+    );
+    expect(kept.rows).toEqual([
+      {
+        anilist_id: 20811,
+        franchise_root_id: 16498,
+        role: 'extra',
+        updated_at: new Date('2026-11-01T10:00:00Z'),
+      },
+    ]);
+    expect((await db.query('SELECT 1 FROM franchise_override')).rowCount).toBe(0);
+  });
+
+  it('deletes the marks kept aside when the account is deleted', async () => {
+    await db.query('DELETE FROM profile WHERE user_id = $1', [USER_ID]);
+    expect((await db.query('SELECT 1 FROM mark_anilist')).rowCount).toBe(0);
   });
 });

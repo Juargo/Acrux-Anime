@@ -16,11 +16,7 @@ export interface MarksService {
   list(session: Session, page: MarkPageQuery): Promise<MarkPage>;
   // Any user's marks, for the public profile (#37), which checks first that the list is public.
   listOf(userId: string, page: MarkPageQuery): Promise<MarkPage>;
-  put(
-    session: Session,
-    animeId: number,
-    input: { status: MarkStatus; malId?: number | null | undefined },
-  ): Promise<MarkView>;
+  put(session: Session, animeId: number, input: { status: MarkStatus }): Promise<MarkView>;
   // Idempotent: removing a mark that does not exist is not an error.
   remove(session: Session, animeId: number): Promise<void>;
   // All entries in one transaction (RDI-31); a null status removes them and returns [].
@@ -37,13 +33,17 @@ export function createMarksService(
   // A mark needs its profile row, created the same way GET /api/v1/me creates it.
   const write = async (session: Session, status: MarkStatus, entries: MarkEntry[]) => {
     await profiles.ensureProfile(session);
-    return marks.upsert(session.userId, status, entries);
+    return marks.upsert(
+      session.userId,
+      status,
+      entries.map((entry) => entry.animeId),
+    );
   };
   return {
     list: (session, page) => marks.list(session.userId, page),
     listOf: (userId, page) => marks.list(userId, page),
-    put: async (session, animeId, { status, malId }) => {
-      const [mark] = await write(session, status, [{ animeId, malId }]);
+    put: async (session, animeId, { status }) => {
+      const [mark] = await write(session, status, [{ animeId }]);
       if (!mark) throw new Error('mark upsert returned no row');
       return mark;
     },

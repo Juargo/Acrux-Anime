@@ -26,7 +26,6 @@ const exportSchema = z
     marks: z.array(
       z.object({
         animeId: z.number().int(),
-        malId: z.number().int().nullable(),
         status: z.enum(['seen', 'watching']),
         markedAt: z.iso.datetime(),
       }),
