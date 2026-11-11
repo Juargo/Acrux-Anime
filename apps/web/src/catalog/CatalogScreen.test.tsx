@@ -68,6 +68,13 @@ function renderScreen(client: CatalogClient) {
 const currentYear = new Date().getFullYear();
 
 describe('CatalogScreen', () => {
+  it('credits MyAnimeList with a link (ADR-0043)', async () => {
+    renderScreen(fakeClient(() => ({ items: [frieren] })).client);
+    expect((await screen.findByRole('link', { name: 'MyAnimeList' })).getAttribute('href')).toBe(
+      'https://myanimelist.net',
+    );
+  });
+
   it('browses the releases of the current year by default, most popular first', async () => {
     const { client, calls } = fakeClient(() => ({ items: [frieren] }));
     renderScreen(client);

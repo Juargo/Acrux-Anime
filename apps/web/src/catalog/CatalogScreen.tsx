@@ -4,6 +4,7 @@ import { AdSlot } from '../ads/AdSlot';
 import type { CatalogClient } from '../catalog-source/client';
 import { defaultClient, useCatalog, useGenres } from '../catalog-source/hooks';
 import { catalogErrorMessage } from '../catalog-source/messages';
+import { DataCredit } from '../components/DataCredit';
 import { useFranchiseOverrides } from '../franchise/use-franchise-overrides';
 import { CatalogGrid } from './CatalogGrid';
 import { FilterSheet, type Filters } from './FilterSheet';
@@ -159,6 +160,7 @@ export function CatalogScreen({
           )}
         </>
       )}
+      <DataCredit />
 
       {sheetOpen && (
         <FilterSheet

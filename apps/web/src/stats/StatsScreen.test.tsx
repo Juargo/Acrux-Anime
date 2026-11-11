@@ -116,6 +116,13 @@ function renderStats(
 const statsPage = () => screen.findByRole('region', { name: 'Estadísticas' });
 
 describe('StatsScreen (RF-53)', () => {
+  it('credits MyAnimeList with a link (ADR-0043)', async () => {
+    renderStats({ profile: plus });
+    expect((await screen.findByRole('link', { name: 'MyAnimeList' })).getAttribute('href')).toBe(
+      'https://myanimelist.net',
+    );
+  });
+
   it('@CA-RF53-01 shows a Plus user hours, episodes, genres, decades and formats of seen titles', async () => {
     const { asked } = renderStats({ profile: plus });
     const page = await statsPage();

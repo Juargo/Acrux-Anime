@@ -142,6 +142,14 @@ const coverTitles = () =>
 const choices = () => screen.getAllByRole('checkbox');
 
 describe('CardScreen', () => {
+  it('credits MyAnimeList with a link (ADR-0043)', async () => {
+    renderCard([mark(1, 'seen')]);
+    await screen.findByRole('heading', { name: 'Tu tarjeta' });
+    expect((await screen.findByRole('link', { name: 'MyAnimeList' })).getAttribute('href')).toBe(
+      'https://myanimelist.net',
+    );
+  });
+
   it('@CA-RF30-01 builds the card with my total, name, avatar and what I am watching, and shares it', async () => {
     const user = userEvent.setup();
     const { onCardGenerated, onCardShared } = renderCard(

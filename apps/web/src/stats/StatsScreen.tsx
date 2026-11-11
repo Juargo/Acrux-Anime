@@ -6,6 +6,7 @@ import { formatLabel, genreLabel } from '../catalog-source/catalog';
 import type { CatalogClient } from '../catalog-source/client';
 import { useAnimeByIds } from '../catalog-source/hooks';
 import { catalogErrorMessage } from '../catalog-source/messages';
+import { DataCredit } from '../components/DataCredit';
 import { useOwnProfile } from '../profile/use-own-profile';
 import type { Profile } from '../profile-api';
 import { computeStats, type Stats } from './compute';
@@ -79,6 +80,7 @@ export function StatsScreen({
         {t('stats.title')}
       </h1>
       {body}
+      <DataCredit />
     </section>
   );
 }

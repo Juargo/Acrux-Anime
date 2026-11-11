@@ -8,6 +8,7 @@ import type { CatalogClient } from '../catalog-source/client';
 import { defaultClient } from '../catalog-source/hooks';
 import { Avatar } from '../components/Avatar';
 import { BadgeRow } from '../components/BadgeRow';
+import { DataCredit } from '../components/DataCredit';
 import { Logo } from '../components/Logo';
 import { useCrawledFranchises } from '../counter/use-marked-franchises';
 import { type ListRow, myList } from '../my-list/items';
@@ -278,6 +279,7 @@ export function PublicProfileScreen({
       <Header />
       {body}
       <CallToAction />
+      <DataCredit />
     </main>
   );
 }

@@ -1867,7 +1867,6 @@ label.sheet__label {
   margin: 0;
 }
 
-.delete-account__kept,
 .delete-account__note {
   color: var(--color-text-secondary);
 }
@@ -1995,6 +1994,18 @@ label.sheet__label {
 
 .about__attribution p {
   margin: 0;
+}
+
+.data-credit {
+  margin: 24px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  text-align: center;
+}
+
+.data-credit a {
+  color: inherit;
+  text-decoration: underline;
 }
 
 .about__version {

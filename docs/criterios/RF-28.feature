@@ -16,6 +16,8 @@ Característica: Deshacer una marca
     Cuando pasan 5 segundos sin tocar "Deshacer"
     Entonces el aviso desaparece y la marca queda guardada
 
+  # Fuera del alcance del lanzamiento (2026-11-10, ADR-0043, punto 8): no hay vínculo con AniList.
+  # Pendiente de decisión del Product Owner: se conserva hasta decidir si se retira.
   @CA-RF28-03
   Escenario: Deshacer cancela la escritura pendiente en AniList
     Dado que vinculé mi cuenta de AniList

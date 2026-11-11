@@ -27,10 +27,10 @@ Compra de Plus vitalicio (épica #50, ADR-0025, ADR-0036). Plus es un pago únic
   - Con Plus, muestra «Plus vitalicio · Activo».
   - Envía `plus_checkout_started` y `plus_purchased`, sin monto ni orden.
 - **Estadísticas (RF-53, Perfil → Estadísticas, `/perfil/estadisticas`):**
-  - Se calculan en el navegador con las marcas `seen` y una consulta `MediaStats` a AniList, en lotes de 50 ids (ADR-0024).
+  - Se calculan en el navegador con las marcas `seen` y los animes que pide a la API de Acrux por ID (`/api/v1/catalog/anime/by-ids`, catálogo de MyAnimeList; ADR-0043).
   - Cualquier usuario ve horas, episodios y títulos vistos. Un título sin episodios o duración conocidos cuenta como título pero no suma tiempo.
   - Con Plus se ven los cinco géneros favoritos, las décadas de estreno y los formatos. Sin Plus, esa parte ni se dibuja: muestra un bloqueo con «Ver Acrux Plus», o «Acrux Plus llega pronto» si el cobro está apagado.
-  - El bloqueo es solo de la app, porque los datos son las marcas del propio usuario cruzadas con datos públicos de AniList. El plan sale de `/me`.
+  - El bloqueo es solo de la app, porque los datos son las marcas del propio usuario cruzadas con datos del catálogo de MyAnimeList. El plan sale de `/me`.
 - **Insignias (RF-55, Perfil → Insignias, `/perfil/insignias`, ADR-0040):**
   - Se calculan en el navegador con las mismas estadísticas. Hay nueve: 10, 50, 100 y 250 títulos; 50, 200 y 500 horas; 5 y 10 géneros distintos.
   - La pantalla guarda las ganadas con `PATCH /me {badges}`, también para usuarios gratuitos. La API acepta solo ids conocidos y los guarda en `profile.badges`.
@@ -46,7 +46,7 @@ La facturación queda **apagada** mientras falte cualquiera de las cuatro variab
 - las dos rutas responden 503 `billing.unavailable` y no se cobra nada;
 - `/me` da `plusAvailable: false`, y Perfil oculta la fila de Plus a los usuarios gratuitos.
 
-Un plan ya comprado se sigue leyendo de la base aunque la facturación esté apagada. Plus no se activa en producción antes de la licencia comercial de AniList (ADR-0036, punto 4).
+Un plan ya comprado se sigue leyendo de la base aunque la facturación esté apagada. Plus no se activa en producción antes de leer el acuerdo de la API de MyAnimeList, que prohíbe generar ingresos sin autorización escrita; el respaldo es el correo de su soporte del 2026-11-06 (ADR-0043). AniList ya no es la fuente.
 
 ## Configuración
 

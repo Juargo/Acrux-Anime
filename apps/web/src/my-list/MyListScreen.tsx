@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { AdSlot } from '../ads/AdSlot';
 import type { CatalogClient } from '../catalog-source/client';
 import { defaultClient } from '../catalog-source/hooks';
+import { DataCredit } from '../components/DataCredit';
 import { useCounterMode } from '../counter/use-counter-mode';
 import { useMarkedFranchises } from '../counter/use-marked-franchises';
 import type { CounterMode } from '../counter/use-total-counter';
@@ -141,6 +142,7 @@ export function MyListScreen({
           </div>
         </>
       )}
+      <DataCredit />
     </section>
   );
 }

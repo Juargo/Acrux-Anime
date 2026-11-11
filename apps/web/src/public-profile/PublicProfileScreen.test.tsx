@@ -97,6 +97,13 @@ const coverTitles = (name: string) =>
   [...section(name).querySelectorAll('img')].map((img) => img.getAttribute('alt'));
 
 describe('PublicProfileScreen', () => {
+  it('credits MyAnimeList with a link (ADR-0043)', async () => {
+    renderProfile('/@camila', camila);
+    expect((await screen.findByRole('link', { name: 'MyAnimeList' })).getAttribute('href')).toBe(
+      'https://myanimelist.net',
+    );
+  });
+
   it('@CA-RF55-02 shows the badges the API returns for a Plus owner', async () => {
     renderProfile('/@camila', { ...camila, badges: ['titles_10', 'hours_50'] });
     const badges = await screen.findByRole('list', { name: 'Insignias' });
