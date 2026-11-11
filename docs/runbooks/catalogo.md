@@ -18,7 +18,7 @@ El catálogo vive en la tabla `anime` de Neon y se copia desde la API de MyAnime
 
 | Variable | Dónde | Para qué |
 |---|---|---|
-| `MAL_CLIENT_ID` | Proyecto `api` en Vercel (producción y vista previa) | Carga por demanda. Sin ella, la API solo sirve lo que hay en la tabla. |
+| `MAL_CLIENT_ID` | Proyecto `app` en Vercel (producción y vista previa), marcada como *Sensitive* | Carga por demanda. Sin ella, la API solo sirve lo que hay en la tabla. |
 | `MAL_CLIENT_ID` | Entorno `catalog-production` de GitHub, como secreto | Trabajo de carga. |
 | `DATABASE_URL_CATALOG` | Entorno `catalog-production` de GitHub, como secreto | Conexión de Neon con el rol `acrux_catalog`. |
 
@@ -29,7 +29,7 @@ El acuerdo de la API de MyAnimeList prohíbe compartir el client ID: no va en el
 1. Desplegar la migración `20261111000000_rol_de_catalogo`. Crea el rol `acrux_catalog` sin login: solo lee, crea y actualiza filas de `anime`.
 2. En Neon, rama `production`, darle login y contraseña al rol: `ALTER ROLE acrux_catalog WITH LOGIN PASSWORD '…';`.
 3. En GitHub, crear el entorno `catalog-production`, sin revisores y limitado a `main`, con los secretos `MAL_CLIENT_ID` y `DATABASE_URL_CATALOG`.
-4. En Vercel, agregar `MAL_CLIENT_ID` al proyecto `api`.
+4. En Vercel, agregar `MAL_CLIENT_ID` al proyecto `app`, que es donde se despliega la API, en *Production* y *Preview*. Hecho el 2026-11-11; tiene efecto desde el siguiente despliegue.
 5. Correr el workflow **Catalog** a mano con `details` en `16000`. Tarda unas cuatro horas y media. Repetirlo una vez más: con dos corridas todos los animes que se muestran quedan con su detalle.
 
 Mientras un anime no tiene detalle, el catálogo lo muestra como un ítem suelto, sin agrupar con su saga. Se agrupa cuando el trabajo lo lee o cuando alguien abre su franquicia.
