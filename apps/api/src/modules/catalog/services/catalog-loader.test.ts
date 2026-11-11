@@ -26,12 +26,21 @@ function setup(options: {
   missing?: number[];
   // Errors thrown, in order, by the calls to the source; null lets a call through.
   failures?: (SourceError | null)[];
+  // How many writes to the database fail before one goes through.
+  storeFailures?: number;
 }) {
   const events: string[] = [];
   const failures = [...(options.failures ?? [])];
   const fail = () => {
     const failure = failures.shift();
     if (failure) throw failure;
+  };
+  let storeFailures = options.storeFailures ?? 0;
+  const failStore = () => {
+    if (storeFailures > 0) {
+      storeFailures -= 1;
+      throw new Error('Unable to start a transaction in the given time.');
+    }
   };
   const source: CatalogSource = {
     ranking: async (offset) => {
@@ -53,9 +62,11 @@ function setup(options: {
   const store: CatalogStore = {
     detailState: async () => new Map(),
     saveListed: async (rows) => {
+      failStore();
       events.push(`listed ${rows.map((row) => row.id).join(',')}`);
     },
     saveDetailed: async (row) => {
+      failStore();
       events.push(`detailed ${row.id}`);
     },
     markChecked: async (id) => {
@@ -137,5 +148,24 @@ describe('catalog load', () => {
       stopped: 'ranking at 0: MyAnimeList 500',
     });
     expect(always.events.filter((event) => event === 'ranking 0')).toHaveLength(3);
+  });
+
+  it('tries a write to the database again when it fails in passing', async () => {
+    const { events, run } = setup({ pages: [[1]], toDetail: [1], storeFailures: 2 });
+    const result = await run(1);
+
+    expect(result).toEqual({ listed: 1, detailed: 1, gone: 0, stopped: null });
+    expect(events.filter((event) => event === 'listed 1' || event === 'detailed 1')).toEqual([
+      'listed 1',
+      'detailed 1',
+    ]);
+  });
+
+  it('stops, with what was saved kept, when the database keeps failing', async () => {
+    const { run } = setup({ pages: [[1]], toDetail: [1], storeFailures: 3 });
+    const result = await run(1);
+
+    expect(result.listed).toBe(0);
+    expect(result.stopped).toContain('saving the ranking at 0');
   });
 });

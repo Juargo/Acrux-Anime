@@ -44,7 +44,7 @@ export async function loadCatalog({
 }: LoadOptions): Promise<LoadResult> {
   const result: LoadResult = { listed: 0, detailed: 0, gone: 0, stopped: null };
 
-  // Runs one request, retrying a passing failure. A refusal is never retried.
+  // Runs one request or one write, retrying a passing failure. A refusal is never retried.
   async function ask<T>(what: string, request: () => Promise<T>): Promise<T | undefined> {
     for (let failures = 0; ; ) {
       try {
@@ -66,25 +66,31 @@ export async function loadCatalog({
     const offset = page * RANKING_PAGE_SIZE;
     const answer = await ask(`ranking at ${offset}`, () => source.ranking(offset));
     if (!answer) return result;
-    await store.saveListed(answer.items);
+    const saved = await ask(`saving the ranking at ${offset}`, async () => {
+      await store.saveListed(answer.items);
+      return true;
+    });
+    if (!saved) return result;
     result.listed += answer.items.length;
     log(`listed ${result.listed}`);
     if (!answer.hasNext) break;
     await sleep(delayMs);
   }
 
-  const ids = await store.nextToDetail(maxDetails);
+  const ids = await ask('choosing the details', () => store.nextToDetail(maxDetails));
+  if (!ids) return result;
   for (const [index, id] of ids.entries()) {
     await sleep(delayMs);
     const anime = await ask(`detail of ${id}`, () => source.detail(id));
     if (anime === undefined) return result;
-    if (anime === null) {
-      await store.markChecked(id);
-      result.gone += 1;
-    } else {
-      await store.saveDetailed(anime);
-      result.detailed += 1;
-    }
+    const saved = await ask(`saving the detail of ${id}`, async () => {
+      if (anime === null) await store.markChecked(id);
+      else await store.saveDetailed(anime);
+      return true;
+    });
+    if (!saved) return result;
+    if (anime === null) result.gone += 1;
+    else result.detailed += 1;
     if ((index + 1) % 100 === 0) log(`detailed ${index + 1} of ${ids.length}`);
   }
   return result;
