@@ -68,3 +68,4 @@ Sigue vigente el Scrum adaptado a un solo programador de ADR-0001, con sprints c
 ## Notas
 
 - **2026-10-30:** el stakeholder decidió empezar a construir H2 (sprint 4: cimientos de la app) sin esperar a que se cierre H1. Al decidirlo, H1 tenía la landing en producción con medición en PostHog, la encuesta y las entrevistas preparadas pero sin publicar, la lista de espera sin la clave de Buttondown y la autorización de AniList (#6) sin respuesta. Los umbrales de H1 siguen siendo la condición para invitar a los testers de H2, y la autorización escrita de AniList sigue siendo condición para H3. El primer sprint de H2 prioriza tareas que no dependen de AniList, para no perder trabajo si la respuesta es negativa.
+- **2026-11-10:** el stakeholder decidió el lanzamiento público directo. Los umbrales de H1 y la beta cerrada de H2 dejan de ser condición para H3 (ADR-0044).

@@ -13,7 +13,7 @@
 | RN-01 | Acrux sirve como proyecto de portafolio que demuestra un producto completo **en producción en la web**. | Must | Reunión 001; modificado por ADR-0031 (sin tiendas) |
 | RN-02 | El diferenciador es la combinación de: un ítem por franquicia, tarjeta vertical para compartir, español nativo con foco en Latinoamérica y Chile, y una web app simple pensada primero para el celular. | Must | Estudio de mercado; ADR-0013 |
 | RN-03 | Compartir es la función central y el motor de crecimiento orgánico, no un extra. | Must | Estudio de mercado |
-| RN-04 | Antes de construir en serio se valida la demanda. No hay fecha fija de lanzamiento; se avanza por hitos con umbral. | Must | Decisión 26-oct; ADR-0031 |
+| RN-04 | La demanda se valida con el producto en producción: el lanzamiento público es directo, sin esperar los umbrales de validación ni la beta cerrada. No hay fecha fija de lanzamiento. | Must | Decisión 26-oct; ADR-0031; modificado por ADR-0044 |
 | RN-05 | Freemium con anuncios no intrusivos para los usuarios gratuitos. Marcar, el contador y la tarjeta básica son gratis para siempre. Nunca hay anuncios en la tarjeta compartida, en el perfil público, en el inicio de sesión ni en el borrado de cuenta. | Must | Estudio de mercado; ADR-0036 |
 | RN-06 | Plan **Plus** de pago único que quita los anuncios y agrega estadísticas avanzadas, Wrapped completo, insignias y avatares exclusivos (ADR-0040). Los temas y plantillas extra de tarjeta se venderán aparte (ADR-0039). | Must | Estudio de mercado; ADR-0036, ADR-0039 |
 | RN-07 | Precio de referencia de Plus: pago vitalicio de ~US$19,99, con precio regional para Latinoamérica. No hay suscripción mensual ni anual. | Should | Estudio de mercado; DD-28; modificado por ADR-0036 |
@@ -27,6 +27,8 @@
 | **H2. Beta cerrada** | Web app en `app.acruxanime.com` para 30 a 50 testers: login con Google, marcar franquicias, contador, tarjeta, perfil público y borrado de cuenta. Sin cobro. | RN-M1 a RN-M3 medidas y autorización escrita de la fuente de datos (cubierta con MyAnimeList desde 2026-11-10, ADR-0043) |
 | **H3. Lanzamiento público** | Apertura a todos, en español e inglés. | ~~Licencia comercial de AniList~~ (sin objeto, ADR-0043), Vercel Pro y Lemon Squeezy configurado |
 | **H4. Monetización** | Anuncios no intrusivos y Plus vitalicio sin anuncios (ADR-0036). | — |
+
+**Desde 2026-11-10 (ADR-0044)** el lanzamiento público (H3) no espera los umbrales de H1 ni la beta de H2, y los anuncios de H4 quedan para más adelante. RN-M1 a RN-M3 se miden después del lanzamiento.
 
 Si AniList y MyAnimeList responden que no, se detiene el avance después de H1 y se reconsidera el modelo (ADR-0031). MyAnimeList respondió que sí (2026-11-06) y es la fuente desde 2026-11-10 (ADR-0041, ADR-0043).
 
