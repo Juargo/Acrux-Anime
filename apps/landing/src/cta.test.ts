@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { APP_URL, getCopy } from './i18n';
 import { getLegalPage } from './legal';
@@ -30,5 +30,17 @@ describe('landing call to action (ADR-0044)', () => {
     expect(JSON.stringify(terms)).toMatch(
       locale === 'es' ? /puede cambiar o fallar/ : /may change or fail/,
     );
+  });
+
+  it.each(LOCALES)('has legal pages that no longer describe a waitlist (%s)', (locale) => {
+    for (const key of ['privacy', 'support', 'terms'] as const) {
+      expect(JSON.stringify(getLegalPage(locale, key))).not.toMatch(
+        /beta|waitlist|lista de espera|buttondown/i,
+      );
+    }
+  });
+
+  it('no longer serves the waitlist endpoint', () => {
+    expect(existsSync(new URL('./pages/api/waitlist.ts', import.meta.url))).toBe(false);
   });
 });

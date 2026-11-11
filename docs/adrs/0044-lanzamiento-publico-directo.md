@@ -3,7 +3,9 @@
 - **Estado:** Aceptado
 - **Fecha:** 2026-11-10
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
-- **Origen:** Sesión con el stakeholder, 2026-11-10: «Voy a dejar los anuncios para más adelante. Quiero comenzar con el lanzamiento directo de la app.» «Cualquier cobro apagado por ahora» «si» al registro abierto desde el primer día y «si» a que el botón de la landing lleve directo a la app.
+- **Origen:** Sesión con el stakeholder, 2026-11-10: «Voy a dejar los anuncios para más adelante. Quiero comenzar con el lanzamiento directo de la app.» «Cualquier cobro apagado por ahora» «si» al registro abierto desde el primer día y «si» a que el botón de la landing lleve directo a la app y, el 2026-11-11, «No alcancé a tener correos en lista de espera. Solo está la configuración de Buttondown pero ya no la usaré».
+
+**Retira:** ADR-0033 (lista de espera con Buttondown).
 
 **Modifica:** ADR-0031, en lo referido a las condiciones para pasar de H1 a H2 y de H2 a H3. La decisión «solo web» y la metodología de ADR-0031 siguen vigentes.
 
@@ -34,7 +36,7 @@
 2. **Los anuncios quedan para más adelante.** El código de RF-58 y RF-59 sigue en la app, apagado: no se configuran las variables `VITE_ADSENSE_*` (ADR-0038).
 3. **Todo cobro queda apagado por ahora.** Plus se lanza sin facturación: no se configuran las variables `LEMON_SQUEEZY_*` en producción, así que `/me` responde `plusAvailable: false` y la app muestra «Acrux Plus llega pronto» (`docs/runbooks/plus.md`). Lemon Squeezy en modo real deja de ser condición del lanzamiento. Antes de prender cualquier cobro, el stakeholder lee el acuerdo de la API de MyAnimeList, que prohíbe generar ingresos sin autorización escrita (RN-08, R-01).
 4. **El registro queda abierto a cualquiera desde el primer día.** No hay lista de invitados ni cupo de altas.
-5. **La landing lleva directo a la app y la lista de espera queda sin uso.** El botón «Únete a la beta» pasa a ser «Abrir Acrux», con enlace a `app.acruxanime.com` (RF-80). El formulario sale de la landing; el endpoint `/api/waitlist` y la integración con Buttondown (ADR-0033) siguen en el código, sin nada que los llame.
+5. **La landing lleva directo a la app y la lista de espera se retira.** El botón «Únete a la beta» pasa a ser «Abrir Acrux», con enlace a `app.acruxanime.com` (RF-80). La lista no llegó a tener correos anotados (dato del stakeholder, 2026-11-11), así que se quitan el formulario, el endpoint `/api/waitlist`, la integración con Buttondown y el evento `waitlist_joined`. ADR-0033 queda retirado. Los textos legales de la landing dejan de nombrar la beta y la lista de espera.
 6. **Las métricas RN-M1 a RN-M3 se miden después del lanzamiento**, con los mismos eventos de PostHog (ADR-0030). Sus metas «por definir tras la beta» pasan a definirse con los datos del lanzamiento.
 7. **Las condiciones técnicas y legales del lanzamiento no cambian:**
    - la fuente de datos autorizada es MyAnimeList, con crédito y enlace (ADR-0041, ADR-0043). El catálogo propio tiene que estar cargado antes de abrir;
@@ -53,8 +55,6 @@
   - Actualizar RN-04, la tabla de hitos y RES-02 en `docs/requisitos`.
   - Completar la migración a MyAnimeList (ADR-0043) y cargar el catálogo.
 
-## Pendiente de decidir
+## Pendiente
 
-- **Quienes ya están en la lista de espera:** si se les avisa del lanzamiento y cuándo se borran sus correos. La política de privacidad dice que se borran «al terminar la beta».
-- **Privacidad y soporte de la landing:** todavía describen la lista de espera, porque los correos anotados siguen guardados. Se actualizan cuando se decida qué pasa con esos correos. Los términos ya no hablan de la beta.
-- **Retiro del código de la lista de espera:** `/api/waitlist`, `src/lib/waitlist.ts` y el evento `waitlist_joined`.
+- Borrar a mano, en Vercel y en Buttondown, lo que quedó configurado: la clave `BUTTONDOWN_API_KEY`, las variables `UPSTASH_REDIS_REST_*` del proyecto `landing`, la regla del firewall «Límite de la lista de espera» y la cuenta o lista de Buttondown.

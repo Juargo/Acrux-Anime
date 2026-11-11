@@ -1,6 +1,6 @@
 # Límite de peticiones con Upstash
 
-La API y la lista de espera de la landing cuentan las peticiones en Upstash Redis (ADR-0028, punto 6). Al superar el límite responden `429` con `Retry-After`, en segundos. Si falta `UPSTASH_REDIS_REST_URL` o `UPSTASH_REDIS_REST_TOKEN`, no se cuenta nada y no hay aviso, como en desarrollo local.
+La API cuenta las peticiones en Upstash Redis (ADR-0028, punto 6). Al superar el límite responden `429` con `Retry-After`, en segundos. Si falta `UPSTASH_REDIS_REST_URL` o `UPSTASH_REDIS_REST_TOKEN`, no se cuenta nada y no hay aviso, como en desarrollo local.
 
 ## Límites
 
@@ -8,13 +8,12 @@ La API y la lista de espera de la landing cuentan las peticiones en Upstash Redi
 |---|---|---|---|
 | Rutas privadas con `rateLimit: 'write'` | usuario | 30 | 60 s |
 | Rutas públicas con `rateLimit: 'public'` | IP | 60 | 60 s |
-| `POST /api/waitlist` en la landing | IP | 5 | 10 min |
 
 - **Rutas:** la API se protege por ruta, con `rateLimit` en su definición. Hoy no hay rutas de escritura ni de perfil público; se marcan al crearlas.
 - **Algoritmo:** ventana fija, con un contador por clave y ventana creado y vencido en una sola transacción (`INCR` y `EXPIREAT`). Cerca del cambio de ventana se pueden aceptar hasta el doble de peticiones seguidas.
 - **IP:** sale de `x-vercel-forwarded-for`, que Vercel sobrescribe.
 - **Privacidad:** Upstash sólo recibe un hash SHA-256 de la IP o del usuario, que vence con su ventana. Un hash de una IP se puede revertir probando todas las direcciones; el vencimiento corto es lo que limita esa exposición.
-- **Fallos:** si Upstash falla, responde algo inesperado o tarda más de un segundo, la consulta se corta y la petición pasa. La API registra `rate limit check failed` y la landing, `waitlist rate limit check failed`, en los logs de Vercel.
+- **Fallos:** si Upstash falla, responde algo inesperado o tarda más de un segundo, la consulta se corta y la petición pasa. La API registra `rate limit check failed` en los logs de Vercel.
 
 ## Configuración inicial
 
@@ -35,3 +34,5 @@ Prueba del 2026-11-02 en una vista previa de la landing: los intentos 1 a 5 dier
 
 
 En una vista previa, superar el límite de la lista de espera y comprobar el `429` con `Retry-After`. La API no tiene todavía rutas con límite: se prueba con la primera que lo use.
+
+> **2026-11-11 (ADR-0044):** la landing ya no tiene lista de espera ni endpoint `POST /api/waitlist`. Los pasos de este runbook que nombran la lista de espera o el proyecto `landing` (regla del firewall, prueba en la vista previa) quedaron sin objeto. La regla del firewall y las variables `BUTTONDOWN_API_KEY` y `UPSTASH_REDIS_REST_*` del proyecto `landing` en Vercel se pueden borrar a mano.

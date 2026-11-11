@@ -37,7 +37,7 @@ Los espacios, el consentimiento separado y la política de privacidad ya están 
 
 ## Lanzamiento directo (ADR-0044)
 
-- **Lista de espera sin uso:** la landing ya no muestra el formulario. Falta decidir qué pasa con los correos anotados, actualizar los textos legales que hablan de la beta y de la lista de espera, y retirar `/api/waitlist`, `apps/landing/src/lib/waitlist.ts` y el evento `waitlist_joined`.
+- **Restos de la lista de espera fuera del repo:** borrar a mano la clave `BUTTONDOWN_API_KEY`, las variables `UPSTASH_REDIS_REST_*` y la regla del firewall del proyecto `landing` en Vercel, y la lista en Buttondown.
 - **#48 (reclutar testers):** queda sin objeto con el lanzamiento directo; falta cerrar el issue.
 
 ## Catálogo de MyAnimeList (ADR-0043)

@@ -1,9 +1,9 @@
 import vercel from '@astrojs/vercel';
 import { defineConfig, envField } from 'astro/config';
 
-// Validation landing at acruxanime.com (ADR-0012, ADR-0031).
+// Landing at acruxanime.com (ADR-0012, ADR-0044).
 // Spanish lives at the root and English under /en/ (ADR-0010).
-// Pages stay static; only /api/waitlist runs as a Vercel function (ADR-0033).
+// Every page is static: the waitlist endpoint is gone since the direct launch (ADR-0044).
 export default defineConfig({
   site: 'https://acruxanime.com',
   adapter: vercel(),
@@ -14,18 +14,6 @@ export default defineConfig({
   },
   env: {
     schema: {
-      BUTTONDOWN_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
-      // Upstash Redis for the waitlist rate limit (#27). Without both, every attempt passes.
-      UPSTASH_REDIS_REST_URL: envField.string({
-        context: 'server',
-        access: 'secret',
-        optional: true,
-      }),
-      UPSTASH_REDIS_REST_TOKEN: envField.string({
-        context: 'server',
-        access: 'secret',
-        optional: true,
-      }),
       // PostHog project key (EU cloud). It is public by design; without it analytics stays off.
       PUBLIC_POSTHOG_KEY: envField.string({ context: 'client', access: 'public', optional: true }),
     },

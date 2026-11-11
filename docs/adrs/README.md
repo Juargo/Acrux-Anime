@@ -50,7 +50,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0030](./0030-observabilidad-kpis-logs-y-errores.md) | Observabilidad: KPIs, logs y errores | Aceptado | Sesión 2026-10-27 |
 | [0031](./0031-validar-primero-sin-fecha-fija-y-solo-web.md) | Validar primero, sin fecha fija, y solo web | Aceptado (condiciones de H1 y H2 modificadas por ADR-0044) | Decisión 2026-10-26, sesión 2026-10-27 |
 | [0032](./0032-retencion-de-respaldos-de-30-dias.md) | Retención de los respaldos: 30 días | Aceptado | Sesión 2026-10-27 |
-| [0033](./0033-lista-de-espera-con-buttondown.md) | Lista de espera con Buttondown | Aceptado | Sesión 2026-10-27 |
+| [0033](./0033-lista-de-espera-con-buttondown.md) | Lista de espera con Buttondown | Retirado por ADR-0044 | Sesión 2026-10-27 |
 | [0034](./0034-neon-para-postgres-y-autenticacion.md) | Neon para Postgres y autenticación, en lugar de Supabase | Aceptado | Sesión 2026-10-28 |
 | [0035](./0035-respaldos-en-backblaze-b2.md) | Respaldos en Backblaze B2, en lugar de Cloudflare R2 | Aceptado | Sesión 2026-11-01 |
 | [0036](./0036-monetizacion-con-anuncios-y-plus-vitalicio.md) | Monetización con anuncios no intrusivos y Plus vitalicio | Aceptado (temas de tarjeta fuera de Plus en ADR-0039) | Sesión 2026-11-06 |
