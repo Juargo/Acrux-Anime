@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AdSlot } from '../ads/AdSlot';
-import type { AniListClient } from '../anilist/client';
-import { defaultClient, useCatalog, useGenres } from '../anilist/hooks';
-import { anilistErrorMessage } from '../anilist/messages';
+import type { CatalogClient } from '../catalog-source/client';
+import { defaultClient, useCatalog, useGenres } from '../catalog-source/hooks';
+import { catalogErrorMessage } from '../catalog-source/messages';
 import { useFranchiseOverrides } from '../franchise/use-franchise-overrides';
 import { CatalogGrid } from './CatalogGrid';
 import { FilterSheet, type Filters } from './FilterSheet';
@@ -23,8 +23,8 @@ const defaultFilters = (): Filters => ({
 const countLabel = (label: string, count: number) => (count > 0 ? `${label} · ${count}` : label);
 
 /**
- * Container: owns the search, the filters and the AniList queries of the catalog
- * (ADR-0017, ADR-0024). Search by name covers every year; otherwise it browses a year.
+ * Container: owns the search, the filters and the catalog queries
+ * (ADR-0017, ADR-0043). Search by name covers every year; otherwise it browses a year.
  */
 export function CatalogScreen({
   client = defaultClient,
@@ -32,7 +32,7 @@ export function CatalogScreen({
   fetchFn = fetch,
   onFranchiseMarked,
 }: {
-  client?: AniListClient | undefined;
+  client?: CatalogClient | undefined;
   // Without a session the catalog still browses, but cards cannot be marked.
   getToken?: (() => Promise<string | null>) | undefined;
   fetchFn?: typeof fetch | undefined;
@@ -54,7 +54,8 @@ export function CatalogScreen({
   const items = useMemo(
     () =>
       toCatalogItems(
-        catalog.data?.pages.flatMap((page) => page.media) ?? [],
+        catalog.data?.pages.flatMap((page) => page.items) ?? [],
+        catalog.data?.pages.flatMap((page) => page.related) ?? [],
         marking.marks,
         new Date().toISOString(),
         overrides,
@@ -120,7 +121,7 @@ export function CatalogScreen({
         </p>
       ) : catalog.isLoadingError ? (
         <div className="catalog__notice" role="alert">
-          <p>{anilistErrorMessage(catalog.error, t)}</p>
+          <p>{catalogErrorMessage(catalog.error, t)}</p>
           <button
             className="button button--secondary"
             type="button"
@@ -150,7 +151,7 @@ export function CatalogScreen({
           )}
           {catalog.isFetchNextPageError && !catalog.isFetchingNextPage && (
             <div className="catalog__notice" role="alert">
-              <p>{anilistErrorMessage(catalog.error, t)}</p>
+              <p>{catalogErrorMessage(catalog.error, t)}</p>
               <button className="button button--secondary" type="button" onClick={loadMore}>
                 {t('catalog.retry')}
               </button>

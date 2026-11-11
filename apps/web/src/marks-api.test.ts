@@ -4,7 +4,6 @@ import { deleteMark, fetchMarks, MarksError, putMark, saveMarks } from './marks-
 const token = async () => 'jwt';
 const mark = {
   animeId: 16498,
-  malId: 16498,
   status: 'seen',
   markedAt: '2026-11-03T12:00:00.000Z',
 };
@@ -60,7 +59,7 @@ describe('marks API client', () => {
 
     const saved = await saveMarks(
       token,
-      { status: 'seen', entries: [{ animeId: 16498, malId: 16498 }] },
+      { status: 'seen', entries: [{ animeId: 16498 }] },
       fetchFn,
     );
 
@@ -68,18 +67,18 @@ describe('marks API client', () => {
     expect(fetchFn).toHaveBeenCalledWith('/api/v1/me/marks:batch', {
       method: 'POST',
       headers: { Authorization: 'Bearer jwt', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'seen', entries: [{ animeId: 16498, malId: 16498 }] }),
+      body: JSON.stringify({ status: 'seen', entries: [{ animeId: 16498 }] }),
     });
   });
 
   it('marks one entry with its status and MAL id', async () => {
     const fetchFn = respond(200, mark);
 
-    expect(await putMark(token, 16498, { status: 'seen', malId: 16498 }, fetchFn)).toEqual(mark);
+    expect(await putMark(token, 16498, { status: 'seen' }, fetchFn)).toEqual(mark);
     expect(fetchFn).toHaveBeenCalledWith('/api/v1/me/marks/16498', {
       method: 'PUT',
       headers: { Authorization: 'Bearer jwt', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'seen', malId: 16498 }),
+      body: JSON.stringify({ status: 'seen' }),
     });
   });
 

@@ -3,9 +3,9 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { useConsent } from '../analytics/AnalyticsContext';
-import type { AniListClient } from '../anilist/client';
-import { defaultClient } from '../anilist/hooks';
 import { errorMessage } from '../api-errors';
+import type { CatalogClient } from '../catalog-source/client';
+import { defaultClient } from '../catalog-source/hooks';
 import { Avatar } from '../components/Avatar';
 import { BadgeRow } from '../components/BadgeRow';
 import { Logo } from '../components/Logo';
@@ -24,7 +24,7 @@ export type PublicProfileViewedEvent = { listVisibility: PublicProfile['listVisi
 
 // Figma M14: up to six of the most recent complete sagas (L5 of odd/tasks/perfil-publico.md).
 const RECENT_SAGAS = 6;
-const STORE_KEY = ['anilist', 'public-franchises'] as const;
+const STORE_KEY = ['catalog', 'public-franchises'] as const;
 
 // The message of the API code that failed (ADR-0023), when it has one.
 const codeMessage = (error: unknown) =>
@@ -69,7 +69,7 @@ function Covers(props: { title: string; rows: ListRow[]; empty: string }) {
 /** Presentational: the public list of Figma M14, from the owner's marks. */
 function PublicList(props: {
   profile: PublicProfile;
-  client: AniListClient;
+  client: CatalogClient;
   fetchFn: typeof fetch;
 }) {
   const { profile, client, fetchFn } = props;
@@ -172,7 +172,7 @@ export function PublicProfileScreen({
   onViewed,
 }: {
   handle: string;
-  client?: AniListClient | undefined;
+  client?: CatalogClient | undefined;
   fetchFn?: typeof fetch | undefined;
   onViewed?: ((event: PublicProfileViewedEvent) => void) | undefined;
 }) {

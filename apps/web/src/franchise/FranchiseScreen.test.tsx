@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
+
+import type { RelationType } from '@acrux/domain';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, Outlet, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { CATALOG_PAGE, type CatalogMedia, type RelatedMedia } from '../anilist/catalog';
-import { type AniListClient, AniListError } from '../anilist/client';
-import { FRANCHISE_MEDIA } from '../anilist/franchise';
+import { type CatalogAnime, type CatalogClient, CatalogError } from '../catalog-source/client';
+import { anime, fakeCatalogClient, serveFranchises } from '../catalog-source/test-support';
 import { setLocale } from '../i18n';
 import type { SignedInContext } from '../routes/signed-in-context';
 import { signedInRoutes } from '../routes/signed-in-routes';
@@ -32,7 +33,7 @@ const years: Record<number, number> = {
   107: 2021,
   109: 2020,
 };
-const relations: Record<number, [string, number][]> = {
+const relations: Record<number, [RelationType, number][]> = {
   101: [
     ['SEQUEL', 102],
     ['SIDE_STORY', 109],
@@ -55,53 +56,43 @@ const relations: Record<number, [string, number][]> = {
   109: [['PARENT', 101]],
 };
 
-const cover = (id: number) => `https://img.anili.st/media/${id}.jpg`;
+const cover = (id: number) => `https://cdn.example.test/anime/${id}.jpg`;
 
-function node(id: number): RelatedMedia {
-  return {
-    id,
-    idMal: id + 1000,
-    type: 'ANIME',
-    format: id === 109 ? 'OVA' : 'TV',
-    isAdult: false,
-    title: { romaji: titles[id] ?? `Entry ${id}`, english: null, native: null },
-    coverImage: { large: cover(id) },
-    startDate: { year: years[id] ?? 2000, month: 1, day: 1 },
-  };
-}
+const row = (id: number): CatalogAnime | undefined =>
+  id in titles
+    ? anime(id, {
+        title: titles[id] ?? `Entry ${id}`,
+        format: id === 109 ? 'OVA' : 'TV',
+        coverUrl: cover(id),
+        startDate: `${years[id] ?? 2000}-01-01`,
+        year: years[id] ?? 2000,
+        episodes: id === 109 ? null : 24,
+        genres: ['Action', 'Supernatural'],
+        relations: (relations[id] ?? []).map(([type, target]) => ({ type, id: target })),
+      })
+    : undefined;
 
-const media = (id: number): CatalogMedia & { episodes: number; genres: string[] } => ({
-  ...node(id),
-  episodes: 24,
-  genres: ['Action', 'Supernatural'],
-  relations: {
-    edges: (relations[id] ?? []).map(([relationType, target]) => ({
-      relationType,
-      node: node(target),
-    })),
-  },
-});
-
-function fakeAniList(fail = 0) {
+// The first `fail` franchise requests fail, as when the network is down.
+function fakeCatalog(fail = 0) {
   let failures = fail;
-  const request = vi.fn(async (query: string, variables: Record<string, unknown>, schema) => {
-    if (query === CATALOG_PAGE) {
-      return schema.parse({ Page: { pageInfo: { hasNextPage: false }, media: [media(101)] } });
-    }
-    expect(query).toBe(FRANCHISE_MEDIA);
-    if (failures > 0) {
-      failures -= 1;
-      throw new AniListError('unavailable', 'AniList is down');
-    }
-    const ids = (variables.ids as number[]).filter((id) => id in titles);
-    return schema.parse({ Page: { media: ids.map(media) } });
+  return fakeCatalogClient({
+    browse: async () => {
+      const hit = row(101) as CatalogAnime;
+      const related = hit.relations.map((relation) => row(relation.id) as CatalogAnime);
+      return { items: [hit], related, nextPage: null };
+    },
+    franchises: async (seeds) => {
+      if (failures > 0) {
+        failures -= 1;
+        throw new CatalogError('unavailable', 'The catalog is down');
+      }
+      return serveFranchises(row, seeds);
+    },
   });
-  return { request } as unknown as AniListClient;
 }
 
 const mark = (animeId: number, status = 'seen', markedAt = '2025-01-01T00:00:00.000Z') => ({
   animeId,
-  malId: animeId + 1000,
   status,
   markedAt,
 });
@@ -117,11 +108,11 @@ function renderAt(
   options: {
     marks?: unknown[];
     write?: Api;
-    client?: AniListClient;
+    client?: CatalogClient;
     onEntryMarkedSeen?: () => void;
   } = {},
 ) {
-  const { marks = [], client = fakeAniList() } = options;
+  const { marks = [], client = fakeCatalog() } = options;
   const write: Api =
     options.write ??
     ((url, init) => {
@@ -232,7 +223,7 @@ describe('franchise detail', () => {
     expect(pressed('Temporada 4', 'Vista')).toBe('true');
     expect(screen.getByText('4 de 5 vistas')).toBeTruthy();
     expect(writes(fetchFn)).toEqual([
-      { url: '/api/v1/me/marks/104', method: 'PUT', body: { status: 'seen', malId: 1104 } },
+      { url: '/api/v1/me/marks/104', method: 'PUT', body: { status: 'seen' } },
     ]);
     save(json(mark(104)));
     await waitFor(() => expect(pressed('Temporada 4', 'Vista')).toBe('true'));
@@ -261,7 +252,7 @@ describe('franchise detail', () => {
     expect(screen.getByText('Viendo', { selector: '.status-chip' })).toBeTruthy();
     await waitFor(() =>
       expect(writes(fetchFn)).toEqual([
-        { url: '/api/v1/me/marks/102', method: 'PUT', body: { status: 'watching', malId: 1102 } },
+        { url: '/api/v1/me/marks/102', method: 'PUT', body: { status: 'watching' } },
       ]),
     );
   });
@@ -320,7 +311,7 @@ describe('franchise detail', () => {
       method: 'POST',
       body: {
         status: 'seen',
-        entries: [101, 102, 103, 104, 105].map((id) => ({ animeId: id, malId: id + 1000 })),
+        entries: [101, 102, 103, 104, 105].map((id) => ({ animeId: id })),
       },
     });
     expect(await screen.findByRole('button', { name: 'Quitar saga de vistas' })).toBeTruthy();
@@ -338,7 +329,7 @@ describe('franchise detail', () => {
     await waitFor(() => expect(writes(fetchFn)).toHaveLength(1));
     expect(writes(fetchFn)[0]?.body).toEqual({
       status: null,
-      entries: [101, 102, 103, 104, 105, 109].map((id) => ({ animeId: id, malId: id + 1000 })),
+      entries: [101, 102, 103, 104, 105, 109].map((id) => ({ animeId: id })),
     });
   });
 
@@ -382,20 +373,20 @@ describe('franchise detail', () => {
     expect(screen.getByText('Sin marcar')).toBeTruthy();
   });
 
-  it('says it could not reach AniList and retries', async () => {
-    renderAt('/franquicia/101', { client: fakeAniList(1) });
+  it('says it could not reach the catalog and retries', async () => {
+    renderAt('/franquicia/101', { client: fakeCatalog(1) });
 
     const alert = await screen.findByRole('alert');
-    expect(alert.textContent).toContain('No pudimos conectar con AniList');
+    expect(alert.textContent).toContain('No pudimos conectar con el catálogo');
     await userEvent.click(within(alert).getByRole('button', { name: 'Reintentar' }));
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Temporada 1' })).toBeTruthy();
   });
 
-  it('says so when AniList does not know the franchise', async () => {
+  it('says so when the catalog does not hold the franchise', async () => {
     renderAt('/franquicia/999');
 
-    expect(await screen.findByText('No encontramos esta franquicia en AniList.')).toBeTruthy();
+    expect(await screen.findByText('No encontramos esta franquicia en el catálogo.')).toBeTruthy();
   });
 });
 

@@ -113,7 +113,6 @@ describe('eventCallbacks', () => {
     callbacks.onListMadePublic({ source: 'first_share' });
     callbacks.onFranchiseMarked({ status: 'seen', coreSize: 4 });
     callbacks.onViewed({ listVisibility: 'public' });
-    callbacks.onRateLimited({ attempt: 1 });
     expect(capture.mock.calls).toEqual([
       ['counter_mode_changed', { mode: 'entry' }],
       ['card_generated', { mode: 'franchise', covers: 2 }],
@@ -121,7 +120,6 @@ describe('eventCallbacks', () => {
       ['list_made_public', { source: 'first_share' }],
       ['franchise_marked', { status: 'seen', coreSize: 4 }],
       ['public_profile_viewed', { listVisibility: 'public' }],
-      ['anilist_rate_limited', { attempt: 1 }],
     ]);
   });
 });

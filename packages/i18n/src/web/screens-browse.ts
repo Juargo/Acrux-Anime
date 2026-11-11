@@ -1,14 +1,14 @@
 // Texts of the browse screens (#43). Add sections to both objects; WebMessages checks they match.
 export const browseEs = {
-  anilist: {
+  catalogError: {
     rateLimited:
-      'AniList está recibiendo muchas consultas. Espera un minuto y vuelve a intentarlo; lo que marcaste sigue guardado.',
+      'El catálogo está recibiendo muchas consultas. Espera un minuto y vuelve a intentarlo; lo que marcaste sigue guardado.',
     unreadable:
-      'No pudimos leer el catálogo de AniList. Vuelve a intentarlo más tarde; lo que marcaste sigue guardado.',
+      'No pudimos leer el catálogo. Vuelve a intentarlo más tarde; lo que marcaste sigue guardado.',
     unavailable:
-      'No pudimos conectar con AniList. Revisa tu conexión y vuelve a intentarlo; lo que marcaste sigue guardado.',
+      'No pudimos conectar con el catálogo. Revisa tu conexión y vuelve a intentarlo; lo que marcaste sigue guardado.',
   },
-  // AniList names genres in English; these are the curated names of ADR-0010.
+  // The catalog names genres in English; these are the curated names of ADR-0010.
   genres: {
     Action: 'Acción',
     Adventure: 'Aventura',
@@ -85,7 +85,7 @@ export const browseEs = {
     label: 'Detalle de franquicia',
     offline:
       'Estás sin conexión. La franquicia se carga cuando vuelvas a conectarte; lo que marcaste sigue guardado.',
-    notFound: 'No encontramos esta franquicia en AniList.',
+    notFound: 'No encontramos esta franquicia en el catálogo.',
     backToCatalog: 'Volver al catálogo',
     loading: 'Cargando la franquicia…',
     retry: 'Reintentar',
@@ -187,13 +187,12 @@ export const browseEs = {
 } as const;
 
 export const browseEn = {
-  anilist: {
+  catalogError: {
     rateLimited:
-      'AniList is getting too many requests. Wait a minute and try again; what you marked is still saved.',
-    unreadable:
-      "We couldn't read the AniList catalog. Try again later; what you marked is still saved.",
+      'The catalog is getting too many requests. Wait a minute and try again; what you marked is still saved.',
+    unreadable: "We couldn't read the catalog. Try again later; what you marked is still saved.",
     unavailable:
-      "We couldn't connect to AniList. Check your connection and try again; what you marked is still saved.",
+      "We couldn't connect to the catalog. Check your connection and try again; what you marked is still saved.",
   },
   genres: {
     Action: 'Action',
@@ -268,7 +267,7 @@ export const browseEn = {
     label: 'Franchise details',
     offline:
       "You're offline. The franchise loads when you're back online; what you marked is still saved.",
-    notFound: "We couldn't find this franchise on AniList.",
+    notFound: "We couldn't find this franchise in the catalog.",
     backToCatalog: 'Back to the catalog',
     loading: 'Loading the franchise…',
     retry: 'Try again',

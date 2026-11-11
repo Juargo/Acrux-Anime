@@ -3,8 +3,8 @@ import type { TFunction } from 'i18next';
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { formatLabel, genreLabel } from '../anilist/catalog';
-import type { FranchiseDetail, FranchiseEntryDetail } from '../anilist/franchise';
+import { formatLabel, genreLabel } from '../catalog-source/catalog';
+import type { FranchiseDetail, FranchiseEntryDetail } from '../catalog-source/franchise';
 import type { EntryMarkChange } from './use-entry-marks';
 
 // RF-26: Viendo > Vista > Parcial > Sin marcar; M35 flags a season released after completing.
@@ -181,7 +181,7 @@ function EntryRow(props: {
   const { t } = useTranslation();
   const toggle = (next: MarkStatus) =>
     onChange({
-      entry: { animeId: entry.animeId, malId: entry.malId },
+      entry: { animeId: entry.animeId },
       status: status === next ? null : next,
     });
   return (

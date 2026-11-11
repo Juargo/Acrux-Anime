@@ -4,7 +4,7 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/react
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { AniListClient } from '../anilist/client';
+import type { CatalogClient } from '../catalog-source/client';
 import { setLocale } from '../i18n';
 import type { Profile } from '../profile-api';
 import { Home } from '../routes/Home';
@@ -59,7 +59,7 @@ function renderPrivacy(
             signingOut={false}
             signOutFailed={false}
             getToken={async () => 'jwt'}
-            client={{ request: vi.fn() } as unknown as AniListClient}
+            client={{ request: vi.fn() } as unknown as CatalogClient}
             fetchFn={fetchFn as unknown as typeof fetch}
             onListMadePublic={onListMadePublic}
           />

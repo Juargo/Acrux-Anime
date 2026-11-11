@@ -9,8 +9,7 @@ import { AnalyticsProvider } from './analytics/AnalyticsContext';
 import { createAnalytics, type PostHogLike } from './analytics/analytics';
 import { ConsentBanner } from './analytics/ConsentBanner';
 import { eventCallbacks } from './analytics/events';
-import { onAniListRateLimited } from './anilist/hooks';
-import { createQueryClient } from './anilist/query-client';
+import { createQueryClient } from './catalog-source/query-client';
 import { initErrorTracking } from './error-tracking';
 import { initI18n } from './i18n';
 import { publicProfileRoute } from './public-profile/routes';
@@ -60,7 +59,6 @@ const ads = createAds({
   storage: localStore(),
 });
 const events = eventCallbacks(analytics);
-onAniListRateLimited(events.onRateLimited);
 
 const queryClient = createQueryClient();
 // The public profile (/@handle) lives outside App, so visitors need no session (RF-40).

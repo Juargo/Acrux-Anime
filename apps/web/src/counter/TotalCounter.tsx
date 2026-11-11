@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { AniListClient } from '../anilist/client';
-import { defaultClient } from '../anilist/hooks';
+import type { CatalogClient } from '../catalog-source/client';
+import { defaultClient } from '../catalog-source/hooks';
 import { patchMe, saveCounterMode } from '../profile-api';
 import { useCounterMode } from './use-counter-mode';
 import { type CounterMode, useTotalCounter } from './use-total-counter';
@@ -76,7 +76,7 @@ export function TotalCounter({
   // The total already saved in the profile, so the same one is not saved again.
   initialShown?: { total: number; mode: CounterMode } | null | undefined;
   getToken: () => Promise<string | null>;
-  client?: AniListClient | undefined;
+  client?: CatalogClient | undefined;
   fetchFn?: typeof fetch | undefined;
   onCounterModeChanged?: ((event: CounterModeChangedEvent) => void) | undefined;
 }) {
