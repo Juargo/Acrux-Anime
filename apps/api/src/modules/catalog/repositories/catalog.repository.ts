@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { PrismaClient } from '../../../generated/prisma/client.js';
+import { Prisma, type PrismaClient } from '../../../generated/prisma/client.js';
 
 // A link to another anime; the type uses the relation names of @acrux/domain.
 export interface Relation {
@@ -46,6 +46,36 @@ export interface CatalogRepository {
   genres(): Promise<string[]>;
 }
 
+// What the source knows about one anime. `relations` only comes with its detail.
+export interface CatalogAnimeInput extends Omit<AnimeRow, 'relations'> {
+  // Every name of the anime in lower case.
+  searchText: string;
+  members: number;
+  adult: boolean;
+  relations?: Relation[];
+}
+
+// The writing side of the catalog: the load job and the fill on demand (ADR-0043, point 3).
+export interface CatalogStore {
+  // Whether the detail of each anime the table holds was read, adult titles included.
+  // An id the table lacks is not in the answer.
+  detailState(ids: readonly number[]): Promise<Map<number, boolean>>;
+  // Creates or refreshes the list fields; relations and their date stay as they are.
+  saveListed(rows: readonly CatalogAnimeInput[]): Promise<void>;
+  // Stores a detail with its relations. An anime it points to that does not point back
+  // has an outdated detail, so it is queued to be read again.
+  saveDetailed(row: CatalogAnimeInput): Promise<void>;
+  // The source no longer has the anime: it stays, and is not asked for again soon.
+  markChecked(id: number): Promise<void>;
+  // The anime whose detail the load job reads next: never read first, most popular first,
+  // then the oldest reads. Adult titles and videos that join no franchise are left out.
+  nextToDetail(limit: number): Promise<number[]>;
+}
+
+// Formats whose relations nothing follows: music videos, promotional videos and commercials.
+const NO_DETAIL_FORMATS = ['MUSIC', 'PV', 'CM'];
+const SAVE_BATCH = 100;
+
 const columns = {
   id: true,
   title: true,
@@ -74,7 +104,26 @@ function toRow(stored: StoredRow): AnimeRow {
 // search_text is stored in lower case; LIKE wildcards in the name are plain characters.
 const likePattern = (search: string) => search.toLowerCase().replace(/[\\%_]/g, '\\$&');
 
-export function createCatalogRepository(prisma: PrismaClient): CatalogRepository {
+function listFields(row: CatalogAnimeInput) {
+  return {
+    title: row.title,
+    titleEnglish: row.titleEnglish,
+    titleJapanese: row.titleJapanese,
+    searchText: row.searchText,
+    coverUrl: row.coverUrl,
+    format: row.format,
+    startDate: row.startDate,
+    year: row.year,
+    episodes: row.episodes,
+    durationMinutes: row.durationMinutes,
+    genres: row.genres,
+    members: row.members,
+    adult: row.adult,
+    fetchedAt: new Date(),
+  };
+}
+
+export function createCatalogRepository(prisma: PrismaClient): CatalogRepository & CatalogStore {
   return {
     browse: async ({ search, year, genres, formats, offset, limit }) => {
       const rows = await prisma.anime.findMany({
@@ -105,6 +154,79 @@ export function createCatalogRepository(prisma: PrismaClient): CatalogRepository
         SELECT DISTINCT unnest("genres") AS genre FROM "anime" WHERE NOT "adult" ORDER BY genre
       `;
       return rows.map((row) => row.genre);
+    },
+
+    detailState: async (ids) => {
+      if (ids.length === 0) return new Map();
+      const rows = await prisma.anime.findMany({
+        where: { id: { in: [...ids] } },
+        select: { id: true, detailedAt: true },
+      });
+      return new Map(rows.map((row) => [row.id, row.detailedAt !== null]));
+    },
+
+    saveListed: async (rows) => {
+      for (let start = 0; start < rows.length; start += SAVE_BATCH) {
+        await prisma.$transaction(
+          rows.slice(start, start + SAVE_BATCH).map((row) => {
+            const fields = listFields(row);
+            return prisma.anime.upsert({
+              where: { id: row.id },
+              create: { id: row.id, ...fields },
+              update: fields,
+            });
+          }),
+        );
+      }
+    },
+
+    saveDetailed: async (row) => {
+      const relations = row.relations ?? [];
+      const fields = {
+        ...listFields(row),
+        relations: relations as object[],
+        detailedAt: new Date(),
+      };
+      const targets = relations.map((relation) => relation.id);
+      const pointsBack = JSON.stringify([{ id: row.id }]);
+      await prisma.$transaction([
+        prisma.anime.upsert({
+          where: { id: row.id },
+          create: { id: row.id, ...fields },
+          update: fields,
+        }),
+        ...(targets.length === 0
+          ? []
+          : [
+              prisma.$executeRaw`
+                UPDATE "anime" SET "detailed_at" = NULL
+                WHERE "id" IN (${Prisma.join(targets)})
+                  AND "detailed_at" IS NOT NULL
+                  AND NOT ("relations" @> ${pointsBack}::jsonb)
+              `,
+            ]),
+      ]);
+    },
+
+    markChecked: async (id) => {
+      await prisma.anime.updateMany({ where: { id }, data: { detailedAt: new Date() } });
+    },
+
+    nextToDetail: async (limit) => {
+      const rows = await prisma.anime.findMany({
+        where: {
+          adult: false,
+          OR: [{ format: null }, { format: { notIn: NO_DETAIL_FORMATS } }],
+        },
+        orderBy: [
+          { detailedAt: { sort: 'asc', nulls: 'first' } },
+          { members: 'desc' },
+          { id: 'asc' },
+        ],
+        take: limit,
+        select: { id: true },
+      });
+      return rows.map((row) => row.id);
     },
   };
 }

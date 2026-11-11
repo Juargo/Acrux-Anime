@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { type CatalogSource, SourceError } from '../adapters/myanimelist.js';
 import type {
   AnimeRow,
   BrowseQuery,
+  CatalogAnimeInput,
   CatalogRepository,
+  CatalogStore,
   Relation,
 } from '../repositories/catalog.repository.js';
 import { CATALOG_PAGE_SIZE, createCatalogService } from './catalog.service.js';
@@ -159,5 +162,177 @@ describe('byIds', () => {
   it('returns the rows the catalog holds', async () => {
     const { repository } = fakeRepository([anime(1), anime(2)]);
     expect(ids(await createCatalogService(repository).byIds([2, 3]))).toEqual([2]);
+  });
+});
+
+// Fill on demand (ADR-0043, point 3): what the table lacks is read from MyAnimeList when
+// someone asks for it, and stays stored.
+function filling(
+  initial: AnimeRow[],
+  options: {
+    // Details the source has, by id. An id it lacks answers 404.
+    details?: AnimeRow[];
+    detailed?: number[];
+    found?: AnimeRow[];
+    fail?: SourceError;
+    clock?: { now: number };
+  } = {},
+) {
+  const rows = new Map(initial.map((row) => [row.id, row]));
+  const detailed = new Set(options.detailed ?? []);
+  const calls = { detail: [] as number[], search: [] as string[], errors: [] as unknown[] };
+  const toInput = (row: AnimeRow): CatalogAnimeInput => ({
+    ...row,
+    searchText: row.title.toLowerCase(),
+    members: 0,
+    adult: false,
+  });
+  const repository: CatalogRepository = {
+    browse: async (query) =>
+      [...rows.values()]
+        .filter((row) => !query.search || row.title.toLowerCase().includes(query.search))
+        .slice(query.offset, query.offset + query.limit),
+    byIds: async (ids) => [...rows.values()].filter((row) => ids.includes(row.id)),
+    genres: async () => [],
+  };
+  const store: CatalogStore = {
+    detailState: async (ids) =>
+      new Map(ids.filter((id) => rows.has(id)).map((id) => [id, detailed.has(id)])),
+    saveListed: async (listed) => {
+      for (const row of listed) rows.set(row.id, { ...row, relations: [] });
+    },
+    saveDetailed: async (row) => {
+      rows.set(row.id, { ...row, relations: row.relations ?? [] });
+      detailed.add(row.id);
+    },
+    markChecked: async (id) => {
+      if (rows.has(id)) detailed.add(id);
+    },
+    nextToDetail: async () => [],
+  };
+  const source: CatalogSource = {
+    detail: async (id) => {
+      calls.detail.push(id);
+      if (options.fail) throw options.fail;
+      const found = options.details?.find((row) => row.id === id);
+      return found ? toInput(found) : null;
+    },
+    search: async (name) => {
+      calls.search.push(name);
+      if (options.fail) throw options.fail;
+      return (options.found ?? []).map(toInput);
+    },
+    ranking: async () => ({ items: [], hasNext: false }),
+  };
+  const service = createCatalogService(repository, {
+    fill: {
+      source,
+      store,
+      maxDetailsPerRequest: 2,
+      now: () => options.clock?.now ?? 0,
+      onError: (error) => calls.errors.push(error),
+    },
+  });
+  return { service, calls, rows };
+}
+
+describe('franchises, filling from the source', () => {
+  it('reads the detail of an entry that lacks it and follows its chain', async () => {
+    const { service, calls } = filling([anime(1), anime(2)], {
+      details: [anime(1, [{ type: 'SEQUEL', id: 2 }]), anime(2, [{ type: 'PREQUEL', id: 1 }])],
+    });
+    const result = await service.franchises([1]);
+    expect(ids(result.items).sort((a, b) => a - b)).toEqual([1, 2]);
+    expect(result).toMatchObject({ missing: [], pending: [] });
+    expect(calls.detail).toEqual([1, 2]);
+  });
+
+  it('brings an anime the table does not hold yet', async () => {
+    const { service, rows } = filling([], { details: [anime(7)] });
+    const result = await service.franchises([7]);
+    expect(ids(result.items)).toEqual([7]);
+    expect(result.missing).toEqual([]);
+    expect(rows.has(7)).toBe(true);
+  });
+
+  it('does not ask the source for an entry whose detail is stored', async () => {
+    const { service, calls } = filling([anime(1)], { detailed: [1] });
+    expect(ids((await service.franchises([1])).items)).toEqual([1]);
+    expect(calls.detail).toEqual([]);
+  });
+
+  it('reads only so many details per request and leaves the rest as pending', async () => {
+    const { service, calls } = filling([anime(1), anime(2), anime(3)], {
+      details: [anime(1), anime(2), anime(3)],
+    });
+    const first = await service.franchises([1, 2, 3]);
+    expect(ids(first.items).sort((a, b) => a - b)).toEqual([1, 2]);
+    expect(first.pending).toEqual([3]);
+    expect(first.missing).toEqual([]);
+
+    const second = await service.franchises(first.pending);
+    expect(ids(second.items)).toEqual([3]);
+    expect(second.pending).toEqual([]);
+    expect(calls.detail).toEqual([1, 2, 3]);
+  });
+
+  it('reports an anime the source does not have as missing and asks only once', async () => {
+    const { service, calls } = filling([]);
+    expect((await service.franchises([404])).missing).toEqual([404]);
+    expect((await service.franchises([404])).missing).toEqual([404]);
+    expect(calls.detail).toEqual([404]);
+  });
+
+  it('serves what the table holds when the source fails', async () => {
+    const { service, calls } = filling([anime(1)], { fail: new SourceError(500, 'down') });
+    const result = await service.franchises([1, 9]);
+    expect(ids(result.items)).toEqual([1]);
+    expect(result.missing).toEqual([9]);
+    expect(result.pending).toEqual([]);
+    expect(calls.errors).toHaveLength(2);
+  });
+
+  it('stops asking for five minutes after the source refuses with a 429', async () => {
+    const clock = { now: 1_000 };
+    const { service, calls } = filling([anime(1), anime(2)], {
+      fail: new SourceError(429, 'slow down'),
+      clock,
+    });
+    await service.franchises([1]);
+    await service.franchises([2]);
+    await service.browse({ ...filters, search: 'nothing' }, 1);
+    expect(calls.detail).toEqual([1]);
+    expect(calls.search).toEqual([]);
+
+    clock.now += 5 * 60_000;
+    await service.franchises([2]);
+    expect(calls.detail).toEqual([1, 2]);
+  });
+});
+
+describe('browse, filling from the source', () => {
+  it('asks the source for a name the table does not know and serves what it stores', async () => {
+    const { service, calls, rows } = filling([anime(1)], {
+      found: [anime(50, [], { title: 'Frieren' })],
+    });
+    const page = await service.browse({ ...filters, search: 'frieren' }, 1);
+    expect(ids(page.items)).toEqual([50]);
+    expect(calls.search).toEqual(['frieren']);
+    expect(rows.has(50)).toBe(true);
+  });
+
+  it('does not ask the source when the table has results, has no name or is past page 1', async () => {
+    const { service, calls } = filling([anime(1)]);
+    await service.browse({ ...filters, search: 'anime' }, 1);
+    await service.browse(filters, 1);
+    await service.browse({ ...filters, search: 'nothing' }, 2);
+    expect(calls.search).toEqual([]);
+  });
+
+  it('answers an empty page when the source fails', async () => {
+    const { service, calls } = filling([], { fail: new SourceError(null, 'timeout') });
+    const page = await service.browse({ ...filters, search: 'frieren' }, 1);
+    expect(page).toEqual({ items: [], related: [], nextPage: null });
+    expect(calls.errors).toHaveLength(1);
   });
 });

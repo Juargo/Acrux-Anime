@@ -5,7 +5,11 @@ import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createPrismaClient } from '../../../db/client.js';
 import type { PrismaClient } from '../../../generated/prisma/client.js';
-import { type BrowseQuery, createCatalogRepository } from './catalog.repository.js';
+import {
+  type BrowseQuery,
+  type CatalogAnimeInput,
+  createCatalogRepository,
+} from './catalog.repository.js';
 
 // Runs against the real migrations, connected as acrux_api like the API in production.
 const apiDir = fileURLToPath(new URL('../../../..', import.meta.url));
@@ -178,5 +182,111 @@ describe('catalog repository: genres', () => {
       'Drama',
       'Supernatural',
     ]);
+  });
+});
+
+// The writing side (ADR-0043, point 3). These run last: they change the rows above.
+describe('catalog repository: store', () => {
+  const input = (id: number, extra: Partial<CatalogAnimeInput> = {}): CatalogAnimeInput => ({
+    id,
+    title: `Anime ${id}`,
+    titleEnglish: null,
+    titleJapanese: null,
+    searchText: `anime ${id}`,
+    coverUrl: null,
+    format: 'TV',
+    startDate: null,
+    year: 2020,
+    episodes: 12,
+    durationMinutes: 24,
+    genres: ['Action'],
+    members: 10,
+    adult: false,
+    ...extra,
+  });
+  const stored = (id: number) => prisma.anime.findUniqueOrThrow({ where: { id } });
+
+  it('tells which anime have their detail read, adult titles included', async () => {
+    const state = await createCatalogRepository(prisma).detailState([5114, 16498, 8, 404]);
+    expect([...state].sort(([a], [b]) => a - b)).toEqual([
+      [8, false],
+      [5114, true],
+      [16498, false],
+    ]);
+  });
+
+  it('creates new rows and refreshes the list fields without touching the relations', async () => {
+    const repository = createCatalogRepository(prisma);
+    const detailedAt = (await stored(5114)).detailedAt;
+    await repository.saveListed([
+      input(1001),
+      input(5114, { title: 'FMA: Brotherhood', searchText: 'fma: brotherhood', members: 5 }),
+    ]);
+
+    expect(await stored(1001)).toMatchObject({
+      title: 'Anime 1001',
+      detailedAt: null,
+      relations: [],
+    });
+    expect(await stored(5114)).toMatchObject({
+      title: 'FMA: Brotherhood',
+      members: 5,
+      relations: [{ type: 'SIDE_STORY', id: 6421 }],
+      detailedAt,
+    });
+    expect(await browseIds({ search: 'fma: bro' })).toEqual([5114]);
+  });
+
+  it('stores a detail and queues again the anime it points to that do not point back', async () => {
+    const repository = createCatalogRepository(prisma);
+    // 2001 knows 2003 already; 2002 was read before 2003 existed.
+    await repository.saveDetailed(input(2001, { relations: [{ type: 'SEQUEL', id: 2003 }] }));
+    await repository.saveDetailed(input(2002, { relations: [] }));
+
+    await repository.saveDetailed(
+      input(2003, {
+        relations: [
+          { type: 'PREQUEL', id: 2001 },
+          { type: 'PREQUEL', id: 2002 },
+        ],
+      }),
+    );
+
+    expect((await stored(2003)).relations).toEqual([
+      { type: 'PREQUEL', id: 2001 },
+      { type: 'PREQUEL', id: 2002 },
+    ]);
+    expect((await stored(2003)).detailedAt).not.toBeNull();
+    expect((await stored(2001)).detailedAt).not.toBeNull();
+    expect((await stored(2002)).detailedAt).toBeNull();
+  });
+
+  it('marks an anime the source no longer has as read, keeping its row', async () => {
+    const repository = createCatalogRepository(prisma);
+    await repository.markChecked(16498);
+    await repository.markChecked(404);
+    expect(await stored(16498)).toMatchObject({ title: 'Shingeki no Kyojin' });
+    expect((await stored(16498)).detailedAt).not.toBeNull();
+  });
+
+  it('reads next the anime never read, most popular first, then the oldest reads', async () => {
+    const repository = createCatalogRepository(prisma);
+    await prisma.anime.deleteMany();
+    const old = new Date('2026-01-01T00:00:00.000Z');
+    const recent = new Date('2026-06-01T00:00:00.000Z');
+    await prisma.anime.createMany({
+      data: [
+        { id: 1, title: 'a', searchText: 'a', format: 'TV', members: 5, detailedAt: recent },
+        { id: 2, title: 'b', searchText: 'b', format: 'TV', members: 1 },
+        { id: 3, title: 'c', searchText: 'c', format: null, members: 9 },
+        { id: 4, title: 'd', searchText: 'd', format: 'MOVIE', members: 3, detailedAt: old },
+        { id: 5, title: 'e', searchText: 'e', format: 'TV', members: 99, adult: true },
+        { id: 6, title: 'f', searchText: 'f', format: 'MUSIC', members: 99 },
+        { id: 7, title: 'g', searchText: 'g', format: 'PV', members: 99 },
+        { id: 8, title: 'h', searchText: 'h', format: 'CM', members: 99 },
+      ],
+    });
+    expect(await repository.nextToDetail(10)).toEqual([3, 2, 4, 1]);
+    expect(await repository.nextToDetail(2)).toEqual([3, 2]);
   });
 });
