@@ -1,5 +1,8 @@
 import type { Locale } from '@acrux/i18n';
 
+// Where the calls to action send people since the direct public launch (ADR-0044).
+export const APP_URL = 'https://app.acruxanime.com';
+
 // Landing copy per locale. Spanish matches Figma D40/M40; English is its translation.
 const copy = {
   es: {
@@ -10,26 +13,11 @@ const copy = {
     },
     otherLocale: { label: 'English', href: '/en/', lang: 'en' },
     hero: {
-      chip: 'Beta cerrada · gratis',
+      chip: 'Gratis',
       title: '¿Cuántos animes has visto de verdad?',
       lead: 'Marca la saga, no las temporadas, y compártelo en segundos. Gratis, en español y sin anuncios en tu tarjeta.',
     },
-    form: {
-      label: 'Tu correo',
-      placeholder: 'tu@correo.com',
-      submit: 'Únete a la beta',
-      notePrefix: 'Te escribiremos solo para invitarte a la beta. ',
-      noteLink: 'Lee la política de privacidad.',
-      sending: 'Enviando…',
-      retry: 'Reintentar',
-      invalid: 'Revisa tu correo: parece que le falta algo.',
-      already: 'Este correo ya está en la lista. Te avisaremos cuando abra la beta.',
-      limited: 'Demasiados intentos. Vuelve a intentarlo en unos minutos.',
-      error: 'No pudimos registrarte. Revisa tu conexión e inténtalo de nuevo.',
-      successTitle: '¡Casi listo! Confirma tu correo.',
-      successText:
-        'Te enviamos un enlace a {email}. Ábrelo para entrar a la lista de la beta. Si no lo ves, revisa la carpeta de spam.',
-    },
+    cta: { label: 'Abrir Acrux' },
     card: {
       label:
         'Ejemplo de tarjeta para compartir: @camila, 63 animes completos y 3 que está viendo ahora.',
@@ -79,7 +67,7 @@ const copy = {
     },
     finalCta: {
       title: 'Sé de los primeros en probarla',
-      lead: 'Abrimos la beta por invitación a un grupo pequeño. Deja tu correo y te avisamos.',
+      lead: 'Entra con tu cuenta de Google y empieza a marcar.',
     },
     consent: {
       title: '¿Nos ayudas a medir?',
@@ -107,26 +95,11 @@ const copy = {
     },
     otherLocale: { label: 'Español', href: '/', lang: 'es' },
     hero: {
-      chip: 'Closed beta · free',
+      chip: 'Free',
       title: 'How many anime have you really watched?',
       lead: 'Mark the saga, not the seasons, and share it in seconds. Free, in Spanish and English, with no ads on your card.',
     },
-    form: {
-      label: 'Your email',
-      placeholder: 'you@email.com',
-      submit: 'Join the beta',
-      notePrefix: 'We will only email you to invite you to the beta. ',
-      noteLink: 'Read the privacy policy.',
-      sending: 'Sending…',
-      retry: 'Try again',
-      invalid: 'Check your email: it looks like something is missing.',
-      already: 'This email is already on the list. We will let you know when the beta opens.',
-      limited: 'Too many attempts. Try again in a few minutes.',
-      error: 'We could not sign you up. Check your connection and try again.',
-      successTitle: 'Almost there! Confirm your email.',
-      successText:
-        'We sent a link to {email}. Open it to join the beta list. If you do not see it, check your spam folder.',
-    },
+    cta: { label: 'Open Acrux' },
     card: {
       label: 'Example share card: @camila, 63 completed anime and 3 currently watching.',
       total: 'Completed anime',
@@ -175,7 +148,7 @@ const copy = {
     },
     finalCta: {
       title: 'Be among the first to try it',
-      lead: 'We are opening the beta by invitation to a small group. Leave your email and we will let you know.',
+      lead: 'Sign in with your Google account and start marking.',
     },
     consent: {
       title: 'Will you help us measure?',

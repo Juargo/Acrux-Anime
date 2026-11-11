@@ -35,6 +35,11 @@ Los espacios, el consentimiento separado y la política de privacidad ya están 
 - **#48:** reclutar e invitar a 30–50 testers de la lista de espera.
 - **#40 y #41:** vincular y sincronizar la lista de AniList. Fuera del alcance del lanzamiento (ADR-0043, punto 8).
 
+## Lanzamiento directo (ADR-0044)
+
+- **Lista de espera sin uso:** la landing ya no muestra el formulario. Falta decidir qué pasa con los correos anotados, actualizar los textos legales que hablan de la beta y de la lista de espera, y retirar `/api/waitlist`, `apps/landing/src/lib/waitlist.ts` y el evento `waitlist_joined`.
+- **#48 (reclutar testers):** queda sin objeto con el lanzamiento directo; falta cerrar el issue.
+
 ## Catálogo de MyAnimeList (ADR-0043)
 
 Pendientes de la migración. Los tres primeros esperan el client ID de MyAnimeList.
