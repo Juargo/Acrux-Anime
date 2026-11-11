@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { APP_URL, getCopy } from './i18n';
+import { getLegalPage } from './legal';
 
 const LOCALES = ['es', 'en'] as const;
 
@@ -20,5 +21,14 @@ describe('landing call to action (ADR-0044)', () => {
     const page = readFileSync(new URL('./components/LandingPage.astro', import.meta.url), 'utf8');
     expect(page.match(/href=\{APP_URL\}/g)).toHaveLength(2);
     expect(page).not.toContain('WaitlistForm');
+  });
+
+  it.each(LOCALES)('has terms that no longer describe the app as a beta (%s)', (locale) => {
+    const terms = getLegalPage(locale, 'terms');
+    expect(JSON.stringify(terms)).not.toMatch(/beta/i);
+    // The warning that the app may change or fail stays.
+    expect(JSON.stringify(terms)).toMatch(
+      locale === 'es' ? /puede cambiar o fallar/ : /may change or fail/,
+    );
   });
 });

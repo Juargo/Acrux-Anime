@@ -56,5 +56,5 @@
 ## Pendiente de decidir
 
 - **Quienes ya están en la lista de espera:** si se les avisa del lanzamiento y cuándo se borran sus correos. La política de privacidad dice que se borran «al terminar la beta».
-- **Textos legales de la landing:** privacidad, soporte y términos todavía hablan de la beta y de la lista de espera. No se tocaron.
+- **Privacidad y soporte de la landing:** todavía describen la lista de espera, porque los correos anotados siguen guardados. Se actualizan cuando se decida qué pasa con esos correos. Los términos ya no hablan de la beta.
 - **Retiro del código de la lista de espera:** `/api/waitlist`, `src/lib/waitlist.ts` y el evento `waitlist_joined`.

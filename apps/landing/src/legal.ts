@@ -132,15 +132,15 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
       path: '/terminos',
       meta: {
         title: 'Términos de uso · Acrux',
-        description: 'Las reglas para usar Acrux durante la beta.',
+        description: 'Las reglas para usar Acrux.',
       },
       title: 'Términos de uso',
-      updated: 'Última actualización: 30 de octubre de 2026',
+      updated: 'Última actualización: 11 de noviembre de 2026',
       sections: [
         {
           title: 'Qué es Acrux',
           paragraphs: [
-            'Acrux es una app independiente para marcar los animes que has visto y compartir tu historial. Está en beta, así que puede cambiar o fallar.',
+            'Acrux es una app independiente para marcar los animes que has visto y compartir tu historial. La app puede cambiar o fallar.',
           ],
         },
         {
@@ -284,15 +284,15 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
       path: '/en/terms',
       meta: {
         title: 'Terms of use · Acrux',
-        description: 'The rules for using Acrux during the beta.',
+        description: 'The rules for using Acrux.',
       },
       title: 'Terms of use',
-      updated: 'Last updated: October 30, 2026',
+      updated: 'Last updated: November 11, 2026',
       sections: [
         {
           title: 'What Acrux is',
           paragraphs: [
-            'Acrux is an independent app to mark the anime you have watched and share your history. It is in beta, so it may change or fail.',
+            'Acrux is an independent app to mark the anime you have watched and share your history. The app may change or fail.',
           ],
         },
         {
