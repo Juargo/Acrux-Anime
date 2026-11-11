@@ -5,7 +5,7 @@
 | ID | Restricción | Origen |
 |---|---|---|
 | RES-01 | Un solo desarrollador, que también es el stakeholder. Scrum adaptado con sprints cortos, sin calendario fijo; cada sprint apunta al hito en curso. | ADR-0001, ADR-0031 |
-| RES-02 | Sin fecha fija de lanzamiento: primero se valida la demanda. | Decisión 26-oct, ADR-0031 |
+| RES-02 | Sin fecha fija de lanzamiento. La demanda se valida con el producto en producción (lanzamiento directo). | Decisión 26-oct, ADR-0031, ADR-0044 |
 | RES-03 | Presupuesto cercano a cero: US$100–200 en anuncios para la landing de validación; infraestructura en capas gratuitas hasta tener ingresos. | Estudio de mercado, ADR-0026 |
 
 ## Plataforma

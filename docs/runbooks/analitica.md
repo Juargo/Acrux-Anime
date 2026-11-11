@@ -22,7 +22,7 @@ La web app envía a PostHog (nube de la UE) los eventos de ADR-0030 solo despué
 - **Retirar el consentimiento:** se puede en Perfil → «Analítica». La app olvida a la persona (`reset`), deja de capturar (`opt_out_capturing`, siempre después de `reset`, que borra el opt-out) y borra lo que PostHog guardó (`ph_*`).
 - **Cerrar sesión:** olvida a la persona (`reset`) y conserva el consentimiento; la siguiente cuenta en el dispositivo es otra persona.
 - **Borrar la cuenta:** la API pide a PostHog que borre a la persona (ver [borrado de cuenta](borrado-de-cuenta.md)).
-- **Pendientes:** llegan con sus issues `anilist_linked`, `plus_checkout_started` y `plus_purchased`. `waitlist_joined` sigue en la landing.
+- **Pendientes:** llegan con sus issues `anilist_linked`, `plus_checkout_started` y `plus_purchased`. `waitlist_joined` se retiró de la landing junto con la lista de espera (ADR-0044).
 
 ## Configuración inicial
 

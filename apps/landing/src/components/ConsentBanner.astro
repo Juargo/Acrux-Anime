@@ -32,7 +32,7 @@ const t = getCopy(locale);
 <script>
   import { PUBLIC_POSTHOG_KEY } from 'astro:env/client';
   import type { PostHog } from 'posthog-js';
-  import { readConsent, utmProperties, writeConsent } from '../lib/consent';
+  import { readConsent, writeConsent } from '../lib/consent';
 
   const banner = document.querySelector<HTMLElement>('[data-consent-banner]');
   let posthog: PostHog | undefined;
@@ -117,11 +117,6 @@ const t = getCopy(locale);
         banner.querySelector<HTMLButtonElement>('[data-consent]')?.focus();
       });
     }
-
-    // Sent by the waitlist form on success; the email is never attached (ADR-0033).
-    document.addEventListener('acrux:waitlist-joined', () => {
-      if (granted) posthog?.capture('waitlist_joined', utmProperties(location.search));
-    });
   }
 </script>
 

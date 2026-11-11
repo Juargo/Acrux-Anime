@@ -48,9 +48,9 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0028](./0028-seguridad-y-privacidad-by-design-y-by-default.md) | Seguridad y privacidad desde el diseño y por defecto | Aceptado (retención de respaldos reemplazada por ADR-0032) | Sesión 2026-10-27 |
 | [0029](./0029-estrategia-de-pruebas-y-criterios-de-aceptacion.md) | Estrategia de pruebas (pirámide) y criterios de aceptación en Gherkin | Aceptado (E2E contra la vista previa reemplazado por ADR-0037) | Sesión 2026-10-27 |
 | [0030](./0030-observabilidad-kpis-logs-y-errores.md) | Observabilidad: KPIs, logs y errores | Aceptado | Sesión 2026-10-27 |
-| [0031](./0031-validar-primero-sin-fecha-fija-y-solo-web.md) | Validar primero, sin fecha fija, y solo web | Aceptado | Decisión 2026-10-26, sesión 2026-10-27 |
+| [0031](./0031-validar-primero-sin-fecha-fija-y-solo-web.md) | Validar primero, sin fecha fija, y solo web | Aceptado (condiciones de H1 y H2 modificadas por ADR-0044) | Decisión 2026-10-26, sesión 2026-10-27 |
 | [0032](./0032-retencion-de-respaldos-de-30-dias.md) | Retención de los respaldos: 30 días | Aceptado | Sesión 2026-10-27 |
-| [0033](./0033-lista-de-espera-con-buttondown.md) | Lista de espera con Buttondown | Aceptado | Sesión 2026-10-27 |
+| [0033](./0033-lista-de-espera-con-buttondown.md) | Lista de espera con Buttondown | Retirado por ADR-0044 | Sesión 2026-10-27 |
 | [0034](./0034-neon-para-postgres-y-autenticacion.md) | Neon para Postgres y autenticación, en lugar de Supabase | Aceptado | Sesión 2026-10-28 |
 | [0035](./0035-respaldos-en-backblaze-b2.md) | Respaldos en Backblaze B2, en lugar de Cloudflare R2 | Aceptado | Sesión 2026-11-01 |
 | [0036](./0036-monetizacion-con-anuncios-y-plus-vitalicio.md) | Monetización con anuncios no intrusivos y Plus vitalicio | Aceptado (temas de tarjeta fuera de Plus en ADR-0039) | Sesión 2026-11-06 |
@@ -60,6 +60,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0040](./0040-insignias-por-hitos-y-avatares-plus.md) | Insignias por hitos y avatares exclusivos como «insignias e íconos» de Plus | Aceptado | Sesión 2026-11-09 |
 | [0041](./0041-myanimelist-como-plan-b.md) | MyAnimeList como plan B de la fuente de datos | Aceptado | Respuesta de MAL, 2026-11-06 |
 | [0043](./0043-catalogo-propio-con-datos-de-myanimelist.md) | Catálogo propio en Neon con datos de MyAnimeList | Aceptado | Sesión 2026-11-10 |
+| [0044](./0044-lanzamiento-publico-directo.md) | Lanzamiento público directo, sin esperar la validación ni la beta | Aceptado | Sesión 2026-11-10 |
 
 ## Trazabilidad con las reuniones
 
@@ -103,6 +104,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-11-09: insignias por hitos y avatares exclusivos (RF-55) | 0040 (complementa el punto 2 de 0036) |
 | Respuesta de MyAnimeList (2026-11-06): uso comercial sin licencia | 0041 (complementa el punto 4 de 0036) |
 | Sesión 2026-11-10: migración a MyAnimeList con catálogo propio | 0043 (ejecuta el punto 4 de 0041; reemplaza el consumo desde el navegador de 0024) |
+| Sesión 2026-11-10: lanzamiento público directo, anuncios y cobro apagados por ahora | 0044 (modifica las condiciones de H1 y H2 de 0031) |
 | Sesión 2026-10-27: repo público, región São Paulo, lista privada por defecto | 0027, 0020, 0028 |
 | Sesión 2026-10-27: monorepo con pnpm workspaces aceptado (solo web) | 0002 |
 | D13 | 0010 |

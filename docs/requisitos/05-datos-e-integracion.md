@@ -11,7 +11,7 @@
 | RDI-05 | **Lemon Squeezy** | Venta de Plus vitalicio, reembolsos y pagos fallidos, mediante webhooks firmados. | Must | H4 |
 | RDI-06 | **Hoja para compartir del navegador** | Destino de la tarjeta (Instagram, TikTok, galería…); descarga como alternativa. | Must | H2 |
 | RDI-07 | **PostHog y Sentry** | Analítica con consentimiento y errores (ADR-0030). | Must | H1 |
-| RDI-08 | **Buttondown** | Lista de espera: alta con doble confirmación, invitación a la beta y bajas (ADR-0033). | Must | H1 |
+| RDI-08 | ~~**Buttondown**~~ | *Retirado (ADR-0044).* Era la lista de espera de la landing; no llegó a tener correos. | Must | H1 |
 
 ## 2. Datos que Acrux guarda
 
@@ -26,7 +26,7 @@
 | RDI-16 | Métricas agregadas | Eventos de uso sin datos personales, en PostHog. | No | — |
 | RDI-17 | Eventos de pago | Identificador de cada webhook procesado, para no procesarlo dos veces. | No | `billing_event` |
 | RDI-18 | Reportes de sagas | Saga reportada y estado del reporte; el curador no ve quién reportó. | Sí (vínculo con el usuario) | Falta en ADR-0022 |
-| RDI-19 | Lista de espera | Correo de quien se registra en la landing de validación y estado de la confirmación. Se borra al terminar la beta. | Sí | Buttondown (ADR-0033) |
+| RDI-19 | ~~Lista de espera~~ | *Retirado (ADR-0044).* La landing ya no registra correos. | Sí | Buttondown (ADR-0033) |
 
 ## 3. Datos que Acrux no guarda
 

@@ -100,7 +100,7 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 
 | ID | Requisito | Prioridad | Hito | Origen |
 |---|---|---|---|---|
-| RF-80 | La landing en `acruxanime.com` muestra la propuesta de valor, mockups de la tarjeta y un botón "Únete a la beta" que registra el correo en la lista de espera, con doble confirmación. | Must | H1 | ADR-0031, ADR-0033 · D40/M40, D41 |
+| RF-80 | La landing en `acruxanime.com` muestra la propuesta de valor, mockups de la tarjeta y un botón «Abrir Acrux» que lleva a `app.acruxanime.com`. Hasta 2026-11-10 el botón era "Únete a la beta" y registraba el correo en la lista de espera; la lista queda sin uso (ADR-0044). | Must | H1 | ADR-0031, ADR-0033, ADR-0044 · D40/M40, D41 |
 | RF-81 | La landing publica la política de privacidad, el soporte y las instrucciones para borrar la cuenta. | Must | H1 | ADR-0012, RES-34 · D42/M42, D43 |
 | RF-82 | La landing y la app piden consentimiento antes de activar la analítica, y permiten retirarlo. | Must | H1 | ADR-0028, ADR-0030 · D40/M40 (falta en la app, P-08) |
 

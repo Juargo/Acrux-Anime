@@ -1,6 +1,6 @@
 # ADR-0033: Lista de espera con Buttondown
 
-- **Estado:** Aceptado
+- **Estado:** Retirado por ADR-0044 (2026-11-11): la lista de espera no llegó a tener correos y la landing ya no la ofrece
 - **Fecha:** 2026-10-27
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-27. Resuelve el pendiente P-12 de [`docs/requisitos`](../requisitos/README.md) para la lista de espera de la landing de validación (H1, ADR-0031).

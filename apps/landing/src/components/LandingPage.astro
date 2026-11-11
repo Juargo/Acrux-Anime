@@ -1,14 +1,14 @@
 ---
 import type { Locale } from '@acrux/i18n';
-import { getCopy } from '../i18n';
+import { APP_URL, getCopy } from '../i18n';
 import Landing from '../layouts/Landing.astro';
 import BenefitBlocks from './BenefitBlocks.astro';
 import ShareCard from './ShareCard.astro';
 import SiteFooter from './SiteFooter.astro';
 import SiteHeader from './SiteHeader.astro';
-import WaitlistForm from './WaitlistForm.astro';
 
-// Validation landing (Figma D40 desktop, M40 phone). Issue #14.
+// Landing (Figma D40 desktop, M40 phone). Issue #14. Since the direct public launch (ADR-0044)
+// the calls to action open the app instead of the waitlist form.
 interface Props {
   locale: Locale;
 }
@@ -26,7 +26,7 @@ const t = getCopy(locale);
         <p class="chip">{t.hero.chip}</p>
         <h1 class="hero__title" id="hero-title">{t.hero.title}</h1>
         <p class="hero__lead">{t.hero.lead}</p>
-        <WaitlistForm id="hero" t={t.form} privacyHref={t.footer.privacy.href} />
+        <a class="cta" href={APP_URL}>{t.cta.label}</a>
       </div>
       <div class="hero__card">
         <ShareCard t={t.card} />
@@ -42,7 +42,7 @@ const t = getCopy(locale);
           <h2 class="section-title" id="final-cta-title">{t.finalCta.title}</h2>
           <p class="section-lead">{t.finalCta.lead}</p>
         </div>
-        <WaitlistForm id="final" t={t.form} privacyHref={t.footer.privacy.href} />
+        <a class="cta" href={APP_URL}>{t.cta.label}</a>
       </div>
     </section>
   </main>
@@ -80,6 +80,23 @@ const t = getCopy(locale);
     font-weight: 700;
     line-height: 44px;
     letter-spacing: -0.4px;
+  }
+
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    background: var(--color-accent-default);
+    color: var(--color-text-on-accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .cta:hover {
+    background: var(--color-text-link);
   }
 
   .hero__lead {
