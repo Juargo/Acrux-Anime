@@ -27,8 +27,8 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
 | T1 | ADR-0043 y este documento | S1, S2 | inline | (rama de integración) | hecho | fcbc943 |
 | T2 | API: tabla de catálogo y módulo de catálogo (catálogo con filtros, animes por ID, franquicia, géneros), servidos desde Neon | S2, S3, S4 | inline | `feat/catalogo-myanimelist-01-api` | hecho | d94c27b, 419a8ab |
 | T6a | Nombre neutral del ID: `anilistId` pasa a `animeId` en la API, la web, el dominio y las columnas; los valores no cambian (riesgo ítems 1 y 3) | S5 | inline | `feat/catalogo-myanimelist-02-id-neutral` | hecho; verificador sin bloqueos | 513914c |
-| T3 | Cliente de MyAnimeList en la API, conversión a la tabla y carga por demanda de lo que falta | S2, S4, S7 | inline | — | bloqueada: falta el client ID | — |
-| T4 | Trabajo programado de carga y refresco (riesgo ítem 5) | S2, S7 | inline | — | pendiente | — |
+| T3 | Cliente de MyAnimeList en la API, conversión a la tabla, carga por demanda de lo que falta y CSP para las portadas | S2, S4, S7 | inline | `feat/catalogo-myanimelist-07-fuente` | hecho | c84c17c |
+| T4 | Trabajo programado de carga y refresco, con su rol de base de datos (riesgo ítems 1, 2 y 5) | S2, S7 | inline | `feat/catalogo-myanimelist-07-fuente` | hecho; falta la puesta en marcha en producción | (este commit) |
 | T5 | Web: cliente del catálogo en lugar del de AniList, mensajes de error, simulación en E2E | S3, S4 | delegada (contexto) | `feat/catalogo-myanimelist-03-web` | hecho | b915149, b9da917 |
 | T6b | Los IDs guardados pasan a ser de MyAnimeList, junto con el cambio de fuente de la web (riesgo ítem 1) | S5 | inline | `feat/catalogo-myanimelist-04-ids-mal` | hecho; verificador sin bloqueos abiertos | d2f1eba, 4271c3f |
 | T7 | Crédito en «Acerca de» y en la landing, textos del curador, textos legales y documentación. La CSP pasó a T3 (L17) | S6, S8 | delegada (contexto) | `feat/catalogo-myanimelist-05-credito` | hecho | (este commit y el anterior) |
@@ -121,3 +121,11 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
   - ADR-0033 retirado; RDI-08, RDI-19 y los runbooks de analítica y de límite de peticiones actualizados.
   - RED: 3 fallas en `cta.test.ts`. GREEN: landing 22 (salieron las pruebas de lo retirado), typecheck, build y `biome ci`.
   - Riesgo: ítem 5 (dependencia y variables de entorno de la landing). El lockfile solo cambia la resolución de pares, sin subir versiones.
+- **L26 (2026-11-11):** «[valor omitido] Este es el client id». El stakeholder pasó el client ID de MyAnimeList por el chat; el valor no se guarda en el repositorio ni en la memoria, y se usó desde un archivo fuera del repo. T3 y T4, inline, rama `feat/catalogo-myanimelist-07-fuente`:
+  - Comprobado contra la API real: forma de los campos, `related_anime` solo en el detalle, ranking de unos 31.000 animes de a 500, valores de formato y relación, hentai marcado como `gray` con clasificación `rx`, y CORS abierto en `cdn.myanimelist.net`. Quedó escrito en ADR-0043.
+  - T3 (`c84c17c`): adaptador `adapters/myanimelist.ts`, escritura en el repositorio (`CatalogStore`), carga por demanda en el servicio (hasta 8 detalles por pedido, el resto `pending`; búsqueda en la fuente solo si la tabla no tiene resultados; pausa de 5 minutos tras 403 o 429), `MAL_CLIENT_ID` en la configuración y CSP con `cdn.myanimelist.net`. Al guardar un detalle, los animes a los que apunta y que no apuntan de vuelta quedan para releer.
+  - T4: `services/catalog-loader.ts`, `scripts/load-catalog.ts`, workflow `catalog.yml` (martes 07:00 UTC, 6.000 detalles) y migración `20261111000000_rol_de_catalogo` con el rol `acrux_catalog`, que solo llega a la tabla `anime`.
+  - Las pruebas del adaptador, del servicio y del cargador se escribieron junto con el código, sin ver el RED por separado. El rol de base de datos sí: falló con «role "acrux_catalog" does not exist» antes de la migración.
+  - Prueba real en un Postgres local desechable, con el rol `acrux_catalog`: 30.758 animes en 2 min 49 s y 40 detalles. Con la API levantada sobre esa base: búsqueda, catálogo por año, franquicia de Frieren (3 entradas y 3 relacionadas), Kimetsu no Yaiba 9 entradas en 1,5 s la primera vez y 13 ms la segunda; un ID de adultos y uno inexistente vuelven como `missing`.
+  - Riesgo: ítems 1 (escritura en la tabla del catálogo), 2 (rol y secreto nuevos) y 5 (workflow nuevo). Queda para el verificador de T8.
+  - Hallazgo para el stakeholder: MyAnimeList entrega 77 géneros (géneros, temas y demografías mezclados).

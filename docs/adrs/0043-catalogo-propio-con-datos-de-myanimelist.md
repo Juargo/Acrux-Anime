@@ -71,9 +71,12 @@ La API reenvía cada pedido a MyAnimeList y guarda la respuesta.
   - **Portadas.** La tarjeta para compartir se dibuja en el navegador y necesita que el servidor de imágenes de MyAnimeList envíe cabeceras CORS. Si no las envía, las portadas tendrán que pasar por la API.
   - **Límite de pedidos.** MyAnimeList no publica un límite. El trabajo de carga va despacio y se detiene ante un 403 o un 429.
 
-## Pendiente de confirmar con un client ID
+## Confirmado con el client ID (2026-11-11)
 
-- La forma exacta de los campos y qué campos acepta cada endpoint.
-- Los valores de `relation_type`, `media_type` y `nsfw`, y cómo se corresponden con el agrupamiento actual.
-- Si el servidor de imágenes envía cabeceras CORS.
-- Cuántos animes carga el trabajo programado y a qué ritmo.
+- **Campos.** Los endpoints de lista (búsqueda, ranking y temporada) aceptan los mismos campos que el detalle, salvo `related_anime`, que solo viene en el detalle. El ranking por popularidad recorre todo el catálogo, cerca de 31.000 animes, de a 500 como máximo. La búsqueda exige al menos 3 caracteres y devuelve hasta 100.
+- **Formatos.** `media_type` trae `tv`, `movie`, `ova`, `ona`, `special`, `tv_special`, `music`, `pv`, `cm` y `unknown`. `tv_special` se guarda como especial; `pv` y `cm` conservan su nombre y no entran al catálogo, igual que la música.
+- **Relaciones.** `sequel`, `prequel`, `side_story`, `parent_story`, `full_story`, `summary`, `alternative_version`, `alternative_setting`, `spin_off`, `character` y `other`. Se guardan con los nombres de `@acrux/domain`; `full_story` y `parent_story` van como `PARENT`, y las dos alternativas como `ALTERNATIVE`.
+- **Contenido para adultos.** `nsfw` no sirve para distinguirlo: MyAnimeList marca el hentai como `gray`, igual que el ecchi. Un anime es para adultos si su clasificación es `rx` o tiene el género Hentai. Las listas se piden con `nsfw=true`, porque sin eso MyAnimeList omite también los títulos `gray` que sí se muestran.
+- **Portadas.** `cdn.myanimelist.net` envía `Access-Control-Allow-Origin: *`, así que la tarjeta para compartir las lee sin pasar por la API.
+- **Carga.** El trabajo lista todo el catálogo en unos 62 pedidos y lee 6.000 detalles por semana, uno por segundo. La primera carga se hace con dos corridas manuales de 16.000 detalles (`docs/runbooks/catalogo.md`).
+- **Géneros.** El campo `genres` mezcla géneros, temas y demografías: son 77 valores entre los títulos que se muestran. Falta decidir cuáles ofrece el filtro.

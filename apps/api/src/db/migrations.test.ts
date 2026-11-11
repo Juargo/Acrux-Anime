@@ -253,6 +253,48 @@ describe('the acrux_backup role', () => {
 
 // ADR-0043, point 6: the stored ids become MyAnimeList ids. Runs the migration files one
 // by one on a second database, with rows written before the conversion.
+// The load job of the catalog runs in GitHub Actions (ADR-0043): its role only reaches the
+// catalog table, so its secret cannot read or change anything about a user.
+describe('the acrux_catalog role', () => {
+  let catalog: pg.Client;
+  let startsWithLogin: boolean | undefined;
+
+  beforeAll(async () => {
+    const { rows } = await owner.query<{ rolcanlogin: boolean }>(
+      `SELECT rolcanlogin FROM pg_roles WHERE rolname = 'acrux_catalog'`,
+    );
+    startsWithLogin = rows[0]?.rolcanlogin;
+    await owner.query(`ALTER ROLE acrux_catalog WITH LOGIN PASSWORD 'catalog-test'`);
+    catalog = await connectAs('acrux_catalog', 'catalog-test');
+  });
+
+  afterAll(async () => {
+    await catalog?.end();
+  });
+
+  it('starts without login after the migrations', () => {
+    expect(startsWithLogin).toBe(false);
+  });
+
+  it('reads, creates and updates anime despite RLS', async () => {
+    await catalog.query(
+      `INSERT INTO anime (id, title, search_text) VALUES (900001, 'Loaded', 'loaded')`,
+    );
+    await catalog.query(`UPDATE anime SET members = 7 WHERE id = 900001`);
+    const { rows } = await catalog.query('SELECT title, members FROM anime WHERE id = 900001');
+    expect(rows).toEqual([{ title: 'Loaded', members: 7 }]);
+  });
+
+  it('cannot delete anime or change the schema', async () => {
+    expect(await sqlState(catalog.query('DELETE FROM anime WHERE id = 900001'))).toBe('42501');
+    expect(await sqlState(catalog.query('ALTER TABLE anime ADD COLUMN x int'))).toBe('42501');
+  });
+
+  it.each(APP_TABLES.filter((table) => table !== 'anime'))('cannot read %s', async (table) => {
+    expect(await sqlState(catalog.query(`SELECT * FROM ${table}`))).toBe('42501');
+  });
+});
+
 describe('the conversion to MyAnimeList ids', () => {
   const CONVERSION = '20261110020000_ids_de_myanimelist';
   const OTHER_USER = '7a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
