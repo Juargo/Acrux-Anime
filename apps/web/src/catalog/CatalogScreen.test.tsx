@@ -4,56 +4,57 @@ import { act, cleanup, render, screen, waitFor, within } from '@testing-library/
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { CATALOG_PAGE, type CatalogMedia, GENRES } from '../anilist/catalog';
-import { type AniListClient, AniListError } from '../anilist/client';
+import { type CatalogAnime, type CatalogClient, CatalogError } from '../catalog-source/client';
+import { anime, fakeCatalogClient } from '../catalog-source/test-support';
 import { setLocale } from '../i18n';
 import { CatalogScreen } from './CatalogScreen';
 
 afterEach(cleanup);
 
-const cover = (id: number) => `https://img.anili.st/media/${id}.jpg`;
+const cover = (id: number) => `https://cdn.example.test/anime/${id}.jpg`;
 
-function media(id: number, title: string, year: number, prequel?: CatalogMedia): CatalogMedia {
-  return {
-    id,
-    type: 'ANIME',
-    format: 'TV',
-    idMal: null,
-    isAdult: false,
-    title: { romaji: title, english: null, native: null },
-    coverImage: { large: cover(id) },
-    startDate: { year, month: 1, day: 1 },
-    relations: {
-      edges: prequel
-        ? [{ relationType: 'PREQUEL', node: { ...prequel, relations: undefined } as never }]
-        : [],
-    },
-  };
+function media(id: number, title: string, year: number, prequel?: CatalogAnime): CatalogAnime {
+  return anime(id, {
+    title,
+    startDate: `${year}-01-01`,
+    year,
+    relations: prequel ? [{ type: 'PREQUEL', id: prequel.id }] : [],
+  });
 }
 
 const frieren = media(154587, 'Sousou no Frieren', 2023);
 const frieren2 = media(182255, 'Sousou no Frieren 2nd Season', 2026, frieren);
 
-type Answer = { media: CatalogMedia[]; hasNextPage?: boolean } | Error;
+type Answer = { items: CatalogAnime[]; hasNextPage?: boolean } | Error;
+// What the screen asked the API for: the filters and the page.
+type Call = {
+  page: number;
+  search?: string | undefined;
+  year?: number | undefined;
+  genres: readonly string[];
+  formats: readonly string[];
+};
 
-function fakeClient(answer: (variables: Record<string, unknown>) => Answer | Promise<Answer>) {
-  const calls: Record<string, unknown>[] = [];
-  const request = vi.fn(async (query: string, variables: Record<string, unknown>, schema) => {
-    if (query === GENRES) {
-      return schema.parse({ GenreCollection: ['Action', 'Fantasy', 'Hentai'] });
-    }
-    expect(query).toBe(CATALOG_PAGE);
-    calls.push(variables);
-    const result = await answer(variables);
-    if (result instanceof Error) throw result;
-    return schema.parse({
-      Page: { pageInfo: { hasNextPage: result.hasNextPage ?? false }, media: result.media },
-    });
+function fakeClient(answer: (call: Call) => Answer | Promise<Answer>) {
+  const calls: Call[] = [];
+  const client = fakeCatalogClient({
+    genres: async () => ['Action', 'Fantasy', 'Hentai'],
+    browse: async (params, page) => {
+      const call = { ...params, page };
+      calls.push(call);
+      const result = await answer(call);
+      if (result instanceof Error) throw result;
+      return {
+        items: result.items,
+        related: [],
+        nextPage: result.hasNextPage ? page + 1 : null,
+      };
+    },
   });
-  return { client: { request } as unknown as AniListClient, calls };
+  return { client: client as CatalogClient, calls };
 }
 
-function renderScreen(client: AniListClient) {
+function renderScreen(client: CatalogClient) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
@@ -67,18 +68,26 @@ function renderScreen(client: AniListClient) {
 const currentYear = new Date().getFullYear();
 
 describe('CatalogScreen', () => {
+  it('credits MyAnimeList with a link (ADR-0043)', async () => {
+    renderScreen(fakeClient(() => ({ items: [frieren] })).client);
+    expect((await screen.findByRole('link', { name: 'MyAnimeList' })).getAttribute('href')).toBe(
+      'https://myanimelist.net',
+    );
+  });
+
   it('browses the releases of the current year by default, most popular first', async () => {
-    const { client, calls } = fakeClient(() => ({ media: [frieren] }));
+    const { client, calls } = fakeClient(() => ({ items: [frieren] }));
     renderScreen(client);
 
     expect(await screen.findByText('Sousou no Frieren')).toBeTruthy();
-    expect(calls[0]).toMatchObject({ page: 1, search: null, seasonYear: currentYear });
+    expect(calls[0]).toMatchObject({ page: 1, year: currentYear });
+    expect(calls[0]?.search).toBeUndefined();
     expect(screen.getByRole('button', { name: String(currentYear) })).toBeTruthy();
   });
 
   it('@CA-RF12-01 search by name shows one item per franchise with cover and title', async () => {
     const { client, calls } = fakeClient((variables) =>
-      variables.search === 'frieren' ? { media: [frieren, frieren2] } : { media: [] },
+      variables.search === 'frieren' ? { items: [frieren, frieren2] } : { items: [] },
     );
     renderScreen(client);
 
@@ -91,14 +100,15 @@ describe('CatalogScreen', () => {
     // The cover is decorative (alt=""): the title next to it names the item.
     expect(item.querySelector('img')?.getAttribute('src')).toBe(cover(154587));
     // Debounced: one request for the whole word, over every year.
-    expect(calls.filter((call) => call.search !== null)).toEqual([
-      expect.objectContaining({ search: 'frieren', seasonYear: null }),
-    ]);
+    const searches = calls.filter((call) => call.search !== undefined);
+    expect(searches).toHaveLength(1);
+    expect(searches[0]).toMatchObject({ search: 'frieren', page: 1 });
+    expect(searches[0]?.year).toBeUndefined();
   });
 
-  it('@CA-RF13-01 filters the releases of a year by genre and type on AniList', async () => {
+  it('@CA-RF13-01 filters the releases of a year by genre and type in the catalog', async () => {
     const { client, calls } = fakeClient((variables) =>
-      variables.seasonYear === 2023 ? { media: [frieren] } : { media: [] },
+      variables.year === 2023 ? { items: [frieren] } : { items: [] },
     );
     renderScreen(client);
     await screen.findByText(/No encontramos animes/);
@@ -113,16 +123,16 @@ describe('CatalogScreen', () => {
 
     expect(await screen.findByText('Sousou no Frieren')).toBeTruthy();
     expect(calls.at(-1)).toMatchObject({
-      seasonYear: 2023,
+      year: 2023,
       genres: ['Fantasy'],
-      formats: ['TV', 'TV_SHORT'],
+      formats: ['TV'],
     });
     expect(screen.getByRole('button', { name: 'Género · 1' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Tipo · 1' })).toBeTruthy();
   });
 
   it('offers every year from the current one back to 1917, and hides the adult genre', async () => {
-    const { client } = fakeClient(() => ({ media: [] }));
+    const { client } = fakeClient(() => ({ items: [] }));
     renderScreen(client);
 
     await userEvent.click(screen.getByRole('button', { name: String(currentYear) }));
@@ -136,7 +146,7 @@ describe('CatalogScreen', () => {
   });
 
   it('moves focus into the filter sheet and back to the chip that opened it', async () => {
-    const { client } = fakeClient(() => ({ media: [] }));
+    const { client } = fakeClient(() => ({ items: [] }));
     renderScreen(client);
     const chip = screen.getByRole('button', { name: 'Tipo' });
 
@@ -150,7 +160,7 @@ describe('CatalogScreen', () => {
   });
 
   it('disables the year while searching, since a search covers every year', async () => {
-    const { client, calls } = fakeClient(() => ({ media: [] }));
+    const { client, calls } = fakeClient(() => ({ items: [] }));
     renderScreen(client);
 
     await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar anime' }), ' frieren ');
@@ -164,33 +174,31 @@ describe('CatalogScreen', () => {
   });
 
   it('clears the filters back to the current year', async () => {
-    const { client, calls } = fakeClient(() => ({ media: [] }));
+    const { client, calls } = fakeClient(() => ({ items: [] }));
     renderScreen(client);
     await userEvent.click(screen.getByRole('button', { name: String(currentYear) }));
     let sheet = screen.getByRole('dialog', { name: 'Filtrar' });
     await userEvent.selectOptions(within(sheet).getByLabelText('Año de estreno'), '2001');
     await userEvent.click(within(sheet).getByRole('button', { name: 'OVA' }));
     await userEvent.click(within(sheet).getByRole('button', { name: 'Ver resultados' }));
-    await waitFor(() => expect(calls.at(-1)).toMatchObject({ seasonYear: 2001 }));
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ year: 2001 }));
 
     await userEvent.click(screen.getByRole('button', { name: 'Tipo · 1' }));
     sheet = screen.getByRole('dialog', { name: 'Filtrar' });
     await userEvent.click(within(sheet).getByRole('button', { name: 'Limpiar' }));
 
-    await waitFor(() =>
-      expect(calls.at(-1)).toMatchObject({ seasonYear: currentYear, genres: null }),
-    );
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ year: currentYear, genres: [] }));
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('shows a loading state, then an empty state for a search with no results', async () => {
     let release: (answer: Answer) => void = () => {};
     const { client } = fakeClient((variables) =>
-      variables.search === null
+      variables.search === undefined
         ? new Promise<Answer>((resolve) => {
             release = resolve;
           })
-        : { media: [] },
+        : { items: [] },
     );
     renderScreen(client);
 
@@ -198,16 +206,16 @@ describe('CatalogScreen', () => {
       'textContent',
       'Cargando el catálogo…',
     );
-    act(() => release({ media: [] }));
+    act(() => release({ items: [] }));
     await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar anime' }), 'zzz');
 
     expect(await screen.findByText('No encontramos animes para «zzz».')).toBeTruthy();
   });
 
-  it('explains an AniList failure, keeps marks safe and lets the user retry (RNF-21)', async () => {
+  it('explains a catalog failure, keeps marks safe and lets the user retry (RNF-21)', async () => {
     let fail = true;
     const { client } = fakeClient(() =>
-      fail ? new AniListError('rate-limited', 'limited') : { media: [frieren] },
+      fail ? new CatalogError('rate-limited', 'limited') : { items: [frieren] },
     );
     renderScreen(client);
 
@@ -220,7 +228,7 @@ describe('CatalogScreen', () => {
   });
 
   it('tells the user when the device is offline', async () => {
-    const { client } = fakeClient(() => ({ media: [] }));
+    const { client } = fakeClient(() => ({ items: [] }));
     renderScreen(client);
 
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
@@ -239,9 +247,9 @@ describe('CatalogScreen', () => {
   it('keeps the loaded grid when a later page fails, and retries that page', async () => {
     let failNext = true;
     const { client, calls } = fakeClient((variables) => {
-      if (variables.page === 1) return { media: [frieren], hasNextPage: true };
-      if (failNext) return new AniListError('unavailable', 'offline');
-      return { media: [media(5, 'Second page', 2024)] };
+      if (variables.page === 1) return { items: [frieren], hasNextPage: true };
+      if (failNext) return new CatalogError('unavailable', 'offline');
+      return { items: [media(5, 'Second page', 2024)] };
     });
     renderScreen(client);
 
@@ -257,8 +265,8 @@ describe('CatalogScreen', () => {
   it('loads the next page when the end of the grid is visible', async () => {
     const { client, calls } = fakeClient((variables) =>
       variables.page === 1
-        ? { media: [frieren], hasNextPage: true }
-        : { media: [media(5, 'Second page', 2024)] },
+        ? { items: [frieren], hasNextPage: true }
+        : { items: [media(5, 'Second page', 2024)] },
     );
     renderScreen(client);
 
@@ -275,7 +283,7 @@ describe('CatalogScreen in English (RF-70)', () => {
 
   it('shows the catalog, its filters and the mark button in English', async () => {
     await setLocale('en');
-    const { client } = fakeClient(() => ({ media: [frieren] }));
+    const { client } = fakeClient(() => ({ items: [frieren] }));
     renderScreen(client);
 
     expect(await screen.findByText('Sousou no Frieren')).toBeTruthy();
@@ -295,7 +303,7 @@ describe('CatalogScreen in English (RF-70)', () => {
 
   it('says it found nothing in English', async () => {
     await setLocale('en');
-    const { client } = fakeClient(() => ({ media: [] }));
+    const { client } = fakeClient(() => ({ items: [] }));
     renderScreen(client);
 
     expect(await screen.findByText('No anime matches these filters.')).toBeTruthy();

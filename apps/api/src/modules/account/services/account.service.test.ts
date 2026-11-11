@@ -74,9 +74,8 @@ describe('account service', () => {
   });
 
   it('exports every page of marks', async () => {
-    const mark = (anilistId: number) => ({
-      anilistId,
-      malId: null,
+    const mark = (animeId: number) => ({
+      animeId,
       status: 'seen' as const,
       markedAt: new Date('2026-11-01T00:00:00.000Z'),
     });
@@ -109,7 +108,7 @@ describe('account service', () => {
       now: () => new Date('2026-11-05T00:00:00.000Z'),
     });
     const data = await service.exportData(session);
-    expect(data.marks.map((m) => m.anilistId)).toEqual([1, 2, 3]);
+    expect(data.marks.map((m) => m.animeId)).toEqual([1, 2, 3]);
     expect(data.profile).not.toHaveProperty('analyticsId');
     expect(data.exportedAt).toEqual(new Date('2026-11-05T00:00:00.000Z'));
   });

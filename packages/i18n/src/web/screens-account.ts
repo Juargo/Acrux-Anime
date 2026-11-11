@@ -2,6 +2,7 @@
 export const accountEs = {
   app: {
     noName: 'Sin nombre',
+    dataCredit: 'Datos de',
     signOut: 'Cerrar sesión',
     signOutFailed: 'No pudimos cerrar tu sesión. Vuelve a intentarlo.',
     backToProfile: '‹ Perfil',
@@ -100,7 +101,6 @@ export const accountEs = {
   deleteAccount: {
     title: 'Borrar tu cuenta',
     gone: 'Se borra para siempre: tu perfil, tus marcas, tu enlace público y tu plan.',
-    kept: 'No se toca: tu lista de AniList.',
     note: 'Las tarjetas que ya compartiste no se pueden recuperar.',
     downloadFirst: 'Descargar mis datos antes',
     reauthText: 'Por seguridad, vuelve a iniciar sesión antes de borrar tu cuenta.',
@@ -113,7 +113,7 @@ export const accountEs = {
   about: {
     title: 'Acerca de Acrux',
     attribution:
-      'Los datos del catálogo los provee AniList. Acrux no está afiliada a AniList ni cuenta con su respaldo. Los títulos e imágenes de cada anime pertenecen a sus dueños.',
+      'Los datos del catálogo los provee MyAnimeList. Acrux no está afiliada a MyAnimeList ni cuenta con su respaldo. Los títulos e imágenes de cada anime pertenecen a sus dueños.',
     privacy: 'Privacidad',
     terms: 'Términos',
     support: 'Soporte',
@@ -185,10 +185,10 @@ export const accountEs = {
   curator: {
     title: 'Correcciones de franquicias',
     intro:
-      'Las correcciones prevalecen sobre el agrupamiento automático y nunca restan al total de nadie. Usa los IDs de AniList.',
+      'Las correcciones prevalecen sobre el agrupamiento automático y nunca restan al total de nadie. Usa los IDs de MyAnimeList.',
     notCurator: 'Esta pantalla es solo para curadores.',
-    entryId: 'ID de AniList de la entrada',
-    rootId: 'ID de AniList de la franquicia',
+    entryId: 'ID de MyAnimeList de la entrada',
+    rootId: 'ID de MyAnimeList de la franquicia',
     rootHint: 'La primera entrada de la saga, la que da nombre a la franquicia.',
     roleLegend: 'Qué es la entrada',
     role: {
@@ -215,7 +215,7 @@ export const accountEs = {
     loadFailed: 'No pudimos cargar las correcciones. Vuelve a intentarlo.',
     errors: {
       forbidden: 'Tu cuenta no tiene el rol de curador.',
-      invalid: 'Revisa los IDs: deben ser números de AniList.',
+      invalid: 'Revisa los IDs: deben ser números de MyAnimeList.',
       'signed-out': 'Tu sesión terminó. Vuelve a entrar.',
       failed: 'No pudimos guardar la corrección. Vuelve a intentarlo.',
     },
@@ -294,7 +294,7 @@ export const accountEs = {
       unavailable: 'No pudimos cargar este perfil. Vuelve a intentarlo.',
     },
     marks: {
-      invalid_anilist_id: 'Ese anime no es válido.',
+      invalid_anime_id: 'Ese anime no es válido.',
       invalid_query: 'No pudimos leer la búsqueda de tu lista.',
       invalid_body: 'No pudimos guardar esa marca. Vuelve a intentarlo.',
       unavailable: 'No pudimos acceder a tu lista. Vuelve a intentarlo.',
@@ -319,6 +319,7 @@ export const accountEs = {
 export const accountEn = {
   app: {
     noName: 'No name',
+    dataCredit: 'Data from',
     signOut: 'Sign out',
     signOutFailed: "We couldn't sign you out. Please try again.",
     backToProfile: '‹ Profile',
@@ -417,7 +418,6 @@ export const accountEn = {
   deleteAccount: {
     title: 'Delete your account',
     gone: 'Deleted forever: your profile, your marks, your public link and your plan.',
-    kept: 'Not touched: your AniList list.',
     note: "Cards you've already shared can't be taken back.",
     downloadFirst: 'Download my data first',
     reauthText: 'For your security, sign in again before deleting your account.',
@@ -430,7 +430,7 @@ export const accountEn = {
   about: {
     title: 'About Acrux',
     attribution:
-      'Catalog data is provided by AniList. Acrux is not affiliated with or endorsed by AniList. Each anime’s titles and images belong to their owners.',
+      'Catalog data is provided by MyAnimeList. Acrux is not affiliated with or endorsed by MyAnimeList. Each anime’s titles and images belong to their owners.',
     privacy: 'Privacy',
     terms: 'Terms',
     support: 'Support',
@@ -501,10 +501,10 @@ export const accountEn = {
   curator: {
     title: 'Franchise corrections',
     intro:
-      'Corrections take priority over automatic grouping and never take from anyone’s total. Use AniList IDs.',
+      'Corrections take priority over automatic grouping and never take from anyone’s total. Use MyAnimeList IDs.',
     notCurator: 'This screen is for curators only.',
-    entryId: 'AniList ID of the entry',
-    rootId: 'AniList ID of the franchise',
+    entryId: 'MyAnimeList ID of the entry',
+    rootId: 'MyAnimeList ID of the franchise',
     rootHint: 'The first entry of the saga, the one that names the franchise.',
     roleLegend: 'What the entry is',
     role: {
@@ -531,7 +531,7 @@ export const accountEn = {
     loadFailed: 'We couldn’t load the corrections. Try again.',
     errors: {
       forbidden: 'Your account doesn’t have the curator role.',
-      invalid: 'Check the IDs: they must be AniList numbers.',
+      invalid: 'Check the IDs: they must be MyAnimeList numbers.',
       'signed-out': 'Your session ended. Sign in again.',
       failed: 'We couldn’t save the correction. Try again.',
     },
@@ -608,7 +608,7 @@ export const accountEn = {
       unavailable: "We couldn't load this profile. Please try again.",
     },
     marks: {
-      invalid_anilist_id: 'That anime is not valid.',
+      invalid_anime_id: 'That anime is not valid.',
       invalid_query: "We couldn't read your list search.",
       invalid_body: "We couldn't save that mark. Please try again.",
       unavailable: "We couldn't reach your list. Please try again.",

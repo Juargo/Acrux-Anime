@@ -3,8 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { AniListClient } from '../anilist/client';
-import type { StatsMedia } from '../anilist/queries';
+import { anime, fakeCatalogClient } from '../catalog-source/test-support';
 import { setLocale } from '../i18n';
 import type { MarkDto } from '../marks-api';
 import type { Profile } from '../profile-api';
@@ -40,35 +39,28 @@ const free: Profile = {
 };
 const plus: Profile = { ...free, plan: 'plus' };
 
-const mark = (anilistId: number, status: MarkDto['status'] = 'seen'): MarkDto => ({
-  anilistId,
-  malId: null,
+const mark = (animeId: number, status: MarkDto['status'] = 'seen'): MarkDto => ({
+  animeId,
   status,
   markedAt: '2026-10-10T12:00:00.000Z',
 });
 
 // Twelve seen titles of one 24-minute episode each, in four genres: titles_10 only.
-const media = (id: number): StatsMedia => ({
-  id,
-  format: 'TV',
-  seasonYear: 2020,
-  episodes: 1,
-  duration: 24,
-  genres: [['Action', 'Drama', 'Comedy', 'Romance'][id % 4] as string],
-});
+const media = (id: number) =>
+  anime(id, {
+    format: 'TV',
+    year: 2020,
+    episodes: 1,
+    durationMinutes: 24,
+    genres: [['Action', 'Drama', 'Comedy', 'Romance'][id % 4] as string],
+  });
 const seen = Array.from({ length: 12 }, (_, index) => index + 1);
 
 function renderBadges(options: { profile?: Profile; marks?: MarkDto[] } = {}) {
   const profile = options.profile ?? free;
   const marks = options.marks ?? [...seen.map((id) => mark(id)), mark(99, 'watching')];
   const patches: unknown[] = [];
-  const client = {
-    request: vi.fn(async (query: string, variables: Record<string, unknown>, schema) => {
-      if (!query.includes('MediaStats')) return schema.parse({ Page: { media: [] } });
-      const ids = variables.ids as number[];
-      return schema.parse({ Page: { media: ids.map(media) } });
-    }),
-  } as unknown as AniListClient;
+  const client = fakeCatalogClient({ byIds: async (ids) => ids.map(media) });
   let current = profile;
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
     if (url.startsWith('/api/v1/me/marks?')) return json({ items: marks, nextCursor: null });
@@ -116,6 +108,13 @@ const badgeList = async () =>
   within(await badgesPage()).findByRole('list', { name: 'Tus insignias' });
 
 describe('BadgesScreen (RF-55)', () => {
+  it('credits MyAnimeList with a link (ADR-0043)', async () => {
+    renderBadges({ profile: plus });
+    expect((await screen.findByRole('link', { name: 'MyAnimeList' })).getAttribute('href')).toBe(
+      'https://myanimelist.net',
+    );
+  });
+
   it('@CA-RF55-01 earns the badges of the seen titles, keeps them and shows the progress of the rest', async () => {
     const { patches } = renderBadges({ profile: plus });
     const list = await badgeList();

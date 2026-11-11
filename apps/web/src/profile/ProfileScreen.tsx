@@ -14,7 +14,7 @@ import { useOwnProfile } from './use-own-profile';
  * Container: "Perfil y ajustes" (Figma M16) with what works today (S4 of
  * odd/tasks/editar-perfil.md): who you are, "Editar", "Contar por", "Tu lista" and
  * "Cerrar sesión", plus "Descargar mis datos" and "Borrar cuenta" (#38), "Acerca de" (#45) and "Idioma"
- * (#43). Títulos, Tema, AniList and Plus rows arrive with their issues.
+ * (#43). Títulos, Tema and Plus rows arrive with their issues.
  */
 export function ProfileScreen({
   profile: initial,

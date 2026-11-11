@@ -5,7 +5,7 @@ import {
   formatFilterLabel,
   type GenreOption,
   genreLabel,
-} from '../anilist/catalog';
+} from '../catalog-source/catalog';
 
 export interface Filters {
   year: number;
@@ -20,7 +20,7 @@ const toggle = (values: string[], value: string) =>
 
 /**
  * Presentational: the filter sheet of Figma M34 (49:3894). Changes stay in a draft until
- * "Ver resultados", so trying options costs no AniList requests.
+ * "Ver resultados", so trying options costs no catalog requests.
  */
 export function FilterSheet(props: {
   initial: Filters;

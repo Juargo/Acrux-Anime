@@ -71,7 +71,6 @@ export function DeleteAccountScreen({
       </h1>
       <div className="privacy__status delete-account__facts">
         <p className="delete-account__gone">{t('deleteAccount.gone')}</p>
-        <p className="delete-account__kept">{t('deleteAccount.kept')}</p>
         <p className="delete-account__note">{t('deleteAccount.note')}</p>
       </div>
       <button

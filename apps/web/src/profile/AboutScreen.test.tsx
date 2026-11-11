@@ -18,15 +18,15 @@ function renderAbout(version = '0.0.0 (abc1234)') {
 const link = (name: string) => screen.getByRole('link', { name }).getAttribute('href');
 
 describe('AboutScreen', () => {
-  it('attributes the catalog to AniList and says Acrux is not affiliated (ADR-0024, RES-24)', () => {
+  it('attributes the catalog to MyAnimeList and says Acrux is not affiliated (ADR-0024, RES-24)', () => {
     renderAbout();
     expect(screen.getByRole('heading', { name: 'Acerca de Acrux' })).toBeTruthy();
     expect(
       screen.getByText(
-        'Los datos del catálogo los provee AniList. Acrux no está afiliada a AniList ni cuenta con su respaldo. Los títulos e imágenes de cada anime pertenecen a sus dueños.',
+        'Los datos del catálogo los provee MyAnimeList. Acrux no está afiliada a MyAnimeList ni cuenta con su respaldo. Los títulos e imágenes de cada anime pertenecen a sus dueños.',
       ),
     ).toBeTruthy();
-    expect(link('AniList')).toBe('https://anilist.co');
+    expect(link('MyAnimeList')).toBe('https://myanimelist.net');
   });
 
   it('links to the privacy, terms and support pages of the landing', () => {

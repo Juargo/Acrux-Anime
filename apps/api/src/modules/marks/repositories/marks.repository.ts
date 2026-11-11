@@ -3,19 +3,17 @@ import type { PrismaClient } from '../../../generated/prisma/client.js';
 export type MarkStatus = 'seen' | 'watching';
 
 export interface MarkView {
-  anilistId: number;
-  malId: number | null;
+  animeId: number;
   status: MarkStatus;
   markedAt: Date;
 }
 
-// `malId` left out (or undefined) keeps the stored one; `null` clears it.
+// One entry of a batch.
 export interface MarkEntry {
-  anilistId: number;
-  malId?: number | null | undefined;
+  animeId: number;
 }
 
-// One page of marks: the ones after `after` (an anilistId), at most `limit`.
+// One page of marks: the ones after `after` (an animeId), at most `limit`.
 export interface MarkPageQuery {
   after?: number | undefined;
   limit: number;
@@ -23,66 +21,54 @@ export interface MarkPageQuery {
 
 export interface MarkPage {
   items: MarkView[];
-  // The anilistId to continue after, or null on the last page.
+  // The animeId to continue after, or null on the last page.
   nextCursor: number | null;
 }
 
 // Prisma connects as acrux_api, which RLS does not restrict in practice: every query
 // takes the user id from the session and filters by it (ADR-0028).
 export interface MarksRepository {
-  // Ordered by anilistId.
+  // Ordered by animeId.
   list(userId: string, page: MarkPageQuery): Promise<MarkPage>;
   // One statement, so the entries are written all together or not at all. The same
   // status keeps markedAt; a new status sets it to now(). The profile must exist.
-  upsert(userId: string, status: MarkStatus, entries: MarkEntry[]): Promise<MarkView[]>;
-  remove(userId: string, anilistIds: number[]): Promise<void>;
+  upsert(userId: string, status: MarkStatus, animeIds: number[]): Promise<MarkView[]>;
+  remove(userId: string, animeIds: number[]): Promise<void>;
 }
 
-const byAnilistId = (a: MarkView, b: MarkView) => a.anilistId - b.anilistId;
+const byAnimeId = (a: MarkView, b: MarkView) => a.animeId - b.animeId;
 
 export function createMarksRepository(prisma: PrismaClient): MarksRepository {
   return {
     list: async (userId, { after, limit }) => {
       // One row more than the page tells whether another page follows.
       const rows = await prisma.mark.findMany({
-        where: { userId, ...(after === undefined ? {} : { anilistId: { gt: after } }) },
-        orderBy: { anilistId: 'asc' },
+        where: { userId, ...(after === undefined ? {} : { animeId: { gt: after } }) },
+        orderBy: { animeId: 'asc' },
         take: limit + 1,
-        select: { anilistId: true, malId: true, status: true, markedAt: true },
+        select: { animeId: true, status: true, markedAt: true },
       });
       const items = rows.slice(0, limit);
       return {
         items,
-        nextCursor: rows.length > limit ? (items.at(-1)?.anilistId ?? null) : null,
+        nextCursor: rows.length > limit ? (items.at(-1)?.animeId ?? null) : null,
       };
     },
 
-    upsert: async (userId, status, entries) => {
-      const anilistIds = entries.map((entry) => entry.anilistId);
-      const malIds = entries.map((entry) => entry.malId ?? null);
-      const malIdSent = entries.map((entry) => entry.malId !== undefined);
+    upsert: async (userId, status, animeIds) => {
       const rows = await prisma.$queryRaw<MarkView[]>`
-        WITH entry AS (
-          SELECT * FROM unnest(${anilistIds}::int[], ${malIds}::int[], ${malIdSent}::boolean[])
-            AS e(anilist_id, mal_id, mal_id_sent)
-        )
-        INSERT INTO mark AS m (user_id, anilist_id, mal_id, status)
-        SELECT ${userId}::uuid, entry.anilist_id, entry.mal_id, ${status}::mark_status FROM entry
-        ON CONFLICT (user_id, anilist_id) DO UPDATE SET
-          mal_id = CASE
-            WHEN (SELECT entry.mal_id_sent FROM entry WHERE entry.anilist_id = excluded.anilist_id)
-            THEN excluded.mal_id
-            ELSE m.mal_id
-          END,
+        INSERT INTO mark AS m (user_id, anime_id, status)
+        SELECT ${userId}::uuid, entry.anime_id, ${status}::mark_status
+        FROM unnest(${animeIds}::int[]) AS entry(anime_id)
+        ON CONFLICT (user_id, anime_id) DO UPDATE SET
           marked_at = CASE WHEN m.status = excluded.status THEN m.marked_at ELSE now() END,
           status = excluded.status
-        RETURNING m.anilist_id AS "anilistId", m.mal_id AS "malId",
-          m.status::text AS "status", m.marked_at AS "markedAt"`;
-      return rows.sort(byAnilistId);
+        RETURNING m.anime_id AS "animeId", m.status::text AS "status", m.marked_at AS "markedAt"`;
+      return rows.sort(byAnimeId);
     },
 
-    remove: async (userId, anilistIds) => {
-      await prisma.mark.deleteMany({ where: { userId, anilistId: { in: anilistIds } } });
+    remove: async (userId, animeIds) => {
+      await prisma.mark.deleteMany({ where: { userId, animeId: { in: animeIds } } });
     },
   };
 }

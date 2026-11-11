@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { FranchiseEntry } from '../anilist/franchise';
 import { MARKS_KEY, type MarkMessage } from '../catalog/use-franchise-marks';
+import type { FranchiseEntry } from '../catalog-source/franchise';
 import { deleteMark, type MarkDto, putMark } from '../marks-api';
 
 export interface EntryMarkChange {
@@ -12,8 +12,8 @@ export interface EntryMarkChange {
 }
 
 // Replaces the mark of one entry, or removes it, leaving every other mark as it is.
-function withEntryMark(marks: MarkDto[], anilistId: number, mark: MarkDto | null | undefined) {
-  return [...marks.filter((current) => current.anilistId !== anilistId), ...(mark ? [mark] : [])];
+function withEntryMark(marks: MarkDto[], animeId: number, mark: MarkDto | null | undefined) {
+  return [...marks.filter((current) => current.animeId !== animeId), ...(mark ? [mark] : [])];
 }
 
 /**
@@ -34,37 +34,36 @@ export function useEntryMarks(options: {
   const change = useMutation({
     mutationFn: async ({ entry, status }: EntryMarkChange): Promise<MarkDto | null> => {
       if (status === null) {
-        await deleteMark(getToken, entry.anilistId, fetchFn);
+        await deleteMark(getToken, entry.animeId, fetchFn);
         return null;
       }
-      return putMark(getToken, entry.anilistId, { status, malId: entry.malId }, fetchFn);
+      return putMark(getToken, entry.animeId, { status }, fetchFn);
     },
     onMutate: async ({ entry, status }) => {
       setMessage(null);
       await queryClient.cancelQueries({ queryKey: MARKS_KEY });
       const previous = queryClient
         .getQueryData<MarkDto[]>(MARKS_KEY)
-        ?.find((mark) => mark.anilistId === entry.anilistId);
+        ?.find((mark) => mark.animeId === entry.animeId);
       const optimistic: MarkDto | null = status && {
-        anilistId: entry.anilistId,
-        malId: entry.malId,
+        animeId: entry.animeId,
         status,
         markedAt: new Date().toISOString(),
       };
       queryClient.setQueryData<MarkDto[]>(MARKS_KEY, (current = []) =>
-        withEntryMark(current, entry.anilistId, optimistic),
+        withEntryMark(current, entry.animeId, optimistic),
       );
       return { previous };
     },
     onError: (_error, { entry }, context) => {
       queryClient.setQueryData<MarkDto[]>(MARKS_KEY, (current = []) =>
-        withEntryMark(current, entry.anilistId, context?.previous),
+        withEntryMark(current, entry.animeId, context?.previous),
       );
       setMessage({ kind: 'alert', text: t('marks.saveFailed') });
     },
     onSuccess: (written, { entry }) => {
       queryClient.setQueryData<MarkDto[]>(MARKS_KEY, (current = []) =>
-        withEntryMark(current, entry.anilistId, written),
+        withEntryMark(current, entry.animeId, written),
       );
       if (written?.status === 'seen') onMarkedSeen?.();
     },

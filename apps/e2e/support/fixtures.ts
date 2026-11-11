@@ -1,5 +1,5 @@
 // Playwright fixtures of the E2E journeys (ADR-0037). Every context is offline except for
-// localhost: AniList and Neon Auth answer from routes, and anything else is aborted, so a
+// localhost: the catalog API and Neon Auth answer from routes, and anything else is aborted, so a
 // test never reaches a real service.
 import {
   type Browser,
@@ -8,7 +8,7 @@ import {
   test as base,
   expect,
 } from '@playwright/test';
-import { installAniList } from './anilist.ts';
+import { installCatalog } from './catalog.ts';
 import { createUser, installNeonAuth, type TestUser } from './neon-auth.ts';
 
 const isLocal = (url: URL) => url.hostname === 'localhost' || url.hostname === '127.0.0.1';
@@ -21,13 +21,13 @@ const withoutWebShare = () => {
 };
 
 async function isolate(context: BrowserContext) {
-  // Registered first, so the AniList and Neon Auth routes below take precedence.
+  // Registered first, so the catalog and Neon Auth routes below take precedence.
   await context.route(
     (url) => !isLocal(url),
     (route) => route.abort(),
   );
   await context.addInitScript(withoutWebShare);
-  await installAniList(context);
+  await installCatalog(context);
 }
 
 // A browser with no session, on the same phone: someone opening a public link.

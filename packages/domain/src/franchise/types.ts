@@ -38,7 +38,7 @@ export type FranchiseRole = 'core' | 'extra' | 'separate';
 
 // One row of the curator table (franchise_override, ADR-0022).
 export interface FranchiseOverride {
-  anilistId: number;
+  animeId: number;
   // core and extra: the franchise the entry belongs to. separate: the franchise it is related to.
   franchiseRootId: number;
   role: FranchiseRole;
@@ -66,7 +66,7 @@ export interface Franchise {
 export type MarkStatus = 'seen' | 'watching';
 
 export interface Mark {
-  anilistId: number;
+  animeId: number;
   status: MarkStatus;
   // ISO timestamp.
   markedAt: string;

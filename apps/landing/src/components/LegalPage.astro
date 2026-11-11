@@ -1,7 +1,7 @@
 ---
 import type { Locale } from '@acrux/i18n';
 import Landing from '../layouts/Landing.astro';
-import { CONTACT_EMAIL, getLegalPage, type LegalPageKey, legalAlternates } from '../legal';
+import { CONTACT_EMAIL, getLegalPage, type LegalPageKey, legalAlternates, MAL_URL } from '../legal';
 import SiteFooter from './SiteFooter.astro';
 import SiteHeader from './SiteHeader.astro';
 
@@ -32,12 +32,15 @@ const otherHref = alternates[locale === 'es' ? 'en' : 'es'];
             <h2 class="legal__heading">{section.title}</h2>
             {section.paragraphs.map((paragraph) => (
               <p class="legal__text">
-                {paragraph.split('{email}').map((part, index) => (
-                  <>
-                    {index > 0 && <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>}
-                    {part}
-                  </>
-                ))}
+                {paragraph.split(/(\{email\}|\{mal\})/).map((part) =>
+                  part === '{email}' ? (
+                    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+                  ) : part === '{mal}' ? (
+                    <a href={MAL_URL} target="_blank" rel="noreferrer">MyAnimeList</a>
+                  ) : (
+                    part
+                  ),
+                )}
               </p>
             ))}
           </section>

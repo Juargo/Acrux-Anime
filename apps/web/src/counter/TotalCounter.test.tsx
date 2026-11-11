@@ -1,13 +1,12 @@
 // @vitest-environment jsdom
-import type { FranchiseOverride } from '@acrux/domain';
+import type { FranchiseOverride, RelationType } from '@acrux/domain';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { CatalogMedia, RelatedMedia } from '../anilist/catalog';
-import type { AniListClient } from '../anilist/client';
-import { FRANCHISE_MEDIA } from '../anilist/franchise';
 import { MARKS_KEY } from '../catalog/use-franchise-marks';
+import type { CatalogAnime } from '../catalog-source/client';
+import { anime, fakeCatalogClient, serveFranchises } from '../catalog-source/test-support';
 import { setLocale } from '../i18n';
 import type { MarkDto } from '../marks-api';
 import { fetchMe, type Profile } from '../profile-api';
@@ -17,7 +16,7 @@ afterEach(cleanup);
 
 // Saga A: four seasons 1 → 2 → 3 → 4 and an OVA side story 9. Saga B: one movie, 20.
 const years: Record<number, number> = { 1: 2013, 2: 2017, 3: 2019, 4: 2020, 9: 2014, 20: 2016 };
-const edges: Record<number, [string, number][]> = {
+const edges: Record<number, [RelationType, number][]> = {
   1: [
     ['SEQUEL', 2],
     ['SIDE_STORY', 9],
@@ -34,41 +33,24 @@ const edges: Record<number, [string, number][]> = {
   9: [['PARENT', 1]],
 };
 
-function node(id: number): RelatedMedia {
-  return {
-    id,
-    idMal: id + 1000,
-    type: 'ANIME',
-    format: id === 9 ? 'OVA' : id === 20 ? 'MOVIE' : 'TV',
-    isAdult: false,
-    title: { romaji: `Entry ${id}`, english: null, native: null },
-    coverImage: { large: null },
-    startDate: { year: years[id] ?? 2000, month: 1, day: 1 },
-  };
+const row = (id: number): CatalogAnime | undefined =>
+  id in years
+    ? anime(id, {
+        format: id === 9 ? 'OVA' : id === 20 ? 'MOVIE' : 'TV',
+        coverUrl: null,
+        startDate: `${years[id]}-01-01`,
+        year: years[id] ?? null,
+        relations: (edges[id] ?? []).map(([type, target]) => ({ type, id: target })),
+      })
+    : undefined;
+
+function fakeCatalog() {
+  const client = fakeCatalogClient({ franchises: async (seeds) => serveFranchises(row, seeds) });
+  return { client, request: client.franchises };
 }
 
-const media = (id: number): CatalogMedia => ({
-  ...node(id),
-  relations: {
-    edges: (edges[id] ?? []).map(([relationType, target]) => ({
-      relationType,
-      node: node(target),
-    })),
-  },
-});
-
-function fakeAniList() {
-  const request = vi.fn(async (query: string, variables: Record<string, unknown>, schema) => {
-    expect(query).toBe(FRANCHISE_MEDIA);
-    const ids = (variables.ids as number[]).filter((id) => id in years);
-    return schema.parse({ Page: { media: ids.map(media) } });
-  });
-  return { client: { request } as unknown as AniListClient, request };
-}
-
-const seen = (anilistId: number): MarkDto => ({
-  anilistId,
-  malId: anilistId + 1000,
+const seen = (animeId: number): MarkDto => ({
+  animeId,
   status: 'seen',
   markedAt: '2025-01-01T00:00:00.000Z',
 });
@@ -118,7 +100,7 @@ function renderCounter(options: {
   initialShown?: { total: number; mode: Profile['counterMode'] } | null;
   onCounterModeChanged?: (event: CounterModeChangedEvent) => void;
 }) {
-  const { client, request } = fakeAniList();
+  const { client, request } = fakeCatalog();
   const fetchFn = options.fetchFn ?? fakeApi(options.marks);
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
@@ -185,7 +167,7 @@ describe('TotalCounter', () => {
   it('counts with the curator table applied first (RF-60)', async () => {
     // Seasons 3 and 4 are a separate franchise for the curator, so 1 and 2 complete saga A.
     const separate: FranchiseOverride = {
-      anilistId: 3,
+      animeId: 3,
       franchiseRootId: 1,
       role: 'separate',
       updatedAt: '2024-01-01T00:00:00.000Z',
@@ -222,7 +204,7 @@ describe('TotalCounter', () => {
     });
 
     expect(await within(counter).findByText('2 animes')).toBeTruthy();
-    const crawled = request.mock.calls.slice(before).flatMap(([, variables]) => variables.ids);
+    const crawled = request.mock.calls.slice(before).flatMap(([seeds]) => seeds);
     expect(crawled).not.toContain(20);
   });
 
@@ -245,9 +227,11 @@ describe('TotalCounter', () => {
     expect(within(counter).getByText('1 anime')).toBeTruthy();
     expect(events).toEqual([]);
   });
-  it('shows 0 at once by franchise when nothing is seen, even with AniList down', async () => {
-    const request = vi.fn(async () => {
-      throw new Error('AniList is down');
+  it('shows 0 at once by franchise when nothing is seen, even with the catalog down', async () => {
+    const client = fakeCatalogClient({
+      franchises: async () => {
+        throw new Error('The catalog is down');
+      },
     });
     const fetchFn = fakeApi([{ ...seen(1), status: 'watching' }]);
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -256,7 +240,7 @@ describe('TotalCounter', () => {
         <TotalCounter
           initialMode="franchise"
           getToken={async () => 'jwt'}
-          client={{ request } as unknown as AniListClient}
+          client={client}
           fetchFn={fetchFn}
         />
       </QueryClientProvider>,
@@ -321,7 +305,7 @@ describe('TotalCounter in English (RF-70)', () => {
   it('shows the total, its unit and the switch in English', async () => {
     await setLocale('en');
     const user = userEvent.setup();
-    const { client } = fakeAniList();
+    const { client } = fakeCatalog();
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
       <QueryClientProvider client={queryClient}>

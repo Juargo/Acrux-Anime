@@ -1,6 +1,7 @@
 import type { Franchise, Mark } from '@acrux/domain';
 import { describe, expect, it } from 'vitest';
-import type { RelatedMedia } from '../anilist/catalog';
+import type { CatalogAnime } from '../catalog-source/client';
+import { anime } from '../catalog-source/test-support';
 import { markedOn, myList } from './items';
 
 const NOW = '2026-11-03T12:00:00.000Z';
@@ -22,24 +23,15 @@ const sagaB: Franchise = {
   related: [],
 };
 
-function media(id: number, format: string): RelatedMedia {
-  return {
-    id,
-    idMal: null,
-    type: 'ANIME',
-    format,
-    isAdult: false,
-    title: { romaji: `Entry ${id}`, english: null, native: null },
-    coverImage: { large: `https://img.anili.st/media/${id}.jpg` },
-    startDate: { year: 2013, month: 1, day: 1 },
-  };
+function media(id: number, format: string): CatalogAnime {
+  return anime(id, { format, title: `Entry ${id}` });
 }
 const known = new Map(
   [1, 2, 3, 9, 20].map((id) => [id, media(id, id === 20 ? 'MOVIE' : id === 9 ? 'OVA' : 'TV')]),
 );
 
-const mark = (anilistId: number, status: Mark['status'], day: number): Mark => ({
-  anilistId,
+const mark = (animeId: number, status: Mark['status'], day: number): Mark => ({
+  animeId,
   status,
   markedAt: `2026-10-${String(day).padStart(2, '0')}T12:00:00.000Z`,
 });
@@ -58,14 +50,14 @@ describe('myList', () => {
         id: 'franchise-20',
         href: '/franquicia/20',
         title: 'Saga B',
-        coverUrl: 'https://img.anili.st/media/20.jpg',
+        coverUrl: 'https://cdn.example.test/anime/20.jpg',
         detail: '1 de 1 · marcada el 12 de oct.',
       },
       {
         id: 'franchise-1',
         href: '/franquicia/1',
         title: 'Saga A',
-        coverUrl: 'https://img.anili.st/media/1.jpg',
+        coverUrl: 'https://cdn.example.test/anime/1.jpg',
         detail: '3 de 3 · marcada el 10 de oct.',
       },
     ]);
@@ -99,7 +91,7 @@ describe('myList', () => {
     expect(list.seen.map((row) => [row.href, row.title, row.detail])).toEqual([
       ['/franquicia/9', 'Entry 9', 'OVA · marcada el 3 de oct.'],
       ['/franquicia/1', 'Entry 1', 'TV · marcada el 2 de oct.'],
-      // AniList did not return it, but it still counts.
+      // The catalog did not return it, but it still counts.
       ['/franquicia/77', 'Entrada 77', 'marcada el 1 de oct.'],
     ]);
     expect(list.stats.seenEntries).toBe(3);

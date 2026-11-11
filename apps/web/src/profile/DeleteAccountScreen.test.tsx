@@ -65,7 +65,7 @@ function renderScreen(
 const confirm = () => screen.getByRole('button', { name: 'Borrar mi cuenta para siempre' });
 
 describe('DeleteAccountScreen', () => {
-  it('says what is deleted and what is kept, as Figma M19', () => {
+  it('says what is deleted and mentions no external list (Figma M19, ADR-0043)', () => {
     renderScreen();
     expect(screen.getByRole('heading', { name: 'Borrar tu cuenta' })).toBeTruthy();
     expect(
@@ -73,7 +73,7 @@ describe('DeleteAccountScreen', () => {
         'Se borra para siempre: tu perfil, tus marcas, tu enlace público y tu plan.',
       ),
     ).toBeTruthy();
-    expect(screen.getByText('No se toca: tu lista de AniList.')).toBeTruthy();
+    expect(screen.queryByText(/No se toca/)).toBeNull();
     expect(
       screen.getByText('Las tarjetas que ya compartiste no se pueden recuperar.'),
     ).toBeTruthy();

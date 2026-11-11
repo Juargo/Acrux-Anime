@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
+
+import type { RelationType } from '@acrux/domain';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { CatalogMedia, RelatedMedia } from '../anilist/catalog';
-import type { AniListClient } from '../anilist/client';
-import { FRANCHISE_MEDIA } from '../anilist/franchise';
+import type { CatalogAnime } from '../catalog-source/client';
+import { anime, fakeCatalogClient, serveFranchises } from '../catalog-source/test-support';
 import { setLocale } from '../i18n';
 import type { MarkDto } from '../marks-api';
 import { Home } from '../routes/Home';
@@ -17,7 +18,7 @@ afterEach(cleanup);
 // Saga A: seasons 1 → 2 → 3 → 4. Saga B: the movie 20.
 const years: Record<number, number> = { 1: 2013, 2: 2017, 3: 2019, 4: 2020, 20: 2016 };
 const titles: Record<number, string> = { 1: 'Saga A', 20: 'Saga B' };
-const edges: Record<number, [string, number][]> = {
+const edges: Record<number, [RelationType, number][]> = {
   1: [['SEQUEL', 2]],
   2: [
     ['PREQUEL', 1],
@@ -29,43 +30,27 @@ const edges: Record<number, [string, number][]> = {
   ],
   4: [['PREQUEL', 3]],
 };
-const cover = (id: number) => `https://img.anili.st/media/${id}.jpg`;
+const cover = (id: number) => `https://cdn.example.test/anime/${id}.jpg`;
 
-function node(id: number): RelatedMedia {
-  return {
-    id,
-    idMal: null,
-    type: 'ANIME',
-    format: id === 20 ? 'MOVIE' : 'TV',
-    isAdult: false,
-    title: { romaji: titles[id] ?? `Season ${id}`, english: null, native: null },
-    coverImage: { large: cover(id) },
-    startDate: { year: years[id] ?? 2000, month: 1, day: 1 },
-  };
+const row = (id: number): CatalogAnime | undefined =>
+  id in years
+    ? anime(id, {
+        title: titles[id] ?? `Season ${id}`,
+        format: id === 20 ? 'MOVIE' : 'TV',
+        coverUrl: cover(id),
+        startDate: `${years[id]}-01-01`,
+        year: years[id] ?? null,
+        relations: (edges[id] ?? []).map(([type, target]) => ({ type, id: target })),
+      })
+    : undefined;
+
+function fakeCatalog() {
+  const client = fakeCatalogClient({ franchises: async (seeds) => serveFranchises(row, seeds) });
+  return { client, request: client.franchises };
 }
 
-const media = (id: number): CatalogMedia => ({
-  ...node(id),
-  relations: {
-    edges: (edges[id] ?? []).map(([relationType, target]) => ({
-      relationType,
-      node: node(target),
-    })),
-  },
-});
-
-function fakeAniList() {
-  const request = vi.fn(async (query: string, variables: Record<string, unknown>, schema) => {
-    expect(query).toBe(FRANCHISE_MEDIA);
-    const ids = (variables.ids as number[]).filter((id) => id in years);
-    return schema.parse({ Page: { media: ids.map(media) } });
-  });
-  return { client: { request } as unknown as AniListClient, request };
-}
-
-const mark = (anilistId: number, status: MarkDto['status'], day = 10): MarkDto => ({
-  anilistId,
-  malId: null,
+const mark = (animeId: number, status: MarkDto['status'], day = 10): MarkDto => ({
+  animeId,
   status,
   markedAt: `2026-10-${String(day).padStart(2, '0')}T12:00:00.000Z`,
 });
@@ -74,7 +59,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
 function renderList(marks: MarkDto[] | 'fail') {
-  const { client, request } = fakeAniList();
+  const { client, request } = fakeCatalog();
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
     if (url.startsWith('/api/v1/me/marks?')) {
       return marks === 'fail'
@@ -137,6 +122,13 @@ const rowTitles = (panel: HTMLElement) =>
     .filter(Boolean);
 
 describe('MyListScreen', () => {
+  it('credits MyAnimeList with a link (ADR-0043)', async () => {
+    renderList([mark(1, 'seen', 2)]);
+    expect((await screen.findByRole('link', { name: 'MyAnimeList' })).getAttribute('href')).toBe(
+      'https://myanimelist.net',
+    );
+  });
+
   it('@CA-RF27-01 shows the 2 franchises marked as watching, with their covers', async () => {
     const user = userEvent.setup();
     renderList([mark(1, 'seen', 2), mark(2, 'watching', 5), mark(20, 'watching', 7)]);
@@ -180,7 +172,7 @@ describe('MyListScreen', () => {
 
     expect(await within(list()).findByRole('tab', { name: 'Vistas (5)' })).toBeTruthy();
     expect(within(counter).getByText('5 animes')).toBeTruthy();
-    const asked = request.mock.calls.flatMap(([, variables]) => variables.ids as number[]);
+    const asked = request.mock.calls.flatMap(([seeds]) => seeds);
     expect(asked.length).toBe(new Set(asked).size);
   });
 

@@ -3,8 +3,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, useId, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import type { AniListClient } from '../anilist/client';
-import { defaultClient, useMediaByIds } from '../anilist/hooks';
+import { displayTitle } from '../catalog/items';
+import type { CatalogClient } from '../catalog-source/client';
+import { defaultClient, useAnimeByIds } from '../catalog-source/hooks';
 import { OVERRIDES_KEY, overridesQuery } from '../franchise/use-franchise-overrides';
 import {
   FranchiseOverridesError,
@@ -14,13 +15,13 @@ import {
 } from '../franchise-overrides-api';
 
 const ROLES: readonly OverrideRole[] = ['core', 'extra', 'separate'];
-const ANILIST_ID = /^[1-9]\d{0,9}$/;
+const ANIME_ID = /^[1-9]\d{0,9}$/;
 
 type Status = { kind: 'saved'; rootId: number } | { kind: 'error'; error: OverrideErrorKind };
 
 /**
  * The curator's corrections of franchise grouping (#42, RF-60). Only a curator sees the form;
- * the API checks the role on every save. Titles come from AniList and are never stored (RDI-15).
+ * the API checks the role on every save. Titles come from the catalog and are never stored (RDI-15).
  */
 export function CuratorScreen({
   curator,
@@ -30,7 +31,7 @@ export function CuratorScreen({
 }: {
   curator: boolean;
   getToken: () => Promise<string | null>;
-  client?: AniListClient | undefined;
+  client?: CatalogClient | undefined;
   fetchFn?: typeof fetch | undefined;
 }) {
   const { t } = useTranslation();
@@ -58,7 +59,7 @@ function CuratorTools({
   fetchFn,
 }: {
   getToken: () => Promise<string | null>;
-  client: AniListClient;
+  client: CatalogClient;
   fetchFn: typeof fetch;
 }) {
   const { t } = useTranslation();
@@ -66,14 +67,14 @@ function CuratorTools({
   const overrides = useQuery(overridesQuery(fetchFn));
   const rows = overrides.data ?? [];
   const ids = useMemo(
-    () => [...new Set(rows.flatMap((row) => [row.anilistId, row.franchiseRootId]))],
+    () => [...new Set(rows.flatMap((row) => [row.animeId, row.franchiseRootId]))],
     [rows],
   );
-  const media = useMediaByIds(ids, client);
+  const media = useAnimeByIds(ids, client);
   const titleOf = (id: number) => {
     const found = media.data?.find((item) => item.id === id);
-    const title = found?.title.english ?? found?.title.romaji ?? found?.title.native;
-    return title ?? t('curator.unknownTitle', { id: String(id) });
+    const title = found && displayTitle(found);
+    return title || t('curator.unknownTitle', { id: String(id) });
   };
 
   const [entryId, setEntryId] = useState('');
@@ -88,7 +89,7 @@ function CuratorTools({
 
   async function save(event: FormEvent) {
     event.preventDefault();
-    if (!ANILIST_ID.test(entryId) || !ANILIST_ID.test(rootId)) {
+    if (!ANIME_ID.test(entryId) || !ANIME_ID.test(rootId)) {
       setStatus({ kind: 'error', error: 'invalid' });
       return;
     }
@@ -103,8 +104,8 @@ function CuratorTools({
       );
       // The API's CDN keeps the table five minutes: the curator sees the change at once.
       queryClient.setQueryData<FranchiseOverride[]>(OVERRIDES_KEY, (previous = []) =>
-        [...previous.filter((row) => row.anilistId !== saved.anilistId), saved].sort(
-          (a, b) => a.anilistId - b.anilistId,
+        [...previous.filter((row) => row.animeId !== saved.animeId), saved].sort(
+          (a, b) => a.animeId - b.animeId,
         ),
       );
       setStatus({ kind: 'saved', rootId: saved.franchiseRootId });
@@ -119,7 +120,7 @@ function CuratorTools({
   }
 
   function edit(row: FranchiseOverride) {
-    setEntryId(String(row.anilistId));
+    setEntryId(String(row.animeId));
     setRootId(String(row.franchiseRootId));
     setRole(row.role);
     setStatus(null);
@@ -212,15 +213,15 @@ function CuratorTools({
       ) : (
         <ul className="profile__rows" aria-labelledby={listId}>
           {rows.map((row) => (
-            <li key={row.anilistId}>
+            <li key={row.animeId}>
               <button
                 className="profile__row"
                 type="button"
-                aria-label={t('curator.change', { title: titleOf(row.anilistId) })}
+                aria-label={t('curator.change', { title: titleOf(row.animeId) })}
                 onClick={() => edit(row)}
               >
                 <span>
-                  <span>{titleOf(row.anilistId)}</span>
+                  <span>{titleOf(row.animeId)}</span>
                   <br />
                   <small>
                     {t('curator.row', {

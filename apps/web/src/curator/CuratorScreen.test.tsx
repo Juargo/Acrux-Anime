@@ -4,7 +4,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { AniListClient } from '../anilist/client';
+import { anime, fakeCatalogClient } from '../catalog-source/test-support';
 import type { Profile } from '../profile-api';
 import { Home } from '../routes/Home';
 import { signedInRoutes } from '../routes/signed-in-routes';
@@ -31,7 +31,7 @@ const base: Profile = {
 };
 
 const existing = {
-  anilistId: 20811,
+  animeId: 20811,
   franchiseRootId: 16498,
   role: 'extra',
   updatedAt: '2026-11-01T10:00:00.000Z',
@@ -43,28 +43,13 @@ const titles: Record<number, string> = {
   99147: 'Shingeki no Kyojin 3',
 };
 
-function fakeAniList() {
-  const request = vi.fn(async (_query: string, variables: Record<string, unknown>, schema) => {
-    const ids = (variables.ids as number[]).filter((id) => id in titles);
-    return schema.parse({
-      Page: {
-        media: ids.map((id) => ({
-          id,
-          idMal: null,
-          title: { romaji: titles[id], english: null, native: null },
-          coverImage: { large: null },
-          format: 'TV',
-          seasonYear: 2013,
-          episodes: 25,
-          status: 'FINISHED',
-          type: 'ANIME',
-          isAdult: false,
-          startDate: { year: 2013, month: 4, day: 7 },
-        })),
-      },
-    });
+function fakeCatalog() {
+  return fakeCatalogClient({
+    byIds: async (ids) =>
+      ids
+        .filter((id) => id in titles)
+        .map((id) => anime(id, { title: titles[id] ?? '', year: 2013, episodes: 25 })),
   });
-  return { request } as unknown as AniListClient;
 }
 
 function renderCurator(options: { curator: boolean; saveStatus?: number; path?: string }) {
@@ -75,8 +60,8 @@ function renderCurator(options: { curator: boolean; saveStatus?: number; path?: 
       const body = JSON.parse(init.body as string);
       saves.push({ url, body });
       if (options.saveStatus) return json({ status: options.saveStatus }, options.saveStatus);
-      const anilistId = Number(url.split('/').at(-1));
-      return json({ anilistId, ...body, updatedAt: '2026-11-07T12:00:00.000Z' });
+      const animeId = Number(url.split('/').at(-1));
+      return json({ animeId, ...body, updatedAt: '2026-11-07T12:00:00.000Z' });
     }
     if (url.startsWith('/api/v1/me/marks?')) return json({ items: [], nextCursor: null });
     if (url === '/api/v1/me') return json({ ...base, curator: options.curator });
@@ -93,7 +78,7 @@ function renderCurator(options: { curator: boolean; saveStatus?: number; path?: 
             signingOut={false}
             signOutFailed={false}
             getToken={async () => 'jwt'}
-            client={fakeAniList()}
+            client={fakeCatalog()}
             fetchFn={fetchFn as unknown as typeof fetch}
           />
         ),
@@ -120,7 +105,7 @@ describe('CuratorScreen', () => {
     expect(screen.queryByRole('button', { name: 'Guardar corrección' })).toBeNull();
   });
 
-  it('lists the corrections with their AniList titles', async () => {
+  it('lists the corrections with their catalog titles', async () => {
     renderCurator({ curator: true });
     const list = await screen.findByRole('list', { name: 'Correcciones' });
     await within(list).findByText('Shingeki no Kyojin: Kuinaki Sentaku');
@@ -132,8 +117,8 @@ describe('CuratorScreen', () => {
     const { saves } = renderCurator({ curator: true });
     await screen.findByRole('list', { name: 'Correcciones' });
 
-    await user.type(field('ID de AniList de la entrada'), '99147');
-    await user.type(field('ID de AniList de la franquicia'), '16498');
+    await user.type(field('ID de MyAnimeList de la entrada'), '99147');
+    await user.type(field('ID de MyAnimeList de la franquicia'), '16498');
     await user.click(screen.getByRole('radio', { name: /^Núcleo/ }));
     await user.click(screen.getByRole('button', { name: 'Guardar corrección' }));
 
@@ -156,8 +141,8 @@ describe('CuratorScreen', () => {
     const list = await screen.findByRole('list', { name: 'Correcciones' });
     await user.click(within(list).getByRole('button', { name: /Cambiar/ }));
 
-    expect(field('ID de AniList de la entrada').value).toBe('20811');
-    expect(field('ID de AniList de la franquicia').value).toBe('16498');
+    expect(field('ID de MyAnimeList de la entrada').value).toBe('20811');
+    expect(field('ID de MyAnimeList de la franquicia').value).toBe('16498');
     expect((screen.getByRole('radio', { name: /^Extra/ }) as HTMLInputElement).checked).toBe(true);
   });
 
@@ -166,8 +151,8 @@ describe('CuratorScreen', () => {
     renderCurator({ curator: true, saveStatus: 403 });
     await screen.findByRole('list', { name: 'Correcciones' });
 
-    await user.type(field('ID de AniList de la entrada'), '99147');
-    await user.type(field('ID de AniList de la franquicia'), '16498');
+    await user.type(field('ID de MyAnimeList de la entrada'), '99147');
+    await user.type(field('ID de MyAnimeList de la franquicia'), '16498');
     await user.click(screen.getByRole('radio', { name: /^Separada/ }));
     await user.click(screen.getByRole('button', { name: 'Guardar corrección' }));
 

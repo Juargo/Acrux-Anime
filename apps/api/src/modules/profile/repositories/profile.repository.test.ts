@@ -262,7 +262,7 @@ describe('profile repository', () => {
       [other, 502],
     ] as const) {
       await profiles.findOrCreate(id, { displayName: 'Nami', avatarUrl: null });
-      await prisma.mark.create({ data: { userId: id, anilistId: 21, status: 'seen' } });
+      await prisma.mark.create({ data: { userId: id, animeId: 21, status: 'seen' } });
       await prisma.anilistLink.create({
         data: { userId: id, anilistUserId, accessTokenEncrypted: Buffer.from('x') },
       });

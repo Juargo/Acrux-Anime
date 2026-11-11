@@ -1,4 +1,4 @@
-import { FRIEREN } from '../support/anilist.ts';
+import { FRIEREN } from '../support/catalog.ts';
 import { expect, test } from '../support/fixtures.ts';
 
 // Journey of issue #47: search → mark → counter → share.
@@ -10,7 +10,7 @@ test('@CA-RF12-01 @CA-RF24-01 @CA-RF30-02 @CA-RF31-02 search a franchise, mark i
   const counter = page.getByRole('region', { name: 'Contador total' });
   await expect(counter).toContainText('0 animes');
 
-  // Two seasons in AniList, one item in the catalog.
+  // Two seasons in the catalog, one item in the catalog.
   await page.getByRole('searchbox', { name: 'Buscar anime' }).fill(FRIEREN.search);
   const grid = page.getByRole('list', { name: 'Catálogo' });
   await expect(grid.getByRole('listitem')).toHaveCount(1);

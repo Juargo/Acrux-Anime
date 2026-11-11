@@ -1,6 +1,7 @@
 import type { Logger } from 'pino';
 import { parseEnv } from './config/env.js';
 import { createPrismaClient } from './db/client.js';
+import type { PrismaClient } from './generated/prisma/client.js';
 import { type ErrorReporter, noErrorReporter } from './http/error-reporter.js';
 import { createLogger } from './http/logger.js';
 import type { PlanReader } from './http/plan.js';
@@ -20,6 +21,13 @@ import { anilistLinkModule } from './modules/anilist-link/index.js';
 import { createLemonSqueezyCheckout } from './modules/billing/adapters/lemon-squeezy-checkout.js';
 import { type BillingDependencies, createBillingModule } from './modules/billing/index.js';
 import { createEntitlementRepository } from './modules/billing/repositories/entitlement.repository.js';
+import { createMyAnimeListSource } from './modules/catalog/adapters/myanimelist.js';
+import { createCatalogModule } from './modules/catalog/index.js';
+import { createCatalogRepository } from './modules/catalog/repositories/catalog.repository.js';
+import {
+  type CatalogService,
+  createCatalogService,
+} from './modules/catalog/services/catalog.service.js';
 import { createFranchisesModule } from './modules/franchises/index.js';
 import {
   createFranchiseOverridesRepository,
@@ -106,8 +114,9 @@ export function createContainer(source: Record<string, string | undefined>): Con
         release: env.VERCEL_GIT_COMMIT_SHA,
       })
     : noErrorReporter;
+  const logger = createLogger(env.LOG_LEVEL);
   return {
-    logger: createLogger(env.LOG_LEVEL),
+    logger,
     errorReporter,
     rateLimiter:
       env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
@@ -155,11 +164,31 @@ export function createContainer(source: Record<string, string | undefined>): Con
           }
         : undefined,
       planOf,
+      prisma ? catalogService(prisma, env.MAL_CLIENT_ID, logger) : undefined,
     ),
   };
 }
 
-// The seven API modules of ADR-0019 plus the system module, in a stable order.
+// The catalog reads our table; with a MyAnimeList client id it also completes what the
+// table lacks (ADR-0043, point 3). A failure of MyAnimeList is logged, never served.
+function catalogService(
+  prisma: PrismaClient,
+  clientId: string | undefined,
+  logger: Logger,
+): CatalogService {
+  const repository = createCatalogRepository(prisma);
+  if (!clientId) return createCatalogService(repository);
+  return createCatalogService(repository, {
+    fill: {
+      source: createMyAnimeListSource({ clientId }),
+      store: repository,
+      onError: (error) => logger.warn({ err: error }, 'catalog source failed'),
+    },
+  });
+}
+
+// The seven API modules of ADR-0019, the catalog (ADR-0043) and the system module, in a
+// stable order.
 export function createModules(
   profileService: ProfileService | undefined,
   marksService: MarksService | undefined,
@@ -168,6 +197,7 @@ export function createModules(
   franchiseOverrides?: FranchiseOverridesRepository,
   billing?: BillingDependencies,
   planOf?: PlanReader,
+  catalog?: CatalogService,
 ): Module[] {
   return [
     systemModule,
@@ -175,6 +205,7 @@ export function createModules(
     createProfileModule(profileService, { planOf, plusAvailable: billing !== undefined }),
     createMarksModule(marksService),
     createFranchisesModule(franchiseOverrides),
+    createCatalogModule(catalog),
     createPublicProfileModule(publicProfileService),
     createBillingModule(billing),
     anilistLinkModule,
