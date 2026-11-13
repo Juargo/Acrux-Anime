@@ -30,13 +30,13 @@ El acuerdo de la API de MyAnimeList prohíbe compartir el client ID: no va en el
 2. En Neon, rama `production`, darle login y contraseña al rol: `ALTER ROLE acrux_catalog WITH LOGIN PASSWORD '…';`.
 3. En GitHub, crear el entorno `catalog-production`, sin revisores y limitado a `main`, con los secretos `MAL_CLIENT_ID` y `DATABASE_URL_CATALOG`.
 4. En Vercel, agregar `MAL_CLIENT_ID` al proyecto `app`, que es donde se despliega la API, en *Production* y *Preview*. Hecho el 2026-11-11; tiene efecto desde el siguiente despliegue.
-5. Correr el workflow **Catalog** a mano con `details` en `16000`. Tarda unas cuatro horas y media. Repetirlo una vez más: con dos corridas todos los animes que se muestran quedan con su detalle.
+5. Correr el workflow **Catalog** a mano con `details` en `16000` y repetirlo con `6000`: con dos corridas todos los animes que se muestran quedan con su detalle. Hecho el 2026-11-12 desde una máquina local, porque el workflow fallaba al arrancar: 16.000 detalles en 7 h 25 min y 6.000 en 3 h 05 min.
 
 Mientras un anime no tiene detalle, el catálogo lo muestra como un ítem suelto, sin agrupar con su saga. Se agrupa cuando el trabajo lo lee o cuando alguien abre su franquicia.
 
 ## Operación
 
-- **Corrida semanal:** lista todo y lee 6.000 detalles (cerca de una hora y cuarenta minutos).
+- **Corrida semanal:** lista todo y lee 6.000 detalles. Medido desde una máquina local: unos 15 minutos de listado y 1,8 s por detalle, cerca de tres horas en total.
 - **Corrida a mano:** workflow **Catalog** → *Run workflow*, con el número de detalles.
 - **En local:** con `MAL_CLIENT_ID` y `DATABASE_URL` en el entorno, `pnpm --filter @acrux/api catalog:load --details=40`. `--delay` cambia la pausa entre pedidos, en milisegundos (mínimo 500).
 - **Si el workflow falla con «stopped early»:** MyAnimeList rechazó o falló. No relanzar enseguida; esperar al menos una hora. Lo ya guardado queda guardado y la próxima corrida sigue desde ahí.
@@ -48,5 +48,9 @@ SELECT count(*) AS total, count(detailed_at) AS con_detalle,
        count(*) FILTER (WHERE adult) AS adultos, max(fetched_at) AS ultima_lectura
 FROM anime;
 ```
+
+Tras una corrida pueden quedar algunos animes sin detalle: cuando un anime apunta a otro que no devuelve la relación, el otro se marca para releer. La corrida siguiente los lee primero.
+
+Producción el 2026-11-12: 30.769 animes, 1.655 para adultos, 23.629 con detalle y 20 marcados para releer.
 
 Prueba del 2026-11-11 en una base local: 30.758 animes listados en 2 min 49 s y 40 detalles; una franquicia sin detalle se completó en 1,5 s y la segunda vez respondió en 13 ms.
