@@ -148,3 +148,12 @@ Pronóstico: más de 3.000 líneas cambiadas, muy por encima de 400. T5 y T6 deb
   - Los siete pasan las 400 líneas; cada cuerpo recomienda `size:exception` con su motivo.
   - Checks observados en #110 y #117: Commitlint, auditoría de dependencias, gitleaks, Quality, E2E y los despliegues de Vercel en verde; en #117 también la migración de la base de vista previa. Los de #111 a #116 no se revisaron uno por uno.
   - Queda: revisión y merge en orden (decisión del stakeholder) y la puesta en marcha de `docs/runbooks/catalogo.md`.
+- **L30 (2026-11-12):** puesta en marcha en producción, pedida por el stakeholder («vamos por una precarga de datos»).
+  - Encadenados #111 a #117 mergeados en orden y #110 a `main` como `0f517de`. Runbook corregido en #118 (`f7f6e38`): la variable va en el proyecto `app` de Vercel. Producción desplegada en `f7f6e38`.
+  - Rol `acrux_catalog` con login en la rama `production` de Neon. Entorno `catalog-production` de GitHub con sus dos secretos.
+  - El workflow **Catalog** falló tres veces con `startup_failure`, sin jobs. Causa sin determinar. Con permiso del stakeholder la carga corrió desde su máquina con el rol del catálogo.
+  - Dos fallos del cargador contra la base remota, corregidos en #120: `ca2b965` (guardar listas sin una transacción larga, P2028) y `f906f1c` (reintentar las escrituras que fallan de paso). RED: 2 tests en `catalog-loader.test.ts`.
+  - Corridas: una cortada en 2.064 detalles; 16.000 detalles en 7 h 25 min; 6.000 en 3 h 05 min; 200 en 20 min. Cerca de 1,8 s por detalle.
+  - Resultado: 30.769 animes, 1.655 para adultos, 23.629 con detalle. Quedan 20 marcados para releer.
+  - Observado: `saveDetailed` vuelve a marcar para releer al anime relacionado que no devuelve la relación. Tras 6.000 detalles quedaron 159; tras releerlos, 20. No se comprobó si llega a cero.
+  - Queda: merge de #120, la causa del `startup_failure` y decidir si la relectura por relación asimétrica necesita un límite.
