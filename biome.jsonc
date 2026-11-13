@@ -11,6 +11,8 @@
       "**",
       "!**/*.md",
       "!pnpm-lock.yaml",
+      // release-please rewrites it minified in every release pull request.
+      "!.release-please-manifest.json",
       "!apps/landing/public/icons",
       "!apps/web/public/icons",
       "!apps/api/openapi.json"
