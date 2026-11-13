@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { pwaOptions } from './pwa-options';
+import { pwaOptions, SHELL_CACHE } from './pwa-options';
 
-const denied = (path: string) =>
-  (pwaOptions.workbox?.navigateFallbackDenylist ?? []).some((pattern) => pattern.test(path));
+const [shell, ...others] = pwaOptions.workbox?.runtimeCaching ?? [];
+const matchShell = shell?.urlPattern as (context: { request: Request; url: URL }) => boolean;
+const navigation = (path: string) =>
+  matchShell({
+    request: { mode: 'navigate' } as Request,
+    url: new URL(path, 'https://app.acruxanime.com'),
+  });
 
 describe('pwaOptions (ADR-0016)', () => {
   it('waits for the user before activating a new version', () => {
@@ -25,10 +30,34 @@ describe('pwaOptions (ADR-0016)', () => {
   });
 
   it('caches only the app shell: no runtime caching of the API or the covers', () => {
-    expect(pwaOptions.workbox?.runtimeCaching).toBeUndefined();
-    expect(pwaOptions.workbox?.globPatterns).toEqual(['**/*.{html,js,css,svg,png,ico,woff2}']);
-    expect(denied('/api/v1/me')).toBe(true);
-    expect(denied('/perfil')).toBe(false);
-    expect(denied('/@camila')).toBe(false);
+    expect(others).toEqual([]);
+    expect(pwaOptions.workbox?.globPatterns).toEqual(['**/*.{js,css,svg,png,ico,woff2}']);
+    expect(navigation('/api/v1/me')).toBe(false);
+    expect(
+      matchShell({
+        request: { mode: 'no-cors' } as Request,
+        url: new URL('https://cdn.myanimelist.net/images/anime/1208/94745l.jpg'),
+      }),
+    ).toBe(false);
+  });
+
+  // ADR-0042: the document carries a per-request CSP nonce, so it is never precached.
+  it('asks the network for every navigation and keeps one copy for offline use', () => {
+    expect(pwaOptions.workbox?.navigateFallback).toBeNull();
+    expect(navigation('/perfil')).toBe(true);
+    expect(navigation('/@camila')).toBe(true);
+    expect(shell?.handler).toBe('NetworkFirst');
+    expect(shell?.options?.cacheName).toBe(SHELL_CACHE);
+  });
+
+  it('serves the same offline copy for every route', async () => {
+    const [plugin] = shell?.options?.plugins ?? [];
+    const key = (path: string) =>
+      plugin?.cacheKeyWillBeUsed?.({
+        request: new Request(`https://app.acruxanime.com${path}`),
+        mode: 'read',
+      } as never);
+    expect(await key('/perfil')).toBe('/');
+    expect(await key('/franquicia/21')).toBe('/');
   });
 });

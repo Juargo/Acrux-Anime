@@ -33,12 +33,7 @@ Anuncios para usuarios gratuitos (RF-58), que Plus quita (RF-59). La decisión e
 1. Leer el acuerdo de la API de MyAnimeList (https://myanimelist.net/static/apiagreement.html) y confirmar que permite mostrar anuncios con sus datos. El soporte de MyAnimeList autorizó el uso comercial por correo (2026-11-06), pero el texto del acuerdo prohíbe generar ingresos con una aplicación comercial sin autorización escrita (ADR-0043). AniList ya no es la fuente, así que su autorización (#6) dejó de ser el bloqueo que exigía ADR-0036, punto 4.
 2. Confirmar si con la Ley 21.719 (Chile) las cookies de frecuencia y fraude de AdSense necesitan consentimiento (ADR-0038). Si lo necesitan, sin consentimiento hay que pasar a anuncios limitados o a ninguno.
 3. Publicar contenido en `acruxanime.com` y pedir la cuenta de AdSense con ese sitio.
-4. **Decidir la CSP.** Google solo soporta una política estricta basada en nonce (`'strict-dynamic'`) y no una lista de dominios permitidos ([AdSense Help](https://support.google.com/adsense/answer/16283098)). Hoy la web es una SPA estática con `script-src 'self'` (`apps/web/vercel.json`). Hay tres opciones:
-   - **A. Nonce por petición:** un middleware de Vercel genera un nonce, lo agrega al HTML y la CSP usa `'strict-dynamic'`. Es lo que soporta Google, pero el `index.html` deja de ser estático.
-   - **B. Lista de dominios:** agregar `pagead2.googlesyndication.com`, `googleads.g.doubleclick.net`, `tpc.googlesyndication.com` y otros a `script-src`, `frame-src`, `img-src` y `connect-src`. Google no la soporta y puede bloquear anuncios sin avisar cuando cambie sus dominios.
-   - **C. Abrir `script-src`** a `https:`. Es simple, pero debilita mucho la protección contra XSS.
-   
-   Cualquier cambio en la CSP es de seguridad y necesita su propia revisión y un test en `apps/web/src/vercel-config.test.ts`.
+4. ~~Decidir la CSP.~~ **Hecho (ADR-0042):** el HTML lleva un nonce por pedido y la CSP se arma en `apps/web/api/_csp.ts`. Al poner las dos variables de AdSense, la misma función agrega lo que piden los anuncios. Después de activarlos, revisar en la consola del navegador que no haya avisos «Content Security Policy» en las cuatro pantallas.
 5. Publicar `ads.txt` en `acruxanime.com` y `app.acruxanime.com` con la línea que da AdSense: `google.com, pub-XXXXXXXX, DIRECT, f08c47fec0942fa0`.
 6. Configurar el mensaje de privacidad (TCF) en la consola de AdSense para la UE, el Reino Unido y Suiza.
 

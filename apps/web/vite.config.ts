@@ -3,6 +3,7 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { NONCE_PLACEHOLDER } from './api/_csp';
 import { version } from './package.json';
 import { pwaOptions } from './pwa-options';
 
@@ -29,6 +30,8 @@ const appVersion = commit ? `${version} (${commit})` : `${version} (local)`;
 // Locally, /api is proxied to the API dev server (pnpm --filter @acrux/api dev).
 export default defineConfig({
   plugins: [react(), VitePWA(pwaOptions), ...sentry],
+  // api/html.ts swaps the placeholder for a fresh nonce on every request (ADR-0042).
+  html: { cspNonce: NONCE_PLACEHOLDER },
   define: { __APP_VERSION__: JSON.stringify(appVersion) },
   build: { sourcemap: sentry.length > 0 ? 'hidden' : false },
   test: { setupFiles: ['./src/test-setup.ts'] },

@@ -22,7 +22,7 @@ Todo lo de esta lista debe estar resuelto, o descartado con su motivo, antes del
 
 Los espacios, el consentimiento separado y la política de privacidad ya están construidos, apagados hasta configurar AdSense. Los pasos para activarlos están en [`runbooks/anuncios.md`](./runbooks/anuncios.md). Falta lo siguiente:
 
-- **CSP.** Decidir cómo se permite AdSense: con nonce por petición, con una lista de dominios o abriendo `script-src`. Google solo soporta el nonce.
+- ~~**CSP.**~~ Resuelto con nonce por pedido (ADR-0042).
 - **Ley 21.719.** Confirmar si en Chile las cookies de frecuencia y fraude necesitan consentimiento.
 - **Cuenta de AdSense.** Pedirla después de leer el acuerdo de la API de MyAnimeList (ADR-0043). Después publicar `ads.txt` y configurar el mensaje TCF para la UE, el Reino Unido y Suiza.
 

@@ -8,6 +8,11 @@
   },
   "buildCommand": "pnpm --filter @acrux/web... build",
   "regions": ["gru1"],
+  "functions": {
+    "api/html.ts": {
+      "includeFiles": "dist/index.html"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -26,7 +31,7 @@
     },
     {
       "source": "/((?!api/|assets/).*)",
-      "destination": "/index.html"
+      "destination": "/api/html"
     }
   ],
   "headers": [

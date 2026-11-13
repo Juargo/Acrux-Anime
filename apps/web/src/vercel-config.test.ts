@@ -55,7 +55,7 @@ const headerFor = (source: string, key: string) =>
   full.headers
     .find((rule) => rule.source === source)
     ?.headers.find((header) => header.key.toLowerCase() === key.toLowerCase())?.value;
-const spaFallback = full.rewrites.find((rewrite) => rewrite.destination === '/index.html');
+const spaFallback = full.rewrites.find((rewrite) => rewrite.destination === '/api/html');
 const fallsBackToSpa = (path: string) => new RegExp(`^${spaFallback?.source ?? ''}$`).test(path);
 
 describe('static responses', () => {

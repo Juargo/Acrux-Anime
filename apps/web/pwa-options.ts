@@ -4,10 +4,15 @@ const brand = '#0b0d1c';
 
 /**
  * Installable PWA that caches only the app shell (ADR-0016, #44). The new service worker waits
- * for "Recargar" (registerType prompt), and nothing fetched at run time is cached: the API, Neon
- * Auth, the cover images and PostHog always go to the network (ADR-0024). The icons come from
+ * for "Recargar" (registerType prompt), and nothing else fetched at run time is cached: the API,
+ * Neon Auth, the cover images and PostHog always go to the network (ADR-0024). The icons come from
  * public/icons/marca.svg (@vite-pwa/assets-generator).
+ *
+ * The document is not precached: api/html.ts gives it a fresh CSP nonce on every request
+ * (ADR-0042), so navigations go to the network first and fall back to the last copy offline.
+ * Every route shares one cache entry, since the SPA document is the same for all of them.
  */
+export const SHELL_CACHE = 'acrux-shell';
 export const pwaOptions: Partial<VitePWAOptions> = {
   registerType: 'prompt',
   // UpdatePrompt registers it through virtual:pwa-register/react.
@@ -36,9 +41,21 @@ export const pwaOptions: Partial<VitePWAOptions> = {
     ],
   },
   workbox: {
-    globPatterns: ['**/*.{html,js,css,svg,png,ico,woff2}'],
-    // /api answers from the function, never from the shell (the crawler card of /@handle too).
-    navigateFallbackDenylist: [/^\/api\//],
+    globPatterns: ['**/*.{js,css,svg,png,ico,woff2}'],
+    navigateFallback: null,
+    runtimeCaching: [
+      {
+        // /api answers from the function, never from the shell (the crawler card of /@handle too).
+        urlPattern: ({ request, url }) =>
+          request.mode === 'navigate' && !url.pathname.startsWith('/api/'),
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: SHELL_CACHE,
+          networkTimeoutSeconds: 5,
+          plugins: [{ cacheKeyWillBeUsed: async () => '/' }],
+        },
+      },
+    ],
     cleanupOutdatedCaches: true,
   },
 };
