@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet } from 'react-router';
-import type { AniListClient } from '../anilist/client';
 import type { CardGeneratedEvent, CardSharedEvent } from '../card/CardScreen';
 import type { FranchiseMarkedEvent } from '../catalog/use-franchise-marks';
+import type { CatalogClient } from '../catalog-source/client';
 import { Avatar } from '../components/Avatar';
 import { type CounterModeChangedEvent, TotalCounter } from '../counter/TotalCounter';
 import type { ListMadePublicEvent } from '../profile/PrivacyScreen';
@@ -22,8 +22,8 @@ export function Home(props: {
   signingOut: boolean;
   signOutFailed: boolean;
   getToken: () => Promise<string | null>;
-  // Tests inject AniList and the API; the screens below get the same ones.
-  client?: AniListClient | undefined;
+  // Tests inject the catalog and the API; the screens below get the same ones.
+  client?: CatalogClient | undefined;
   fetchFn?: typeof fetch | undefined;
   onCounterModeChanged?: ((event: CounterModeChangedEvent) => void) | undefined;
   onCardGenerated?: ((event: CardGeneratedEvent) => void) | undefined;

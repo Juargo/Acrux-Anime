@@ -4,6 +4,6 @@ Característica: Búsqueda por nombre
 
   @CA-RF12-01
   Escenario: Buscar un anime por su nombre
-    Dado que "Sousou no Frieren" tiene dos temporadas en AniList
+    Dado que "Sousou no Frieren" tiene dos temporadas en MyAnimeList
     Cuando escribo "frieren" en el buscador
     Entonces veo un solo ítem para la franquicia, con su portada y su título

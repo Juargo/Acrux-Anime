@@ -1,7 +1,7 @@
 import { createHmac, randomInt } from 'node:crypto';
 import type { APIRequestContext } from '@playwright/test';
-import { FRIEREN, SPY_FAMILY } from '../support/anilist.ts';
 import { markSeen, profileOf } from '../support/api.ts';
+import { FRIEREN, SPY_FAMILY } from '../support/catalog.ts';
 import { API_URL, LEMON_SQUEEZY } from '../support/env.ts';
 import { expect, test, visitorContext } from '../support/fixtures.ts';
 

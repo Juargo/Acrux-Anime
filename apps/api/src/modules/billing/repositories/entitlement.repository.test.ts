@@ -123,7 +123,7 @@ describe('entitlement repository', () => {
   it('@CA-RF56-01 takes Plus back on a refund and keeps the profile and its marks (S4)', async () => {
     const entitlements = createEntitlementRepository(prisma);
     const userId = await newUser();
-    await prisma.mark.create({ data: { userId, anilistId: 21, status: 'seen' } });
+    await prisma.mark.create({ data: { userId, animeId: 21, status: 'seen' } });
     await entitlements.grantPlus({
       eventId: 'order_created:1004',
       eventName: 'order_created',

@@ -4,9 +4,8 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { AniListClient } from '../anilist/client';
-import { AniListError } from '../anilist/client';
-import type { StatsMedia } from '../anilist/queries';
+import { type CatalogAnime, CatalogError } from '../catalog-source/client';
+import { anime, fakeCatalogClient } from '../catalog-source/test-support';
 import { setLocale } from '../i18n';
 import type { MarkDto } from '../marks-api';
 import type { Profile } from '../profile-api';
@@ -41,46 +40,45 @@ const free: Profile = {
 };
 const plus: Profile = { ...free, plan: 'plus' };
 
-const mark = (anilistId: number, status: MarkDto['status'] = 'seen'): MarkDto => ({
-  anilistId,
-  malId: null,
+const mark = (animeId: number, status: MarkDto['status'] = 'seen'): MarkDto => ({
+  animeId,
   status,
   markedAt: '2026-10-10T12:00:00.000Z',
 });
 
-const catalog: Record<number, StatsMedia> = {
-  1: {
-    id: 1,
-    format: 'TV',
-    seasonYear: 2014,
-    episodes: 24,
-    duration: 24,
-    genres: ['Action', 'Drama'],
-  },
-  2: { id: 2, format: 'MOVIE', seasonYear: 2016, episodes: 1, duration: 120, genres: ['Drama'] },
-  3: { id: 3, format: 'TV', seasonYear: 1998, episodes: null, duration: 24, genres: ['Comedy'] },
-  4: { id: 4, format: 'TV', seasonYear: 2020, episodes: 12, duration: 24, genres: ['Romance'] },
+const stat = (
+  id: number,
+  format: string,
+  year: number,
+  episodes: number | null,
+  durationMinutes: number,
+  genres: string[],
+) => anime(id, { format, year, episodes, durationMinutes, genres });
+
+const catalog: Record<number, CatalogAnime> = {
+  1: stat(1, 'TV', 2014, 24, 24, ['Action', 'Drama']),
+  2: stat(2, 'MOVIE', 2016, 1, 120, ['Drama']),
+  3: stat(3, 'TV', 1998, null, 24, ['Comedy']),
+  4: stat(4, 'TV', 2020, 12, 24, ['Romance']),
 };
 
 function renderStats(
-  options: { profile?: Profile; marks?: MarkDto[]; anilistFails?: boolean } = {},
+  options: { profile?: Profile; marks?: MarkDto[]; catalogFails?: boolean } = {},
 ) {
   const profile = options.profile ?? free;
   const marks = options.marks ?? [mark(1), mark(2), mark(3), mark(4, 'watching')];
   const asked: number[][] = [];
-  let fail = options.anilistFails ?? false;
-  const client = {
-    request: vi.fn(async (query: string, variables: Record<string, unknown>, schema) => {
-      if (!query.includes('MediaStats')) return schema.parse({ Page: { media: [] } });
+  let fail = options.catalogFails ?? false;
+  const client = fakeCatalogClient({
+    byIds: async (ids) => {
       if (fail) {
         fail = false;
-        throw new AniListError('unavailable', 'down');
+        throw new CatalogError('unavailable', 'down');
       }
-      const ids = variables.ids as number[];
-      asked.push(ids);
-      return schema.parse({ Page: { media: ids.flatMap((id) => catalog[id] ?? []) } });
-    }),
-  } as unknown as AniListClient;
+      asked.push([...ids]);
+      return ids.flatMap((id) => catalog[id] ?? []);
+    },
+  });
   const fetchFn = vi.fn(async (url: string) => {
     if (url.startsWith('/api/v1/me/marks?')) return json({ items: marks, nextCursor: null });
     if (url === '/api/v1/me') return json(profile);
@@ -118,6 +116,13 @@ function renderStats(
 const statsPage = () => screen.findByRole('region', { name: 'Estadísticas' });
 
 describe('StatsScreen (RF-53)', () => {
+  it('credits MyAnimeList with a link (ADR-0043)', async () => {
+    renderStats({ profile: plus });
+    expect((await screen.findByRole('link', { name: 'MyAnimeList' })).getAttribute('href')).toBe(
+      'https://myanimelist.net',
+    );
+  });
+
   it('@CA-RF53-01 shows a Plus user hours, episodes, genres, decades and formats of seen titles', async () => {
     const { asked } = renderStats({ profile: plus });
     const page = await statsPage();
@@ -182,8 +187,8 @@ describe('StatsScreen (RF-53)', () => {
     expect(asked).toEqual([]);
   });
 
-  it('explains an AniList failure and retries on demand', async () => {
-    renderStats({ profile: plus, anilistFails: true });
+  it('explains a catalog failure and retries on demand', async () => {
+    renderStats({ profile: plus, catalogFails: true });
     const page = await statsPage();
 
     expect(await within(page).findByRole('alert')).toBeTruthy();

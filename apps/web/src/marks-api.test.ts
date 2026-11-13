@@ -3,8 +3,7 @@ import { deleteMark, fetchMarks, MarksError, putMark, saveMarks } from './marks-
 
 const token = async () => 'jwt';
 const mark = {
-  anilistId: 16498,
-  malId: 16498,
+  animeId: 16498,
   status: 'seen',
   markedAt: '2026-11-03T12:00:00.000Z',
 };
@@ -33,13 +32,13 @@ describe('marks API client', () => {
     const pages: Record<string, unknown> = {
       '/api/v1/me/marks?limit=1000': { items: [mark], nextCursor: '16498' },
       '/api/v1/me/marks?limit=1000&cursor=16498': {
-        items: [{ ...mark, anilistId: 20958 }],
+        items: [{ ...mark, animeId: 20958 }],
         nextCursor: null,
       },
     };
     const fetchFn = vi.fn(async (url: string) => Response.json(pages[url]));
     const marks = await fetchMarks(token, fetchFn as unknown as typeof fetch);
-    expect(marks.map((item) => item.anilistId)).toEqual([16498, 20958]);
+    expect(marks.map((item) => item.animeId)).toEqual([16498, 20958]);
     expect(fetchFn.mock.calls.map(([url]) => url)).toEqual(Object.keys(pages));
   });
 
@@ -60,7 +59,7 @@ describe('marks API client', () => {
 
     const saved = await saveMarks(
       token,
-      { status: 'seen', entries: [{ anilistId: 16498, malId: 16498 }] },
+      { status: 'seen', entries: [{ animeId: 16498 }] },
       fetchFn,
     );
 
@@ -68,18 +67,18 @@ describe('marks API client', () => {
     expect(fetchFn).toHaveBeenCalledWith('/api/v1/me/marks:batch', {
       method: 'POST',
       headers: { Authorization: 'Bearer jwt', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'seen', entries: [{ anilistId: 16498, malId: 16498 }] }),
+      body: JSON.stringify({ status: 'seen', entries: [{ animeId: 16498 }] }),
     });
   });
 
   it('marks one entry with its status and MAL id', async () => {
     const fetchFn = respond(200, mark);
 
-    expect(await putMark(token, 16498, { status: 'seen', malId: 16498 }, fetchFn)).toEqual(mark);
+    expect(await putMark(token, 16498, { status: 'seen' }, fetchFn)).toEqual(mark);
     expect(fetchFn).toHaveBeenCalledWith('/api/v1/me/marks/16498', {
       method: 'PUT',
       headers: { Authorization: 'Bearer jwt', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'seen', malId: 16498 }),
+      body: JSON.stringify({ status: 'seen' }),
     });
   });
 
@@ -107,7 +106,7 @@ describe('marks API client', () => {
 
     const error = await saveMarks(
       token,
-      { status: null, entries: [{ anilistId: 1 }] },
+      { status: null, entries: [{ animeId: 1 }] },
       fetchFn,
     ).catch((caught: unknown) => caught);
 

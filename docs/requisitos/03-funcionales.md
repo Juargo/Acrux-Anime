@@ -7,9 +7,9 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 | ID | Requisito | Prioridad | Hito | Origen y pantallas |
 |---|---|---|---|---|
 | RF-01 | El usuario inicia sesión con su cuenta de Google. | Must | H2 | ADR-0015, DD-19 · M01/D01 |
-| RF-02 | El usuario puede vincular su cuenta de AniList (opcional; siempre se puede omitir). | Should | — | ADR-0025 · M29–M31 |
-| RF-03 | Con AniList vinculada, lo que marca en Acrux se escribe en su lista de AniList, y lo que ya tenía en AniList aparece en Acrux. Al vincular, ambas listas se combinan y gana "Vista". | Should | — | DD-21 · M31 |
-| RF-04 | El usuario puede desvincular AniList sin perder su cuenta ni sus marcas; no se borra nada en AniList. | Must (si existe RF-02) | — | Figma flujo 4 · M18/D18 |
+| RF-02 | El usuario puede vincular su cuenta de AniList (opcional; siempre se puede omitir). **Fuera del alcance del lanzamiento (2026-11-10, ADR-0043, punto 8).** | Should | — | ADR-0025 · M29–M31 |
+| RF-03 | Con AniList vinculada, lo que marca en Acrux se escribe en su lista de AniList, y lo que ya tenía en AniList aparece en Acrux. Al vincular, ambas listas se combinan y gana "Vista". **Fuera del alcance del lanzamiento (2026-11-10, ADR-0043, punto 8).** | Should | — | DD-21 · M31 |
+| RF-04 | El usuario puede desvincular AniList sin perder su cuenta ni sus marcas; no se borra nada en AniList. **Fuera del alcance del lanzamiento (2026-11-10, ADR-0043, punto 8).** | Must (si existe RF-02) | — | Figma flujo 4 · M18/D18 |
 | RF-05 | El usuario puede cerrar sesión. | Must | H2 | — |
 | RF-06 | El usuario puede borrar su cuenta y todos sus datos. Si la sesión tiene más de 24 horas, debe volver a iniciar sesión antes. Si tiene Plus, se le avisa que el plan vitalicio se pierde sin reembolso. | Must | H2 | ADR-0025, DD-30, DD-33, ADR-0036 · M19/D19 |
 | RF-07 | El usuario puede editar su nombre visible y su avatar. Se toman de Google y solo se piden si faltan. | Must | H2 | DD-11; Must porque la tarjeta los exige · M06/D06 |
@@ -20,7 +20,7 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 
 | ID | Requisito | Prioridad | Hito | Origen y pantallas |
 |---|---|---|---|---|
-| RF-10 | La app muestra el catálogo de anime con portada y título; en el primer uso, una carga en ráfaga de las sagas más populares de AniList. | Must | H2 | DD-09 · M02/D02, M03/D03 |
+| RF-10 | La app muestra el catálogo de anime con portada y título; en el primer uso, una carga en ráfaga de las sagas más populares de MyAnimeList, leídas del catálogo propio (ADR-0043). | Must | H2 | DD-09 · M02/D02, M03/D03 |
 | RF-11 | El catálogo incluye series de TV, películas, OVAs, ONAs y especiales. Se excluye el contenido adulto y las entradas de música. | Must | H2 | ADR-0024, DD-17 |
 | RF-12 | El usuario puede buscar por nombre. | Must | H2 | ADR-0017 |
 | RF-13 | El usuario puede filtrar por año, género y tipo. | Must | H2 | ADR-0017, ADR-0024 · M34/D36 |
@@ -41,7 +41,7 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 | RF-25 | El contador cuenta **por franquicia** por defecto; un ajuste permite contar **por entradas**. | Must | H2 | — |
 | RF-26 | Estado de cada saga con prioridad **Viendo > Vista > Parcial > Sin marcar**. Parcial muestra el progreso del núcleo ("3/5 temporadas"). | Should | H2 | Figma flujo 2B |
 | RF-27 | El usuario ve su lista de vistos y de viendo ahora, con estado vacío. | Must | H2 | M12/D12, M13/D13 |
-| RF-28 | Toda marca se puede deshacer durante 5 segundos desde un aviso; si la escritura en AniList sigue en cola, se cancela. | Must | H2 | Figma flujo 7 · M11/D11 |
+| RF-28 | Toda marca se puede deshacer durante 5 segundos desde un aviso; si la escritura en AniList sigue en cola, se cancela (sin objeto mientras no exista el vínculo con AniList, ADR-0043). | Must | H2 | Figma flujo 7 · M11/D11 |
 
 ## 4. Compartir
 
@@ -94,19 +94,19 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 | RF-71 | El usuario puede cambiar el idioma. | Should | H2 | — |
 | RF-72 | El tema claro u oscuro sigue al sistema, con opción manual. | Should | H2 | DD-25 |
 | RF-73 | Los ajustes se guardan al instante, sin botón "Guardar", y se confirman con un mensaje breve. | Must | H2 | Figma flujo 4 · M16/D16 |
-| RF-74 | Una pantalla "Acerca de" atribuye el catálogo a AniList. | Must | H2 | ADR-0024 (sin diseño, P-08) |
+| RF-74 | Una pantalla "Acerca de" atribuye el catálogo a MyAnimeList, con un enlace (ADR-0043). | Must | H2 | ADR-0024 (sin diseño, P-08) |
 
 ## 9. Landing de validación
 
 | ID | Requisito | Prioridad | Hito | Origen |
 |---|---|---|---|---|
-| RF-80 | La landing en `acruxanime.com` muestra la propuesta de valor, mockups de la tarjeta y un botón "Únete a la beta" que registra el correo en la lista de espera, con doble confirmación. | Must | H1 | ADR-0031, ADR-0033 · D40/M40, D41 |
+| RF-80 | La landing en `acruxanime.com` muestra la propuesta de valor, mockups de la tarjeta y un botón «Abrir Acrux» que lleva a `app.acruxanime.com`. Hasta 2026-11-10 el botón era "Únete a la beta" y registraba el correo en la lista de espera; la lista queda sin uso (ADR-0044). | Must | H1 | ADR-0031, ADR-0033, ADR-0044 · D40/M40, D41 |
 | RF-81 | La landing publica la política de privacidad, el soporte y las instrucciones para borrar la cuenta. | Must | H1 | ADR-0012, RES-34 · D42/M42, D43 |
 | RF-82 | La landing y la app piden consentimiento antes de activar la analítica, y permiten retirarlo. | Must | H1 | ADR-0028, ADR-0030 · D40/M40 (falta en la app, P-08) |
 
 ## Preguntas abiertas
 
-- RF-02 a RF-04: hito y diseño técnico de la sincronización con AniList (P-03).
+- RF-02 a RF-04: hito y diseño técnico de la sincronización con AniList (P-03). Fuera del alcance del lanzamiento desde 2026-11-10 (ADR-0043, punto 8).
 - RF-34 y RF-54: lista de hitos y contenido del Wrapped.
 - Sagas no lineales (Monogatari, Fate, Gundam): quedan para el curador.
 - Orden por defecto del catálogo y de "Mi lista".

@@ -25,6 +25,9 @@ const envSchema = z.object({
   // Pooled Neon connection with the acrux_api role (ADR-0034). Without it, /api/v1/me
   // answers 503.
   DATABASE_URL: z.preprocess(emptyAsUnset, z.url().optional()),
+  // MyAnimeList client id (ADR-0043). Server only: the API agreement forbids sharing it.
+  // Without it the catalog serves only what the table holds, with no fill on demand.
+  MAL_CLIENT_ID: z.preprocess(emptyAsUnset, z.string().min(1).optional()),
   // Sentry (#26). Without a DSN, errors stay in the logs only.
   SENTRY_DSN: z.preprocess(emptyAsUnset, z.url().optional()),
   // Upstash Redis for rate limits (#27). Without both, every request passes.

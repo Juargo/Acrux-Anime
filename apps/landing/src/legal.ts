@@ -22,6 +22,8 @@ export interface LegalPage {
 }
 
 export const CONTACT_EMAIL = 'jorgeretamal.jjra@gmail.com';
+// Credit link requested by MyAnimeList's support (ADR-0043, point 7); `{mal}` in a paragraph renders it.
+export const MAL_URL = 'https://myanimelist.net';
 const OWNER = 'Jorge Retamal';
 const RESPONSE_TIME = { es: '3 días hábiles', en: '3 business days' };
 
@@ -35,7 +37,7 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
           'Qué datos guarda Acrux, para qué los usa, con quién los comparte y cómo ejercer tus derechos.',
       },
       title: 'Política de privacidad',
-      updated: 'Última actualización: 10 de noviembre de 2026',
+      updated: 'Última actualización: 11 de noviembre de 2026',
       sections: [
         {
           title: 'Quién es responsable',
@@ -46,20 +48,20 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
         {
           title: 'Qué datos guardamos',
           paragraphs: [
-            'En la lista de espera, solo tu correo, y lo borramos al terminar la beta. En la app, el nombre y el avatar de tu cuenta de Google, tus preferencias y los animes que marcas. Nunca mostramos tu correo.',
+            'En la app, el nombre y el avatar de tu cuenta de Google, tus preferencias y los animes que marcas. Nunca mostramos tu correo.',
           ],
         },
         {
           title: 'Para qué los usamos',
           paragraphs: [
-            'Para invitarte a la beta y para que la app funcione. Si aceptas la analítica, medimos el uso de forma agregada para saber si Acrux le sirve a más gente.',
-            'La lista de espera y la analítica se basan en tu consentimiento, que puedes retirar cuando quieras. Los datos de la app se tratan porque son necesarios para darte el servicio que pides.',
+            'Para que la app funcione. Si aceptas la analítica, medimos el uso de forma agregada para saber si Acrux le sirve a más gente.',
+            'La analítica se basa en tu consentimiento, que puedes retirar cuando quieras. Los datos de la app se tratan porque son necesarios para darte el servicio que pides.',
           ],
         },
         {
           title: 'Con quién los compartimos',
           paragraphs: [
-            'Solo con los servicios que hacen funcionar Acrux, bajo acuerdos de tratamiento de datos: Neon (base de datos e inicio de sesión), Vercel (servidores), PostHog (analítica), Sentry (errores), Lemon Squeezy (pagos), Backblaze (respaldos), Upstash (límite de peticiones), Buttondown (lista de espera) y, cuando activemos los anuncios, Google AdSense (publicidad). No vendemos tus datos.',
+            'Solo con los servicios que hacen funcionar Acrux, bajo acuerdos de tratamiento de datos: Neon (base de datos e inicio de sesión), Vercel (servidores), PostHog (analítica), Sentry (errores), Lemon Squeezy (pagos), Backblaze (respaldos), Upstash (límite de peticiones) y, cuando activemos los anuncios, Google AdSense (publicidad). No vendemos tus datos.',
           ],
         },
         {
@@ -79,7 +81,7 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
         {
           title: 'Cuánto tiempo los guardamos',
           paragraphs: [
-            'Mientras sigas en la lista de espera o tengas cuenta. Si te das de baja o borras tu cuenta, tus datos se eliminan de inmediato y desaparecen de las copias de respaldo a más tardar en 30 días.',
+            'Mientras tengas cuenta. Si borras tu cuenta, tus datos se eliminan de inmediato y desaparecen de las copias de respaldo a más tardar en 30 días.',
           ],
         },
         {
@@ -98,20 +100,13 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
       path: '/soporte',
       meta: {
         title: 'Soporte · Acrux',
-        description:
-          'Cómo contactar a Acrux, salir de la lista de espera, descargar tus datos o borrar tu cuenta.',
+        description: 'Cómo contactar a Acrux, descargar tus datos o borrar tu cuenta.',
       },
       title: 'Soporte',
       sections: [
         {
           title: 'Escríbenos',
           paragraphs: [`Escríbenos a {email}. Respondemos en ${RESPONSE_TIME.es}.`],
-        },
-        {
-          title: 'Salir de la lista de espera',
-          paragraphs: [
-            'Cada correo que te enviamos incluye un enlace para salir de la lista. También puedes pedirlo por correo.',
-          ],
         },
         {
           title: 'Descargar tus datos',
@@ -130,15 +125,15 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
       path: '/terminos',
       meta: {
         title: 'Términos de uso · Acrux',
-        description: 'Las reglas para usar Acrux durante la beta.',
+        description: 'Las reglas para usar Acrux.',
       },
       title: 'Términos de uso',
-      updated: 'Última actualización: 30 de octubre de 2026',
+      updated: 'Última actualización: 11 de noviembre de 2026',
       sections: [
         {
           title: 'Qué es Acrux',
           paragraphs: [
-            'Acrux es una app independiente para marcar los animes que has visto y compartir tu historial. Está en beta, así que puede cambiar o fallar.',
+            'Acrux es una app independiente para marcar los animes que has visto y compartir tu historial. La app puede cambiar o fallar.',
           ],
         },
         {
@@ -148,9 +143,9 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
           ],
         },
         {
-          title: 'Catálogo y AniList',
+          title: 'Catálogo y MyAnimeList',
           paragraphs: [
-            'Los datos del catálogo los provee AniList. Acrux no está afiliada a AniList ni cuenta con su respaldo. Los títulos e imágenes de cada anime pertenecen a sus dueños.',
+            'Los datos del catálogo los provee {mal}. Acrux no está afiliada a {mal} ni cuenta con su respaldo. Los títulos e imágenes de cada anime pertenecen a sus dueños.',
           ],
         },
         {
@@ -187,7 +182,7 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
           'What data Acrux keeps, why, who it shares it with and how to exercise your rights.',
       },
       title: 'Privacy policy',
-      updated: 'Last updated: November 10, 2026',
+      updated: 'Last updated: November 11, 2026',
       sections: [
         {
           title: 'Who is responsible',
@@ -198,20 +193,20 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
         {
           title: 'What data we keep',
           paragraphs: [
-            'On the waitlist, only your email, and we delete it when the beta ends. In the app, the name and avatar of your Google account, your preferences and the anime you mark. We never show your email.',
+            'In the app, the name and avatar of your Google account, your preferences and the anime you mark. We never show your email.',
           ],
         },
         {
           title: 'What we use it for',
           paragraphs: [
-            'To invite you to the beta and to make the app work. If you accept analytics, we measure usage in aggregate to learn whether Acrux is useful to more people.',
-            'The waitlist and analytics rely on your consent, which you can withdraw at any time. App data is processed because it is needed to provide the service you ask for.',
+            'To make the app work. If you accept analytics, we measure usage in aggregate to learn whether Acrux is useful to more people.',
+            'Analytics relies on your consent, which you can withdraw at any time. App data is processed because it is needed to provide the service you ask for.',
           ],
         },
         {
           title: 'Who we share it with',
           paragraphs: [
-            'Only with the services that run Acrux, under data processing agreements: Neon (database and sign-in), Vercel (servers), PostHog (analytics), Sentry (errors), Lemon Squeezy (payments), Backblaze (backups), Upstash (rate limiting), Buttondown (waitlist) and, once we turn ads on, Google AdSense (advertising). We do not sell your data.',
+            'Only with the services that run Acrux, under data processing agreements: Neon (database and sign-in), Vercel (servers), PostHog (analytics), Sentry (errors), Lemon Squeezy (payments), Backblaze (backups), Upstash (rate limiting) and, once we turn ads on, Google AdSense (advertising). We do not sell your data.',
           ],
         },
         {
@@ -231,7 +226,7 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
         {
           title: 'How long we keep it',
           paragraphs: [
-            'While you stay on the waitlist or have an account. If you unsubscribe or delete your account, your data is erased immediately and disappears from backups within 30 days at the latest.',
+            'While you have an account. If you delete your account, your data is erased immediately and disappears from backups within 30 days at the latest.',
           ],
         },
         {
@@ -250,20 +245,13 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
       path: '/en/support',
       meta: {
         title: 'Support · Acrux',
-        description:
-          'How to contact Acrux, leave the waitlist, download your data or delete your account.',
+        description: 'How to contact Acrux, download your data or delete your account.',
       },
       title: 'Support',
       sections: [
         {
           title: 'Write to us',
           paragraphs: [`Write to {email}. We reply within ${RESPONSE_TIME.en}.`],
-        },
-        {
-          title: 'Leave the waitlist',
-          paragraphs: [
-            'Every email we send includes a link to leave the list. You can also ask by email.',
-          ],
         },
         {
           title: 'Download your data',
@@ -282,15 +270,15 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
       path: '/en/terms',
       meta: {
         title: 'Terms of use · Acrux',
-        description: 'The rules for using Acrux during the beta.',
+        description: 'The rules for using Acrux.',
       },
       title: 'Terms of use',
-      updated: 'Last updated: October 30, 2026',
+      updated: 'Last updated: November 11, 2026',
       sections: [
         {
           title: 'What Acrux is',
           paragraphs: [
-            'Acrux is an independent app to mark the anime you have watched and share your history. It is in beta, so it may change or fail.',
+            'Acrux is an independent app to mark the anime you have watched and share your history. The app may change or fail.',
           ],
         },
         {
@@ -300,9 +288,9 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
           ],
         },
         {
-          title: 'Catalog and AniList',
+          title: 'Catalog and MyAnimeList',
           paragraphs: [
-            'Catalog data is provided by AniList. Acrux is not affiliated with or endorsed by AniList. Anime titles and images belong to their owners.',
+            'Catalog data is provided by {mal}. Acrux is not affiliated with or endorsed by {mal}. Anime titles and images belong to their owners.',
           ],
         },
         {

@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import type { ListRow, MyList } from '../my-list/items';
 import { defaultChoice, MAX_COVERS, shareCardContent } from './content';
 
-const row = (id: number, coverUrl: string | null = `https://s4.anilist.co/${id}.png`): ListRow => ({
+const row = (
+  id: number,
+  coverUrl: string | null = `https://cdn.example.test/anime/${id}.png`,
+): ListRow => ({
   id: String(id),
   href: `/franquicia/${id}`,
   title: `Saga ${id}`,
@@ -78,7 +81,7 @@ describe('shareCardContent', () => {
     expect(card.covers[0]).toEqual({
       id: '1',
       title: 'Saga 1',
-      coverUrl: 'https://s4.anilist.co/1.png',
+      coverUrl: 'https://cdn.example.test/anime/1.png',
     });
   });
 

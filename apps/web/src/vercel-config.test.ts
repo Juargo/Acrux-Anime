@@ -74,3 +74,23 @@ describe('static responses', () => {
     expect(fallsBackToSpa('/api/me')).toBe(false);
   });
 });
+
+// ADR-0043: the covers come from MyAnimeList's image host; the share card reads them too.
+describe('content security policy', () => {
+  const csp = headerFor('/(.*)', 'Content-Security-Policy') ?? '';
+  const directive = (name: string) =>
+    csp
+      .split(';')
+      .map((part) => part.trim())
+      .find((part) => part.startsWith(`${name} `)) ?? '';
+
+  it('allows the MyAnimeList covers as images and as fetches of the share card', () => {
+    expect(directive('img-src')).toContain('https://cdn.myanimelist.net');
+    expect(directive('connect-src')).toContain('https://cdn.myanimelist.net');
+  });
+
+  it('no longer allows AniList, and never the MyAnimeList API', () => {
+    expect(csp).not.toMatch(/anilist/i);
+    expect(csp).not.toContain('api.myanimelist.net');
+  });
+});

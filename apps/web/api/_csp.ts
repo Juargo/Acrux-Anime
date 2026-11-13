@@ -19,13 +19,18 @@ export const createNonce = (): string => randomBytes(16).toString('base64');
 export const renderHtml = (template: string, nonce: string): string =>
   template.replaceAll(NONCE_PLACEHOLDER, nonce);
 
-const IMAGES = ["'self'", 'data:', 'https://s4.anilist.co', 'https://lh3.googleusercontent.com'];
+// The covers come from MyAnimeList's CDN; the catalog itself is served by our API (ADR-0043).
+const IMAGES = [
+  "'self'",
+  'data:',
+  'https://cdn.myanimelist.net',
+  'https://lh3.googleusercontent.com',
+];
 const CONNECT = [
   "'self'",
-  'https://s4.anilist.co',
+  'https://cdn.myanimelist.net',
   'https://lh3.googleusercontent.com',
   'https://ep-round-snow-b5mftgmf.neonauth.c-7.us-east-2.aws.neon.tech',
-  'https://graphql.anilist.co',
   'https://eu.i.posthog.com',
   'https://*.ingest.de.sentry.io',
 ];

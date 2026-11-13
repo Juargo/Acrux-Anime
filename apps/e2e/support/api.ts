@@ -19,11 +19,11 @@ export async function profileOf(request: APIRequestContext, user: TestUser) {
   );
 }
 
-export async function markSeen(request: APIRequestContext, user: TestUser, anilistIds: number[]) {
+export async function markSeen(request: APIRequestContext, user: TestUser, animeIds: number[]) {
   await ok(
     await request.post(`${API_URL}/api/v1/me/marks:batch`, {
       headers: auth(user),
-      data: { status: 'seen', entries: anilistIds.map((anilistId) => ({ anilistId })) },
+      data: { status: 'seen', entries: animeIds.map((animeId) => ({ animeId })) },
     }),
   );
 }

@@ -11,7 +11,7 @@ const privateModule: Module = {
   routes: [
     {
       method: 'put',
-      path: '/api/v1/me/marks/:anilistId',
+      path: '/api/v1/me/marks/:animeId',
       docs: {
         summary: 'Mark an anime',
         responses: { 200: { description: 'Marked', schema: z.object({ status: z.string() }) } },
@@ -42,7 +42,7 @@ describe('OpenAPI document', () => {
 
   it('marks private routes with the bearer session and their 401 problem', () => {
     const document = buildOpenApiDocument([...modules, privateModule]);
-    const operation = document.paths?.['/api/v1/me/marks/{anilistId}']?.put;
+    const operation = document.paths?.['/api/v1/me/marks/{animeId}']?.put;
 
     expect(operation?.security).toEqual([{ session: [] }]);
     expect(operation?.responses?.['401']).toBeDefined();
@@ -55,7 +55,7 @@ describe('OpenAPI document', () => {
   it('documents 403 only on routes that require a role', () => {
     const document = buildOpenApiDocument(modules);
     const overrides = document.paths?.['/api/v1/franchise-overrides'];
-    const edit = document.paths?.['/api/v1/franchise-overrides/{anilistId}']?.put;
+    const edit = document.paths?.['/api/v1/franchise-overrides/{animeId}']?.put;
 
     expect(edit?.responses?.['403']).toBeDefined();
     expect(edit?.responses?.['401']).toBeDefined();

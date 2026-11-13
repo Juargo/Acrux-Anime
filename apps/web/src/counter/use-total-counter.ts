@@ -1,5 +1,5 @@
 import { countCompleteFranchises, countSeenEntries } from '@acrux/domain';
-import type { AniListClient } from '../anilist/client';
+import type { CatalogClient } from '../catalog-source/client';
 import type { Profile } from '../profile-api';
 import { useMarkedFranchises } from './use-marked-franchises';
 
@@ -11,7 +11,7 @@ export type CounterMode = Profile['counterMode'];
  */
 export function useTotalCounter(options: {
   mode: CounterMode;
-  client: AniListClient;
+  client: CatalogClient;
   getToken: () => Promise<string | null>;
   fetchFn: typeof fetch;
 }): number | undefined {
@@ -19,7 +19,7 @@ export function useTotalCounter(options: {
   const marked = useMarkedFranchises({ ...rest, crawl: mode === 'franchise' });
   if (!marked.marks) return undefined;
   if (mode === 'entry') return countSeenEntries(marked.marks);
-  // Nothing seen counts 0 without waiting for AniList (watching marks are crawled for the list).
+  // Nothing seen counts 0 without waiting for the catalog (watching marks are crawled for the list).
   if (!marked.marks.some((mark) => mark.status === 'seen')) return 0;
   if (!marked.ready) return undefined;
   return countCompleteFranchises(marked.franchises, marked.marks, new Date().toISOString());

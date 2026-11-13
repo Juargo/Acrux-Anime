@@ -1,11 +1,11 @@
-import type { StatsMedia } from '../anilist/queries';
+import type { CatalogAnime } from '../catalog-source/client';
 
 // Advanced stats (RF-53), computed in the browser from the seen titles (ADR-0024).
 export interface Stats {
   titles: number;
   episodes: number;
   minutes: number;
-  // Seen titles whose episodes or duration AniList does not know: counted, without time.
+  // Seen titles whose episodes or duration the catalog does not know: counted, without time.
   unknownLength: number;
   genres: { genre: string; count: number; share: number }[];
   // Distinct genres among the seen titles, for the badges (RF-55).
@@ -22,17 +22,17 @@ function tally<K>(keys: Iterable<K>): Map<K, number> {
   return counts;
 }
 
-export function computeStats(seen: StatsMedia[]): Stats {
+export function computeStats(seen: CatalogAnime[]): Stats {
   let episodes = 0;
   let minutes = 0;
   let unknownLength = 0;
   for (const item of seen) {
-    if (item.episodes === null || item.duration === null) {
+    if (item.episodes === null || item.durationMinutes === null) {
       unknownLength += 1;
       continue;
     }
     episodes += item.episodes;
-    minutes += item.episodes * item.duration;
+    minutes += item.episodes * item.durationMinutes;
   }
 
   const titles = seen.length;
@@ -42,11 +42,7 @@ export function computeStats(seen: StatsMedia[]): Stats {
     .slice(0, TOP_GENRES)
     .map(([genre, count]) => ({ genre, count, share: count / titles }));
   const decades = [
-    ...tally(
-      seen.flatMap((item) =>
-        item.seasonYear === null ? [] : [Math.floor(item.seasonYear / 10) * 10],
-      ),
-    ),
+    ...tally(seen.flatMap((item) => (item.year === null ? [] : [Math.floor(item.year / 10) * 10]))),
   ]
     .sort(([a], [b]) => a - b)
     .map(([decade, count]) => ({ decade, count }));

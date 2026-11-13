@@ -69,7 +69,7 @@ describe('the SPA document', () => {
     );
 
     expect(policy).toBe(
-      "default-src 'self'; script-src 'nonce-n' 'strict-dynamic' 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data: https://s4.anilist.co https://lh3.googleusercontent.com; font-src 'self'; connect-src 'self' https://s4.anilist.co https://lh3.googleusercontent.com https://ep-round-snow-b5mftgmf.neonauth.c-7.us-east-2.aws.neon.tech https://graphql.anilist.co https://eu.i.posthog.com https://*.ingest.de.sentry.io; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+      "default-src 'self'; script-src 'nonce-n' 'strict-dynamic' 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data: https://cdn.myanimelist.net https://lh3.googleusercontent.com; font-src 'self'; connect-src 'self' https://cdn.myanimelist.net https://lh3.googleusercontent.com https://ep-round-snow-b5mftgmf.neonauth.c-7.us-east-2.aws.neon.tech https://eu.i.posthog.com https://*.ingest.de.sentry.io; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
     );
   });
 

@@ -1,15 +1,15 @@
 import { useOutletContext } from 'react-router';
-import type { AniListClient } from '../anilist/client';
 import type { CardGeneratedEvent, CardSharedEvent } from '../card/CardScreen';
 import type { FranchiseMarkedEvent } from '../catalog/use-franchise-marks';
+import type { CatalogClient } from '../catalog-source/client';
 import type { CounterMode } from '../counter/use-total-counter';
 import type { ListMadePublicEvent } from '../profile/PrivacyScreen';
 import type { Profile } from '../profile-api';
 
-// What the signed-in layout (Home) hands to its screens; tests inject the AniList client and fetch.
+// What the signed-in layout (Home) hands to its screens; tests inject the catalog client and fetch.
 export interface SignedInContext {
   getToken: () => Promise<string | null>;
-  client?: AniListClient | undefined;
+  client?: CatalogClient | undefined;
   fetchFn?: typeof fetch | undefined;
   // The profile's counter mode, until the switch changes it (#34).
   counterMode: CounterMode;

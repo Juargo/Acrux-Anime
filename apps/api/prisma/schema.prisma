@@ -1,5 +1,5 @@
-// Initial model of ADR-0022 (issue #22). The catalog is not stored: only AniList and
-// MAL ids (RDI-13, RDI-20). user_id is the uuid of the Neon Auth user (ADR-0034).
+// Initial model of ADR-0022 (issue #22). The catalog is copied from MyAnimeList into the
+// anime table (ADR-0043); marks and the curator table hold only its ids (RDI-13, RDI-20). user_id is the uuid of the Neon Auth user (ADR-0034).
 
 generator client {
   provider = "prisma-client"
@@ -84,8 +84,9 @@ model Profile {
   createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  marks       Mark[]
-  anilistLink AnilistLink?
+  marks        Mark[]
+  marksAnilist MarkAnilist[]
+  anilistLink  AnilistLink?
   entitlement Entitlement?
 
   @@map("profile")
@@ -93,15 +94,14 @@ model Profile {
 
 model Mark {
   userId    String     @map("user_id") @db.Uuid
-  anilistId Int        @map("anilist_id")
-  malId     Int?       @map("mal_id")
+  animeId   Int        @map("anime_id")
   status    MarkStatus
   // Kept for the yearly summary (Wrapped).
   markedAt  DateTime   @default(now()) @map("marked_at") @db.Timestamptz(6)
 
   profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  @@id([userId, anilistId])
+  @@id([userId, animeId])
   @@map("mark")
 }
 
@@ -144,12 +144,70 @@ model BillingEvent {
   @@map("billing_event")
 }
 
-// Curator corrections to the AniList relation graph; only the curator edits them.
+// Curator corrections to the relation graph of the catalog; only the curator edits them.
 model FranchiseOverride {
-  anilistId       Int           @id @map("anilist_id")
+  animeId       Int           @id @map("anime_id")
   franchiseRootId Int           @map("franchise_root_id")
   role            FranchiseRole
   updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("franchise_override")
+}
+
+// The catalog copied from MyAnimeList (ADR-0043); the id is MyAnimeList's.
+model Anime {
+  id              Int       @id
+  title           String
+  titleEnglish    String?   @map("title_english")
+  titleJapanese   String?   @map("title_japanese")
+  // Every name of the anime in lower case, for the search by name.
+  searchText      String    @map("search_text")
+  coverUrl        String?   @map("cover_url")
+  // TV, MOVIE, OVA, ONA, SPECIAL or MUSIC.
+  format          String?
+  // A partial date is stored as its first day.
+  startDate       DateTime? @map("start_date") @db.Date
+  year            Int?
+  episodes        Int?
+  durationMinutes Int?      @map("duration_minutes")
+  genres          String[]  @default([])
+  // Users with the anime in their list at the source: the popularity order.
+  members         Int       @default(0)
+  // Never served (RF-11).
+  adult           Boolean   @default(false)
+  // [{ type, id }] with the relation names of @acrux/domain.
+  relations       Json      @default("[]")
+  // When the detail, relations included, was last read; null while only the list fields are known.
+  detailedAt      DateTime? @map("detailed_at") @db.Timestamptz(6)
+  fetchedAt       DateTime  @default(now()) @map("fetched_at") @db.Timestamptz(6)
+
+  @@index([members(sort: Desc), id])
+  @@index([year])
+  @@map("anime")
+}
+
+// Marks that could not be converted to MyAnimeList ids (ADR-0043), kept aside with the
+// reason: no_mal_id or duplicate. The API never reads them.
+model MarkAnilist {
+  userId    String     @map("user_id") @db.Uuid
+  anilistId Int        @map("anilist_id")
+  malId     Int?       @map("mal_id")
+  status    MarkStatus
+  markedAt  DateTime   @map("marked_at") @db.Timestamptz(6)
+  reason    String
+
+  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@id([userId, anilistId])
+  @@map("mark_anilist")
+}
+
+// The curator table as it was with AniList ids (ADR-0043), kept aside. The API never reads it.
+model FranchiseOverrideAnilist {
+  anilistId       Int           @id @map("anilist_id")
+  franchiseRootId Int           @map("franchise_root_id")
+  role            FranchiseRole
+  updatedAt       DateTime      @map("updated_at") @db.Timestamptz(6)
+
+  @@map("franchise_override_anilist")
 }

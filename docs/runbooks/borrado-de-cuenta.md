@@ -4,9 +4,9 @@ Derechos del titular (ADR-0028, RF-06, RDI-35), issue #38.
 
 ## Qué hace
 
-- **`GET /api/v1/me/export`:** descarga `acrux-datos.json` con el perfil y todas las marcas. No incluye el `user_id`, el `analyticsId` ni el token de AniList.
+- **`GET /api/v1/me/export`:** descarga `acrux-datos.json` con el perfil y todas las marcas. No incluye el `user_id`, el `analyticsId` ni el token de AniList. Tampoco incluye las marcas de `mark_anilist` (las que no se pudieron convertir a MyAnimeList en la migración, ADR-0043); está pendiente en `docs/deuda-tecnica.md`.
 - **`DELETE /api/v1/me`:** borra los datos de la cuenta en tres pasos:
-  1. Borra la fila de `profile` en una transacción. Las claves foráneas borran en cascada las marcas, el vínculo con AniList y el plan.
+  1. Borra la fila de `profile` en una transacción. Las claves foráneas borran en cascada las marcas (también las de `mark_anilist`), el vínculo con AniList si existe y el plan.
   2. Borra el usuario de Neon Auth con la API de Neon (`DELETE /projects/{project}/branches/{branch}/auth/users/{user}`). Desde ahí ya no se puede iniciar sesión con esa cuenta.
   3. Pide a PostHog que borre a la persona (`POST /api/projects/{project}/persons/bulk_delete/`). PostHog la borra de forma asíncrona. Los eventos se conservan con un id salado que ya no lleva a nadie.
 - **Idempotencia:** repetir el borrado no rompe nada.

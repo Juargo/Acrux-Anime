@@ -1,5 +1,5 @@
-import { FRIEREN } from '../support/anilist.ts';
 import { markSeen, profileOf } from '../support/api.ts';
+import { FRIEREN } from '../support/catalog.ts';
 import { expect, test, visitorContext } from '../support/fixtures.ts';
 
 // Journey of issue #47: a private profile, then made public (RF-41, RF-42).

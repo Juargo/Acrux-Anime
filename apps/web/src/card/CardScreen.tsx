@@ -2,8 +2,9 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { AdSlot } from '../ads/AdSlot';
-import type { AniListClient } from '../anilist/client';
-import { defaultClient } from '../anilist/hooks';
+import type { CatalogClient } from '../catalog-source/client';
+import { defaultClient } from '../catalog-source/hooks';
+import { DataCredit } from '../components/DataCredit';
 import { ShareCard } from '../components/ShareCard';
 import { useCounterMode } from '../counter/use-counter-mode';
 import { useMarkedFranchises } from '../counter/use-marked-franchises';
@@ -155,7 +156,7 @@ export function CardScreen({
   onListMadePublic,
 }: {
   getToken: () => Promise<string | null>;
-  client?: AniListClient | undefined;
+  client?: CatalogClient | undefined;
   fetchFn?: typeof fetch | undefined;
   counterMode: CounterMode;
   profile: Profile;
@@ -375,6 +376,7 @@ export function CardScreen({
         {t('card.whoSees')}{' '}
         <span>{t(profile.listVisibility === 'public' ? 'card.public' : 'card.private')} ›</span>
       </Link>
+      <DataCredit />
     </section>
   );
 }

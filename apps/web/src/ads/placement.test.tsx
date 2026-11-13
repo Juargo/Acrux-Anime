@@ -5,7 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AnalyticsProvider } from '../analytics/AnalyticsContext';
 import { createAnalytics } from '../analytics/analytics';
-import type { AniListClient } from '../anilist/client';
+import { fakeCatalogClient } from '../catalog-source/test-support';
 import { setLocale } from '../i18n';
 import type { Profile } from '../profile-api';
 import { Home } from '../routes/Home';
@@ -53,13 +53,11 @@ function renderAt(path: string, profile: Profile = free) {
     },
     clearCookies: () => {},
   });
-  const client = {
-    request: vi.fn(async (query: string, _variables: unknown, schema) => {
-      if (query.includes('Page'))
-        return schema.parse({ Page: { media: [], pageInfo: { hasNextPage: false } } });
-      throw new Error('AniList is down');
-    }),
-  } as unknown as AniListClient;
+  // An empty catalog: no page, and no franchise holds any id.
+  const client = fakeCatalogClient({
+    browse: async () => ({ items: [], related: [], nextPage: null }),
+    franchises: async (seeds) => ({ items: [], related: [], missing: [...seeds], pending: [] }),
+  });
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
     if (url.startsWith('/api/v1/me/marks?')) return json({ items: [], nextCursor: null });
     if (url === '/api/v1/me') return json(init?.method === 'PATCH' ? profile : profile);
@@ -120,9 +118,9 @@ describe('ad placement (RF-58, RF-59)', () => {
     expect(within(card).queryByText('Publicidad')).toBeNull();
   });
 
-  it('shows no ad on a franchise AniList does not have', async () => {
+  it('shows no ad on a franchise the catalog does not have', async () => {
     renderAt('/franquicia/1');
-    await screen.findByText('No encontramos esta franquicia en AniList.');
+    await screen.findByText('No encontramos esta franquicia en el catálogo.');
     noAdSlot();
   });
 

@@ -1,6 +1,6 @@
 # Curaduría de franquicias
 
-La tabla del curador (`franchise_override`) corrige el agrupamiento automático de las sagas más populares y siempre prevalece sobre él (RF-60, RDI-30). Solo guarda IDs de AniList, sin títulos ni portadas (RDI-15).
+La tabla del curador (`franchise_override`) corrige el agrupamiento automático de las sagas más populares y siempre prevalece sobre él (RF-60, RDI-30). Solo guarda IDs de MyAnimeList, sin títulos ni portadas (RDI-15, ADR-0043). Las filas de antes de la migración, con IDs de AniList, quedaron aparte en `franchise_override_anilist`, que la API no lee.
 
 ## Dar o quitar el rol de curador
 
@@ -15,8 +15,8 @@ La API reconoce a los curadores por su ID de usuario de Neon Auth, que lee de la
 
 En **Perfil → Curaduría** (`/curador`):
 
-1. **ID de AniList de la entrada:** la que se corrige. Es el número de su URL en anilist.co.
-2. **ID de AniList de la franquicia:** la primera entrada de la saga, la que le da nombre.
+1. **ID de MyAnimeList de la entrada:** la que se corrige. Es el número de su URL en myanimelist.net (`/anime/<id>`).
+2. **ID de MyAnimeList de la franquicia:** la primera entrada de la saga, la que le da nombre.
 3. **Qué es la entrada:**
    - **Núcleo:** cuenta para completar la franquicia.
    - **Extra:** se muestra en la franquicia, pero no cuenta para completarla.
@@ -29,8 +29,8 @@ Tocar una corrección de la lista la carga en el formulario para cambiarla.
 
 - **No hay borrado.** Si se borrara una fila, una entrada podría volver al núcleo con su fecha de estreno original y deshacer una franquicia que alguien ya había completado. Para deshacer una corrección, guárdala con otro rol.
 - **Una corrección nunca resta.** Una entrada que entra al núcleo cuenta desde el momento de la corrección, así que no deshace franquicias ya completas (RF-60, `packages/domain/src/franchise/progress.ts`).
-- **Solo corrige entradas relacionadas en AniList.** La app arma cada franquicia siguiendo las secuelas y precuelas, y una corrección solo se aplica si las dos entradas están en ese conjunto. Las OVA, películas e historias paralelas que AniList ya relaciona con la saga sí se pueden corregir.
-- **La API decide.** La pantalla solo se muestra al curador, y además `PUT /api/v1/franchise-overrides/{anilistId}` responde 403 a cualquier sesión sin el rol.
+- **Solo corrige entradas relacionadas en MyAnimeList.** La app arma cada franquicia siguiendo las secuelas y precuelas, y una corrección solo se aplica si las dos entradas están en ese conjunto. Las OVA, películas e historias paralelas que MyAnimeList ya relaciona con la saga sí se pueden corregir.
+- **La API decide.** La pantalla solo se muestra al curador, y además `PUT /api/v1/franchise-overrides/{animeId}` responde 403 a cualquier sesión sin el rol.
 
 ## Carga inicial
 

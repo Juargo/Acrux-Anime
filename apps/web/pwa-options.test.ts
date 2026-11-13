@@ -29,14 +29,14 @@ describe('pwaOptions (ADR-0016)', () => {
     expect(sizes).toEqual(['64x64 any', '192x192 any', '512x512 any', '512x512 maskable']);
   });
 
-  it('caches only the app shell: no runtime caching of the API or AniList', () => {
+  it('caches only the app shell: no runtime caching of the API or the covers', () => {
     expect(others).toEqual([]);
     expect(pwaOptions.workbox?.globPatterns).toEqual(['**/*.{js,css,svg,png,ico,woff2}']);
     expect(navigation('/api/v1/me')).toBe(false);
     expect(
       matchShell({
-        request: { mode: 'cors' } as Request,
-        url: new URL('https://graphql.anilist.co/'),
+        request: { mode: 'no-cors' } as Request,
+        url: new URL('https://cdn.myanimelist.net/images/anime/1208/94745l.jpg'),
       }),
     ).toBe(false);
   });

@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { AniListClient } from '../anilist/client';
-import { type FranchiseEntry, fetchFranchise } from '../anilist/franchise';
+import type { CatalogClient } from '../catalog-source/client';
+import { type FranchiseEntry, fetchFranchise } from '../catalog-source/franchise';
 import { overridesQuery } from '../franchise/use-franchise-overrides';
 import { fetchMarks, type MarkDto, saveMarks } from '../marks-api';
 import type { CatalogItem } from './items';
@@ -19,12 +19,12 @@ export interface MarkMessage {
 
 function uniqueEntries(entries: FranchiseEntry[]): FranchiseEntry[] {
   const seen = new Set<number>();
-  return entries.filter(({ anilistId }) => !seen.has(anilistId) && seen.add(anilistId));
+  return entries.filter(({ animeId }) => !seen.has(animeId) && seen.add(animeId));
 }
 
 function upsert(marks: MarkDto[], written: MarkDto[]): MarkDto[] {
-  const ids = new Set(written.map((mark) => mark.anilistId));
-  return [...marks.filter((mark) => !ids.has(mark.anilistId)), ...written];
+  const ids = new Set(written.map((mark) => mark.animeId));
+  return [...marks.filter((mark) => !ids.has(mark.animeId)), ...written];
 }
 
 // The user's marks, shared by the catalog, the detail and the total counter.
@@ -45,7 +45,7 @@ export function useMarks(
  * changes at once and rolls back if building the franchise or saving fails (RNF-11).
  */
 export function useFranchiseMarks(options: {
-  client: AniListClient;
+  client: CatalogClient;
   getToken: (() => Promise<string | null>) | undefined;
   fetchFn: typeof fetch;
   onFranchiseMarked: ((event: FranchiseMarkedEvent) => void) | undefined;
@@ -65,18 +65,18 @@ export function useFranchiseMarks(options: {
         .fetchQuery(overridesQuery(fetchFn))
         .catch(() => undefined);
       const franchise = await fetchFranchise(client, item.coreIds, overrides);
-      if (franchise.core.length === 0) throw new Error('Franchise not found on AniList');
+      if (franchise.core.length === 0) throw new Error('Franchise not found in the catalog');
       const coreSize = franchise.core.length;
       if (item.dimmed) {
         const entries = uniqueEntries([
           ...franchise.core,
           ...franchise.extras,
-          ...item.entryIds.map((anilistId) => ({ anilistId, malId: null })),
+          ...item.entryIds.map((animeId) => ({ animeId })),
         ]);
         await saveMarks(token, { status: null, entries }, fetchFn);
         return {
           status: null,
-          removed: entries.map((entry) => entry.anilistId),
+          removed: entries.map((entry) => entry.animeId),
           written: [],
           coreSize,
         };
@@ -91,12 +91,11 @@ export function useFranchiseMarks(options: {
       const markedAt = new Date().toISOString();
       queryClient.setQueryData<MarkDto[]>(MARKS_KEY, (current = []) =>
         item.dimmed
-          ? current.filter((mark) => !item.entryIds.includes(mark.anilistId))
+          ? current.filter((mark) => !item.entryIds.includes(mark.animeId))
           : upsert(
               current,
-              item.coreIds.map((anilistId) => ({
-                anilistId,
-                malId: null,
+              item.coreIds.map((animeId) => ({
+                animeId,
                 status: 'seen',
                 markedAt,
               })),
@@ -107,9 +106,9 @@ export function useFranchiseMarks(options: {
     // Only this franchise goes back: another tap may have saved meanwhile.
     onError: (_error, item, context) => {
       const touched = new Set(item.entryIds);
-      const before = (context?.previous ?? []).filter((mark) => touched.has(mark.anilistId));
+      const before = (context?.previous ?? []).filter((mark) => touched.has(mark.animeId));
       queryClient.setQueryData<MarkDto[]>(MARKS_KEY, (current = []) => [
-        ...current.filter((mark) => !touched.has(mark.anilistId)),
+        ...current.filter((mark) => !touched.has(mark.animeId)),
         ...before,
       ]);
       setMessage({ kind: 'alert', text: t('marks.saveFailed') });
@@ -117,7 +116,7 @@ export function useFranchiseMarks(options: {
     onSuccess: (result, item) => {
       queryClient.setQueryData<MarkDto[]>(MARKS_KEY, (current = []) =>
         upsert(
-          current.filter((mark) => !result.removed.includes(mark.anilistId)),
+          current.filter((mark) => !result.removed.includes(mark.animeId)),
           result.written,
         ),
       );

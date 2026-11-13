@@ -4,7 +4,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { AniListClient } from '../anilist/client';
+import type { CatalogClient } from '../catalog-source/client';
 import { i18n, setLocale } from '../i18n';
 import type { Profile } from '../profile-api';
 import { Home } from '../routes/Home';
@@ -61,7 +61,7 @@ function renderProfile(options: { failPatch?: boolean } = {}) {
             signingOut={false}
             signOutFailed={false}
             getToken={async () => 'jwt'}
-            client={{ request: vi.fn() } as unknown as AniListClient}
+            client={{ request: vi.fn() } as unknown as CatalogClient}
             fetchFn={fetchFn as unknown as typeof fetch}
           />
         ),
@@ -114,14 +114,14 @@ describe('ProfileScreen', () => {
     await screen.findByRole('heading', { name: 'Borrar tu cuenta' });
   });
 
-  it('opens "Acerca de Acrux" with the AniList attribution from "Acerca de" (#45)', async () => {
+  it('opens "Acerca de Acrux" with the MyAnimeList attribution from "Acerca de" (#45)', async () => {
     const user = userEvent.setup();
     const { router } = renderProfile();
     await screen.findByRole('region', { name: 'Perfil' });
     await user.click(row(/Acerca de/));
     expect(router.state.location.pathname).toBe('/perfil/acerca-de');
     await screen.findByRole('heading', { name: 'Acerca de Acrux' });
-    expect(screen.getByRole('link', { name: 'AniList' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'MyAnimeList' })).toBeTruthy();
   });
 
   it('shows who I am, my link and "Editar" (Figma M16)', async () => {

@@ -16,6 +16,7 @@
     "test": "prisma generate && vitest run",
     "db:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate",
+    "catalog:load": "prisma generate && tsx scripts/load-catalog.ts",
     "openapi:emit": "prisma generate && tsx scripts/emit-openapi.ts",
     "openapi:check": "prisma generate && tsx scripts/emit-openapi.ts --check",
     "depcruise": "depcruise src --config .dependency-cruiser.cjs"

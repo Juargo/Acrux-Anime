@@ -6,7 +6,7 @@ import {
 } from './franchise-overrides-api';
 
 const row = {
-  anilistId: 20811,
+  animeId: 20811,
   franchiseRootId: 16498,
   role: 'extra',
   updatedAt: '2026-11-07T12:00:00.000Z',

@@ -7,7 +7,7 @@ import {
   type Mark,
   type RelationType,
 } from '@acrux/domain';
-import type { CatalogMedia, RelatedMedia } from '../anilist/catalog';
+import type { CatalogAnime } from '../catalog-source/client';
 
 export interface CatalogItem {
   rootId: number;
@@ -20,54 +20,47 @@ export interface CatalogItem {
   entryIds: number[];
 }
 
-// RF-17: English when it exists, else romaji.
-export const displayTitle = (media: RelatedMedia) =>
-  media.title.english ?? media.title.romaji ?? media.title.native ?? '';
+// RF-17: English when it exists, else the title the source gives, else the Japanese one.
+export const displayTitle = (anime: CatalogAnime) =>
+  anime.titleEnglish || anime.title || anime.titleJapanese || '';
 
-const pad = (value: number) => String(value).padStart(2, '0');
-
-// A partial AniList date maps to its first day; no year means not released yet.
-function startDate({ startDate: date }: RelatedMedia): string | null {
-  if (date.year === null) return null;
-  return `${date.year}-${pad(date.month ?? 1)}-${pad(date.day ?? 1)}`;
-}
-
-// AniList also links adult entries and other media; they never reach an item.
-const isCatalogMedia = (media: RelatedMedia) => media.type === 'ANIME' && media.isAdult !== true;
-
-function toEntry(media: RelatedMedia, relations: CatalogEntry['relations']): CatalogEntry {
+function toEntry(anime: CatalogAnime, relations: CatalogEntry['relations']): CatalogEntry {
   return {
-    id: media.id,
+    id: anime.id,
     type: 'ANIME',
-    format: media.format,
-    title: displayTitle(media),
-    startDate: startDate(media),
+    format: anime.format,
+    title: displayTitle(anime),
+    // The API sends a full date or null: a partial date is already null.
+    startDate: anime.startDate,
     relations,
   };
 }
 
 /**
  * Catalog entries for grouping: every hit with its relations, plus its neighbours one hop
- * away (adult and non-anime ones left out), and the media behind each id.
+ * away (these keep no relations of their own, so grouping never walks past them), and the
+ * anime behind each id. The API never sends adult titles.
  */
-export function catalogEntries(medias: readonly CatalogMedia[]): {
+export function catalogEntries(
+  hits: readonly CatalogAnime[],
+  related: readonly CatalogAnime[] = [],
+): {
   entries: CatalogEntry[];
-  known: Map<number, RelatedMedia>;
+  known: Map<number, CatalogAnime>;
 } {
-  const known = new Map<number, RelatedMedia>();
+  const known = new Map<number, CatalogAnime>();
   const entries = new Map<number, CatalogEntry>();
-  for (const media of medias) {
-    const neighbours = media.relations.edges.filter((edge) => isCatalogMedia(edge.node));
-    for (const { node } of neighbours) {
-      if (!known.has(node.id)) known.set(node.id, node);
-      if (!entries.has(node.id)) entries.set(node.id, toEntry(node, []));
-    }
-    known.set(media.id, media);
+  for (const neighbour of related) {
+    known.set(neighbour.id, neighbour);
+    entries.set(neighbour.id, toEntry(neighbour, []));
+  }
+  for (const hit of hits) {
+    known.set(hit.id, hit);
     entries.set(
-      media.id,
+      hit.id,
       toEntry(
-        media,
-        neighbours.map((edge) => ({ type: edge.relationType as RelationType, id: edge.node.id })),
+        hit,
+        hit.relations.map((relation) => ({ type: relation.type as RelationType, id: relation.id })),
       ),
     );
   }
@@ -78,16 +71,17 @@ export function catalogEntries(medias: readonly CatalogMedia[]): {
  * One item per franchise for the loaded hits, in the order of each franchise's first hit
  * (RF-14). Grouping only sees the hits and their neighbours one hop away, so an item is
  * titled and covered by the earliest entry known here, and its ids are the ones known here;
- * marking builds the whole franchise first (anilist/franchise.ts). The curator table (RF-60)
+ * marking builds the whole franchise first (catalog-source/franchise.ts). The curator table (RF-60)
  * is applied first.
  */
 export function toCatalogItems(
-  hits: readonly CatalogMedia[],
+  hits: readonly CatalogAnime[],
+  related: readonly CatalogAnime[],
   marks: readonly Mark[],
   now: string,
   overrides: readonly FranchiseOverride[] = [],
 ): CatalogItem[] {
-  const { entries, known } = catalogEntries(hits);
+  const { entries, known } = catalogEntries(hits, related);
   const franchiseOf = new Map<number, Franchise>();
   for (const franchise of groupFranchises(entries, overrides)) {
     for (const member of franchise.core) franchiseOf.set(member.id, franchise);
@@ -103,7 +97,7 @@ export function toCatalogItems(
     items.set(franchise.rootId, {
       rootId: franchise.rootId,
       title: franchise.title,
-      coverUrl: root?.coverImage?.large ?? hit.coverImage?.large ?? null,
+      coverUrl: root?.coverUrl ?? hit.coverUrl ?? null,
       dimmed: franchiseProgress(franchise, marks, now).state === 'seen',
       coreIds,
       entryIds: [...coreIds, ...franchise.extras],

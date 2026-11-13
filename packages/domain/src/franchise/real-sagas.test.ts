@@ -39,8 +39,8 @@ function toCatalog(fixture: { data: { Page: { media: AniListMedia[] } } }): Cata
 const byRoot = (franchises: Franchise[], rootId: number) =>
   franchises.find((franchise) => franchise.rootId === rootId) as Franchise;
 const coreIds = (franchise: Franchise) => franchise.core.map((member) => member.id);
-const correction = (anilistId: number, franchiseRootId: number): FranchiseOverride => ({
-  anilistId,
+const correction = (animeId: number, franchiseRootId: number): FranchiseOverride => ({
+  animeId,
   franchiseRootId,
   role: 'extra',
   updatedAt: '2026-11-01T00:00:00Z',
@@ -102,7 +102,7 @@ describe('real sagas (RNF-41)', () => {
     it('stays seen when Mugenjou-hen comes out after the user finished Hashira Geiko-hen', () => {
       const marks: Mark[] = coreIds(saga)
         .slice(0, 6)
-        .map((anilistId) => ({ anilistId, status: 'seen', markedAt: '2024-07-01T00:00:00Z' }));
+        .map((animeId) => ({ animeId, status: 'seen', markedAt: '2024-07-01T00:00:00Z' }));
 
       expect(franchiseProgress(saga, marks, '2026-11-03T00:00:00Z')).toEqual({
         state: 'seen',

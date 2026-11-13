@@ -664,7 +664,7 @@
     },
     "/api/v1/me/marks": {
       "get": {
-        "summary": "Marks of the signed-in user, ordered by anilistId, one page at a time",
+        "summary": "Marks of the signed-in user, ordered by animeId, one page at a time",
         "security": [
           {
             "session": []
@@ -744,7 +744,7 @@
         }
       }
     },
-    "/api/v1/me/marks/{anilistId}": {
+    "/api/v1/me/marks/{animeId}": {
       "put": {
         "summary": "Mark one entry; the same status again keeps markedAt",
         "security": [
@@ -758,7 +758,7 @@
         "parameters": [
           {
             "in": "path",
-            "name": "anilistId",
+            "name": "animeId",
             "schema": {
               "type": "integer",
               "minimum": 1,
@@ -779,18 +779,6 @@
                     "enum": [
                       "seen",
                       "watching"
-                    ]
-                  },
-                  "malId": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 2147483647
-                      },
-                      {
-                        "type": "null"
-                      }
                     ]
                   }
                 },
@@ -814,7 +802,7 @@
             }
           },
           "400": {
-            "description": "Invalid anilistId, unknown fields or an invalid body"
+            "description": "Invalid animeId, unknown fields or an invalid body"
           },
           "401": {
             "description": "Missing, invalid or expired session",
@@ -861,7 +849,7 @@
         "parameters": [
           {
             "in": "path",
-            "name": "anilistId",
+            "name": "animeId",
             "schema": {
               "type": "integer",
               "minimum": 1,
@@ -875,7 +863,7 @@
             "description": "Not marked anymore"
           },
           "400": {
-            "description": "The anilistId is not a positive integer"
+            "description": "The animeId is not a positive integer"
           },
           "401": {
             "description": "Missing, invalid or expired session",
@@ -949,26 +937,14 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "anilistId": {
+                        "animeId": {
                           "type": "integer",
                           "minimum": 1,
                           "maximum": 2147483647
-                        },
-                        "malId": {
-                          "anyOf": [
-                            {
-                              "type": "integer",
-                              "minimum": 1,
-                              "maximum": 2147483647
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
                         }
                       },
                       "required": [
-                        "anilistId"
+                        "animeId"
                       ],
                       "additionalProperties": false
                     }
@@ -1051,7 +1027,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Every correction, ordered by anilistId",
+            "description": "Every correction, ordered by animeId",
             "content": {
               "application/json": {
                 "schema": {
@@ -1095,7 +1071,7 @@
         }
       }
     },
-    "/api/v1/franchise-overrides/{anilistId}": {
+    "/api/v1/franchise-overrides/{animeId}": {
       "put": {
         "summary": "Save the correction of one entry; there is no delete, set another role instead (RF-60)",
         "security": [
@@ -1109,7 +1085,7 @@
         "parameters": [
           {
             "in": "path",
-            "name": "anilistId",
+            "name": "animeId",
             "schema": {
               "type": "integer",
               "minimum": 1,
@@ -1160,7 +1136,7 @@
             }
           },
           "400": {
-            "description": "Invalid anilistId, unknown fields or an invalid body"
+            "description": "Invalid animeId, unknown fields or an invalid body"
           },
           "401": {
             "description": "Missing, invalid or expired session",
@@ -1178,6 +1154,343 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/anime": {
+      "get": {
+        "summary": "One page of the catalog, most popular first, 50 anime a page",
+        "security": [],
+        "tags": [
+          "catalog"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "description": "Part of any name of the anime, up to 100 characters",
+              "type": "string"
+            },
+            "description": "Part of any name of the anime, up to 100 characters"
+          },
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "description": "Year the anime started, 1900 to 2100",
+              "type": "string"
+            },
+            "description": "Year the anime started, 1900 to 2100"
+          },
+          {
+            "in": "query",
+            "name": "genres",
+            "schema": {
+              "description": "Up to 10 genres separated by commas; any of them matches",
+              "type": "string"
+            },
+            "description": "Up to 10 genres separated by commas; any of them matches"
+          },
+          {
+            "in": "query",
+            "name": "formats",
+            "schema": {
+              "description": "Any of TV, MOVIE, OVA, ONA, SPECIAL, separated by commas; all by default",
+              "type": "string"
+            },
+            "description": "Any of TV, MOVIE, OVA, ONA, SPECIAL, separated by commas; all by default"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "description": "1 to 1000; 1 by default",
+              "type": "string"
+            },
+            "description": "1 to 1000; 1 by default"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The page, the neighbours one hop away that it lacks, and the next page or null",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CatalogAnime"
+                      }
+                    },
+                    "related": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CatalogAnime"
+                      }
+                    },
+                    "nextPage": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "related",
+                    "nextPage"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A query parameter is missing, repeated or not valid"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/anime/by-ids": {
+      "get": {
+        "summary": "The anime of the given ids; ids the catalog does not hold are left out",
+        "security": [],
+        "tags": [
+          "catalog"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ids",
+            "schema": {
+              "type": "string",
+              "description": "ids: 1 to 100 anime ids, separated by commas"
+            },
+            "required": true,
+            "description": "ids: 1 to 100 anime ids, separated by commas"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The anime found, in no particular order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CatalogAnime"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A query parameter is missing, repeated or not valid"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/franchises": {
+      "get": {
+        "summary": "Every anime reached from the seeds through sequels and prequels, to group franchises",
+        "security": [],
+        "tags": [
+          "catalog"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "seeds",
+            "schema": {
+              "type": "string",
+              "description": "seeds: 1 to 100 anime ids, separated by commas"
+            },
+            "required": true,
+            "description": "seeds: 1 to 100 anime ids, separated by commas"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The entries reached, their other neighbours, the ids the catalog does not hold and the ids left for another request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CatalogAnime"
+                      }
+                    },
+                    "related": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CatalogAnime"
+                      }
+                    },
+                    "missing": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483647
+                      }
+                    },
+                    "pending": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483647
+                      }
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "related",
+                    "missing",
+                    "pending"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A query parameter is missing, repeated or not valid"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/genres": {
+      "get": {
+        "summary": "The genres of the catalog, for the filter sheet",
+        "security": [],
+        "tags": [
+          "catalog"
+        ],
+        "responses": {
+          "200": {
+            "description": "Genre names in English, in alphabetical order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -1262,7 +1575,7 @@
     },
     "/api/v1/profiles/{handle}/marks": {
       "get": {
-        "summary": "Marks of a public list, ordered by anilistId, one page at a time",
+        "summary": "Marks of a public list, ordered by animeId, one page at a time",
         "security": [],
         "tags": [
           "public-profile"
@@ -1685,22 +1998,10 @@
             "items": {
               "type": "object",
               "properties": {
-                "anilistId": {
+                "animeId": {
                   "type": "integer",
                   "minimum": -9007199254740991,
                   "maximum": 9007199254740991
-                },
-                "malId": {
-                  "anyOf": [
-                    {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
                 },
                 "status": {
                   "type": "string",
@@ -1716,8 +2017,7 @@
                 }
               },
               "required": [
-                "anilistId",
-                "malId",
+                "animeId",
                 "status",
                 "markedAt"
               ],
@@ -1768,22 +2068,10 @@
       "Mark": {
         "type": "object",
         "properties": {
-          "anilistId": {
+          "animeId": {
             "type": "integer",
             "minimum": 1,
             "maximum": 2147483647
-          },
-          "malId": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 2147483647
-              },
-              {
-                "type": "null"
-              }
-            ]
           },
           "status": {
             "type": "string",
@@ -1799,8 +2087,7 @@
           }
         },
         "required": [
-          "anilistId",
-          "malId",
+          "animeId",
           "status",
           "markedAt"
         ],
@@ -1809,7 +2096,7 @@
       "FranchiseOverride": {
         "type": "object",
         "properties": {
-          "anilistId": {
+          "animeId": {
             "type": "integer",
             "minimum": 1,
             "maximum": 2147483647
@@ -1834,10 +2121,137 @@
           }
         },
         "required": [
-          "anilistId",
+          "animeId",
           "franchiseRootId",
           "role",
           "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "CatalogAnime": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "title": {
+            "type": "string"
+          },
+          "titleEnglish": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "titleJapanese": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "coverUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "format": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "startDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "episodes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "durationMinutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                }
+              },
+              "required": [
+                "type",
+                "id"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "titleEnglish",
+          "titleJapanese",
+          "coverUrl",
+          "format",
+          "startDate",
+          "year",
+          "episodes",
+          "durationMinutes",
+          "genres",
+          "relations"
         ],
         "additionalProperties": false
       },

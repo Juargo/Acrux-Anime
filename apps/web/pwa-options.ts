@@ -5,7 +5,7 @@ const brand = '#0b0d1c';
 /**
  * Installable PWA that caches only the app shell (ADR-0016, #44). The new service worker waits
  * for "Recargar" (registerType prompt), and nothing else fetched at run time is cached: the API,
- * Neon Auth, AniList and PostHog always go to the network (ADR-0024). The icons come from
+ * Neon Auth, the cover images and PostHog always go to the network (ADR-0024). The icons come from
  * public/icons/marca.svg (@vite-pwa/assets-generator).
  *
  * The document is not precached: api/html.ts gives it a fresh CSP nonce on every request
