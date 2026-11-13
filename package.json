@@ -16,11 +16,11 @@
     "format": "biome check --write ."
   },
   "dependencies": {
-    "@neon/config": "^1.0.0",
-    "@neon/env": "^1.0.0"
+    "@neon/config": "^1.11.3",
+    "@neon/env": "^1.6.15"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.0.0",
+    "@biomejs/biome": "^2.6.5",
     "@commitlint/cli": "^21.0.0",
     "@commitlint/config-conventional": "^21.0.0",
     "husky": "^9.1.0",
