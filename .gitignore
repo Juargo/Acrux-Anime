@@ -17,6 +17,8 @@ coverage/
 
 # Vercel
 .vercel/
+# Documento de la app que el build de Vercel saca de dist (ADR-0042)
+apps/web/html-template/
 
 # Pruebas E2E
 playwright-report/

@@ -27,14 +27,15 @@ Para la PWA, el stakeholder eligió **red primero**, frente a mantener el HTML e
 **Opción A, con la PWA en red primero.**
 
 1. Vite escribe el marcador `ACRUX_CSP_NONCE` en cada `<script>`, hoja de estilos y `modulepreload` del build (`html.cspNonce`).
-2. La función `apps/web/api/html.ts` atiende todas las rutas de la SPA (la reescritura de `vercel.json`). Lee `dist/index.html`, que viaja con la función por `includeFiles`, reemplaza el marcador por 16 bytes aleatorios en base64 y envía la CSP con `Cache-Control: private, no-cache`.
+2. La función `apps/web/api/html.ts` atiende todas las rutas de la SPA (la reescritura de `vercel.json`). Lee `html-template/index.html`, que viaja con la función por `includeFiles`, reemplaza el marcador por 16 bytes aleatorios en base64 y envía la CSP con `Cache-Control: private, no-cache`.
 3. La CSP se arma en `apps/web/api/_csp.ts`:
    - `script-src 'nonce-…' 'strict-dynamic' 'self'`. `'strict-dynamic'` permite lo que carga el script principal (chunks diferidos y `adsbygoogle.js`); `'self'` solo sirve a navegadores sin CSP3.
    - `worker-src 'self'`, porque el registro del service worker no lleva nonce.
    - Mientras falte `VITE_ADSENSE_CLIENT` o `VITE_ADSENSE_SLOT`, el resto es igual que antes: `default-src 'self'`, la misma lista de `img-src` y `connect-src`, `object-src 'none'`, `frame-ancestors 'none'`.
    - Con ambas variables se agregan la política de Google en `script-src` (`'unsafe-inline' 'unsafe-eval' https:`, que los navegadores CSP3 ignoran salvo `'unsafe-eval'`) y `https:` en `img-src`, `connect-src`, `frame-src` y `fenced-frame-src`. También se agrega `'unsafe-inline'` en `style-src`. Google no publica una lista para esas directivas.
-4. `vercel.json` conserva la CSP anterior para los archivos estáticos (`/assets`, `/sw.js`, `/index.html` pedido directo). En la respuesta de la función manda la cabecera de la función: Vercel da prioridad a las cabeceras de las funciones.
-5. El service worker ya no precarga el HTML. Las navegaciones van a la red primero (`NetworkFirst`, 5 s) y, sin conexión, usan la última copia, guardada con una sola clave para todas las rutas.
+4. El build de Vercel mueve el documento de `dist/index.html` a `html-template/index.html` (`buildCommand`). Vercel sirve un archivo existente antes de aplicar las reescrituras, así que una copia pública respondía `/` y `/index.html` sin nonce (corregido el 2026-11-13). El `build` local no lo mueve, porque `vite preview` y las pruebas E2E lo necesitan en `dist`.
+5. `vercel.json` conserva la CSP anterior para los archivos estáticos (`/assets`, `/sw.js`). En la respuesta de la función manda la cabecera de la función: Vercel da prioridad a las cabeceras de las funciones.
+6. El service worker ya no precarga el HTML. Las navegaciones van a la red primero (`NetworkFirst`, 5 s) y, sin conexión, usan la última copia, guardada con una sola clave para todas las rutas.
 
 ## Consecuencias
 

@@ -106,7 +106,9 @@ jobs:
           fi
           curl -fsS --retry 5 --retry-all-errors --retry-delay 5 "$PRODUCTION_URL/api/health" \
             | grep -q '"status":"ok"'
-          curl -fsS --retry 5 --retry-all-errors --retry-delay 5 -o /dev/null "$PRODUCTION_URL/"
+          # The root document must come from api/html with a nonce, never from a static file.
+          curl -fsS --retry 5 --retry-all-errors --retry-delay 5 -D - -o /dev/null "$PRODUCTION_URL/" \
+            | grep -i "^content-security-policy:.*'nonce-" > /dev/null
 
       - name: Roll back
         if: failure() && steps.deploy.outcome != 'skipped' && steps.previous.outputs.id != ''
