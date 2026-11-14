@@ -185,6 +185,24 @@ describe('catalog repository: genres', () => {
   });
 });
 
+describe('catalog repository: knowsName', () => {
+  it('tells whether any anime has the text in a name, in any letter case', async () => {
+    const repository = createCatalogRepository(prisma);
+    expect(await repository.knowsName('Attack On')).toBe(true);
+    expect(await repository.knowsName('frieren')).toBe(false);
+  });
+
+  it('counts the titles the catalog never shows', async () => {
+    expect(await createCatalogRepository(prisma).knowsName('adult title')).toBe(true);
+  });
+
+  it('treats % and _ in the name as plain characters', async () => {
+    const repository = createCatalogRepository(prisma);
+    expect(await repository.knowsName('100%')).toBe(true);
+    expect(await repository.knowsName('s_n to')).toBe(false);
+  });
+});
+
 // The writing side (ADR-0043, point 3). These run last: they change the rows above.
 describe('catalog repository: store', () => {
   const input = (id: number, extra: Partial<CatalogAnimeInput> = {}): CatalogAnimeInput => ({
