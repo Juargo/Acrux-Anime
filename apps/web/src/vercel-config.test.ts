@@ -73,6 +73,32 @@ describe('static responses', () => {
     expect(fallsBackToSpa('/@someone')).toBe(true);
     expect(fallsBackToSpa('/api/me')).toBe(false);
   });
+
+  // No SPA route has a dot (a handle is [a-z0-9_]), so a path with one is a file that does not
+  // exist: a 404 from the static host, without running api/html for it.
+  it.each([
+    '/sitemap.xml',
+    '/wp-login.php',
+    '/.env',
+    '/.git/config',
+    '/.well-known/security.txt',
+    '/wp-content/plugins/x/readme.txt',
+    '/index.html',
+  ])('answer the missing file %s with 404, not the SPA', (path) => {
+    expect(fallsBackToSpa(path)).toBe(false);
+  });
+
+  it.each(['/', '/mi-lista', '/franquicia/5114', '/perfil/acerca-de', '/@some_one1'])(
+    'still send the route %s to the SPA',
+    (path) => {
+      expect(fallsBackToSpa(path)).toBe(true);
+    },
+  );
+
+  it('answer robots.txt with a file, so crawlers do not reach the function for it', () => {
+    const robots = readFileSync(new URL('../public/robots.txt', import.meta.url), 'utf8');
+    expect(robots).toMatch(/^User-agent: \*$/m);
+  });
 });
 
 // ADR-0043: the covers come from MyAnimeList's image host; the share card reads them too.
