@@ -43,6 +43,7 @@ function fakeRepository(rows: AnimeRow[]) {
       return rows.filter((row) => ids.includes(row.id));
     },
     genres: async () => ['Action', 'Drama'],
+    knowsName: async () => false,
   };
   return { repository, browsed, asked };
 }
@@ -180,7 +181,12 @@ function filling(
 ) {
   const rows = new Map(initial.map((row) => [row.id, row]));
   const detailed = new Set(options.detailed ?? []);
-  const calls = { detail: [] as number[], search: [] as string[], errors: [] as unknown[] };
+  const calls = {
+    detail: [] as number[],
+    search: [] as string[],
+    saved: [] as number[][],
+    errors: [] as unknown[],
+  };
   const toInput = (row: AnimeRow): CatalogAnimeInput => ({
     ...row,
     searchText: row.title.toLowerCase(),
@@ -191,14 +197,21 @@ function filling(
     browse: async (query) =>
       [...rows.values()]
         .filter((row) => !query.search || row.title.toLowerCase().includes(query.search))
+        .filter(
+          (row) =>
+            query.genres.length === 0 || row.genres.some((genre) => query.genres.includes(genre)),
+        )
         .slice(query.offset, query.offset + query.limit),
     byIds: async (ids) => [...rows.values()].filter((row) => ids.includes(row.id)),
     genres: async () => [],
+    knowsName: async (search) =>
+      [...rows.values()].some((row) => row.title.toLowerCase().includes(search)),
   };
   const store: CatalogStore = {
     detailState: async (ids) =>
       new Map(ids.filter((id) => rows.has(id)).map((id) => [id, detailed.has(id)])),
     saveListed: async (listed) => {
+      calls.saved.push(listed.map((row) => row.id));
       for (const row of listed) rows.set(row.id, { ...row, relations: [] });
     },
     saveDetailed: async (row) => {
@@ -247,12 +260,23 @@ describe('franchises, filling from the source', () => {
     expect(calls.detail).toEqual([1, 2]);
   });
 
-  it('brings an anime the table does not hold yet', async () => {
-    const { service, rows } = filling([], { details: [anime(7)] });
-    const result = await service.franchises([7]);
-    expect(ids(result.items)).toEqual([7]);
+  it('brings an anime the table does not hold yet when a stored entry points to it', async () => {
+    const { service, rows } = filling([anime(1, [{ type: 'SEQUEL', id: 7 }])], {
+      detailed: [1],
+      details: [anime(7, [{ type: 'PREQUEL', id: 1 }])],
+    });
+    const result = await service.franchises([1]);
+    expect(ids(result.items).sort((a, b) => a - b)).toEqual([1, 7]);
     expect(result.missing).toEqual([]);
     expect(rows.has(7)).toBe(true);
+  });
+
+  // Anyone can send any id: only the table says which anime exist.
+  it('does not ask the source for a requested id the table does not hold', async () => {
+    const { service, calls } = filling([], { details: [anime(7)] });
+    const result = await service.franchises([7]);
+    expect(result).toMatchObject({ items: [], missing: [7], pending: [] });
+    expect(calls.detail).toEqual([]);
   });
 
   it('does not ask the source for an entry whose detail is stored', async () => {
@@ -277,9 +301,11 @@ describe('franchises, filling from the source', () => {
   });
 
   it('reports an anime the source does not have as missing and asks only once', async () => {
-    const { service, calls } = filling([]);
-    expect((await service.franchises([404])).missing).toEqual([404]);
-    expect((await service.franchises([404])).missing).toEqual([404]);
+    const { service, calls } = filling([anime(1, [{ type: 'SEQUEL', id: 404 }])], {
+      detailed: [1],
+    });
+    expect((await service.franchises([1])).missing).toEqual([404]);
+    expect((await service.franchises([1])).missing).toEqual([404]);
     expect(calls.detail).toEqual([404]);
   });
 
@@ -289,7 +315,8 @@ describe('franchises, filling from the source', () => {
     expect(ids(result.items)).toEqual([1]);
     expect(result.missing).toEqual([9]);
     expect(result.pending).toEqual([]);
-    expect(calls.errors).toHaveLength(2);
+    expect(calls.detail).toEqual([1]);
+    expect(calls.errors).toHaveLength(1);
   });
 
   it('stops asking for five minutes after the source refuses with a 429', async () => {
@@ -327,6 +354,32 @@ describe('browse, filling from the source', () => {
     await service.browse(filters, 1);
     await service.browse({ ...filters, search: 'nothing' }, 2);
     expect(calls.search).toEqual([]);
+  });
+
+  it('does not ask the source for a name the table knows when the filters leave no result', async () => {
+    const { service, calls } = filling([anime(1, [], { title: 'Frieren', genres: ['Drama'] })], {
+      found: [anime(1, [], { title: 'Frieren' })],
+    });
+    const page = await service.browse({ ...filters, search: 'frieren', genres: ['Sports'] }, 1);
+    expect(page.items).toEqual([]);
+    expect(calls.search).toEqual([]);
+    expect(calls.saved).toEqual([]);
+  });
+
+  it('stores only the anime the table lacks', async () => {
+    const { service, calls } = filling([anime(1)], {
+      found: [anime(1), anime(50, [], { title: 'Frieren' })],
+    });
+    await service.browse({ ...filters, search: 'frieren' }, 1);
+    expect(calls.saved).toEqual([[50]]);
+  });
+
+  it('writes nothing when the source only names anime the table already holds', async () => {
+    const { service, calls } = filling([anime(1)], { found: [anime(1)] });
+    const page = await service.browse({ ...filters, search: 'frieren' }, 1);
+    expect(page.items).toEqual([]);
+    expect(calls.search).toEqual(['frieren']);
+    expect(calls.saved).toEqual([]);
   });
 
   it('answers an empty page when the source fails', async () => {

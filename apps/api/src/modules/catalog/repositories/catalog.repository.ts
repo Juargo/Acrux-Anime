@@ -44,6 +44,8 @@ export interface CatalogRepository {
   byIds(ids: readonly number[]): Promise<AnimeRow[]>;
   // Every genre of the titles the catalog shows, in alphabetical order.
   genres(): Promise<string[]>;
+  // Whether any anime the table holds, shown or not, has the text in one of its names.
+  knowsName(search: string): Promise<boolean>;
 }
 
 // What the source knows about one anime. `relations` only comes with its detail.
@@ -156,6 +158,13 @@ export function createCatalogRepository(prisma: PrismaClient): CatalogRepository
         SELECT DISTINCT unnest("genres") AS genre FROM "anime" WHERE NOT "adult" ORDER BY genre
       `;
       return rows.map((row) => row.genre);
+    },
+    knowsName: async (search) => {
+      const row = await prisma.anime.findFirst({
+        where: { searchText: { contains: likePattern(search) } },
+        select: { id: true },
+      });
+      return row !== null;
     },
 
     detailState: async (ids) => {
