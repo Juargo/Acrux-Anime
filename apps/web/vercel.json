@@ -13,6 +13,13 @@
       "includeFiles": "html-template/index.html"
     }
   },
+  "redirects": [
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
