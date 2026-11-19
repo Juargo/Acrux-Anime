@@ -1,6 +1,6 @@
 # ADR-0017: Exploración del catálogo: por nombre o por año, con filtros de género y tipo
 
-- **Estado:** Aceptado (las operaciones de catálogo pasan al navegador contra AniList, ADR-0024; la experiencia de exploración sigue vigente)
+- **Estado:** Aceptado (las operaciones de catálogo pasan al navegador contra AniList, ADR-0024; la exploración por año fue modificada por ADR-0045: año de estreno de la franquicia, varios años y sin año por defecto)
 - **Fecha:** 2026-10-12
 - **Participantes:** Jorge (stakeholder, Product Owner y desarrollador), Claude (analista)
 - **Origen:** Sesión con el stakeholder, 2026-10-12, a partir de los resultados del spike de la API de MAL (ADR-0008). Reemplaza los ítems 1–3 de ADR-0009 (gran lista marcable, búsqueda por nombre, filtros por año, género y tipo).
