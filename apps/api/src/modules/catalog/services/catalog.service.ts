@@ -72,7 +72,8 @@ export function createCatalogService(
   const now = fill?.now ?? Date.now;
   const maxDetails = fill?.maxDetailsPerRequest ?? MAX_DETAILS_PER_REQUEST;
   let blockedUntil = 0;
-  // Ids the source answered 404 for, so the same instance does not ask again.
+  // Ids the table lacks that the source answered 404 for, so the same instance does not ask
+  // again. Only ids a stored relation points to get here, so the set stays small.
   const gone = new Set<number>();
 
   function failed(error: unknown) {
@@ -84,12 +85,23 @@ export function createCatalogService(
 
   // Reads from the source the detail of the ids that lack it, up to `budget.left`. Returns
   // the ids left for another request. A failure leaves the table as it is.
-  async function ensureDetailed(ids: readonly number[], budget: { left: number }) {
+  // An id the table lacks is read only when `trusted` says a stored relation points to it:
+  // a request can name any id, and a 404 for one of those would be asked for again forever,
+  // because nothing can be stored about an anime that does not exist.
+  async function ensureDetailed(
+    ids: readonly number[],
+    budget: { left: number },
+    trusted: (id: number) => boolean,
+  ) {
     if (!fill || !canAsk()) return [];
     let need: number[];
     try {
       const state = await fill.store.detailState(ids);
-      need = ids.filter((id) => state.get(id) !== true && !gone.has(id));
+      need = ids.filter((id) => {
+        const detailed = state.get(id);
+        if (detailed === undefined) return trusted(id) && !gone.has(id);
+        return !detailed;
+      });
     } catch (error) {
       failed(error);
       return [];
@@ -139,13 +151,23 @@ export function createCatalogService(
         offset: (page - 1) * CATALOG_PAGE_SIZE,
         limit: CATALOG_PAGE_SIZE + 1,
       });
-      // A name the table does not know is asked to the source once, and stays stored.
+      // A name the table does not know is asked to the source, and what it lacks stays
+      // stored. A name it knows came back empty because of the other filters: the source
+      // has nothing to add, and asking would repeat on every such request.
       if (fill && canAsk() && filters.search !== undefined && page === 1 && rows.length === 0) {
         try {
-          const found = await fill.source.search(filters.search);
-          if (found.length > 0) {
-            await fill.store.saveListed(found);
-            rows = await repository.browse({ ...filters, offset: 0, limit: CATALOG_PAGE_SIZE + 1 });
+          if (!(await repository.knowsName(filters.search))) {
+            const found = await fill.source.search(filters.search);
+            const stored = await fill.store.detailState(found.map((row) => row.id));
+            const lacking = found.filter((row) => !stored.has(row.id));
+            if (lacking.length > 0) {
+              await fill.store.saveListed(lacking);
+              rows = await repository.browse({
+                ...filters,
+                offset: 0,
+                limit: CATALOG_PAGE_SIZE + 1,
+              });
+            }
           }
         } catch (error) {
           failed(error);
@@ -165,7 +187,8 @@ export function createCatalogService(
       const crawled = new Map<number, AnimeRow>();
       const asked = new Set<number>();
       const missing: number[] = [];
-      let frontier = [...new Set(seedIds)];
+      const seeds = new Set(seedIds);
+      let frontier = [...seeds];
       let pending: number[] = [];
       const deferred: number[] = [];
       const budget = { left: maxDetails };
@@ -181,7 +204,8 @@ export function createCatalogService(
         const next = new Set(frontier.slice(room));
         for (const id of candidates) asked.add(id);
         // An entry without its detail cannot be followed: it waits for the next request.
-        const waiting = new Set(await ensureDetailed(candidates, budget));
+        // Past the seeds, every id of the frontier comes from a stored relation.
+        const waiting = new Set(await ensureDetailed(candidates, budget, (id) => !seeds.has(id)));
         deferred.push(...waiting);
         const batch = candidates.filter((id) => !waiting.has(id));
 

@@ -7,7 +7,8 @@ El catálogo vive en la tabla `anime` de Neon y se copia desde la API de MyAnime
 - **Cliente y conversor:** `apps/api/src/modules/catalog/adapters/myanimelist.ts`. Lee el detalle de un anime, busca por nombre y recorre el ranking por popularidad. El client ID va en la cabecera `X-MAL-CLIENT-ID`. De los 77 valores que MyAnimeList llama géneros guarda 19: los géneros y Ecchi, sin temas ni demografías (lista `GENRES`).
 - **Carga por demanda:** `apps/api/src/modules/catalog/services/catalog.service.ts`.
   - Al abrir una franquicia, la API lee de MyAnimeList el detalle de las entradas que no lo tienen, hasta 8 por pedido. El resto vuelve como `pending` y la web lo pide de nuevo.
-  - Al buscar un nombre que la tabla no conoce, la API lo busca en MyAnimeList una vez y guarda el resultado.
+  - Un anime que la tabla no tiene se lee de MyAnimeList solo cuando una relación guardada apunta a él. Un ID pedido directamente que la tabla no tiene vuelve como `missing`, sin consultar a MyAnimeList.
+  - Al buscar un nombre que la tabla no conoce, la API lo busca en MyAnimeList y guarda solo los animes que le faltan. Si la tabla conoce el nombre y son los filtros los que dejan la página vacía, no consulta a MyAnimeList.
   - Si MyAnimeList falla, la API responde con lo que hay en la tabla y registra `catalog source failed`. Tras un 403 o un 429 no vuelve a preguntar durante 5 minutos.
 - **Trabajo de carga:** `apps/api/scripts/load-catalog.ts`, con la lógica en `services/catalog-loader.ts`. El workflow `.github/workflows/catalog.yml` lo corre los martes a las 07:00 UTC.
   1. Lista todos los animes por popularidad, de a 500 (unos 62 pedidos, cerca de 31.000 animes). Refresca títulos, portada, formato, fecha, géneros y popularidad.

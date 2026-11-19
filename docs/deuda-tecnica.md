@@ -46,5 +46,5 @@ Pendientes de la migración.
 
 - **Puesta en marcha del catálogo.** Falta desplegar el rol `acrux_catalog`, cargar los secretos y hacer la primera carga (`docs/runbooks/catalogo.md`). Hasta entonces la tabla `anime` de producción está vacía.
 - **CSP con el PR #109.** `apps/web/vercel.json` ya permite `cdn.myanimelist.net`. El PR #109 mueve la CSP a `apps/web/api/_csp.ts`: al integrarlo hay que llevar ese cambio y quitar los orígenes de AniList.
-- **Carga por demanda sin límite propio.** Depende del límite público de la API (60 por minuto por IP) y de la caché de 5 minutos. Si Upstash no está configurado, no hay límite.
+- **Carga por demanda sin límite propio.** Depende del límite público de la API (60 por minuto por IP) y de la caché de 5 minutos. Si Upstash no está configurado, no hay límite. Una búsqueda de un nombre que ni la tabla ni MyAnimeList conocen se vuelve a consultar en cada pedido con un texto distinto: no se guarda ningún registro de búsquedas vacías.
 - **Exportación de la cuenta.** `GET /api/v1/me/export` no incluye las marcas de `mark_anilist`, las que no se pudieron convertir a MyAnimeList.
