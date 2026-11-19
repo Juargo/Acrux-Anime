@@ -69,10 +69,10 @@ export function catalogEntries(
 
 /**
  * One item per franchise for the loaded hits, in the order of each franchise's first hit
- * (RF-14). Grouping only sees the hits and their neighbours one hop away, so an item is
- * titled and covered by the earliest entry known here, and its ids are the ones known here;
- * marking builds the whole franchise first (catalog-source/franchise.ts). The curator table (RF-60)
- * is applied first.
+ * (RF-14). `chain` holds the sequels and prequels the hits reach however far, so an item is
+ * titled and covered by the oldest entry of its franchise. Extras are still the ones one hop
+ * away from a hit; marking builds the whole franchise first (catalog-source/franchise.ts).
+ * The curator table (RF-60) is applied first.
  */
 export function toCatalogItems(
   hits: readonly CatalogAnime[],
@@ -80,8 +80,10 @@ export function toCatalogItems(
   marks: readonly Mark[],
   now: string,
   overrides: readonly FranchiseOverride[] = [],
+  chain: readonly CatalogAnime[] = [],
 ): CatalogItem[] {
-  const { entries, known } = catalogEntries(hits, related);
+  // The chain keeps its relations, unlike the neighbours, so grouping walks all of it.
+  const { entries, known } = catalogEntries([...chain, ...hits], related);
   const franchiseOf = new Map<number, Franchise>();
   for (const franchise of groupFranchises(entries, overrides)) {
     for (const member of franchise.core) franchiseOf.set(member.id, franchise);

@@ -55,7 +55,7 @@ function renderAt(path: string, profile: Profile = free) {
   });
   // An empty catalog: no page, and no franchise holds any id.
   const client = fakeCatalogClient({
-    browse: async () => ({ items: [], related: [], nextPage: null }),
+    browse: async () => ({ items: [], chain: [], related: [], nextPage: null }),
     franchises: async (seeds) => ({ items: [], related: [], missing: [...seeds], pending: [] }),
   });
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {

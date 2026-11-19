@@ -42,6 +42,10 @@ export interface CatalogRepository {
   browse(query: BrowseQuery): Promise<AnimeRow[]>;
   // In no particular order; unknown ids are left out.
   byIds(ids: readonly number[]): Promise<AnimeRow[]>;
+  // Every anime reached from the ids through sequels and prequels, however far, without the
+  // ids themselves; at most `limit`, lowest id first. The chain goes through no music video
+  // and no adult title.
+  chain(ids: readonly number[], limit: number): Promise<AnimeRow[]>;
   // Every genre of the titles the catalog shows, in alphabetical order.
   genres(): Promise<string[]>;
   // Whether any anime the table holds, shown or not, has the text in one of its names.
@@ -151,6 +155,46 @@ export function createCatalogRepository(prisma: PrismaClient): CatalogRepository
         where: { id: { in: [...ids] }, adult: false },
         select: columns,
       });
+      return rows.map(toRow);
+    },
+    chain: async (ids, limit) => {
+      if (ids.length === 0) return [];
+      const seeds = Prisma.join([...ids]);
+      // One statement for the whole walk: a query per hop costs a round trip each.
+      const rows = await prisma.$queryRaw<StoredRow[]>`
+        WITH RECURSIVE chain("id") AS (
+          SELECT "id" FROM "anime" WHERE "id" IN (${seeds})
+          UNION
+          SELECT (relation->>'id')::int
+          FROM chain
+          JOIN "anime" AS entry ON entry."id" = chain."id"
+          CROSS JOIN LATERAL jsonb_array_elements(
+            CASE WHEN jsonb_typeof(entry."relations") = 'array'
+              THEN entry."relations" ELSE '[]'::jsonb END
+          ) AS relation
+          WHERE NOT entry."adult"
+            AND entry."format" IS DISTINCT FROM 'MUSIC'
+            AND relation->>'type' IN ('SEQUEL', 'PREQUEL')
+        )
+        SELECT
+          anime."id",
+          anime."title",
+          anime."title_english" AS "titleEnglish",
+          anime."title_japanese" AS "titleJapanese",
+          anime."cover_url" AS "coverUrl",
+          anime."format",
+          anime."start_date" AS "startDate",
+          anime."year",
+          anime."episodes",
+          anime."duration_minutes" AS "durationMinutes",
+          anime."genres",
+          anime."relations"
+        FROM chain
+        JOIN "anime" ON anime."id" = chain."id"
+        WHERE NOT anime."adult" AND anime."id" NOT IN (${seeds})
+        ORDER BY anime."id"
+        LIMIT ${limit}
+      `;
       return rows.map(toRow);
     },
     genres: async () => {

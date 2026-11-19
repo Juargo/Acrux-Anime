@@ -60,6 +60,7 @@ export function CatalogScreen({
         marking.marks,
         new Date().toISOString(),
         overrides,
+        catalog.data?.pages.flatMap((page) => page.chain) ?? [],
       ),
     [catalog.data, marking.marks, overrides],
   );

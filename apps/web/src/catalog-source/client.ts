@@ -45,6 +45,8 @@ export type CatalogAnime = z.infer<typeof catalogAnimeSchema>;
 
 const browsePageSchema = z.object({
   items: z.array(catalogAnimeSchema),
+  // An API deployed before the chain existed sends none.
+  chain: z.array(catalogAnimeSchema).default([]),
   related: z.array(catalogAnimeSchema),
   nextPage: z.number().int().nullable(),
 });
@@ -65,8 +67,9 @@ export interface BrowseParams {
   formats: readonly string[];
 }
 
-// One page of the catalog: the hits, the neighbours one hop away that the page lacks, and the
-// next page number (null on the last one).
+// One page of the catalog: the hits, the sequels and prequels they reach however far (`chain`),
+// their other neighbours one hop away that the page lacks, and the next page number (null on
+// the last one).
 export type BrowsePage = z.infer<typeof browsePageSchema>;
 
 // What the server found by following sequels and prequels from the seeds.

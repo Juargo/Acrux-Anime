@@ -174,6 +174,83 @@ describe('catalog repository: byIds', () => {
   });
 });
 
+describe('catalog repository: chain', () => {
+  const tv = (id: number, relations: object, extra: object = {}) => ({
+    id,
+    title: `chain ${id}`,
+    searchText: `chain ${id}`,
+    format: 'TV',
+    relations,
+    ...extra,
+  });
+
+  beforeAll(async () => {
+    await prisma.anime.createMany({
+      data: [
+        tv(3001, [{ type: 'SEQUEL', id: 3002 }], {
+          titleEnglish: 'First season',
+          coverUrl: 'https://cdn.myanimelist.net/images/anime/3001.jpg',
+          startDate: new Date('2013-04-07T00:00:00.000Z'),
+          year: 2013,
+          genres: ['Action'],
+        }),
+        tv(3002, [
+          { type: 'PREQUEL', id: 3001 },
+          { type: 'SEQUEL', id: 3003 },
+          { type: 'SIDE_STORY', id: 3010 },
+        ]),
+        tv(3003, [
+          { type: 'PREQUEL', id: 3002 },
+          { type: 'SEQUEL', id: 3004 },
+          { type: 'SEQUEL', id: 3005 },
+          { type: 'SEQUEL', id: 3999 },
+        ]),
+        // A music video and an adult title belong to the chain's edge, never to its path.
+        tv(3004, [{ type: 'SEQUEL', id: 3006 }], { format: 'MUSIC' }),
+        tv(3005, [{ type: 'SEQUEL', id: 3007 }], { adult: true }),
+        tv(3006, []),
+        tv(3007, []),
+        tv(3010, [{ type: 'SEQUEL', id: 3011 }]),
+        tv(3011, []),
+      ],
+    });
+  });
+
+  const chainIds = async (ids: number[], limit = 100) =>
+    (await createCatalogRepository(prisma).chain(ids, limit)).map((row) => row.id);
+
+  it('follows sequels and prequels however far, without the ids asked for', async () => {
+    expect(await chainIds([3003])).toEqual([3001, 3002, 3004]);
+    expect(await chainIds([3001, 3003])).toEqual([3002, 3004]);
+  });
+
+  it('gives each row as the catalog does', async () => {
+    const [first] = await createCatalogRepository(prisma).chain([3002], 1);
+    expect(first).toEqual({
+      id: 3001,
+      title: 'chain 3001',
+      titleEnglish: 'First season',
+      titleJapanese: null,
+      coverUrl: 'https://cdn.myanimelist.net/images/anime/3001.jpg',
+      format: 'TV',
+      startDate: new Date('2013-04-07T00:00:00.000Z'),
+      year: 2013,
+      episodes: null,
+      durationMinutes: null,
+      genres: ['Action'],
+      relations: [{ type: 'SEQUEL', id: 3002 }],
+    });
+  });
+
+  it('survives relations that are not a valid list and ids the table lacks', async () => {
+    expect(await chainIds([9, 404])).toEqual([]);
+  });
+
+  it('answers an empty list without asking the database', async () => {
+    expect(await createCatalogRepository(prisma).chain([], 100)).toEqual([]);
+  });
+});
+
 describe('catalog repository: genres', () => {
   it('lists the genres of the titles the catalog shows, in order', async () => {
     expect(await createCatalogRepository(prisma).genres()).toEqual([

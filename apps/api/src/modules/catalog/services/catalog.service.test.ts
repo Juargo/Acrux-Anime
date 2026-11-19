@@ -30,6 +30,22 @@ function anime(id: number, relations: Relation[] = [], extra: Partial<AnimeRow> 
   };
 }
 
+// What the repository answers for a chain: every row reached from the ids through sequels
+// and prequels, without the ids themselves.
+function chainOf(rows: Iterable<AnimeRow>, ids: readonly number[]): AnimeRow[] {
+  const byId = new Map([...rows].map((row) => [row.id, row]));
+  const reached = new Set(ids);
+  for (const id of reached) {
+    for (const relation of byId.get(id)?.relations ?? []) {
+      if (relation.type === 'SEQUEL' || relation.type === 'PREQUEL') reached.add(relation.id);
+    }
+  }
+  return [...reached]
+    .filter((id) => !ids.includes(id))
+    .flatMap((id) => byId.get(id) ?? [])
+    .sort((a, b) => a.id - b.id);
+}
+
 function fakeRepository(rows: AnimeRow[]) {
   const browsed: BrowseQuery[] = [];
   const asked: number[][] = [];
@@ -42,6 +58,7 @@ function fakeRepository(rows: AnimeRow[]) {
       asked.push([...ids]);
       return rows.filter((row) => ids.includes(row.id));
     },
+    chain: async (ids) => chainOf(rows, ids),
     genres: async () => ['Action', 'Drama'],
     knowsName: async () => false,
   };
@@ -70,6 +87,27 @@ describe('browse', () => {
     expect(ids(page.items)).toEqual([1, 2]);
     expect(ids(page.related)).toEqual([30]);
     expect(page.nextPage).toBeNull();
+  });
+
+  it('gives the whole chain of sequels and prequels of the page, apart from its neighbours', async () => {
+    const rows = [
+      anime(1, [{ type: 'SEQUEL', id: 2 }]),
+      anime(2, [
+        { type: 'PREQUEL', id: 1 },
+        { type: 'SEQUEL', id: 3 },
+      ]),
+      anime(3, [
+        { type: 'PREQUEL', id: 2 },
+        { type: 'SIDE_STORY', id: 30 },
+      ]),
+      anime(30),
+    ];
+    const { repository } = fakeRepository(rows);
+    const service = createCatalogService({ ...repository, browse: async () => rows.slice(2, 3) });
+    const page = await service.browse(filters, 1);
+    expect(ids(page.items)).toEqual([3]);
+    expect(ids(page.chain)).toEqual([1, 2]);
+    expect(ids(page.related)).toEqual([30]);
   });
 
   it('asks for one row more than the page to know whether another page follows', async () => {
@@ -203,6 +241,7 @@ function filling(
         )
         .slice(query.offset, query.offset + query.limit),
     byIds: async (ids) => [...rows.values()].filter((row) => ids.includes(row.id)),
+    chain: async (ids) => chainOf(rows.values(), ids),
     genres: async () => [],
     knowsName: async (search) =>
       [...rows.values()].some((row) => row.title.toLowerCase().includes(search)),
@@ -385,7 +424,7 @@ describe('browse, filling from the source', () => {
   it('answers an empty page when the source fails', async () => {
     const { service, calls } = filling([], { fail: new SourceError(null, 'timeout') });
     const page = await service.browse({ ...filters, search: 'frieren' }, 1);
-    expect(page).toEqual({ items: [], related: [], nextPage: null });
+    expect(page).toEqual({ items: [], chain: [], related: [], nextPage: null });
     expect(calls.errors).toHaveLength(1);
   });
 });

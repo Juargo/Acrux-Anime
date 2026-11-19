@@ -25,8 +25,14 @@ const requested = (fetch: ReturnType<typeof harness>['fetch'], call = 0) => {
 };
 
 describe('catalog client: browse', () => {
+  it('reads a page without a chain as one with an empty chain', async () => {
+    const { client } = harness(() => reply({ items: [anime(1)], related: [], nextPage: null }));
+
+    expect((await client.browse({ genres: [], formats: [] }, 1)).chain).toEqual([]);
+  });
+
   it('asks our own API for a page with every filter, and returns the validated page', async () => {
-    const page = { items: [anime(1)], related: [anime(2)], nextPage: 4 };
+    const page = { items: [anime(1)], chain: [anime(3)], related: [anime(2)], nextPage: 4 };
     const { client, fetch } = harness(() => reply(page));
 
     const result = await client.browse(
