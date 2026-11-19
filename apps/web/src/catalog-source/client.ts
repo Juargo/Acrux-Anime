@@ -58,10 +58,17 @@ const franchisesSchema = z.object({
   pending: z.array(animeId),
 });
 const genresSchema = z.object({ items: z.array(z.string()) });
+const franchiseYearsSchema = z.object({
+  years: z.array(z.object({ year: z.number().int(), franchises: z.number().int().positive() })),
+});
+
+// How many franchises first released in a year; only years with some are listed.
+export type FranchiseYearCount = z.infer<typeof franchiseYearsSchema>['years'][number];
 
 export interface BrowseParams {
   search?: string | undefined;
-  year?: number | undefined;
+  // Years a franchise first released in (S6); none means every year.
+  years: readonly number[];
   genres: readonly string[];
   // API format names (TV, MOVIE, OVA, ONA, SPECIAL); none means all of them.
   formats: readonly string[];
@@ -82,6 +89,7 @@ export interface CatalogClient {
   // One request: at most 100 seeds; `pending` ids are for the next request (see franchise.ts).
   franchises(seeds: readonly number[]): Promise<FranchiseCrawl>;
   genres(): Promise<string[]>;
+  franchiseYears(): Promise<FranchiseYearCount[]>;
 }
 
 export interface CatalogClientOptions {
@@ -119,7 +127,9 @@ export function createCatalogClient(options: CatalogClientOptions = {}): Catalog
     browse(params, page) {
       const query = new URLSearchParams();
       if (params.search) query.set('search', params.search);
-      if (params.year !== undefined) query.set('year', String(params.year));
+      if (params.years.length > 0) {
+        query.set('years', [...params.years].sort((a, b) => a - b).join(','));
+      }
       if (params.genres.length > 0) query.set('genres', params.genres.join(','));
       if (params.formats.length > 0) query.set('formats', params.formats.join(','));
       query.set('page', String(page));
@@ -133,6 +143,9 @@ export function createCatalogClient(options: CatalogClientOptions = {}): Catalog
     },
     async genres() {
       return (await get('/api/v1/catalog/genres', genresSchema)).items;
+    },
+    async franchiseYears() {
+      return (await get('/api/v1/catalog/franchise-years', franchiseYearsSchema)).years;
     },
   };
 }

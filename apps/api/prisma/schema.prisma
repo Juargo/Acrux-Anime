@@ -180,9 +180,15 @@ model Anime {
   // When the detail, relations included, was last read; null while only the list fields are known.
   detailedAt      DateTime? @map("detailed_at") @db.Timestamptz(6)
   fetchedAt       DateTime  @default(now()) @map("fetched_at") @db.Timestamptz(6)
+  // The franchise the anime belongs to, as core entry or extra, and the year its oldest core
+  // entry started. Filled by the recompute step of the load job; null for music videos and
+  // adult titles, and until the first recompute.
+  franchiseRootId Int?      @map("franchise_root_id")
+  franchiseYear   Int?      @map("franchise_year")
 
   @@index([members(sort: Desc), id])
   @@index([year])
+  @@index([franchiseYear])
   @@map("anime")
 }
 

@@ -28,7 +28,7 @@ describe('catalog client: browse', () => {
   it('reads a page without a chain as one with an empty chain', async () => {
     const { client } = harness(() => reply({ items: [anime(1)], related: [], nextPage: null }));
 
-    expect((await client.browse({ genres: [], formats: [] }, 1)).chain).toEqual([]);
+    expect((await client.browse({ years: [], genres: [], formats: [] }, 1)).chain).toEqual([]);
   });
 
   it('asks our own API for a page with every filter, and returns the validated page', async () => {
@@ -36,7 +36,12 @@ describe('catalog client: browse', () => {
     const { client, fetch } = harness(() => reply(page));
 
     const result = await client.browse(
-      { search: 'frieren', year: 2023, genres: ['Fantasy', 'Action'], formats: ['TV', 'MOVIE'] },
+      {
+        search: 'frieren',
+        years: [2019, 2016],
+        genres: ['Fantasy', 'Action'],
+        formats: ['TV', 'MOVIE'],
+      },
       3,
     );
 
@@ -46,7 +51,7 @@ describe('catalog client: browse', () => {
       path: '/api/v1/catalog/anime',
       query: {
         search: 'frieren',
-        year: '2023',
+        years: '2016,2019',
         genres: 'Fantasy,Action',
         formats: 'TV,MOVIE',
         page: '3',
@@ -57,15 +62,28 @@ describe('catalog client: browse', () => {
   it('leaves out the filters that are not set', async () => {
     const { client, fetch } = harness(() => reply({ items: [], related: [], nextPage: null }));
 
-    await client.browse({ genres: [], formats: [] }, 1);
+    await client.browse({ years: [], genres: [], formats: [] }, 1);
 
     expect(requested(fetch).query).toEqual({ page: '1' });
+  });
+
+  it('never sends the single year, and sends years only when some are picked (S5)', async () => {
+    const { client, fetch } = harness(
+      () => reply({ items: [], related: [], nextPage: null }),
+      () => reply({ items: [], related: [], nextPage: null }),
+    );
+
+    await client.browse({ years: [], genres: [], formats: [] }, 1);
+    await client.browse({ years: [2016], genres: [], formats: [] }, 1);
+
+    expect(requested(fetch, 0).query).toEqual({ page: '1' });
+    expect(requested(fetch, 1).query).toEqual({ years: '2016', page: '1' });
   });
 
   it('does not send credentials or custom headers: the catalog is public', async () => {
     const { client, fetch } = harness(() => reply({ items: [], related: [], nextPage: null }));
 
-    await client.browse({ genres: [], formats: [] }, 1);
+    await client.browse({ years: [], genres: [], formats: [] }, 1);
 
     const init = fetch.mock.calls[0]?.[1];
     expect(init?.headers ?? {}).not.toHaveProperty('authorization');
@@ -81,7 +99,7 @@ describe('catalog client: browse', () => {
       }),
     );
 
-    const page = await client.browse({ genres: [], formats: [] }, 1);
+    const page = await client.browse({ years: [], genres: [], formats: [] }, 1);
 
     expect(page.items[0]?.coverUrl).toBeNull();
   });
@@ -163,5 +181,30 @@ describe('catalog client: errors', () => {
     const { client, fetch } = harness(() => reply({}, 429));
     await failure(client);
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('catalog client: franchise years', () => {
+  it('reads how many franchises first released in each year', async () => {
+    const { client, fetch } = harness(() =>
+      reply({
+        years: [
+          { year: 2015, franchises: 40 },
+          { year: 2016, franchises: 123 },
+        ],
+      }),
+    );
+
+    expect(await client.franchiseYears()).toEqual([
+      { year: 2015, franchises: 40 },
+      { year: 2016, franchises: 123 },
+    ]);
+    expect(requested(fetch).path).toBe('/api/v1/catalog/franchise-years');
+  });
+
+  it('rejects an answer that is not the agreed shape', async () => {
+    const { client } = harness(() => reply({ years: [{ year: 'x', franchises: 1 }] }));
+
+    await expect(client.franchiseYears()).rejects.toMatchObject({ kind: 'invalid-response' });
   });
 });

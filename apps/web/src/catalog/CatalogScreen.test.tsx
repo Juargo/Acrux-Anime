@@ -4,7 +4,12 @@ import { act, cleanup, render, screen, waitFor, within } from '@testing-library/
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { type CatalogAnime, type CatalogClient, CatalogError } from '../catalog-source/client';
+import {
+  type CatalogAnime,
+  type CatalogClient,
+  CatalogError,
+  type FranchiseYearCount,
+} from '../catalog-source/client';
 import { anime, fakeCatalogClient } from '../catalog-source/test-support';
 import { setLocale } from '../i18n';
 import { CatalogScreen } from './CatalogScreen';
@@ -30,15 +35,27 @@ type Answer = { items: CatalogAnime[]; hasNextPage?: boolean } | Error;
 type Call = {
   page: number;
   search?: string | undefined;
-  year?: number | undefined;
+  years: readonly number[];
   genres: readonly string[];
   formats: readonly string[];
 };
 
-function fakeClient(answer: (call: Call) => Answer | Promise<Answer>) {
+const yearCounts: FranchiseYearCount[] = [
+  { year: 2016, franchises: 123 },
+  { year: 2023, franchises: 1234 },
+];
+
+function fakeClient(
+  answer: (call: Call) => Answer | Promise<Answer>,
+  franchiseYears: FranchiseYearCount[] | Error = yearCounts,
+) {
   const calls: Call[] = [];
   const client = fakeCatalogClient({
     genres: async () => ['Action', 'Fantasy', 'Hentai'],
+    franchiseYears: async () => {
+      if (franchiseYears instanceof Error) throw franchiseYears;
+      return franchiseYears;
+    },
     browse: async (params, page) => {
       const call = { ...params, page };
       calls.push(call);
@@ -66,8 +83,6 @@ function renderScreen(client: CatalogClient) {
   );
 }
 
-const currentYear = new Date().getFullYear();
-
 describe('CatalogScreen', () => {
   it('credits MyAnimeList with a link (ADR-0043)', async () => {
     renderScreen(fakeClient(() => ({ items: [frieren] })).client);
@@ -76,14 +91,15 @@ describe('CatalogScreen', () => {
     );
   });
 
-  it('browses the releases of the current year by default, most popular first', async () => {
+  it('browses every year by default: no year is selected and none is sent (S1)', async () => {
     const { client, calls } = fakeClient(() => ({ items: [frieren] }));
     renderScreen(client);
 
     expect(await screen.findByText('Sousou no Frieren')).toBeTruthy();
-    expect(calls[0]).toMatchObject({ page: 1, year: currentYear });
+    expect(calls[0]).toMatchObject({ page: 1, years: [] });
     expect(calls[0]?.search).toBeUndefined();
-    expect(screen.getByRole('button', { name: String(currentYear) })).toBeTruthy();
+    expect(screen.queryAllByRole('button', { pressed: true })).toHaveLength(0);
+    expect(screen.queryByRole('button', { name: String(new Date().getFullYear()) })).toBeNull();
   });
 
   it('@CA-RF12-01 search by name shows one item per franchise with cover and title', async () => {
@@ -104,46 +120,87 @@ describe('CatalogScreen', () => {
     const searches = calls.filter((call) => call.search !== undefined);
     expect(searches).toHaveLength(1);
     expect(searches[0]).toMatchObject({ search: 'frieren', page: 1 });
-    expect(searches[0]?.year).toBeUndefined();
+    expect(searches[0]?.years).toEqual([]);
   });
 
-  it('@CA-RF13-01 filters the releases of a year by genre and type in the catalog', async () => {
+  it('@CA-RF13-01 choosing the year 2023, a genre and a format sends all three', async () => {
     const { client, calls } = fakeClient((variables) =>
-      variables.year === 2023 ? { items: [frieren] } : { items: [] },
+      variables.years.includes(2023) ? { items: [frieren] } : { items: [] },
     );
     renderScreen(client);
     await screen.findByText(/No encontramos animes/);
 
-    await userEvent.click(screen.getByRole('button', { name: String(currentYear) }));
+    await userEvent.click(screen.getByRole('button', { name: /^Streaming/ }));
+    await userEvent.click(screen.getByRole('button', { name: /^2023/ }));
+    // The years apply at once, with no sheet.
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ years: [2023] }));
+
+    await userEvent.click(screen.getByRole('button', { name: 'Género' }));
     const sheet = screen.getByRole('dialog', { name: 'Filtrar' });
-    await userEvent.selectOptions(within(sheet).getByLabelText('Año de estreno'), '2023');
     await userEvent.click(await within(sheet).findByRole('button', { name: 'Fantasía' }));
     await userEvent.click(within(sheet).getByRole('button', { name: 'Serie de TV' }));
-    expect(calls).toHaveLength(1);
     await userEvent.click(within(sheet).getByRole('button', { name: 'Ver resultados' }));
 
     expect(await screen.findByText('Sousou no Frieren')).toBeTruthy();
-    expect(calls.at(-1)).toMatchObject({
-      year: 2023,
-      genres: ['Fantasy'],
-      formats: ['TV'],
-    });
+    expect(calls.at(-1)).toMatchObject({ years: [2023], genres: ['Fantasy'], formats: ['TV'] });
     expect(screen.getByRole('button', { name: 'Género · 1' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Tipo · 1' })).toBeTruthy();
   });
 
-  it('offers every year from the current one back to 1917, and hides the adult genre', async () => {
+  it('filters by genre and format through the sheet as before, without any year', async () => {
+    const { client, calls } = fakeClient(() => ({ items: [] }));
+    renderScreen(client);
+    await screen.findByText(/No encontramos animes/);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Tipo' }));
+    const sheet = screen.getByRole('dialog', { name: 'Filtrar' });
+    expect(within(sheet).queryByLabelText('Año de estreno')).toBeNull();
+    await userEvent.click(await within(sheet).findByRole('button', { name: 'Fantasía' }));
+    await userEvent.click(within(sheet).getByRole('button', { name: 'OVA' }));
+    expect(calls).toHaveLength(1);
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Ver resultados' }));
+
+    await waitFor(() =>
+      expect(calls.at(-1)).toMatchObject({ years: [], genres: ['Fantasy'], formats: ['OVA'] }),
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('hides the adult genre in the filter sheet', async () => {
     const { client } = fakeClient(() => ({ items: [] }));
     renderScreen(client);
 
-    await userEvent.click(screen.getByRole('button', { name: String(currentYear) }));
+    await userEvent.click(screen.getByRole('button', { name: 'Género' }));
     const sheet = screen.getByRole('dialog', { name: 'Filtrar' });
-    const years = within(within(sheet).getByLabelText('Año de estreno')).getAllByRole('option');
-    expect(years[0]?.textContent).toBe(String(currentYear));
-    expect(years.at(-1)?.textContent).toBe('1917');
-    expect(years).toHaveLength(currentYear - 1917 + 1);
     expect(await within(sheet).findByRole('button', { name: 'Acción' })).toBeTruthy();
     expect(within(sheet).queryByRole('button', { name: 'Hentai' })).toBeNull();
+  });
+
+  it('shows the real count of franchises on each year, from the API', async () => {
+    const { client } = fakeClient(() => ({ items: [] }));
+    renderScreen(client);
+
+    await userEvent.click(screen.getByRole('button', { name: /^Streaming/ }));
+
+    expect(await screen.findByRole('button', { name: '2016, 123 franquicias' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '2023, 1234 franquicias' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '2017' }).textContent).toBe('2017');
+  });
+
+  it('keeps the era filter usable without numbers when the counts fail', async () => {
+    const { client, calls } = fakeClient(
+      () => ({ items: [] }),
+      new CatalogError('unavailable', 'offline'),
+    );
+    renderScreen(client);
+    await screen.findByText(/No encontramos animes/);
+
+    await userEvent.click(screen.getByRole('button', { name: /^Streaming/ }));
+    await userEvent.click(screen.getByRole('button', { name: '2016' }));
+
+    expect(screen.getByRole('button', { name: '2016' }).textContent).toBe('2016');
+    expect(screen.queryByRole('alert')).toBeNull();
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ years: [2016] }));
   });
 
   it('moves focus into the filter sheet and back to the chip that opened it', async () => {
@@ -160,35 +217,46 @@ describe('CatalogScreen', () => {
     expect(document.activeElement).toBe(chip);
   });
 
-  it('disables the year while searching, since a search covers every year', async () => {
+  it('sends no years while searching, disables the year chips and says why (S5)', async () => {
     const { client, calls } = fakeClient(() => ({ items: [] }));
     renderScreen(client);
+    await userEvent.click(screen.getByRole('button', { name: /^Streaming/ }));
+    await userEvent.click(screen.getByRole('button', { name: /^2016/ }));
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ years: [2016] }));
+    expect(screen.queryByText('La búsqueda cubre todos los años.')).toBeNull();
 
     await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar anime' }), ' frieren ');
-    await waitFor(() => expect(calls.at(-1)).toMatchObject({ search: 'frieren' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Todos los años' }));
 
-    const year = within(screen.getByRole('dialog', { name: 'Filtrar' })).getByLabelText(
-      'Año de estreno',
-    );
-    expect(year).toHaveProperty('disabled', true);
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ search: 'frieren', years: [] }));
+    expect(screen.getByText('La búsqueda cubre todos los años.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^Streaming/ })).toHaveProperty('disabled', true);
+    expect(screen.getByRole('button', { name: /^2016/ })).toHaveProperty('disabled', true);
+
+    // Clearing the search brings the selection back.
+    await userEvent.clear(screen.getByRole('searchbox', { name: 'Buscar anime' }));
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ years: [2016] }));
+    expect(calls.at(-1)?.search).toBeUndefined();
+    expect(screen.getByRole('button', { name: /^2016/ })).toHaveProperty('disabled', false);
   });
 
-  it('clears the filters back to the current year', async () => {
+  it('clears genres and formats in the sheet, and leaves the selected years alone', async () => {
     const { client, calls } = fakeClient(() => ({ items: [] }));
     renderScreen(client);
-    await userEvent.click(screen.getByRole('button', { name: String(currentYear) }));
+    await userEvent.click(screen.getByRole('button', { name: /^Edad de oro/ }));
+    await userEvent.click(screen.getByRole('button', { name: '2001' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Tipo' }));
     let sheet = screen.getByRole('dialog', { name: 'Filtrar' });
-    await userEvent.selectOptions(within(sheet).getByLabelText('Año de estreno'), '2001');
     await userEvent.click(within(sheet).getByRole('button', { name: 'OVA' }));
     await userEvent.click(within(sheet).getByRole('button', { name: 'Ver resultados' }));
-    await waitFor(() => expect(calls.at(-1)).toMatchObject({ year: 2001 }));
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ years: [2001], formats: ['OVA'] }));
 
     await userEvent.click(screen.getByRole('button', { name: 'Tipo · 1' }));
     sheet = screen.getByRole('dialog', { name: 'Filtrar' });
     await userEvent.click(within(sheet).getByRole('button', { name: 'Limpiar' }));
 
-    await waitFor(() => expect(calls.at(-1)).toMatchObject({ year: currentYear, genres: [] }));
+    await waitFor(() =>
+      expect(calls.at(-1)).toMatchObject({ years: [2001], genres: [], formats: [] }),
+    );
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
@@ -292,10 +360,13 @@ describe('CatalogScreen in English (RF-70)', () => {
     expect(screen.getByRole('list', { name: 'Catalog' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Genre' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Género' })).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Era' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^Tezuka era/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^Era Tezuka/ })).toBeNull();
 
     await userEvent.click(screen.getByRole('button', { name: 'Type' }));
     const sheet = screen.getByRole('dialog', { name: 'Filter' });
-    expect(within(sheet).getByLabelText('Release year')).toBeTruthy();
+    expect(within(sheet).queryByLabelText('Release year')).toBeNull();
     expect(await within(sheet).findByRole('button', { name: 'Fantasy' })).toBeTruthy();
     expect(within(sheet).getByRole('button', { name: 'TV series' })).toBeTruthy();
     expect(within(sheet).getByRole('button', { name: 'Show results' })).toBeTruthy();

@@ -12,6 +12,7 @@ const INT4_MAX = 2_147_483_647;
 const MAX_IDS = 100;
 const MAX_PAGE = 1000;
 const MAX_GENRES = 10;
+const MAX_YEARS = 150;
 const MAX_TEXT = 100;
 const MIN_YEAR = 1900;
 const MAX_YEAR = 2100;
@@ -75,6 +76,8 @@ function parseFilters(query: Record<string, unknown>): BrowseFilters {
   if (search !== undefined && search.length > MAX_TEXT) invalid('Invalid search');
 
   const year = single(query, 'year');
+  const years = parseYears(query);
+  if (year !== undefined && years !== undefined) invalid('Use either year or years');
   const genres = single(query, 'genres')?.split(',') ?? [];
   if (
     genres.length > MAX_GENRES ||
@@ -88,9 +91,21 @@ function parseFilters(query: Record<string, unknown>): BrowseFilters {
   return {
     ...(search === undefined || search === '' ? {} : { search }),
     ...(year === undefined ? {} : { year: toInt(year, 'year', MIN_YEAR, MAX_YEAR) }),
+    ...(years === undefined ? {} : { years }),
     genres: genres.map((genre) => genre.trim()),
     formats,
   };
+}
+
+// ?years=2016,1998: distinct franchise years, in the order given.
+function parseYears(query: Record<string, unknown>): number[] | undefined {
+  const value = single(query, 'years');
+  if (value === undefined) return undefined;
+  const years = [
+    ...new Set(value.split(',').map((part) => toInt(part, 'years', MIN_YEAR, MAX_YEAR))),
+  ];
+  if (years.length > MAX_YEARS) invalid('Too many years');
+  return years;
 }
 
 function start(service: CatalogService | undefined, response: Response): CatalogService {
@@ -121,7 +136,10 @@ export function createCatalogModule(service: CatalogService | undefined): Module
           summary: 'One page of the catalog, most popular first, 50 anime a page',
           query: {
             search: text(`Part of any name of the anime, up to ${MAX_TEXT} characters`),
-            year: text(`Year the anime started, ${MIN_YEAR} to ${MAX_YEAR}`),
+            year: text(`Year the anime started, ${MIN_YEAR} to ${MAX_YEAR}; not with years`),
+            years: text(
+              `Years franchises first released in, ${MIN_YEAR} to ${MAX_YEAR}: 1 to ${MAX_YEARS} separated by commas; any of them matches, and not with year`,
+            ),
             genres: text(`Up to ${MAX_GENRES} genres separated by commas; any of them matches`),
             formats: text(`Any of ${FORMATS.join(', ')}, separated by commas; all by default`),
             page: text(`1 to ${MAX_PAGE}; 1 by default`),
@@ -210,6 +228,29 @@ export function createCatalogModule(service: CatalogService | undefined): Module
             missing: result.missing,
             pending: result.pending,
           });
+        },
+      },
+      {
+        method: 'get',
+        path: '/api/v1/catalog/franchise-years',
+        public: true,
+        rateLimit: 'public',
+        docs: {
+          summary: 'The years franchises first released in, with how many franchises each holds',
+          responses: {
+            200: {
+              description:
+                'Oldest year first; only years with at least one franchise, adult titles never counted',
+              schema: z.object({
+                years: z.array(z.object({ year: z.int(), franchises: z.int() })),
+              }),
+            },
+            503: unavailable,
+          },
+        },
+        handler: async (_request, response) => {
+          const catalog = start(service, response);
+          response.json({ years: await catalog.franchiseYears() });
         },
       },
       {

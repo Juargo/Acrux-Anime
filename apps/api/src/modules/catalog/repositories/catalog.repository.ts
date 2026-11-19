@@ -30,11 +30,19 @@ export interface BrowseQuery {
   // Part of any of the names of the anime.
   search?: string;
   year?: number;
+  // The years franchises first released in; an anime matches when its franchise did. Not
+  // the same as `year`, which is the year the anime itself started.
+  years?: number[];
   // Any of them; empty means every genre.
   genres: string[];
   formats: string[];
   offset: number;
   limit: number;
+}
+
+export interface FranchiseYear {
+  year: number;
+  franchises: number;
 }
 
 export interface CatalogRepository {
@@ -48,6 +56,10 @@ export interface CatalogRepository {
   chain(ids: readonly number[], limit: number): Promise<AnimeRow[]>;
   // Every genre of the titles the catalog shows, in alphabetical order.
   genres(): Promise<string[]>;
+  // How many franchises first released in each year, oldest year first. A franchise counts
+  // once however many entries it has, adult titles never count, and so do not the anime that
+  // belong to no franchise.
+  franchiseYears(): Promise<FranchiseYear[]>;
   // Whether any anime the table holds, shown or not, has the text in one of its names.
   knowsName(search: string): Promise<boolean>;
 }
@@ -78,11 +90,50 @@ export interface CatalogStore {
   nextToDetail(limit: number): Promise<number[]>;
 }
 
+// What the grouping reads of one anime, with the franchise stored for it so far.
+export interface FranchiseSource {
+  id: number;
+  format: string | null;
+  startDate: Date | null;
+  year: number | null;
+  relations: Relation[];
+  franchiseRootId: number | null;
+  franchiseYear: number | null;
+}
+
+// One row of the curator table, in the names of the table.
+export interface CuratorOverride {
+  animeId: number;
+  franchiseRootId: number;
+  role: 'core' | 'extra' | 'separate';
+  updatedAt: Date;
+}
+
+// The franchise of one anime; null root and year when it belongs to none.
+export interface FranchiseAssignment {
+  id: number;
+  rootId: number | null;
+  year: number | null;
+}
+
+// What the recompute step of the load job reads and writes (S7).
+export interface FranchiseStore {
+  // Every anime the catalog shows, with the franchise stored for it.
+  franchiseSources(): Promise<FranchiseSource[]>;
+  overrides(): Promise<CuratorOverride[]>;
+  // Stores the franchise of each anime given; the rest stay as they are.
+  saveFranchises(rows: readonly FranchiseAssignment[]): Promise<void>;
+}
+
 // Formats whose relations nothing follows: music videos, promotional videos and commercials.
 const NO_DETAIL_FORMATS = ['MUSIC', 'PV', 'CM'];
 // Rows saved at once. Each upsert is its own statement: a list is safe to save twice, and one
 // transaction of a hundred statements passed its 5 s limit against a database in another region.
 const SAVE_BATCH = 8;
+// Franchises saved per statement: one UPDATE ... FROM (VALUES ...) per batch instead of a
+// statement per row, so a remote database answers in a few round trips. Three parameters a
+// row, far from the 32767 a statement may bind.
+const FRANCHISE_BATCH = 500;
 
 const columns = {
   id: true,
@@ -104,9 +155,13 @@ const relationsSchema = z.array(z.object({ type: z.string(), id: z.int().positiv
 type StoredRow = Omit<AnimeRow, 'relations'> & { relations: unknown };
 
 // A row with relations in an unexpected shape still belongs to the catalog.
+function parseRelations(raw: unknown): Relation[] {
+  const relations = relationsSchema.safeParse(raw);
+  return relations.success ? relations.data : [];
+}
+
 function toRow(stored: StoredRow): AnimeRow {
-  const relations = relationsSchema.safeParse(stored.relations);
-  return { ...stored, relations: relations.success ? relations.data : [] };
+  return { ...stored, relations: parseRelations(stored.relations) };
 }
 
 // search_text is stored in lower case; LIKE wildcards in the name are plain characters.
@@ -131,15 +186,18 @@ function listFields(row: CatalogAnimeInput) {
   };
 }
 
-export function createCatalogRepository(prisma: PrismaClient): CatalogRepository & CatalogStore {
+export function createCatalogRepository(
+  prisma: PrismaClient,
+): CatalogRepository & CatalogStore & FranchiseStore {
   return {
-    browse: async ({ search, year, genres, formats, offset, limit }) => {
+    browse: async ({ search, year, years, genres, formats, offset, limit }) => {
       const rows = await prisma.anime.findMany({
         where: {
           adult: false,
           format: { in: formats },
           ...(search === undefined ? {} : { searchText: { contains: likePattern(search) } }),
           ...(year === undefined ? {} : { year }),
+          ...(years === undefined ? {} : { franchiseYear: { in: years } }),
           ...(genres.length === 0 ? {} : { genres: { hasSome: genres } }),
         },
         orderBy: [{ members: 'desc' }, { id: 'asc' }],
@@ -203,12 +261,58 @@ export function createCatalogRepository(prisma: PrismaClient): CatalogRepository
       `;
       return rows.map((row) => row.genre);
     },
+    franchiseYears: async () => {
+      const rows = await prisma.$queryRaw<{ year: number; franchises: number }[]>`
+        SELECT "franchise_year" AS "year", COUNT(DISTINCT "franchise_root_id")::int AS "franchises"
+        FROM "anime"
+        WHERE NOT "adult" AND "franchise_year" IS NOT NULL AND "franchise_root_id" IS NOT NULL
+        GROUP BY "franchise_year"
+        ORDER BY "franchise_year"
+      `;
+      return rows;
+    },
     knowsName: async (search) => {
       const row = await prisma.anime.findFirst({
         where: { searchText: { contains: likePattern(search) } },
         select: { id: true },
       });
       return row !== null;
+    },
+
+    franchiseSources: async () => {
+      const rows = await prisma.anime.findMany({
+        where: { adult: false },
+        select: {
+          id: true,
+          format: true,
+          startDate: true,
+          year: true,
+          relations: true,
+          franchiseRootId: true,
+          franchiseYear: true,
+        },
+      });
+      return rows.map((row) => ({ ...row, relations: parseRelations(row.relations) }));
+    },
+
+    overrides: () =>
+      prisma.franchiseOverride.findMany({
+        select: { animeId: true, franchiseRootId: true, role: true, updatedAt: true },
+      }),
+
+    saveFranchises: async (rows) => {
+      for (let start = 0; start < rows.length; start += FRANCHISE_BATCH) {
+        const values = Prisma.join(
+          rows
+            .slice(start, start + FRANCHISE_BATCH)
+            .map((row) => Prisma.sql`(${row.id}::int, ${row.rootId}::int, ${row.year}::int)`),
+        );
+        await prisma.$executeRaw`
+          UPDATE "anime" SET "franchise_root_id" = v."root_id", "franchise_year" = v."year"
+          FROM (VALUES ${values}) AS v("id", "root_id", "year")
+          WHERE "anime"."id" = v."id"
+        `;
+      }
     },
 
     detailState: async (ids) => {

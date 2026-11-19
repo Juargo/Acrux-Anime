@@ -34,7 +34,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0014](./0014-hito-web-en-produccion.md) | Hito del 28-oct: web app en producción | Reemplazado por ADR-0031 | Sesión 2026-10-12 |
 | [0015](./0015-login-solo-con-google-en-el-mvp-web.md) | Login solo con Google en el MVP web | Aceptado | Sesión 2026-10-12 |
 | [0016](./0016-web-app-instalable-como-pwa.md) | Web app instalable como PWA, sin modo offline | Aceptado | Sesión 2026-10-12 |
-| [0017](./0017-exploracion-del-catalogo-por-nombre-o-anio.md) | Exploración del catálogo: por nombre o por año, con filtros de género y tipo | Aceptado (operaciones de catálogo al navegador, ADR-0024) | Sesión 2026-10-12 |
+| [0017](./0017-exploracion-del-catalogo-por-nombre-o-anio.md) | Exploración del catálogo: por nombre o por año, con filtros de género y tipo | Aceptado (operaciones de catálogo al navegador, ADR-0024; exploración por año modificada por ADR-0045) | Sesión 2026-10-12 |
 | [0018](./0018-api-propia-con-express-y-typescript.md) | API propia con Express y TypeScript como intermediaria con MyAnimeList | Aceptado (MAL reemplazado por ADR-0024; Render por ADR-0020) | Sesión 2026-10-12 |
 | [0019](./0019-estilo-de-arquitectura-monolito-modular-por-capas.md) | Estilo de arquitectura: monolito modular por capas | Aceptado | Sesión 2026-10-27 |
 | [0020](./0020-topologia-de-despliegue-vercel-y-supabase.md) | Topología de despliegue: Vercel (web, API y landing) y Supabase | Aceptado (Supabase reemplazado por Neon en ADR-0034) | Sesión 2026-10-27 |
@@ -62,6 +62,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0042](./0042-csp-estricta-con-nonce.md) | CSP estricta con nonce para el HTML de la app | Aceptado | Sesión 2026-11-10 |
 | [0043](./0043-catalogo-propio-con-datos-de-myanimelist.md) | Catálogo propio en Neon con datos de MyAnimeList | Aceptado | Sesión 2026-11-10 |
 | [0044](./0044-lanzamiento-publico-directo.md) | Lanzamiento público directo, sin esperar la validación ni la beta | Aceptado | Sesión 2026-11-10 |
+| [0045](./0045-exploracion-por-epoca-y-anio-de-estreno-de-la-franquicia.md) | Exploración por época y por año de estreno de la franquicia | Aceptado | Sesión 2026-11-19 |
 
 ## Trazabilidad con las reuniones
 
@@ -107,6 +108,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-11-10: CSP con nonce para AdSense | 0042 (modifica el punto 5 de 0028 y la caché de 0016) |
 | Sesión 2026-11-10: migración a MyAnimeList con catálogo propio | 0043 (ejecuta el punto 4 de 0041; reemplaza el consumo desde el navegador de 0024) |
 | Sesión 2026-11-10: lanzamiento público directo, anuncios y cobro apagados por ahora | 0044 (modifica las condiciones de H1 y H2 de 0031) |
+| Sesión 2026-11-19: filtro por época y por año de estreno de la franquicia, con conteo por año | 0045 (modifica la exploración por año de 0017) |
 | Sesión 2026-10-27: repo público, región São Paulo, lista privada por defecto | 0027, 0020, 0028 |
 | Sesión 2026-10-27: monorepo con pnpm workspaces aceptado (solo web) | 0002 |
 | D13 | 0010 |
