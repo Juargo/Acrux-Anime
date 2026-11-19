@@ -3,6 +3,7 @@ import type {
   AnimeRow,
   CatalogRepository,
   CatalogStore,
+  FranchiseYear,
 } from '../repositories/catalog.repository.js';
 
 export const CATALOG_PAGE_SIZE = 50;
@@ -33,6 +34,7 @@ export interface CatalogFill {
 export interface BrowseFilters {
   search?: string;
   year?: number;
+  years?: number[];
   genres: string[];
   formats: string[];
 }
@@ -63,6 +65,7 @@ export interface CatalogService {
   byIds(ids: readonly number[]): Promise<AnimeRow[]>;
   franchises(seedIds: readonly number[]): Promise<FranchiseCrawl>;
   genres(): Promise<string[]>;
+  franchiseYears(): Promise<FranchiseYear[]>;
 }
 
 export function createCatalogService(
@@ -245,5 +248,7 @@ export function createCatalogService(
     },
 
     genres: () => repository.genres(),
+
+    franchiseYears: () => repository.franchiseYears(),
   };
 }

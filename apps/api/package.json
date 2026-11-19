@@ -17,6 +17,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate",
     "catalog:load": "prisma generate && tsx scripts/load-catalog.ts",
+    "catalog:franchises": "prisma generate && tsx scripts/recompute-franchises.ts",
     "openapi:emit": "prisma generate && tsx scripts/emit-openapi.ts",
     "openapi:check": "prisma generate && tsx scripts/emit-openapi.ts --check",
     "depcruise": "depcruise src --config .dependency-cruiser.cjs"
@@ -36,6 +37,7 @@
     "zod-openapi": "^6.0.2"
   },
   "devDependencies": {
+    "@acrux/domain": "workspace:*",
     "@testcontainers/postgresql": "^12.2.1",
     "@types/express": "^5.0.6",
     "@types/node": "^22.20.5",

@@ -290,9 +290,21 @@ describe('the acrux_catalog role', () => {
     expect(await sqlState(catalog.query('ALTER TABLE anime ADD COLUMN x int'))).toBe('42501');
   });
 
-  it.each(APP_TABLES.filter((table) => table !== 'anime'))('cannot read %s', async (table) => {
-    expect(await sqlState(catalog.query(`SELECT * FROM ${table}`))).toBe('42501');
+  // The load job groups franchises with the curator corrections (ADR-0045).
+  it('reads the curator corrections but cannot change them', async () => {
+    expect(await sqlState(catalog.query('SELECT * FROM franchise_override'))).toBeUndefined();
+    expect(await sqlState(catalog.query('DELETE FROM franchise_override'))).toBe('42501');
+    expect(await sqlState(catalog.query(`UPDATE franchise_override SET role = 'core'`))).toBe(
+      '42501',
+    );
   });
+
+  it.each(APP_TABLES.filter((table) => table !== 'anime' && table !== 'franchise_override'))(
+    'cannot read %s',
+    async (table) => {
+      expect(await sqlState(catalog.query(`SELECT * FROM ${table}`))).toBe('42501');
+    },
+  );
 });
 
 describe('the conversion to MyAnimeList ids', () => {

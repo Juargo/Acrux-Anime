@@ -40,6 +40,10 @@ function fakeService() {
       return { items: [FULLMETAL], related: [], missing: [9], pending: [] };
     },
     genres: async () => ['Action', 'Drama'],
+    franchiseYears: async () => [
+      { year: 1998, franchises: 4 },
+      { year: 2016, franchises: 123 },
+    ],
   };
   return { service, calls };
 }
@@ -104,6 +108,61 @@ describe('GET /api/v1/catalog/anime', () => {
     ]);
   });
 
+  it('passes the franchise years it was asked for, once each', async () => {
+    const { service, calls } = fakeService();
+    const response = await request(appWith(service))
+      .get('/api/v1/catalog/anime')
+      .query({ years: '2016,1998,2016' });
+    expect(response.status).toBe(200);
+    expect(calls).toEqual([
+      {
+        filters: {
+          years: [2016, 1998],
+          genres: [],
+          formats: ['TV', 'MOVIE', 'OVA', 'ONA', 'SPECIAL'],
+        },
+        page: 1,
+      },
+    ]);
+  });
+
+  it('keeps `year` as it was when `years` is not given', async () => {
+    const { service, calls } = fakeService();
+    const response = await request(appWith(service))
+      .get('/api/v1/catalog/anime')
+      .query({ year: '2009' });
+    expect(response.status).toBe(200);
+    expect(calls).toEqual([
+      {
+        filters: { year: 2009, genres: [], formats: ['TV', 'MOVIE', 'OVA', 'ONA', 'SPECIAL'] },
+        page: 1,
+      },
+    ]);
+  });
+
+  it.each([
+    ['year and years together', { year: '2009', years: '2009' }],
+    ['a year that is not a number', { years: '2016,20x9' }],
+    ['a year out of range', { years: '1899' }],
+    ['a year past the range', { years: '2101' }],
+    ['an empty year', { years: '2016,' }],
+    ['more than 150 years', { years: Array.from({ length: 151 }, (_, i) => 1900 + i).join(',') }],
+  ])('answers 400 to %s', async (_name, query) => {
+    const { service, calls } = fakeService();
+    const response = await request(appWith(service)).get('/api/v1/catalog/anime').query(query);
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({ code: 'catalog.invalid_query' });
+    expect(calls).toEqual([]);
+  });
+
+  it('answers 400 to years given twice', async () => {
+    const { service } = fakeService();
+    const response = await request(appWith(service)).get(
+      '/api/v1/catalog/anime?years=2009&years=2010',
+    );
+    expect(response.status).toBe(400);
+  });
+
   it.each([
     ['a year that is not a number', { year: '20x9' }],
     ['a year out of range', { year: '1800' }],
@@ -131,6 +190,28 @@ describe('GET /api/v1/catalog/anime', () => {
 
   it('answers 503 when the database is not configured', async () => {
     const response = await request(appWith(undefined)).get('/api/v1/catalog/anime');
+    expect(response.status).toBe(503);
+    expect(response.body).toMatchObject({ code: 'catalog.unavailable' });
+    expect(response.headers['cache-control']).toBe('private, no-store');
+  });
+});
+
+describe('GET /api/v1/catalog/franchise-years', () => {
+  it('lists the years with their franchises, and lets the CDN keep it', async () => {
+    const { service } = fakeService();
+    const response = await request(appWith(service)).get('/api/v1/catalog/franchise-years');
+    expect(response.status).toBe(200);
+    expect(response.headers['cache-control']).toBe(CACHE);
+    expect(response.body).toEqual({
+      years: [
+        { year: 1998, franchises: 4 },
+        { year: 2016, franchises: 123 },
+      ],
+    });
+  });
+
+  it('answers 503 when the database is not configured', async () => {
+    const response = await request(appWith(undefined)).get('/api/v1/catalog/franchise-years');
     expect(response.status).toBe(503);
     expect(response.body).toMatchObject({ code: 'catalog.unavailable' });
     expect(response.headers['cache-control']).toBe('private, no-store');

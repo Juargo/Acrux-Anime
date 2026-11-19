@@ -40,6 +40,7 @@ Mientras un anime no tiene detalle, el catálogo lo muestra como un ítem suelto
 - **Corrida semanal:** lista todo y lee 6.000 detalles. Medido desde una máquina local: unos 15 minutos de listado y 1,8 s por detalle, cerca de tres horas en total.
 - **Corrida a mano:** workflow **Catalog** → *Run workflow*, con el número de detalles.
 - **En local:** con `MAL_CLIENT_ID` y `DATABASE_URL` en el entorno, `pnpm --filter @acrux/api catalog:load --details=40`. `--delay` cambia la pausa entre pedidos, en milisegundos (mínimo 500).
+- **Franquicia de cada anime:** al terminar, la corrida guarda la raíz y el año de estreno de la franquicia de cada anime (ADR-0045); el filtro por año y el conteo del catálogo salen de ahí. Para recalcular sin cargar nada de MyAnimeList: `pnpm --filter @acrux/api catalog:franchises`, con `DATABASE_URL` en el entorno. Después de aplicar la migración que agrega esas columnas hay que correrlo una vez.
 - **Si el workflow falla con «stopped early»:** MyAnimeList rechazó o falló. No relanzar enseguida; esperar al menos una hora. Lo ya guardado queda guardado y la próxima corrida sigue desde ahí.
 
 ## Comprobación

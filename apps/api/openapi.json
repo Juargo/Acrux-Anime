@@ -1202,10 +1202,19 @@
             "in": "query",
             "name": "year",
             "schema": {
-              "description": "Year the anime started, 1900 to 2100",
+              "description": "Year the anime started, 1900 to 2100; not with years",
               "type": "string"
             },
-            "description": "Year the anime started, 1900 to 2100"
+            "description": "Year the anime started, 1900 to 2100; not with years"
+          },
+          {
+            "in": "query",
+            "name": "years",
+            "schema": {
+              "description": "Years franchises first released in, 1900 to 2100: 1 to 150 separated by commas; any of them matches, and not with year",
+              "type": "string"
+            },
+            "description": "Years franchises first released in, 1900 to 2100: 1 to 150 separated by commas; any of them matches, and not with year"
           },
           {
             "in": "query",
@@ -1448,6 +1457,76 @@
           },
           "400": {
             "description": "A query parameter is missing, repeated or not valid"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/franchise-years": {
+      "get": {
+        "summary": "The years franchises first released in, with how many franchises each holds",
+        "security": [],
+        "tags": [
+          "catalog"
+        ],
+        "responses": {
+          "200": {
+            "description": "Oldest year first; only years with at least one franchise, adult titles never counted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "years": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "year": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "franchises": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "year",
+                          "franchises"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "years"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "429": {
             "description": "Too many requests; retry after the seconds in Retry-After",

@@ -60,6 +60,7 @@ function fakeRepository(rows: AnimeRow[]) {
     },
     chain: async (ids) => chainOf(rows, ids),
     genres: async () => ['Action', 'Drama'],
+    franchiseYears: async () => [],
     knowsName: async () => false,
   };
   return { repository, browsed, asked };
@@ -243,6 +244,7 @@ function filling(
     byIds: async (ids) => [...rows.values()].filter((row) => ids.includes(row.id)),
     chain: async (ids) => chainOf(rows.values(), ids),
     genres: async () => [],
+    franchiseYears: async () => [],
     knowsName: async (search) =>
       [...rows.values()].some((row) => row.title.toLowerCase().includes(search)),
   };

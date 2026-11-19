@@ -1,10 +1,10 @@
-export { groupFranchises } from './franchise/grouping';
-export type { FranchiseProgress, FranchiseState } from './franchise/progress';
+export { groupFranchises } from './franchise/grouping.js';
+export type { FranchiseProgress, FranchiseState } from './franchise/progress.js';
 export {
   countCompleteFranchises,
   countSeenEntries,
   franchiseProgress,
-} from './franchise/progress';
+} from './franchise/progress.js';
 export type {
   CatalogEntry,
   CoreMember,
@@ -16,9 +16,9 @@ export type {
   MediaType,
   Relation,
   RelationType,
-} from './franchise/types';
+} from './franchise/types.js';
 export {
   DISPLAY_NAME_MAX,
   type DisplayNameProblem,
   displayNameProblem,
-} from './profile/display-name';
+} from './profile/display-name.js';
