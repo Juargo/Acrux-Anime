@@ -29,7 +29,7 @@ function fakeService() {
   const service: CatalogService = {
     browse: async (filters: BrowseFilters, page: number) => {
       calls.push({ filters, page });
-      return { items: [FULLMETAL], related: [], nextPage: 2 };
+      return { items: [FULLMETAL], chain: [FULLMETAL], related: [], nextPage: 2 };
     },
     byIds: async (ids) => {
       calls.push({ ids });
@@ -69,7 +69,12 @@ describe('GET /api/v1/catalog/anime', () => {
     const response = await request(appWith(service)).get('/api/v1/catalog/anime');
     expect(response.status).toBe(200);
     expect(response.headers['cache-control']).toBe(CACHE);
-    expect(response.body).toEqual({ items: [FULLMETAL_JSON], related: [], nextPage: 2 });
+    expect(response.body).toEqual({
+      items: [FULLMETAL_JSON],
+      chain: [FULLMETAL_JSON],
+      related: [],
+      nextPage: 2,
+    });
     // RF-11: without a format filter, every format except music.
     expect(calls).toEqual([
       { filters: { genres: [], formats: ['TV', 'MOVIE', 'OVA', 'ONA', 'SPECIAL'] }, page: 1 },

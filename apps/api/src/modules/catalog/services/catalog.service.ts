@@ -39,7 +39,10 @@ export interface BrowseFilters {
 
 export interface CatalogPage {
   items: AnimeRow[];
-  // The neighbours one hop away that the page lacks, so the browser can group it.
+  // Every entry the page lacks that its items reach through sequels and prequels, so the
+  // browser shows each franchise by its oldest entry.
+  chain: AnimeRow[];
+  // The other neighbours one hop away that the page lacks, so the browser can group it.
   related: AnimeRow[];
   nextPage: number | null;
 }
@@ -174,9 +177,18 @@ export function createCatalogService(
         }
       }
       const items = rows.slice(0, CATALOG_PAGE_SIZE);
+      const [chain, around] = await Promise.all([
+        repository.chain(
+          items.map((row) => row.id),
+          maxFranchiseEntries,
+        ),
+        neighbours(items),
+      ]);
+      const inChain = new Set(chain.map((row) => row.id));
       return {
         items,
-        related: await neighbours(items),
+        chain,
+        related: around.filter((row) => !inChain.has(row.id)),
         nextPage: rows.length > CATALOG_PAGE_SIZE ? page + 1 : null,
       };
     },

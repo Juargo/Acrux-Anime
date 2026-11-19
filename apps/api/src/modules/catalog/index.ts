@@ -129,9 +129,10 @@ export function createCatalogModule(service: CatalogService | undefined): Module
           responses: {
             200: {
               description:
-                'The page, the neighbours one hop away that it lacks, and the next page or null',
+                'The page, the sequels and prequels it lacks however far, its other neighbours one hop away, and the next page or null',
               schema: z.object({
                 items: z.array(animeSchema),
+                chain: z.array(animeSchema),
                 related: z.array(animeSchema),
                 nextPage: z.int().nullable(),
               }),
@@ -147,6 +148,7 @@ export function createCatalogModule(service: CatalogService | undefined): Module
           const result = await catalog.browse(filters, page);
           response.json({
             items: result.items.map(toJson),
+            chain: result.chain.map(toJson),
             related: result.related.map(toJson),
             nextPage: result.nextPage,
           });

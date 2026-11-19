@@ -46,6 +46,7 @@ function fakeClient(answer: (call: Call) => Answer | Promise<Answer>) {
       if (result instanceof Error) throw result;
       return {
         items: result.items,
+        chain: [],
         related: [],
         nextPage: result.hasNextPage ? page + 1 : null,
       };

@@ -4,8 +4,9 @@ import { i18n } from '../i18n';
 import type { BrowsePage, BrowseParams, CatalogClient } from './client';
 
 // Catalog browsing (ADR-0017, ADR-0043): our API filters by name or year, genre and format.
-// Each page brings the neighbours one hop away that it lacks, so the grid can show one item
-// per franchise without extra requests.
+// Each page brings the sequels and prequels of its hits and the neighbours one hop away that
+// it lacks, so the grid can show one item per franchise, by its oldest entry, without extra
+// requests.
 
 type FilterValue = keyof typeof webSpanish.formatFilters;
 

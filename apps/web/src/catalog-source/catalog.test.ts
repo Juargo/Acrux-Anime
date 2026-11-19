@@ -43,7 +43,7 @@ describe('browseParams', () => {
 
 describe('fetchCatalogPage', () => {
   it('asks the client for the page and returns it with its neighbours', async () => {
-    const page = { items: [anime(1)], related: [anime(2)], nextPage: 4 };
+    const page = { items: [anime(1)], chain: [], related: [anime(2)], nextPage: 4 };
     const client = fakeCatalogClient({ browse: async () => page });
 
     const result = await fetchCatalogPage(
@@ -58,7 +58,7 @@ describe('fetchCatalogPage', () => {
 
   it('ends the pages when the API says there are no more', async () => {
     const client = fakeCatalogClient({
-      browse: async () => ({ items: [], related: [], nextPage: null }),
+      browse: async () => ({ items: [], chain: [], related: [], nextPage: null }),
     });
 
     expect(

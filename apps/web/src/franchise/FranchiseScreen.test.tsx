@@ -79,7 +79,7 @@ function fakeCatalog(fail = 0) {
     browse: async () => {
       const hit = row(101) as CatalogAnime;
       const related = hit.relations.map((relation) => row(relation.id) as CatalogAnime);
-      return { items: [hit], related, nextPage: null };
+      return { items: [hit], chain: [], related, nextPage: null };
     },
     franchises: async (seeds) => {
       if (failures > 0) {

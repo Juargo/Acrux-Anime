@@ -50,7 +50,7 @@ function page(...ids: number[]) {
     .flatMap((item) => item.relations.map((relation) => relation.id))
     .filter((id) => !ids.includes(id))
     .map((id) => row(id) as CatalogAnime);
-  return { items, related, nextPage: null };
+  return { items, chain: [], related, nextPage: null };
 }
 
 const catalogOf = (...ids: number[]) =>

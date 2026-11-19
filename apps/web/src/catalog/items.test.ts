@@ -57,6 +57,41 @@ describe('toCatalogItems', () => {
     ]);
   });
 
+  it('covers and titles a franchise by its oldest entry when the page lacks it', () => {
+    // The page holds the third season alone; the first two come as its chain.
+    const items = toCatalogItems(
+      [hit(3, 2023, [['PREQUEL', 2]])],
+      [],
+      [],
+      NOW,
+      [],
+      [
+        hit(1, 2013, [['SEQUEL', 2]]),
+        hit(2, 2017, [
+          ['PREQUEL', 1],
+          ['SEQUEL', 3],
+        ]),
+      ],
+    );
+
+    expect(items).toEqual([
+      {
+        rootId: 1,
+        title: 'English 1',
+        coverUrl: cover(1),
+        dimmed: false,
+        coreIds: [1, 2, 3],
+        entryIds: [1, 2, 3],
+      },
+    ]);
+  });
+
+  it('shows no item for an entry that only comes in the chain', () => {
+    const items = toCatalogItems([hit(3, 2023)], [], [], NOW, [], [hit(9, 2001)]);
+
+    expect(items.map((entry) => entry.rootId)).toEqual([3]);
+  });
+
   it('@CA-RF12-01 shows one item per franchise with cover and title', () => {
     const items = toCatalogItems(
       [hit(154587, 2023, [['SEQUEL', 182255]]), hit(182255, 2026, [['PREQUEL', 154587]])],

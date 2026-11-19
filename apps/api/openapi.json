@@ -1237,13 +1237,19 @@
         ],
         "responses": {
           "200": {
-            "description": "The page, the neighbours one hop away that it lacks, and the next page or null",
+            "description": "The page, the sequels and prequels it lacks however far, its other neighbours one hop away, and the next page or null",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CatalogAnime"
+                      }
+                    },
+                    "chain": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/CatalogAnime"
@@ -1270,6 +1276,7 @@
                   },
                   "required": [
                     "items",
+                    "chain",
                     "related",
                     "nextPage"
                   ],
