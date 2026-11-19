@@ -15,20 +15,46 @@ on:
         type: boolean
         default: false
 
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
-
 permissions:
   contents: read
 
 jobs:
-  deploy:
-    name: Migrate, deploy and smoke test
+  # A deploy waiting for approval holds the deploy-production group, so one that nobody
+  # approves keeps every later deploy pending. Only the newest commit should ask for
+  # approval: older runs still waiting are cancelled. A run in that state has not started
+  # its deploy job, so nothing that already runs against production is ever cancelled.
+  supersede:
+    name: Cancel older deploys waiting for approval
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Cancel older runs of this workflow that wait for approval
+        env:
+          GH_TOKEN: ${{ github.token }}
+          THIS_RUN: ${{ github.run_id }}
+        run: |
+          gh run list --repo "$GITHUB_REPOSITORY" --workflow deploy.yml --status waiting \
+            --limit 100 --json databaseId --jq '.[].databaseId' |
+            while read -r run; do
+              if [ "$run" -lt "$THIS_RUN" ]; then
+                echo "Cancelling deploy run $run, superseded by $THIS_RUN"
+                gh run cancel "$run" --repo "$GITHUB_REPOSITORY"
+              fi
+            done
+
+  deploy:
+    name: Migrate, deploy and smoke test
+    needs: supersede
+    runs-on: ubuntu-latest
+    # One deploy at a time, and a deploy that started is never cancelled. The group is on
+    # the job, not on the workflow, so `supersede` runs while another deploy holds it.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
     # Holds the production secrets and requires the stakeholder's approval.
     environment:
       name: deploy-production
