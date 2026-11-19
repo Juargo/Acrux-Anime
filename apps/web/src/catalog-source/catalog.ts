@@ -3,7 +3,7 @@ import type { TFunction } from 'i18next';
 import { i18n } from '../i18n';
 import type { BrowsePage, BrowseParams, CatalogClient } from './client';
 
-// Catalog browsing (ADR-0017, ADR-0043): our API filters by name or year, genre and format.
+// Catalog browsing (ADR-0017, ADR-0043): our API filters by name or franchise first years, genre and format.
 // Each page brings the sequels and prequels of its hits and the neighbours one hop away that
 // it lacks, so the grid can show one item per franchise, by its oldest entry, without extra
 // requests.
@@ -48,18 +48,19 @@ export function formatLabel(format: string, t: TFunction = i18n.t): string {
 
 export interface CatalogQuery {
   search: string;
-  year: number;
+  // Years a franchise first released in; none means every year.
+  years: number[];
   genres: string[];
   // FormatFilter values.
   formats: string[];
 }
 
-// Name and year are exclusive browse modes (ADR-0017): a search covers every year. No formats
+// Name and years are exclusive browse modes (ADR-0017): a search covers every year. No formats
 // means all of them, which the API also reads as "none given".
 export function browseParams(query: CatalogQuery): BrowseParams {
   const search = query.search.trim();
   return {
-    ...(search === '' ? { year: query.year } : { search }),
+    ...(search === '' ? { years: query.years } : { search, years: [] }),
     genres: query.genres,
     formats: FORMAT_FILTERS.filter((filter) => query.formats.includes(filter.value)).map(
       (filter) => filter.value,

@@ -17,6 +17,10 @@ updates:
       - dependency-name: typescript
         versions:
           - ">=7.0.0"
+      # The types follow the Node major in .node-version (22). Raise this with the runtime.
+      - dependency-name: "@types/node"
+        versions:
+          - ">=23.0.0"
     commit-message:
       prefix: chore
       include: scope
