@@ -2369,3 +2369,159 @@ label.sheet__label {
   display: block;
   min-height: 100px;
 }
+
+/* Era filter of the catalog (S1, S2): era chips, and for the open era a panel of years by decade. */
+.catalog__era {
+  margin-top: 16px;
+}
+
+.catalog__era-hint {
+  margin-top: 8px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.era-filter__heading {
+  margin: 0 0 8px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.era-filter__era {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.era-filter__era[aria-expanded="true"] {
+  box-shadow: 0 0 0 2px var(--color-accent-default);
+}
+
+.era-filter__range,
+.era-filter__count {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.era-filter__badge {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--color-accent-default);
+  color: var(--color-text-on-accent);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+}
+
+/* On a filled chip the accent badge would vanish: invert it. */
+.era-filter__era[aria-pressed="true"] {
+  border-color: var(--color-accent-default);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+}
+
+.era-filter__panel {
+  min-width: 0;
+  margin: 16px 0 0;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--color-border-default);
+}
+
+.era-filter__panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 12px;
+}
+
+.era-filter__panel-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.era-filter__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.era-filter__link {
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-link);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.era-filter__link:disabled,
+.era-filter__era:disabled,
+.era-filter__year:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.era-filter__decade {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.era-filter__decade-label {
+  flex: 0 0 56px;
+  padding-top: 10px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.era-filter__years {
+  display: flex;
+  flex: 1 1 200px;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.era-filter__year {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.era-filter__year--has {
+  border-color: var(--color-accent-default);
+}
+
+.era-filter__year[aria-pressed="true"] .era-filter__count {
+  color: var(--color-text-on-accent);
+}
+
+.era-filter__dot {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-status-new);
+}

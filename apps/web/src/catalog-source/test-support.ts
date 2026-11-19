@@ -30,6 +30,7 @@ export function fakeCatalogClient(methods: Partial<CatalogClient> = {}) {
     byIds: vi.fn(methods.byIds ?? unexpected('byIds')),
     franchises: vi.fn(methods.franchises ?? unexpected('franchises')),
     genres: vi.fn(methods.genres ?? unexpected('genres')),
+    franchiseYears: vi.fn(methods.franchiseYears ?? unexpected('franchiseYears')),
   };
   return client satisfies CatalogClient;
 }
