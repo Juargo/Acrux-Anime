@@ -2,11 +2,12 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AdSlot } from '../ads/AdSlot';
 import type { CatalogClient } from '../catalog-source/client';
-import { defaultClient, useCatalog, useGenres } from '../catalog-source/hooks';
+import { defaultClient, useCatalog, useFranchiseYears, useGenres } from '../catalog-source/hooks';
 import { catalogErrorMessage } from '../catalog-source/messages';
 import { DataCredit } from '../components/DataCredit';
 import { useFranchiseOverrides } from '../franchise/use-franchise-overrides';
 import { CatalogGrid } from './CatalogGrid';
+import { EraFilter } from './EraFilter';
 import { FilterSheet, type Filters } from './FilterSheet';
 import { useDebounced, useOnline } from './hooks';
 import { toCatalogItems } from './items';
@@ -14,18 +15,14 @@ import { type FranchiseMarkedEvent, useFranchiseMarks } from './use-franchise-ma
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-// The current year is computed at run time (ADR-0017).
-const defaultFilters = (): Filters => ({
-  year: new Date().getFullYear(),
-  genres: [],
-  formats: [],
-});
+const defaultFilters = (): Filters => ({ genres: [], formats: [] });
 
 const countLabel = (label: string, count: number) => (count > 0 ? `${label} · ${count}` : label);
 
 /**
- * Container: owns the search, the filters and the catalog queries
- * (ADR-0017, ADR-0043). Search by name covers every year; otherwise it browses a year.
+ * Container: owns the search, the years, the filters and the catalog queries
+ * (ADR-0017, ADR-0043). Search by name covers every year; otherwise it browses the years
+ * picked in the era filter, or every year when none is.
  */
 export function CatalogScreen({
   client = defaultClient,
@@ -42,13 +39,22 @@ export function CatalogScreen({
   const { t } = useTranslation();
   const [input, setInput] = useState('');
   const search = useDebounced(input.trim(), SEARCH_DEBOUNCE_MS);
+  const [years, setYears] = useState<number[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
   const [sheetOpen, setSheetOpen] = useState(false);
   const online = useOnline();
 
-  const query = useMemo(() => ({ search, ...filters }), [search, filters]);
+  const query = useMemo(() => ({ search, years, ...filters }), [search, years, filters]);
   const catalog = useCatalog(query, client);
   const genres = useGenres(sheetOpen, client);
+  // Without the counts the era filter still works, just without numbers.
+  const franchiseYears = useFranchiseYears(client);
+  const counts = useMemo(
+    () =>
+      franchiseYears.data &&
+      Object.fromEntries(franchiseYears.data.map((it) => [it.year, it.franchises])),
+    [franchiseYears.data],
+  );
   const marking = useFranchiseMarks({ client, getToken, fetchFn, onFranchiseMarked });
   const overrides = useFranchiseOverrides(fetchFn);
 
@@ -83,10 +89,18 @@ export function CatalogScreen({
         onChange={(event) => setInput(event.target.value)}
       />
 
+      <div className="catalog__era">
+        <EraFilter
+          years={years}
+          counts={counts}
+          currentYear={new Date().getFullYear()}
+          disabled={searching}
+          onChange={setYears}
+        />
+        {searching && <p className="catalog__era-hint">{t('filters.searchCoversAllYears')}</p>}
+      </div>
+
       <div className="chips catalog__filters">
-        <button className="chip" type="button" onClick={() => setSheetOpen(true)}>
-          {searching ? t('catalog.allYears') : String(filters.year)}
-        </button>
         <button
           className="chip"
           type="button"
@@ -166,8 +180,6 @@ export function CatalogScreen({
       {sheetOpen && (
         <FilterSheet
           initial={filters}
-          currentYear={new Date().getFullYear()}
-          searching={searching}
           genres={genres.data}
           onApply={(next) => {
             setFilters(next);

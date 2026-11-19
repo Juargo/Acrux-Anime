@@ -21,6 +21,30 @@ describe('catalog support for the E2E journeys', () => {
     expect(ids(ask('/api/v1/catalog/anime?year=2023&page=1').related)).toEqual([182255]);
   });
 
+  it('answers years with the anime of the franchises that first released in them', () => {
+    // Season 2 of Frieren started in 2026, but its franchise started in 2023.
+    expect(ids(ask('/api/v1/catalog/anime?years=2023&page=1').items)).toEqual([154587, 182255]);
+    expect(ids(ask('/api/v1/catalog/anime?years=2022,2023&page=1').items)).toEqual([
+      154587, 182255, 140960, 142838,
+    ]);
+    expect(ids(ask('/api/v1/catalog/anime?years=2026&page=1').items)).toEqual([]);
+  });
+
+  it('answers every anime when neither year, years nor search is given', () => {
+    expect(ids(ask('/api/v1/catalog/anime?page=1').items).sort()).toEqual([
+      140960, 142838, 154587, 182255,
+    ]);
+  });
+
+  it('counts the franchises of each first year, oldest first', () => {
+    expect(ask('/api/v1/catalog/franchise-years')).toEqual({
+      years: [
+        { year: 2022, franchises: 1 },
+        { year: 2023, franchises: 1 },
+      ],
+    });
+  });
+
   it('follows sequels and prequels from a seed, with nothing missing or pending', () => {
     const crawl = ask(`/api/v1/catalog/franchises?seeds=${SPY_FAMILY.part2Id}`);
 

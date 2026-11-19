@@ -90,7 +90,7 @@ function toJson(anime: Anime) {
     coverUrl: coverOf(anime.id),
     format: anime.format,
     startDate: anime.startDate,
-    year: Number(anime.startDate.slice(0, 4)),
+    year: yearOf(anime),
     episodes: anime.episodes,
     durationMinutes: anime.durationMinutes ?? 24,
     genres: anime.genres,
@@ -116,6 +116,14 @@ function idsOf(params: URLSearchParams, name: string): number[] {
     .filter((id) => Number.isInteger(id) && id > 0);
 }
 
+const yearOf = (anime: Anime) => Number(anime.startDate.slice(0, 4));
+
+// The year its franchise first released: the earliest start among the entries joined by
+// sequels and prequels (the API stores the same, from the core entries of the franchise).
+function franchiseYear(anime: Anime): number {
+  return Math.min(...crawl([anime.id]).items.map(yearOf));
+}
+
 function matches(anime: Anime, params: URLSearchParams): boolean {
   const search = params.get('search')?.toLowerCase();
   if (search) {
@@ -123,7 +131,24 @@ function matches(anime: Anime, params: URLSearchParams): boolean {
       title?.toLowerCase().includes(search),
     );
   }
-  return anime.startDate.startsWith(`${params.get('year')}-`);
+  const years = idsOf(params, 'years');
+  if (years.length > 0) return years.includes(franchiseYear(anime));
+  // Without `year`, `years` or `search` every anime answers.
+  return params.has('year') ? yearOf(anime) === Number(params.get('year')) : true;
+}
+
+// How many franchises first released in each year, oldest first (franchise-years route).
+function franchiseYears() {
+  const counts = new Map<number, number>();
+  const seen = new Set<number>();
+  for (const anime of ANIME) {
+    if (seen.has(anime.id)) continue;
+    const { items } = crawl([anime.id]);
+    for (const entry of items) seen.add(entry.id);
+    const year = Math.min(...items.map(yearOf));
+    counts.set(year, (counts.get(year) ?? 0) + 1);
+  }
+  return [...counts].sort(([a], [b]) => a - b).map(([year, franchises]) => ({ year, franchises }));
 }
 
 // Follows sequels and prequels from the seeds, as the franchises route does.
@@ -164,6 +189,9 @@ export function answer(url: URL): unknown {
   if (pathname === '/api/v1/catalog/franchises') {
     const { items, related, missing, pending } = crawl(idsOf(params, 'seeds'));
     return { items: items.map(toJson), related: related.map(toJson), missing, pending };
+  }
+  if (pathname === '/api/v1/catalog/franchise-years') {
+    return { years: franchiseYears() };
   }
   if (pathname === '/api/v1/catalog/genres') {
     return { items: ['Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Hentai'] };

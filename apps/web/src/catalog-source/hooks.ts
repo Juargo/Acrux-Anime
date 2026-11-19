@@ -37,6 +37,16 @@ export function useGenres(enabled: boolean, client: CatalogClient = defaultClien
   });
 }
 
+// How many franchises first released in each year: one request per session. A failure leaves
+// the era filter without numbers; it never blocks the catalog.
+export function useFranchiseYears(client: CatalogClient = defaultClient) {
+  return useQuery({
+    queryKey: ['catalog', 'franchise-years'],
+    queryFn: () => client.franchiseYears(),
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+}
+
 // The franchise detail (RF-16) builds the whole franchise from any of its entries, with the
 // curator table applied first (RF-60).
 export function useFranchise(
