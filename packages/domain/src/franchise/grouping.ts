@@ -1,4 +1,10 @@
-import type { CatalogEntry, CoreMember, Franchise, FranchiseOverride, RelationType } from './types';
+import type {
+  CatalogEntry,
+  CoreMember,
+  Franchise,
+  FranchiseOverride,
+  RelationType,
+} from './types.js';
 
 // RDI-30: sequels and prequels form the core; side stories and summaries are extras;
 // spin-offs and remakes are separate franchises linked as related; music is ignored.

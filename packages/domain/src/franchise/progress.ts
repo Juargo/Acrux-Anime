@@ -1,4 +1,4 @@
-import type { Franchise, Mark } from './types';
+import type { Franchise, Mark } from './types.js';
 
 // RF-26: Viendo > Vista > Parcial > Sin marcar.
 export type FranchiseState = 'watching' | 'seen' | 'partial' | 'unmarked';

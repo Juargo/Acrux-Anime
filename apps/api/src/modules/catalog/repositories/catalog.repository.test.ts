@@ -262,6 +262,62 @@ describe('catalog repository: genres', () => {
   });
 });
 
+describe('catalog repository: franchises', () => {
+  const entry = (id: number, extra: object = {}) => ({
+    id,
+    title: `franchise ${id}`,
+    searchText: `franchise ${id}`,
+    format: 'TV',
+    members: 1,
+    ...extra,
+  });
+  const idsIn = async (years?: number[]) =>
+    (await createCatalogRepository(prisma).browse({ ...all, ...(years ? { years } : {}) }))
+      .map((row) => row.id)
+      .filter((id) => id >= 8000 && id < 9000)
+      .sort((a, b) => a - b);
+
+  beforeAll(async () => {
+    await prisma.anime.createMany({
+      data: [
+        // A franchise of 2016 with a later season and an extra, one of 2016 alone, one of 1998,
+        // an adult title of 2016 and a row nothing has computed yet.
+        entry(8001, { year: 2016, franchiseRootId: 8001, franchiseYear: 2016 }),
+        entry(8002, { year: 2019, franchiseRootId: 8001, franchiseYear: 2016 }),
+        entry(8003, { year: 2020, franchiseRootId: 8001, franchiseYear: 2016 }),
+        entry(8004, { year: 2016, franchiseRootId: 8004, franchiseYear: 2016 }),
+        entry(8005, { year: 1998, franchiseRootId: 8005, franchiseYear: 1998 }),
+        entry(8006, { year: 2016, franchiseRootId: 8006, franchiseYear: 2016, adult: true }),
+        entry(8007, { year: 2016 }),
+      ],
+    });
+  });
+
+  it('keeps the anime whose franchise first released in one of the years', async () => {
+    expect(await idsIn([2016])).toEqual([8001, 8002, 8003, 8004]);
+    expect(await idsIn([1998, 2016])).toEqual([8001, 8002, 8003, 8004, 8005]);
+    expect(await idsIn([2010])).toEqual([]);
+  });
+
+  it('leaves the year of the anime itself out of the filter', async () => {
+    expect(await idsIn([2019])).toEqual([]);
+    const own = await createCatalogRepository(prisma).browse({ ...all, year: 2019 });
+    expect(own.map((row) => row.id)).toContain(8002);
+  });
+
+  it('shows every franchise year without the filter', async () => {
+    expect(await idsIn()).toEqual([8001, 8002, 8003, 8004, 8005, 8007]);
+  });
+
+  it('counts each franchise once per year, oldest year first, without adult or unset rows', async () => {
+    const years = await createCatalogRepository(prisma).franchiseYears();
+    expect(years).toEqual([
+      { year: 1998, franchises: 1 },
+      { year: 2016, franchises: 2 },
+    ]);
+  });
+});
+
 describe('catalog repository: knowsName', () => {
   it('tells whether any anime has the text in a name, in any letter case', async () => {
     const repository = createCatalogRepository(prisma);
@@ -383,5 +439,105 @@ describe('catalog repository: store', () => {
     });
     expect(await repository.nextToDetail(10)).toEqual([3, 2, 4, 1]);
     expect(await repository.nextToDetail(2)).toEqual([3, 2]);
+  });
+});
+
+// What the recompute step of the load job reads and writes, as the role it runs as.
+describe('catalog repository: franchise store, as acrux_catalog', () => {
+  let catalog: PrismaClient;
+
+  beforeAll(async () => {
+    const owner = new pg.Client({ connectionString: container.getConnectionUri() });
+    await owner.connect();
+    await owner.query(`ALTER ROLE acrux_catalog WITH LOGIN PASSWORD 'catalog-test'`);
+    await owner.query(`INSERT INTO "franchise_override" ("anime_id", "franchise_root_id", "role")
+      VALUES (9002, 9001, 'core')`);
+    await owner.end();
+    const url = new URL(container.getConnectionUri());
+    url.username = 'acrux_catalog';
+    url.password = 'catalog-test';
+    catalog = createPrismaClient(url.toString());
+    await prisma.anime.createMany({
+      data: [
+        { id: 9001, title: 'a', searchText: 'a', format: 'TV', year: 2000 },
+        {
+          id: 9002,
+          title: 'b',
+          searchText: 'b',
+          format: 'TV',
+          startDate: new Date('2003-05-01T00:00:00.000Z'),
+          relations: [{ type: 'PREQUEL', id: 9001 }],
+          franchiseRootId: 1,
+          franchiseYear: 1999,
+        },
+        { id: 9003, title: 'c', searchText: 'c', format: 'TV', adult: true },
+        { id: 9004, title: 'd', searchText: 'd', format: 'TV', relations: { not: 'a list' } },
+      ],
+    });
+  });
+
+  afterAll(async () => {
+    await catalog?.$disconnect();
+  });
+
+  it('reads the anime the catalog shows with their franchise and relations, and the curator rows', async () => {
+    const repository = createCatalogRepository(catalog);
+    const rows = (await repository.franchiseSources()).filter((row) => row.id >= 9000);
+    expect(rows.sort((a, b) => a.id - b.id)).toEqual([
+      {
+        id: 9001,
+        format: 'TV',
+        startDate: null,
+        year: 2000,
+        relations: [],
+        franchiseRootId: null,
+        franchiseYear: null,
+      },
+      {
+        id: 9002,
+        format: 'TV',
+        startDate: new Date('2003-05-01T00:00:00.000Z'),
+        year: null,
+        relations: [{ type: 'PREQUEL', id: 9001 }],
+        franchiseRootId: 1,
+        franchiseYear: 1999,
+      },
+      {
+        id: 9004,
+        format: 'TV',
+        startDate: null,
+        year: null,
+        relations: [],
+        franchiseRootId: null,
+        franchiseYear: null,
+      },
+    ]);
+    const overrides = await repository.overrides();
+    expect(overrides).toEqual([
+      expect.objectContaining({ animeId: 9002, franchiseRootId: 9001, role: 'core' }),
+    ]);
+  });
+
+  it('stores the given franchises, nulls included, and leaves every other row alone', async () => {
+    const repository = createCatalogRepository(catalog);
+    await repository.saveFranchises([
+      { id: 9001, rootId: 9001, year: 2000 },
+      { id: 9002, rootId: null, year: null },
+    ]);
+    const stored = await prisma.anime.findMany({
+      where: { id: { in: [9001, 9002, 9003, 9004] } },
+      select: { id: true, franchiseRootId: true, franchiseYear: true },
+      orderBy: { id: 'asc' },
+    });
+    expect(stored).toEqual([
+      { id: 9001, franchiseRootId: 9001, franchiseYear: 2000 },
+      { id: 9002, franchiseRootId: null, franchiseYear: null },
+      { id: 9003, franchiseRootId: null, franchiseYear: null },
+      { id: 9004, franchiseRootId: null, franchiseYear: null },
+    ]);
+  });
+
+  it('writes nothing for an empty list', async () => {
+    await expect(createCatalogRepository(catalog).saveFranchises([])).resolves.toBeUndefined();
   });
 });
