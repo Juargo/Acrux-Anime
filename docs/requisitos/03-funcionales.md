@@ -23,7 +23,7 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 | RF-10 | La app muestra el catálogo de anime con portada y título; en el primer uso, una carga en ráfaga de las sagas más populares de MyAnimeList, leídas del catálogo propio (ADR-0043). | Must | H2 | DD-09 · M02/D02, M03/D03 |
 | RF-11 | El catálogo incluye series de TV, películas, OVAs, ONAs y especiales. Se excluye el contenido adulto y las entradas de música. | Must | H2 | ADR-0024, DD-17 |
 | RF-12 | El usuario puede buscar por nombre. | Must | H2 | ADR-0017 |
-| RF-13 | El usuario puede filtrar por año, género y tipo. | Must | H2 | ADR-0017, ADR-0024 · M34/D36 |
+| RF-13 | El usuario puede filtrar por año de estreno de la franquicia (uno o varios, agrupados por época), género y tipo. Cada año muestra cuántas franquicias tiene. | Must | H2 | ADR-0017, ADR-0024, ADR-0045 · M34/D36 |
 | RF-14 | Cada anime aparece como **un solo ítem por franquicia** que agrupa sus temporadas, películas y demás entradas. | Must | H2 | — |
 | RF-15 | Agrupamiento: secuelas y precuelas forman el núcleo; historias paralelas y resúmenes son extras que no cuentan para completar; spin-offs y remakes son franquicias aparte, enlazadas como "relacionadas". Ver RDI-30. | Must | H2 | Figma flujo 2A |
 | RF-16 | El detalle de una franquicia muestra sus entradas y cuáles vio el usuario, incluidas las nuevas temporadas. | Must | H2 | M09/D09, M35/D37 |
