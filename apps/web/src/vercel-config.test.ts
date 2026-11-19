@@ -48,6 +48,7 @@ describe('the crawler rewrite of /@handle', () => {
 
 // ZAP baseline findings (#73).
 const full = config as unknown as {
+  redirects?: { source: string; destination: string; permanent?: boolean }[];
   rewrites: { source: string; destination: string }[];
   headers: { source: string; headers: { key: string; value: string }[] }[];
 };
@@ -83,7 +84,6 @@ describe('static responses', () => {
     '/.git/config',
     '/.well-known/security.txt',
     '/wp-content/plugins/x/readme.txt',
-    '/index.html',
   ])('answer the missing file %s with 404, not the SPA', (path) => {
     expect(fallsBackToSpa(path)).toBe(false);
   });
@@ -94,6 +94,17 @@ describe('static responses', () => {
       expect(fallsBackToSpa(path)).toBe(true);
     },
   );
+
+  // The Vercel build moves index.html out of dist (ADR-0042), so the old address has no file
+  // and, having a dot, no rewrite either: it redirects to the root, which api/html answers.
+  it('redirect /index.html to the root instead of answering 404', () => {
+    expect(full.redirects).toContainEqual({
+      source: '/index.html',
+      destination: '/',
+      permanent: true,
+    });
+    expect(fallsBackToSpa('/index.html')).toBe(false);
+  });
 
   it('answer robots.txt with a file, so crawlers do not reach the function for it', () => {
     const robots = readFileSync(new URL('../public/robots.txt', import.meta.url), 'utf8');

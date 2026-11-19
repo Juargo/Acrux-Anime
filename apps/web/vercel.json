@@ -6,13 +6,20 @@
       "main": false
     }
   },
-  "buildCommand": "pnpm --filter @acrux/web... build",
+  "buildCommand": "pnpm --filter @acrux/web... build && mkdir -p html-template && mv dist/index.html html-template/index.html",
   "regions": ["gru1"],
   "functions": {
     "api/html.ts": {
-      "includeFiles": "dist/index.html"
+      "includeFiles": "html-template/index.html"
     }
   },
+  "redirects": [
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

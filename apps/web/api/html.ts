@@ -2,10 +2,13 @@ import { readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { adsEnabled, contentSecurityPolicy, createNonce, renderHtml } from './_csp.js';
 
-// Vercel function for every SPA route (vercel.json rewrites them here, ADR-0042). The built
-// index.html ships with the function (functions.includeFiles) and is read once per instance.
+// Vercel function for every SPA route (vercel.json rewrites them here, ADR-0042). The Vercel
+// build moves the built index.html out of dist (buildCommand): Vercel serves an existing file
+// before it applies rewrites, so a public copy would answer "/" without a nonce. The document
+// ships with the function (functions.includeFiles) and is read once per instance.
 let template: string | undefined;
-const readTemplate = () => readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
+const readTemplate = () =>
+  readFileSync(new URL('../html-template/index.html', import.meta.url), 'utf8');
 
 export function createHtmlHandler({
   read = readTemplate,
