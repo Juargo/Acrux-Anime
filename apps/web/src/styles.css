@@ -1093,20 +1093,187 @@ label.sheet__label {
   text-transform: uppercase;
 }
 
-.entry-list,
-.related-list {
+/* One timeline (Claude Design "Riel con ramas"): the core on the rail, extras as branches. */
+.timeline__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 16px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.timeline__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline__legend-item::before {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  content: "";
+}
+
+.timeline__legend-item--core::before {
+  border: 2px solid var(--color-text-secondary);
+  border-radius: 50%;
+}
+
+.timeline__legend-item--extra::before {
+  border-bottom: 2px solid var(--color-border-default);
+  border-left: 2px solid var(--color-border-default);
+  border-bottom-left-radius: 6px;
+}
+
+.timeline {
   display: flex;
   flex-direction: column;
-  gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.entry-row {
+.timeline__item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 0 0 12px 32px;
+}
+
+/* The rail. */
+.timeline__item::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 9px;
+  width: 2px;
+  background: var(--color-border-default);
+  content: "";
+}
+
+.timeline__item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline__item:last-child::before {
+  bottom: 50%;
+}
+
+.timeline__item:last-child::after {
+  height: 50%;
+}
+
+.timeline__node {
+  position: absolute;
+  /* The centre of the row, which ends in 12px of padding. */
+  top: calc(50% - 14px);
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border: 3px solid var(--color-bg-canvas);
+  border-radius: 50%;
+  background: var(--color-bg-canvas);
+  color: var(--color-text-secondary);
+  outline: 2px solid currentcolor;
+}
+
+.timeline__node--watching {
+  background: var(--color-accent-default);
+  color: var(--color-accent-default);
+}
+
+.timeline__node--seen {
+  background: var(--color-status-seen);
+  color: var(--color-status-seen);
+}
+
+.timeline__item:last-child .timeline__node {
+  top: calc(50% - 8px);
+}
+
+.timeline__item--extra,
+.timeline__item--related {
+  gap: 10px;
+  padding-left: 54px;
+}
+
+/* The branch off the rail. */
+.timeline__item--extra::after,
+.timeline__item--related::after {
+  position: absolute;
+  top: 0;
+  left: 9px;
+  width: 30px;
+  height: calc(50% - 6px);
+  border-bottom: 2px solid var(--color-border-default);
+  border-left: 2px solid var(--color-border-default);
+  border-bottom-left-radius: 12px;
+  content: "";
+}
+
+.timeline__item--related::before,
+.timeline__item--related::after {
+  border-left-style: dashed;
+}
+
+.timeline__item--related::before {
+  width: 0;
+  border-left: 2px dashed var(--color-border-default);
+  background: none;
+}
+
+.timeline__item--related::after {
+  border-bottom-style: dashed;
+}
+
+.timeline__item--extra:last-child::before,
+.timeline__item--related:last-child::before {
+  display: none;
+}
+
+.timeline__icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--color-bg-raised);
+}
+
+.timeline__icon--related {
+  border: 1px dashed var(--color-text-secondary);
+  background: none;
+  color: var(--color-text-link);
+}
+
+.timeline__link {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 52px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.timeline__chevron {
+  display: flex;
+  flex: none;
+  margin-right: 12px;
+  color: var(--color-text-secondary);
+}
+
+.icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
 }
 
 .entry-row__thumb {
@@ -1125,17 +1292,33 @@ label.sheet__label {
   min-width: 0;
 }
 
+/* Up to two lines: the titles of a saga share their start, so one line hides what tells them apart. */
 .entry-row__title {
+  display: -webkit-box;
   overflow: hidden;
   font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .entry-row__meta {
   color: var(--color-text-secondary);
   font-size: 13px;
   line-height: 18px;
+}
+
+.timeline__item--extra .entry-row__title,
+.timeline__item--related .entry-row__title {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.entry-row__title .icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  vertical-align: -2px;
 }
 
 .segmented {
@@ -1179,12 +1362,11 @@ label.sheet__label {
   color: var(--color-text-on-accent);
 }
 
-.related-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: inherit;
-  text-decoration: none;
+.segmented--icons .segmented__option {
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
 }
 
 .franchise__actions {
