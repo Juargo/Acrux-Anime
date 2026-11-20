@@ -63,6 +63,7 @@ Cada ADR registra **una** decisión relevante del proyecto: el contexto que la m
 | [0043](./0043-catalogo-propio-con-datos-de-myanimelist.md) | Catálogo propio en Neon con datos de MyAnimeList | Aceptado | Sesión 2026-11-10 |
 | [0044](./0044-lanzamiento-publico-directo.md) | Lanzamiento público directo, sin esperar la validación ni la beta | Aceptado | Sesión 2026-11-10 |
 | [0045](./0045-exploracion-por-epoca-y-anio-de-estreno-de-la-franquicia.md) | Exploración por época y por año de estreno de la franquicia | Aceptado | Sesión 2026-11-19 |
+| [0046](./0046-tvmaze-como-fuente-de-dramas-asiaticos.md) | TVmaze como fuente de los dramas asiáticos | Aceptado | Sesiones 2026-11-19 y 2026-11-20 |
 
 ## Trazabilidad con las reuniones
 
@@ -109,6 +110,7 @@ Las reuniones de análisis de requisitos se registran en Obsidian (`Acrux/01 An�
 | Sesión 2026-11-10: migración a MyAnimeList con catálogo propio | 0043 (ejecuta el punto 4 de 0041; reemplaza el consumo desde el navegador de 0024) |
 | Sesión 2026-11-10: lanzamiento público directo, anuncios y cobro apagados por ahora | 0044 (modifica las condiciones de H1 y H2 de 0031) |
 | Sesión 2026-11-19: filtro por época y por año de estreno de la franquicia, con conteo por año | 0045 (modifica la exploración por año de 0017) |
+| Sesión 2026-11-19: dramas asiáticos en el catálogo, con TVmaze como fuente y títulos internacionales | 0046 (complementa 0043) |
 | Sesión 2026-10-27: repo público, región São Paulo, lista privada por defecto | 0027, 0020, 0028 |
 | Sesión 2026-10-27: monorepo con pnpm workspaces aceptado (solo web) | 0002 |
 | D13 | 0010 |
