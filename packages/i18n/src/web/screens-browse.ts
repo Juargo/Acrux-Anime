@@ -64,6 +64,29 @@ export const browseEs = {
     unmark: 'Quitar «{{title}}» de vistas',
     mark: 'Marcar «{{title}}» como vista',
   },
+  // The drama section (#151): live-action series from TVmaze, apart from the anime catalog.
+  dramas: {
+    label: 'Dramas',
+    search: 'Buscar dramas',
+    origin: 'País',
+    origins: { all: 'Todos', KR: 'Corea', JP: 'Japón', CN: 'China' },
+    grid: 'Dramas',
+    loadMore: 'Ver más',
+    noResults: 'No encontramos dramas con estos filtros.',
+    noResultsFor: 'No encontramos dramas para «{{search}}».',
+    internationalTitles:
+      'Los títulos están en su versión internacional, como los nombra TVmaze. Prueba con ese nombre.',
+    seasons_one: '{{count}} temporada',
+    seasons_other: '{{count}} temporadas',
+    episodes_one: '{{count}} episodio',
+    episodes_other: '{{count}} episodios',
+  },
+  // The switch at the top of Explorar between the two catalogs.
+  exploreSwitch: {
+    label: 'Qué explorar',
+    anime: 'Anime',
+    dramas: 'Dramas',
+  },
   // The era filter of the catalog (S1): eras group the years a franchise first released in.
   eras: {
     heading: 'Época',
@@ -267,6 +290,29 @@ export const browseEn = {
     seen: ' (watched)',
     unmark: 'Remove “{{title}}” from watched',
     mark: 'Mark “{{title}}” as watched',
+  },
+  // The drama section (#151): live-action series from TVmaze, apart from the anime catalog.
+  dramas: {
+    label: 'Dramas',
+    search: 'Search dramas',
+    origin: 'Country',
+    origins: { all: 'All', KR: 'Korea', JP: 'Japan', CN: 'China' },
+    grid: 'Dramas',
+    loadMore: 'Show more',
+    noResults: 'We found no dramas with these filters.',
+    noResultsFor: 'We found no dramas for "{{search}}".',
+    internationalTitles:
+      'Titles are in their international version, as TVmaze names them. Try searching with that name.',
+    seasons_one: '{{count}} season',
+    seasons_other: '{{count}} seasons',
+    episodes_one: '{{count}} episode',
+    episodes_other: '{{count}} episodes',
+  },
+  // The switch at the top of Explore between the two catalogs.
+  exploreSwitch: {
+    label: 'What to explore',
+    anime: 'Anime',
+    dramas: 'Dramas',
   },
   // The era filter of the catalog (S1): eras group the years a franchise first released in.
   eras: {
