@@ -1604,6 +1604,234 @@
         }
       }
     },
+    "/api/v1/dramas": {
+      "get": {
+        "summary": "One page of the dramas, most popular first, 50 dramas a page",
+        "security": [],
+        "tags": [
+          "dramas"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "origin",
+            "schema": {
+              "description": "Any of KR, JP, CN; by country, or by language without one",
+              "type": "string"
+            },
+            "description": "Any of KR, JP, CN; by country, or by language without one"
+          },
+          {
+            "in": "query",
+            "name": "genres",
+            "schema": {
+              "description": "Up to 10 genres separated by commas; any of them matches",
+              "type": "string"
+            },
+            "description": "Up to 10 genres separated by commas; any of them matches"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "description": "1 to 1000; 1 by default",
+              "type": "string"
+            },
+            "description": "1 to 1000; 1 by default"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The page and the next page or null; adult dramas never come out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Drama"
+                      }
+                    },
+                    "nextPage": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextPage"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A query parameter is missing, repeated or not valid"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/dramas/by-ids": {
+      "get": {
+        "summary": "The dramas of the given ids, and the ids the catalog does not serve",
+        "security": [],
+        "tags": [
+          "dramas"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ids",
+            "schema": {
+              "type": "string",
+              "description": "ids: 1 to 100 TVmaze ids, separated by commas"
+            },
+            "required": true,
+            "description": "ids: 1 to 100 TVmaze ids, separated by commas"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The dramas found, in no particular order, and the ids not found: unknown ones and adult ones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Drama"
+                      }
+                    },
+                    "missing": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483647
+                      }
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "missing"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A query parameter is missing, repeated or not valid"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/dramas/genres": {
+      "get": {
+        "summary": "The genres of the dramas, for the filter sheet",
+        "security": [],
+        "tags": [
+          "dramas"
+        ],
+        "responses": {
+          "200": {
+            "description": "Genre names in English, in alphabetical order; Adult is never listed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
     "/api/v1/profiles/{handle}": {
       "get": {
         "summary": "Public summary of a profile: name, avatar, handle and total, even if private",
@@ -2338,6 +2566,131 @@
           "durationMinutes",
           "genres",
           "relations"
+        ],
+        "additionalProperties": false
+      },
+      "Drama": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "title": {
+            "type": "string",
+            "description": "The international title, as TVmaze names the show"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Empty until the detail is read"
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "coverUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tvmazeUrl": {
+            "type": "string",
+            "description": "The page of the show at TVmaze, for the credit"
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "language": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "KR",
+                  "JP",
+                  "CN"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The country, or the language when there is no country"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "seasons": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null until the detail is read"
+          },
+          "episodes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null until the detail is read"
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "aliases",
+          "summary",
+          "coverUrl",
+          "tvmazeUrl",
+          "country",
+          "language",
+          "origin",
+          "year",
+          "seasons",
+          "episodes",
+          "genres"
         ],
         "additionalProperties": false
       },
