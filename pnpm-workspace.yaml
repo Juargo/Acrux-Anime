@@ -29,3 +29,6 @@ overrides:
   better-call: 1.4.4
   "@vercel/routing-utils>path-to-regexp": ^6.3.0
   "@vercel/cli-config>zod": ^4.6.6
+  # @prisma/config 7.10.1 pins effect 3.20.0, with a high ReDoS advisory fixed in 3.22.1
+  # (GHSA-7589-6fvf-x4pw). Remove this once Prisma depends on a patched effect.
+  "@prisma/config>effect": ^3.22.1
