@@ -1,27 +1,51 @@
-@import "@fontsource-variable/inter";
-@import "@fontsource-variable/outfit";
+/* Latin subsets only: the full families ship hundreds of Japanese glyph files. */
+@import "@fontsource/m-plus-rounded-1c/latin-500.css";
+@import "@fontsource/m-plus-rounded-1c/latin-ext-500.css";
+@import "@fontsource/m-plus-rounded-1c/latin-700.css";
+@import "@fontsource/m-plus-rounded-1c/latin-ext-700.css";
+@import "@fontsource/m-plus-rounded-1c/latin-800.css";
+@import "@fontsource/m-plus-rounded-1c/latin-ext-800.css";
+@import "@fontsource/dela-gothic-one/latin-400.css";
+@import "@fontsource/dela-gothic-one/latin-ext-400.css";
+@import "@fontsource/dotgothic16/latin-400.css";
+@import "@fontsource/dotgothic16/latin-ext-400.css";
 
-/* Tokens from the Figma file "Acrux · Diseño de producto" (dark theme), as in the landing. */
+/* Tokens from the Acrux design system (Claude Design): warm, light, game-menu identity.
+   The legacy --color-* names stay as the public names; the comment gives the design-system name. */
 :root {
-  --color-bg-canvas: #0b0d1c;
-  --color-bg-surface: #12152b;
-  --color-bg-raised: #1b1f3b;
-  --color-border-default: #272c52;
-  --color-text-primary: #f5f6ff;
-  --color-text-secondary: #b4b8d6;
-  --color-text-link: #c3b8ff;
-  --color-text-on-accent: #0b0d1c;
-  --color-accent-default: #9d8cf5;
-  --color-status-error: #ff7a7a;
-  --color-status-seen: #4fd1a5;
-  --color-status-new: #ffd166;
+  --color-bg-canvas: #fff1cf; /* sol */
+  --color-bg-surface: #fffaf0; /* papel */
+  --color-bg-raised: #ffe7ad;
+  --color-border-default: #3a1f2b; /* tinta */
+  --color-border-subtle: #e9c98c;
+  --color-text-primary: #3a1f2b; /* tinta */
+  --color-text-secondary: #7a5560; /* tinta-suave */
+  --color-text-link: #a3470a;
+  --color-text-on-accent: #3a1f2b; /* on-mango */
+  --color-accent-default: #ff8a1f; /* mango */
+  --color-accent-text: #a3470a;
+  --color-accent-soft: #ffc933; /* miel */
+  --color-accent-alt: #ff5d73; /* durazno */
+  --color-status-error: #c81e3a; /* alerta */
+  --color-status-seen: #19b8a5; /* visto */
+  --color-status-seen-text: #0a6b60;
+  --color-status-watching: #5aa9f5; /* viendo */
+  --color-status-new: #ffc933; /* miel */
 
-  --radius-md: 12px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
 
-  --font-body: "Inter Variable", system-ui, sans-serif;
-  --font-display: "Outfit Variable", system-ui, sans-serif;
+  --stroke: 3px; /* trazo */
+  --shadow-hard: 0 4px 0 #3a1f2b; /* shadow-dura */
+  --shadow-pressed: 0 1px 0 #3a1f2b; /* shadow-presionada */
 
-  color-scheme: dark;
+  --font-body: "M PLUS Rounded 1c", ui-rounded, system-ui, sans-serif;
+  --font-display: "Dela Gothic One", "Arial Black", system-ui, sans-serif;
+  --font-hud: "DotGothic16", ui-monospace, monospace;
+
+  /* Dela Gothic One ships a single weight: never fake a bold from it. */
+  font-synthesis-weight: none;
+  color-scheme: light;
 }
 
 *,
@@ -40,6 +64,7 @@ body {
   color: var(--color-text-primary);
   font-family: var(--font-body);
   font-size: 16px;
+  font-weight: 500;
   line-height: 24px;
 }
 
@@ -53,7 +78,7 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-text-link);
+  outline: var(--stroke) solid var(--color-border-default);
   outline-offset: 2px;
 }
 
@@ -64,11 +89,26 @@ a {
   justify-content: center;
   min-height: 48px;
   padding: 12px 20px;
-  border: 0;
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-hard);
   font: inherit;
-  font-weight: 600;
+  font-weight: 800;
   cursor: pointer;
+  transition:
+    transform 80ms,
+    box-shadow 80ms;
+}
+
+.button:active:not(:disabled) {
+  box-shadow: var(--shadow-pressed);
+  transform: translateY(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
 }
 
 .button:disabled {
@@ -82,7 +122,6 @@ a {
 }
 
 .button--secondary {
-  border: 1px solid var(--color-border-default);
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
 }
@@ -115,11 +154,9 @@ a {
   height: 576px;
   padding: 24px;
   overflow: hidden;
-  border: 2.4px solid var(--color-accent-default);
+  border: 2.4px solid var(--color-border-default);
   border-radius: 28.8px;
-  background:
-    linear-gradient(180deg, rgb(157 140 245 / 0.45) 0%, rgb(157 140 245 / 0) 60%),
-    var(--color-bg-surface);
+  background: var(--color-accent-alt);
 }
 
 .share-card__user,
@@ -163,16 +200,15 @@ a {
 }
 
 .share-card__count {
-  color: var(--color-text-link);
+  color: var(--color-text-primary);
   font-family: var(--font-display);
-  font-size: 115.2px;
-  font-weight: 700;
-  line-height: 115.2px;
-  letter-spacing: -2.304px;
+  font-size: 96px;
+  font-weight: 400;
+  line-height: 100px;
 }
 
 .share-card__label {
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   font-size: 14.4px;
   font-weight: 600;
   line-height: 19.2px;
@@ -194,15 +230,14 @@ a {
   width: 84px;
   height: 124.8px;
   border-radius: 9.6px;
-  background:
-    linear-gradient(124deg, rgb(157 140 245 / 0.5) 0%, rgb(157 140 245 / 0) 83.333%),
-    var(--color-bg-raised);
+  border: 2.4px solid var(--color-border-default);
+  background: var(--color-bg-raised);
   object-fit: cover;
 }
 
 .share-card__url {
   flex: 1;
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   font-size: 14.4px;
   font-weight: 500;
   line-height: 19.2px;
@@ -215,8 +250,9 @@ a {
   width: 48px;
   height: 48px;
   border-radius: 7.2px;
-  background: var(--color-text-primary);
-  color: var(--color-text-on-accent);
+  border: 2.4px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
   font-size: 14.4px;
   font-weight: 600;
   letter-spacing: 0.288px;
@@ -387,7 +423,7 @@ a {
   display: flex;
   justify-content: space-around;
   padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--color-border-default);
+  border-top: 2px solid var(--color-border-subtle);
   background: var(--color-bg-surface);
 }
 
@@ -405,7 +441,7 @@ a {
 }
 
 .main-nav__link[aria-current="page"] {
-  color: var(--color-accent-default);
+  color: var(--color-accent-text);
 }
 
 /* D12: the bar becomes a sidebar on wide screens. */
@@ -429,7 +465,7 @@ a {
     width: 240px;
     padding: 88px 12px 24px;
     border-top: 0;
-    border-right: 1px solid var(--color-border-default);
+    border-right: 2px solid var(--color-border-subtle);
   }
 
   .main-nav__link {
@@ -456,7 +492,7 @@ a {
   gap: 24px;
   margin: 0 0 20px;
   padding: 16px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 16px;
   background: var(--color-bg-surface);
 }
@@ -479,14 +515,14 @@ a {
 }
 
 .my-list__stats div:first-child dd {
-  color: var(--color-accent-default);
+  color: var(--color-accent-text);
 }
 
 .my-list__tabs {
   display: flex;
   gap: 24px;
   margin-bottom: 12px;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 2px solid var(--color-border-subtle);
 }
 
 .my-list__tab {
@@ -503,7 +539,7 @@ a {
 
 .my-list__tab[aria-selected="true"] {
   border-bottom-color: var(--color-accent-default);
-  color: var(--color-accent-default);
+  color: var(--color-accent-text);
 }
 
 .my-list__rows {
@@ -705,7 +741,7 @@ a {
   width: 100%;
   min-height: 48px;
   padding: 12px 16px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: var(--radius-md);
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
@@ -745,7 +781,7 @@ a {
 .chip {
   min-height: 40px;
   padding: 8px 16px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 999px;
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
@@ -755,7 +791,7 @@ a {
 }
 
 .chip[aria-pressed="true"] {
-  border-color: var(--color-accent-default);
+  border-color: var(--color-accent-text);
   background: var(--color-accent-default);
   color: var(--color-text-on-accent);
 }
@@ -815,7 +851,7 @@ a {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 50%;
   background: rgb(11 13 28 / 0.75);
   color: var(--color-text-primary);
@@ -875,7 +911,7 @@ a {
   max-height: 85dvh;
   overflow-y: auto;
   padding: 24px 16px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 24px 24px 0 0;
   background: var(--color-bg-surface);
 }
@@ -904,7 +940,7 @@ label.sheet__label {
 .sheet__select {
   min-height: 40px;
   padding: 8px 12px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: var(--radius-md);
   background: var(--color-bg-raised);
   color: var(--color-text-primary);
@@ -1015,7 +1051,7 @@ label.sheet__label {
   gap: 12px;
   margin-top: 16px;
   padding: 16px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: var(--radius-md);
   background: var(--color-bg-surface);
 }
@@ -1123,8 +1159,8 @@ label.sheet__label {
 }
 
 .timeline__legend-item--extra::before {
-  border-bottom: 2px solid var(--color-border-default);
-  border-left: 2px solid var(--color-border-default);
+  border-bottom: 2px solid var(--color-border-subtle);
+  border-left: 2px solid var(--color-border-subtle);
   border-bottom-left-radius: 6px;
 }
 
@@ -1183,12 +1219,12 @@ label.sheet__label {
 
 .timeline__node--watching {
   background: var(--color-accent-default);
-  color: var(--color-accent-default);
+  color: var(--color-accent-text);
 }
 
 .timeline__node--seen {
   background: var(--color-status-seen);
-  color: var(--color-status-seen);
+  color: var(--color-status-seen-text);
 }
 
 .timeline__item:last-child .timeline__node {
@@ -1209,8 +1245,8 @@ label.sheet__label {
   left: 9px;
   width: 30px;
   height: calc(50% - 6px);
-  border-bottom: 2px solid var(--color-border-default);
-  border-left: 2px solid var(--color-border-default);
+  border-bottom: 2px solid var(--color-border-subtle);
+  border-left: 2px solid var(--color-border-subtle);
   border-bottom-left-radius: 12px;
   content: "";
 }
@@ -1327,7 +1363,7 @@ label.sheet__label {
   min-width: 0;
   margin: 0;
   padding: 3px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 999px;
   background: var(--color-bg-surface);
 }
@@ -1407,7 +1443,7 @@ label.sheet__label {
   width: 100%;
   min-height: 48px;
   padding: 12px 16px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: var(--radius-md);
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
@@ -1602,7 +1638,7 @@ label.sheet__label {
   align-items: center;
   gap: 8px;
   padding: 24px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 16px;
   background: var(--color-bg-surface);
   text-align: center;
@@ -1632,7 +1668,7 @@ label.sheet__label {
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  border-top: 1px solid var(--color-border-default);
+  border-top: 2px solid var(--color-border-subtle);
   background: var(--color-bg-surface);
 }
 
@@ -1683,14 +1719,14 @@ label.sheet__label {
   gap: 12px;
   align-items: flex-start;
   padding: 16px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 16px;
   background: var(--color-bg-surface);
   cursor: pointer;
 }
 
 .privacy__option:has(input:checked) {
-  border-color: var(--color-accent-default);
+  border-color: var(--color-accent-text);
 }
 
 .privacy__option input {
@@ -1745,7 +1781,7 @@ label.sheet__label {
 
 .privacy__status {
   padding: 16px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 12px;
   background: var(--color-bg-surface);
 }
@@ -1756,7 +1792,7 @@ label.sheet__label {
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  border: 1px solid var(--color-accent-default);
+  border: var(--stroke) solid var(--color-accent-text);
   border-radius: 16px;
   background: var(--color-bg-surface);
 }
@@ -1770,7 +1806,7 @@ label.sheet__label {
   display: flex;
   justify-content: space-between;
   padding: 16px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 12px;
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
@@ -1822,13 +1858,13 @@ label.sheet__label {
 }
 
 .avatar--coral {
-  background: var(--color-status-error);
+  background: var(--color-accent-alt);
   color: var(--color-text-on-accent);
 }
 
 .avatar--noche {
   background: var(--color-bg-raised);
-  color: var(--color-accent-default);
+  color: var(--color-accent-text);
 }
 
 .avatar--lavanda {
@@ -1838,18 +1874,18 @@ label.sheet__label {
 
 /* RF-55: the Plus-only presets. */
 .avatar--sakura {
-  background: linear-gradient(135deg, #ffb3cf, #c3b8ff);
-  color: #0b0d1c;
+  background: #ffb3cf;
+  color: var(--color-text-primary);
 }
 
 .avatar--aurora {
-  background: linear-gradient(135deg, #5ee0d6, #9d8cf5);
-  color: #1b1f3b;
+  background: #5ee0d6;
+  color: var(--color-text-primary);
 }
 
 .avatar--eclipse {
-  background: radial-gradient(circle at 30% 30%, #2a2f55, #0b0d1c 70%);
-  color: #ffd166;
+  background: var(--color-text-primary);
+  color: var(--color-accent-soft);
 }
 
 .profile-editor__locked {
@@ -1987,13 +2023,13 @@ label.sheet__label {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 16px;
   list-style: none;
 }
 
 .profile__rows li + li {
-  border-top: 1px solid var(--color-border-default);
+  border-top: 2px solid var(--color-border-subtle);
 }
 
 .profile__row {
@@ -2026,7 +2062,7 @@ label.sheet__label {
 .profile__select {
   max-width: 60%;
   padding: 4px 8px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 8px;
   background: var(--color-bg-surface);
   color: var(--color-text-secondary);
@@ -2084,10 +2120,10 @@ label.sheet__label {
   gap: 12px;
   max-width: 560px;
   padding: 20px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 16px;
   background: var(--color-bg-raised);
-  box-shadow: 0 8px 12px rgb(0 0 0 / 0.35);
+  box-shadow: var(--shadow-hard);
 }
 
 .consent__title {
@@ -2145,7 +2181,7 @@ label.sheet__label {
 .consent__button {
   min-height: 48px;
   padding: 12px 20px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 12px;
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
@@ -2224,7 +2260,7 @@ label.sheet__label {
 .plus__benefits li::before {
   content: "✓";
   margin-right: 10px;
-  color: var(--color-status-seen);
+  color: var(--color-status-seen-text);
 }
 
 .plus__buy {
@@ -2232,7 +2268,7 @@ label.sheet__label {
 }
 
 .plus__plan {
-  border: 1px solid var(--color-accent-default);
+  border: var(--stroke) solid var(--color-accent-text);
 }
 
 .plus__plan p {
@@ -2283,7 +2319,7 @@ label.sheet__label {
 
 .plus__star {
   margin: 0;
-  color: var(--color-accent-default);
+  color: var(--color-accent-text);
   font-size: 48px;
   line-height: 1;
 }
@@ -2301,10 +2337,10 @@ label.sheet__label {
   max-width: 480px;
   margin: 0 auto;
   padding: 16px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 16px;
   background: var(--color-bg-raised);
-  box-shadow: 0 8px 12px rgb(0 0 0 / 0.35);
+  box-shadow: var(--shadow-hard);
 }
 
 .pwa-notice__title {
@@ -2328,7 +2364,7 @@ label.sheet__label {
 .pwa-notice__button {
   min-height: 48px;
   padding: 12px 20px;
-  border: 1px solid var(--color-border-default);
+  border: var(--stroke) solid var(--color-border-default);
   border-radius: 12px;
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
@@ -2342,7 +2378,7 @@ label.sheet__label {
 }
 
 .pwa-notice__button--primary {
-  border-color: var(--color-accent-default);
+  border-color: var(--color-accent-text);
   background: var(--color-accent-default);
   color: var(--color-text-on-accent);
 }
@@ -2480,7 +2516,7 @@ label.sheet__label {
 }
 
 .badges__item--earned .badges__state {
-  color: var(--color-status-seen);
+  color: var(--color-status-seen-text);
   font-weight: 600;
 }
 
@@ -2604,7 +2640,7 @@ label.sheet__label {
 
 /* On a filled chip the accent badge would vanish: invert it. */
 .era-filter__era[aria-pressed="true"] {
-  border-color: var(--color-accent-default);
+  border-color: var(--color-accent-text);
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
 }
@@ -2614,7 +2650,7 @@ label.sheet__label {
   margin: 16px 0 0;
   padding: 16px 0 0;
   border: 0;
-  border-top: 1px solid var(--color-border-default);
+  border-top: 2px solid var(--color-border-subtle);
 }
 
 .era-filter__panel-header {
@@ -2691,7 +2727,7 @@ label.sheet__label {
 }
 
 .era-filter__year--has {
-  border-color: var(--color-accent-default);
+  border-color: var(--color-accent-text);
 }
 
 .era-filter__year[aria-pressed="true"] .era-filter__count {

@@ -1,18 +1,36 @@
-@import "@fontsource-variable/inter";
-@import "@fontsource-variable/outfit";
+/* Latin subsets only: the full families ship hundreds of Japanese glyph files. */
+@import "@fontsource/m-plus-rounded-1c/latin-500.css";
+@import "@fontsource/m-plus-rounded-1c/latin-ext-500.css";
+@import "@fontsource/m-plus-rounded-1c/latin-700.css";
+@import "@fontsource/m-plus-rounded-1c/latin-ext-700.css";
+@import "@fontsource/m-plus-rounded-1c/latin-800.css";
+@import "@fontsource/m-plus-rounded-1c/latin-ext-800.css";
+@import "@fontsource/dela-gothic-one/latin-400.css";
+@import "@fontsource/dela-gothic-one/latin-ext-400.css";
+@import "@fontsource/dotgothic16/latin-400.css";
+@import "@fontsource/dotgothic16/latin-ext-400.css";
 
-/* Tokens from the Figma file "Acrux · Diseño de producto" (dark theme). */
+/* Tokens from the Acrux design system (Claude Design): warm, light, game-menu identity.
+   The legacy --color-* names stay as the public names; the comment gives the design-system name. */
 :root {
-  --color-bg-canvas: #0b0d1c;
-  --color-bg-surface: #12152b;
-  --color-bg-raised: #1b1f3b;
-  --color-border-default: #272c52;
-  --color-text-primary: #f5f6ff;
-  --color-text-secondary: #b4b8d6;
-  --color-text-link: #c3b8ff;
-  --color-text-on-accent: #0b0d1c;
-  --color-accent-default: #9d8cf5;
-  --color-status-error: #ff7a7a;
+  --color-bg-canvas: #fff1cf; /* sol */
+  --color-bg-surface: #fffaf0; /* papel */
+  --color-bg-raised: #ffe7ad;
+  --color-border-default: #3a1f2b; /* tinta */
+  --color-border-subtle: #e9c98c;
+  --color-text-primary: #3a1f2b; /* tinta */
+  --color-text-secondary: #7a5560; /* tinta-suave */
+  --color-text-link: #a3470a;
+  --color-text-on-accent: #3a1f2b; /* on-mango */
+  --color-accent-default: #ff8a1f; /* mango */
+  --color-accent-text: #a3470a;
+  --color-accent-soft: #ffc933; /* miel */
+  --color-accent-alt: #ff5d73; /* durazno */
+  --color-status-error: #c81e3a; /* alerta */
+  --color-status-seen: #19b8a5; /* visto */
+  --color-status-seen-text: #0a6b60;
+  --color-status-watching: #5aa9f5; /* viendo */
+  --color-status-new: #ffc933; /* miel */
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -20,16 +38,23 @@
   --spacing-lg: 16px;
   --spacing-xl: 24px;
 
-  --radius-md: 12px;
-  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
 
-  --font-body: "Inter Variable", system-ui, sans-serif;
-  --font-display: "Outfit Variable", system-ui, sans-serif;
+  --stroke: 3px; /* trazo */
+  --shadow-hard: 0 4px 0 #3a1f2b; /* shadow-dura */
+  --shadow-pressed: 0 1px 0 #3a1f2b; /* shadow-presionada */
 
+  --font-body: "M PLUS Rounded 1c", ui-rounded, system-ui, sans-serif;
+  --font-display: "Dela Gothic One", "Arial Black", system-ui, sans-serif;
+  --font-hud: "DotGothic16", ui-monospace, monospace;
+
+  /* Dela Gothic One ships a single weight: never fake a bold from it. */
+  font-synthesis-weight: none;
   /* Horizontal page padding: 24px on phones, 96px on desktop. */
   --page-gutter: 24px;
 
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 @media (min-width: 1024px) {
@@ -54,6 +79,7 @@ body {
   color: var(--color-text-primary);
   font-family: var(--font-body);
   font-size: 16px;
+  font-weight: 500;
   line-height: 24px;
 }
 
@@ -69,7 +95,7 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-text-link);
+  outline: var(--stroke) solid var(--color-border-default);
   outline-offset: 2px;
 }
 

@@ -148,10 +148,13 @@ importers:
       '@astrojs/vercel':
         specifier: ^11.0.21
         version: 11.0.21(astro@7.4.11(@types/node@22.20.5)(@upstash/redis@1.41.0)(@vercel/functions@3.11.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(react@19.3.1)(rollup@4.68.2)
-      '@fontsource-variable/inter':
+      '@fontsource/dela-gothic-one':
         specifier: ^5.3.0
         version: 5.3.0
-      '@fontsource-variable/outfit':
+      '@fontsource/dotgothic16':
+        specifier: ^5.3.1
+        version: 5.3.1
+      '@fontsource/m-plus-rounded-1c':
         specifier: ^5.3.0
         version: 5.3.0
       astro:
@@ -188,10 +191,13 @@ importers:
       '@acrux/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
-      '@fontsource-variable/inter':
+      '@fontsource/dela-gothic-one':
         specifier: ^5.3.0
         version: 5.3.0
-      '@fontsource-variable/outfit':
+      '@fontsource/dotgothic16':
+        specifier: ^5.3.1
+        version: 5.3.1
+      '@fontsource/m-plus-rounded-1c':
         specifier: ^5.3.0
         version: 5.3.0
       '@neon/auth':
@@ -1526,11 +1532,14 @@ packages:
       '@noble/hashes':
         optional: true
 
-  '@fontsource-variable/inter@5.3.0':
-    resolution: {integrity: sha512-OupL48va4JNofb97w6NYeF9S7W/kHNKM0Er8Dem5nqi4jeOLrVJDoE8tZEpnMJmtkvNbB1EIPPwHcdkF6b1oUA==}
+  '@fontsource/dela-gothic-one@5.3.0':
+    resolution: {integrity: sha512-4A26Qs7TqYFWegJfYHx7KKWy01YybW/e7uhFDM8A8e1neVPm721laLnh0en60wtKihfNdCbJt0VVcEMHC4pHjw==}
 
-  '@fontsource-variable/outfit@5.3.0':
-    resolution: {integrity: sha512-fPb5XnYK0k7SbR++HEmm4+ZqDszmLKQ+sPRUr8oQ/KNC0vy6r6hazJFe8iYozv4cqlHbvJ/JECkJWrfDodUMVQ==}
+  '@fontsource/dotgothic16@5.3.1':
+    resolution: {integrity: sha512-alvxJchrFDFohce0s8YfHsFiRm2zUM+FrwEeWtLyc14WIl3heSG1/8BPD7Sm001YuVPL1bU14UmM5P2KO5/gnQ==}
+
+  '@fontsource/m-plus-rounded-1c@5.3.0':
+    resolution: {integrity: sha512-eB/JxJBRXLdfTsBDElsAZDMtHXM58Hf1tKkHoDVZAaUN7a+qYfwNKh4Q2f7Fk9YNg4xPFjTwooVlQyqbhi8CWQ==}
 
   '@grpc/grpc-js@1.14.6':
     resolution: {integrity: sha512-SgC/B3/VZ8lTyOZ4Cwk6f1skWhmkNAaVfiX90qd5u1rRXGKk1//8FTUEN9GvOUq7rfWIqAYkA3CoyumYVpOS6g==}
@@ -3449,9 +3458,6 @@ packages:
 
   boolbase@1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
-
-  brace-expansion@2.1.7:
-    resolution: {integrity: sha512-uZbew1NqdmPDTMJ8ah1y+b+9QEJrfkXFk3RcTQw3X0jW/xRUvFKsg1CfQdSYGdTbXZWExtU3J3ccxtnfw1Fi0g==}
 
   brace-expansion@2.1.8:
     resolution: {integrity: sha512-BnlDzDYQoplTsZSvPi86CNzmbcb07X8ufR8fk1zivaiEJlXJkiq1MQyDCVmlWcsWbj6aWXqHnrwwevbrm/Saig==}
@@ -7946,9 +7952,11 @@ snapshots:
     optionalDependencies:
       '@noble/hashes': 2.4.0
 
-  '@fontsource-variable/inter@5.3.0': {}
+  '@fontsource/dela-gothic-one@5.3.0': {}
 
-  '@fontsource-variable/outfit@5.3.0': {}
+  '@fontsource/dotgothic16@5.3.1': {}
+
+  '@fontsource/m-plus-rounded-1c@5.3.0': {}
 
   '@grpc/grpc-js@1.14.6':
     dependencies:
@@ -9770,10 +9778,6 @@ snapshots:
 
   boolbase@1.0.0: {}
 
-  brace-expansion@2.1.7:
-    dependencies:
-      balanced-match: 1.0.2
-
   brace-expansion@2.1.8:
     dependencies:
       balanced-match: 1.0.2
@@ -11261,7 +11265,7 @@ snapshots:
 
   minimatch@5.1.9:
     dependencies:
-      brace-expansion: 2.1.7
+      brace-expansion: 2.1.8
 
   minimatch@9.0.9:
     dependencies:
