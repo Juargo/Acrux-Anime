@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { NavLink } from 'react-router';
+import { NavLink, useLocation } from 'react-router';
 
 // Figma M03/M12/M16: the bar at the bottom on phones, the sidebar of D12 on wide screens.
 const ITEMS = [
@@ -27,10 +27,17 @@ const ITEMS = [
 
 export function MainNav() {
   const { t } = useTranslation();
+  // The dramas are part of Explorar: its item stays current there, and stays on that section.
+  const onDramas = useLocation().pathname === '/dramas';
   return (
     <nav className="main-nav" aria-label={t('nav.label')}>
       {ITEMS.map((item) => (
-        <NavLink key={item.to} className="main-nav__link" to={item.to} end>
+        <NavLink
+          key={item.to}
+          className="main-nav__link"
+          to={item.to === '/' && onDramas ? '/dramas' : item.to}
+          end
+        >
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
             <path
               d={item.icon}

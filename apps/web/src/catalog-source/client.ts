@@ -17,7 +17,7 @@ export class CatalogError extends Error {
 }
 
 // A cover that is not https is dropped, not fatal: one odd URL must not hide a whole page.
-const coverUrl = z
+export const coverUrl = z
   .string()
   .nullable()
   .transform((url) => (url?.startsWith('https://') ? url : null));
@@ -96,32 +96,42 @@ export interface CatalogClientOptions {
   fetch?: typeof fetch;
 }
 
+/**
+ * One GET against our own API, with the failures named the way every catalog screen shows them.
+ * The drama client reuses it so both catalogs fail alike.
+ */
+export async function getJson<T>(
+  fetchFn: typeof fetch,
+  path: string,
+  schema: z.ZodType<T>,
+): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetchFn(path);
+  } catch {
+    throw new CatalogError('unavailable', 'The catalog could not be reached');
+  }
+  if (response.status === 429) {
+    throw new CatalogError('rate-limited', 'The catalog is limiting requests');
+  }
+  if (response.status >= 500) {
+    throw new CatalogError('unavailable', `The catalog answered ${response.status}`);
+  }
+  if (!response.ok) {
+    throw new CatalogError('query', `The catalog rejected the query (${response.status})`);
+  }
+  const body: unknown = await response.json().catch(() => undefined);
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    throw new CatalogError('invalid-response', 'The catalog sent an unexpected answer');
+  }
+  return parsed.data;
+}
+
 export function createCatalogClient(options: CatalogClientOptions = {}): CatalogClient {
   const fetchFn = options.fetch ?? ((input, init) => fetch(input, init));
 
-  async function get<T>(path: string, schema: z.ZodType<T>): Promise<T> {
-    let response: Response;
-    try {
-      response = await fetchFn(path);
-    } catch {
-      throw new CatalogError('unavailable', 'The catalog could not be reached');
-    }
-    if (response.status === 429) {
-      throw new CatalogError('rate-limited', 'The catalog is limiting requests');
-    }
-    if (response.status >= 500) {
-      throw new CatalogError('unavailable', `The catalog answered ${response.status}`);
-    }
-    if (!response.ok) {
-      throw new CatalogError('query', `The catalog rejected the query (${response.status})`);
-    }
-    const body: unknown = await response.json().catch(() => undefined);
-    const parsed = schema.safeParse(body);
-    if (!parsed.success) {
-      throw new CatalogError('invalid-response', 'The catalog sent an unexpected answer');
-    }
-    return parsed.data;
-  }
+  const get = <T>(path: string, schema: z.ZodType<T>) => getJson(fetchFn, path, schema);
 
   return {
     browse(params, page) {
