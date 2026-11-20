@@ -28,6 +28,9 @@ import {
   type CatalogService,
   createCatalogService,
 } from './modules/catalog/services/catalog.service.js';
+import { createDramasModule } from './modules/dramas/index.js';
+import { createDramaCatalogRepository } from './modules/dramas/repositories/drama-catalog.repository.js';
+import { createDramaService, type DramaService } from './modules/dramas/services/drama.service.js';
 import { createFranchisesModule } from './modules/franchises/index.js';
 import {
   createFranchiseOverridesRepository,
@@ -165,6 +168,7 @@ export function createContainer(source: Record<string, string | undefined>): Con
         : undefined,
       planOf,
       prisma ? catalogService(prisma, env.MAL_CLIENT_ID, logger) : undefined,
+      prisma ? createDramaService(createDramaCatalogRepository(prisma)) : undefined,
     ),
   };
 }
@@ -187,7 +191,7 @@ function catalogService(
   });
 }
 
-// The seven API modules of ADR-0019, the catalog (ADR-0043) and the system module, in a
+// The seven API modules of ADR-0019, the catalog (ADR-0043), the dramas (ADR-0046) and the system module, in a
 // stable order.
 export function createModules(
   profileService: ProfileService | undefined,
@@ -198,6 +202,7 @@ export function createModules(
   billing?: BillingDependencies,
   planOf?: PlanReader,
   catalog?: CatalogService,
+  dramas?: DramaService,
 ): Module[] {
   return [
     systemModule,
@@ -206,6 +211,7 @@ export function createModules(
     createMarksModule(marksService),
     createFranchisesModule(franchiseOverrides),
     createCatalogModule(catalog),
+    createDramasModule(dramas),
     createPublicProfileModule(publicProfileService),
     createBillingModule(billing),
     anilistLinkModule,
