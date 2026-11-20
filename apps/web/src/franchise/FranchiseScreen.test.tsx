@@ -198,13 +198,23 @@ describe('franchise detail', () => {
     expect(await screen.findByText('3 de 5 vistas')).toBeTruthy();
     expect(screen.getByText('Parcial')).toBeTruthy();
     expect(screen.getByText('5 entradas · 2020–2024 · Acción · Sobrenatural')).toBeTruthy();
-    const core = screen.getByRole('region', { name: 'Núcleo · cuenta para completar' });
+    // One timeline: the side story of 2020 sits after the season of its year.
+    const timeline = screen.getByRole('region', { name: 'Línea de tiempo' });
     expect(
-      within(core)
+      within(timeline)
         .getAllByRole('group')
         .map((group) => group.getAttribute('aria-label')),
-    ).toEqual(['Temporada 1', 'Temporada 2', 'Temporada 3', 'Temporada 4', 'Temporada 5']);
-    expect(within(core).getAllByText('TV · 24 ep. · 2020')).toHaveLength(1);
+    ).toEqual([
+      'Temporada 1',
+      'Historia paralela',
+      'Temporada 2',
+      'Temporada 3',
+      'Temporada 4',
+      'Temporada 5',
+    ]);
+    expect(within(timeline).getAllByText('TV · 24 ep. · 2020')).toHaveLength(1);
+    expect(within(timeline).getByText('Núcleo · cuenta para completar')).toBeTruthy();
+    expect(within(timeline).getByText('Extras · no cuentan para completar')).toBeTruthy();
     for (const title of ['Temporada 1', 'Temporada 2', 'Temporada 3']) {
       expect(pressed(title, 'Vista')).toBe('true');
     }
@@ -358,16 +368,22 @@ describe('franchise detail', () => {
   it('shows the extras and links each related franchise to its own detail', async () => {
     const { router } = renderAt('/franquicia/101', { marks: [mark(109)] });
 
-    const extras = await screen.findByRole('region', {
-      name: 'Extras · no cuentan para completar',
-    });
-    expect(within(extras).getByText('OVA · 2020')).toBeTruthy();
+    const timeline = await screen.findByRole('region', { name: 'Línea de tiempo' });
+    const extra = within(timeline).getByText('OVA · 2020').closest('li') as HTMLElement;
+    // Only the extra says it does not count, and it carries the icon of its format.
+    expect(within(timeline).getAllByText('Extra · no cuenta para completar')).toHaveLength(1);
+    expect(within(extra).getByText('Extra · no cuenta para completar')).toBeTruthy();
+    expect(extra.querySelector('svg[data-icon="special"]')).toBeTruthy();
     expect(pressed('Historia paralela', 'Vista')).toBe('true');
     // Extras never count (RF-15).
     expect(screen.getByText('0 de 5 vistas')).toBeTruthy();
 
-    const related = screen.getByRole('region', { name: 'Franquicias relacionadas' });
-    await userEvent.click(within(related).getByRole('link', { name: 'Spin-off' }));
+    // Related franchises close the same list.
+    const rows = within(timeline).getAllByRole('listitem');
+    const related = rows[rows.length - 1] as HTMLElement;
+    expect(within(related).getByText('Franquicia relacionada')).toBeTruthy();
+    expect(related.querySelector('svg[data-icon="related"]')).toBeTruthy();
+    await userEvent.click(within(related).getByRole('link', { name: /Spin-off/ }));
 
     expect(router.state.location.pathname).toBe('/franquicia/107');
     expect(await screen.findByRole('heading', { level: 1, name: 'Spin-off' })).toBeTruthy();
@@ -426,10 +442,11 @@ describe('franchise detail in English (RF-70)', () => {
     expect(await screen.findByText('3 of 5 watched')).toBeTruthy();
     expect(screen.getByText('Partial')).toBeTruthy();
     expect(screen.getByText('5 entries · 2020–2024 · Action · Supernatural')).toBeTruthy();
-    const core = screen.getByRole('region', { name: 'Core · counts toward completion' });
-    expect(within(core).getAllByText('TV · 24 ep. · 2020')).toHaveLength(1);
+    const timeline = screen.getByRole('region', { name: 'Timeline' });
+    expect(within(timeline).getByText('Core · counts toward completion')).toBeTruthy();
+    expect(within(timeline).getAllByText('TV · 24 ep. · 2020')).toHaveLength(1);
     expect(
-      within(within(core).getByRole('group', { name: 'Temporada 1' })).getByRole('button', {
+      within(within(timeline).getByRole('group', { name: 'Temporada 1' })).getByRole('button', {
         name: 'Watched',
       }),
     ).toBeTruthy();
