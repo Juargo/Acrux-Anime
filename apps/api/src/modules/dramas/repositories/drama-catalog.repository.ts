@@ -1,4 +1,5 @@
 import type { Prisma, PrismaClient } from '../../../generated/prisma/client.js';
+import { searchKey } from '../search-key.js';
 
 // The read side of the drama table (ADR-0046). The API role can only SELECT from it.
 export const ORIGINS = ['KR', 'JP', 'CN'] as const;
@@ -27,6 +28,8 @@ export interface DramaRow {
 }
 
 export interface DramaBrowseQuery {
+  // Part of the title or of an alias; case, accents and tone marks do not count.
+  search?: string;
   origin?: Origin;
   genres: string[];
   offset: number;
@@ -72,17 +75,23 @@ function inOrigin(origin: Origin): Prisma.DramaWhereInput {
   return { OR: [{ country: origin }, { country: null, language: ORIGIN_LANGUAGE[origin] }] };
 }
 
+// search_text holds search keys; LIKE wildcards in the name are plain characters.
+function named(search: string): Prisma.DramaWhereInput {
+  return { searchText: { contains: searchKey(search).replace(/[\\%_]/g, '\\$&') } };
+}
+
 function toRow(row: Omit<DramaRow, 'origin'>): DramaRow {
   return { ...row, origin: originOf(row.country, row.language) };
 }
 
 export function createDramaCatalogRepository(prisma: PrismaClient): DramaCatalogRepository {
   return {
-    browse: async ({ origin, genres, offset, limit }) => {
+    browse: async ({ search, origin, genres, offset, limit }) => {
       const rows = await prisma.drama.findMany({
         where: {
           AND: [
             notAdult,
+            ...(search === undefined ? [] : [named(search)]),
             ...(origin === undefined ? [] : [inOrigin(origin)]),
             ...(genres.length === 0 ? [] : [{ genres: { hasSome: genres } }]),
           ],

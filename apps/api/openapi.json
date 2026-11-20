@@ -1614,6 +1614,15 @@
         "parameters": [
           {
             "in": "query",
+            "name": "search",
+            "schema": {
+              "description": "Part of the title or of an alias, up to 100 characters; case, accents and tone marks do not count",
+              "type": "string"
+            },
+            "description": "Part of the title or of an alias, up to 100 characters; case, accents and tone marks do not count"
+          },
+          {
+            "in": "query",
             "name": "origin",
             "schema": {
               "description": "Any of KR, JP, CN; by country, or by language without one",

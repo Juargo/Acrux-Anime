@@ -7,6 +7,7 @@ import type {
 export const DRAMA_PAGE_SIZE = 50;
 
 export interface DramaFilters {
+  search?: string;
   origin?: Origin;
   genres: string[];
 }

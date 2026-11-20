@@ -1,6 +1,6 @@
 # Dramas de TVmaze
 
-Los dramas de acción real viven en la tabla `drama` de Neon y se copian desde la API pública de TVmaze (ADR-0046). El navegador nunca llama a TVmaze. La API de Acrux los sirve solo desde esa tabla, sin llamar a TVmaze, con tres rutas públicas de lectura: `GET /api/v1/dramas` (50 por página, por popularidad; filtros `origin` = `KR`, `JP` o `CN`, y `genres`), `GET /api/v1/dramas/by-ids?ids=` y `GET /api/v1/dramas/genres`. Nunca devuelve series con el género `Adult`. Una serie sin detalle sale con `aliases` vacío y `seasons` y `episodes` en `null`.
+Los dramas de acción real viven en la tabla `drama` de Neon y se copian desde la API pública de TVmaze (ADR-0046). El navegador nunca llama a TVmaze. La API de Acrux los sirve solo desde esa tabla, sin llamar a TVmaze, con tres rutas públicas de lectura: `GET /api/v1/dramas` (50 por página, por popularidad; filtros `origin` = `KR`, `JP` o `CN`, y `genres`; `search` busca una parte del título o de un alias sin distinguir mayúsculas, tildes ni marcas de tono), `GET /api/v1/dramas/by-ids?ids=` y `GET /api/v1/dramas/genres`. Nunca devuelve series con el género `Adult`. Una serie sin detalle sale con `aliases` vacío y `seasons` y `episodes` en `null`.
 
 Los datos de TVmaze son CC BY-SA 4.0. Por eso están en una tabla aparte del catálogo de MyAnimeList y de los datos de los usuarios, y la carga usa un rol que solo llega a esa tabla.
 

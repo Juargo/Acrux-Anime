@@ -69,6 +69,8 @@ function parseIds(query: Record<string, unknown>): number[] {
 }
 
 function parseFilters(query: Record<string, unknown>): DramaFilters {
+  const search = single(query, 'search')?.trim();
+  if (search !== undefined && search.length > MAX_TEXT) invalid('Invalid search');
   const value = single(query, 'origin');
   const picked = ORIGINS.find((candidate) => candidate === value);
   if (value !== undefined && picked === undefined) invalid('Invalid origin');
@@ -80,6 +82,7 @@ function parseFilters(query: Record<string, unknown>): DramaFilters {
     invalid('Invalid genres');
   }
   return {
+    ...(search === undefined || search === '' ? {} : { search }),
     ...(picked === undefined ? {} : { origin: picked }),
     genres: genres.map((genre) => genre.trim()),
   };
@@ -107,6 +110,9 @@ export function createDramasModule(service: DramaService | undefined): Module {
         docs: {
           summary: 'One page of the dramas, most popular first, 50 dramas a page',
           query: {
+            search: text(
+              `Part of the title or of an alias, up to ${MAX_TEXT} characters; case, accents and tone marks do not count`,
+            ),
             origin: text(`Any of ${ORIGINS.join(', ')}; by country, or by language without one`),
             genres: text(`Up to ${MAX_GENRES} genres separated by commas; any of them matches`),
             page: text(`1 to ${MAX_PAGE}; 1 by default`),
