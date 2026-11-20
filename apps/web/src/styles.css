@@ -890,7 +890,8 @@ a {
 .sheet-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 10;
+  /* Above the bottom bar (20): on a phone the bar covered the buttons of the sheet. */
+  z-index: 25;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -2742,4 +2743,73 @@ label.sheet__label {
   height: 6px;
   border-radius: 50%;
   background: var(--color-status-new);
+}
+
+/* The dramas (#151): cards in normal flow, since the list is short pages with a "Ver más". */
+.drama-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .drama-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .drama-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.drama-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.drama-card__facts {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.catalog__more {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 0;
+}
+
+/* The switch at the top of Explorar: Anime or Dramas. */
+.explore-switch {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  margin: 16px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.explore-switch__link {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: var(--stroke) solid var(--color-border-default);
+  border-radius: 999px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  line-height: 22px;
+  text-decoration: none;
+}
+
+.explore-switch__link[aria-current="page"] {
+  border-color: var(--color-accent-text);
+  background: var(--color-accent-default);
+  color: var(--color-text-on-accent);
 }
