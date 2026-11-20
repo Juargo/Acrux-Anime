@@ -22,8 +22,8 @@ describe('pwaOptions (ADR-0016)', () => {
       lang: 'es',
       start_url: '/',
       display: 'standalone',
-      theme_color: '#0b0d1c',
-      background_color: '#0b0d1c',
+      theme_color: '#fff1cf',
+      background_color: '#fff1cf',
     });
     const sizes = manifest.icons?.map((icon) => `${icon.sizes} ${icon.purpose ?? 'any'}`);
     expect(sizes).toEqual(['64x64 any', '192x192 any', '512x512 any', '512x512 maskable']);

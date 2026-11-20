@@ -1,6 +1,6 @@
 import type { VitePWAOptions } from 'vite-plugin-pwa';
 
-const brand = '#0b0d1c';
+const brand = '#fff1cf';
 
 /**
  * Installable PWA that caches only the app shell (ADR-0016, #44). The new service worker waits
