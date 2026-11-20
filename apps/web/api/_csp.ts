@@ -19,11 +19,13 @@ export const createNonce = (): string => randomBytes(16).toString('base64');
 export const renderHtml = (template: string, nonce: string): string =>
   template.replaceAll(NONCE_PLACEHOLDER, nonce);
 
-// The covers come from MyAnimeList's CDN; the catalog itself is served by our API (ADR-0043).
+// The anime covers come from MyAnimeList's CDN and the drama covers from TVmaze's; both catalogs
+// are served by our API (ADR-0043).
 const IMAGES = [
   "'self'",
   'data:',
   'https://cdn.myanimelist.net',
+  'https://static.tvmaze.com',
   'https://lh3.googleusercontent.com',
 ];
 const CONNECT = [

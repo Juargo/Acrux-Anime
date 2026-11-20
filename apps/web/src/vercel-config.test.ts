@@ -126,6 +126,11 @@ describe('content security policy', () => {
     expect(directive('connect-src')).toContain('https://cdn.myanimelist.net');
   });
 
+  it('allows the TVmaze covers of the dramas as images only', () => {
+    expect(directive('img-src')).toContain('https://static.tvmaze.com');
+    expect(directive('connect-src')).not.toContain('tvmaze');
+  });
+
   it('no longer allows AniList, and never the MyAnimeList API', () => {
     expect(csp).not.toMatch(/anilist/i);
     expect(csp).not.toContain('api.myanimelist.net');
