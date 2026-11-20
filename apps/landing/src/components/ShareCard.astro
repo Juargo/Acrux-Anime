@@ -81,11 +81,9 @@ const { t } = Astro.props;
     height: calc(600 * var(--u));
     padding: calc(25 * var(--u));
     overflow: hidden;
-    border: calc(2.5 * var(--u)) solid var(--color-accent-default);
+    border: calc(2.5 * var(--u)) solid var(--color-border-default);
     border-radius: calc(30 * var(--u));
-    background:
-      linear-gradient(180deg, rgb(157 140 245 / 0.45) 0%, rgb(157 140 245 / 0) 60%),
-      var(--color-bg-surface);
+    background: var(--color-accent-alt);
   }
 
   .card__user,
@@ -128,7 +126,7 @@ const { t } = Astro.props;
   }
 
   .card__number {
-    color: var(--color-text-link);
+    color: var(--color-text-primary);
     font-family: var(--font-display);
     font-size: calc(120 * var(--u));
     font-weight: 700;
@@ -137,7 +135,7 @@ const { t } = Astro.props;
   }
 
   .card__caption {
-    color: var(--color-text-secondary);
+    color: var(--color-text-primary);
     font-size: calc(15 * var(--u));
     font-weight: 600;
     line-height: calc(20 * var(--u));
@@ -160,14 +158,12 @@ const { t } = Astro.props;
     width: calc(87.5 * var(--u));
     height: calc(130 * var(--u));
     border-radius: calc(10 * var(--u));
-    background:
-      linear-gradient(124deg, rgb(157 140 245 / 0.5) 0%, rgb(157 140 245 / 0) 83.333%),
-      var(--color-bg-raised);
+    background: var(--color-bg-raised);
   }
 
   .card__url {
     flex: 1;
-    color: var(--color-text-secondary);
+    color: var(--color-text-primary);
     font-size: calc(15 * var(--u));
     font-weight: 500;
     line-height: calc(20 * var(--u));
@@ -179,8 +175,9 @@ const { t } = Astro.props;
     width: calc(50 * var(--u));
     height: calc(50 * var(--u));
     border-radius: calc(7.5 * var(--u));
-    background: var(--color-text-primary);
-    color: var(--color-text-on-accent);
+    border: calc(2.5 * var(--u)) solid var(--color-border-default);
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
     font-size: calc(15 * var(--u));
     font-weight: 600;
     letter-spacing: calc(0.3 * var(--u));

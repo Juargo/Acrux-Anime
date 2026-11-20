@@ -63,8 +63,10 @@ const { id, title, lead, blocks } = Astro.props;
     flex-direction: column;
     gap: var(--spacing-md);
     padding: var(--spacing-lg);
+    border: var(--stroke) solid var(--color-border-default);
     border-radius: var(--radius-lg);
     background: var(--color-bg-surface);
+    box-shadow: var(--shadow-hard);
   }
 
   .benefit__icon {
@@ -72,6 +74,7 @@ const { id, title, lead, blocks } = Astro.props;
     place-items: center;
     width: 44px;
     height: 44px;
+    border: var(--stroke) solid var(--color-border-default);
     border-radius: var(--radius-md);
     background: var(--color-accent-default);
   }
