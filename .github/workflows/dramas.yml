@@ -1,0 +1,53 @@
+name: Dramas
+
+# Weekly load of the live-action dramas from TVmaze into production (ADR-0046, point 3).
+# TVmaze cannot filter by country, so the job walks its whole index, keeps the scripted
+# shows of Korea, Japan and China, and reads the detail of the ones it never read or that
+# TVmaze changed since. Requests stay under the 20 every 10 seconds TVmaze allows and the
+# job stops at the first refusal. It runs on another day than the MyAnimeList load and
+# writes another table, so the two never meet. It shares the catalog environment, which
+# has no reviewers and only main can use; its database secret belongs to the acrux_dramas
+# role, which only reaches the drama table.
+on:
+  schedule:
+    - cron: "0 7 * * 4"
+  workflow_dispatch:
+    inputs:
+      details:
+        description: "Detalles a leer en esta corrida"
+        required: false
+        default: "12000"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dramas
+  cancel-in-progress: false
+
+jobs:
+  load:
+    name: Load the dramas
+    runs-on: ubuntu-24.04
+    environment: catalog-production
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Load the dramas
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_DRAMAS }}
+          DETAILS: ${{ inputs.details || '12000' }}
+        run: pnpm --filter @acrux/api dramas:load "--details=$DETAILS"
