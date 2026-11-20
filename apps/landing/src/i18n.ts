@@ -84,7 +84,7 @@ const copy = {
       deleteAccount: { label: 'Borrar mi cuenta', href: '/soporte#borrar-cuenta' },
       analytics: 'Preferencias de analítica',
       attribution:
-        '© 2026 Acrux · Datos del catálogo provistos por {mal}. Acrux no está afiliada a {mal}.',
+        '© 2026 Acrux · Datos provistos por {mal} y {tvmaze}. Acrux no está afiliada a {mal} ni a {tvmaze}.',
     },
   },
   en: {
@@ -165,7 +165,7 @@ const copy = {
       deleteAccount: { label: 'Delete my account', href: '/en/support#delete-account' },
       analytics: 'Analytics preferences',
       attribution:
-        '© 2026 Acrux · Catalog data provided by {mal}. Acrux is not affiliated with {mal}.',
+        '© 2026 Acrux · Data provided by {mal} and {tvmaze}. Acrux is not affiliated with {mal} or {tvmaze}.',
     },
   },
 } as const;

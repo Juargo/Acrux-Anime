@@ -114,6 +114,8 @@ export const accountEs = {
     title: 'Acerca de Acrux',
     attribution:
       'Los datos del catálogo los provee MyAnimeList. Acrux no está afiliada a MyAnimeList ni cuenta con su respaldo. Los títulos e imágenes de cada anime pertenecen a sus dueños.',
+    attributionDramas:
+      'Los datos de los dramas los provee TVmaze, bajo la licencia CC BY-SA 4.0. Acrux no está afiliada a TVmaze ni cuenta con su respaldo.',
     privacy: 'Privacidad',
     terms: 'Términos',
     support: 'Soporte',
@@ -431,6 +433,8 @@ export const accountEn = {
     title: 'About Acrux',
     attribution:
       'Catalog data is provided by MyAnimeList. Acrux is not affiliated with or endorsed by MyAnimeList. Each anime’s titles and images belong to their owners.',
+    attributionDramas:
+      'Drama data is provided by TVmaze under the CC BY-SA 4.0 license. Acrux is not affiliated with or endorsed by TVmaze.',
     privacy: 'Privacy',
     terms: 'Terms',
     support: 'Support',
