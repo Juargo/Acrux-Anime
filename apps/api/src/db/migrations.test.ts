@@ -19,6 +19,7 @@ const APP_TABLES = [
   'anime',
   'mark_anilist',
   'franchise_override_anilist',
+  'drama',
 ];
 const USER_ID = '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f70';
 const backupUserId = '8c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f';
@@ -75,7 +76,7 @@ afterAll(async () => {
 });
 
 describe('initial schema', () => {
-  it('creates the nine application tables', async () => {
+  it('creates the ten application tables', async () => {
     const { rows } = await owner.query<{ table_name: string }>(
       `SELECT table_name FROM information_schema.tables
        WHERE table_schema = 'public' AND table_name <> '_prisma_migrations'`,
@@ -247,6 +248,80 @@ describe('the acrux_backup role', () => {
     expect(exitCode).toBe(0);
     for (const table of [...APP_TABLES, '_prisma_migrations']) {
       expect(stdout).toContain(`COPY public.${table}`);
+    }
+  });
+});
+
+// The load job of the dramas runs in GitHub Actions (ADR-0046): its role only reaches the
+// drama table. TVmaze data is CC BY-SA, so it stays apart from the MyAnimeList catalog
+// and from everything about a user.
+describe('the acrux_dramas role', () => {
+  let dramas: pg.Client;
+  let startsWithLogin: boolean | undefined;
+
+  beforeAll(async () => {
+    const { rows } = await owner.query<{ rolcanlogin: boolean }>(
+      `SELECT rolcanlogin FROM pg_roles WHERE rolname = 'acrux_dramas'`,
+    );
+    startsWithLogin = rows[0]?.rolcanlogin;
+    await owner.query(`ALTER ROLE acrux_dramas WITH LOGIN PASSWORD 'dramas-test'`);
+    dramas = await connectAs('acrux_dramas', 'dramas-test');
+  });
+
+  afterAll(async () => {
+    await dramas?.end();
+  });
+
+  it('starts without login after the migrations', () => {
+    expect(startsWithLogin).toBe(false);
+  });
+
+  it('reads, creates and updates dramas despite RLS', async () => {
+    await dramas.query(
+      `INSERT INTO drama (id, title, search_text, tvmaze_url)
+       VALUES (900001, 'Loaded', 'loaded', 'https://www.tvmaze.com/shows/900001/loaded')`,
+    );
+    await dramas.query(`UPDATE drama SET episodes = 16 WHERE id = 900001`);
+    const { rows } = await dramas.query(
+      'SELECT title, episodes, aliases, genres FROM drama WHERE id = 900001',
+    );
+    expect(rows).toEqual([{ title: 'Loaded', episodes: 16, aliases: [], genres: [] }]);
+  });
+
+  it('keeps two dramas with the same title apart by their TVmaze id', async () => {
+    await dramas.query(
+      `INSERT INTO drama (id, title, search_text, tvmaze_url)
+       VALUES (900002, 'Loaded', 'loaded', 'https://www.tvmaze.com/shows/900002/loaded')`,
+    );
+    const { rows } = await dramas.query(`SELECT id FROM drama WHERE title = 'Loaded' ORDER BY id`);
+    expect(rows).toEqual([{ id: 900001 }, { id: 900002 }]);
+    const code = await sqlState(
+      dramas.query(
+        `INSERT INTO drama (id, title, search_text, tvmaze_url) VALUES (900002, 'x', 'x', 'x')`,
+      ),
+    );
+    expect(code).toBe('23505');
+  });
+
+  it('cannot delete dramas or change the schema', async () => {
+    expect(await sqlState(dramas.query('DELETE FROM drama WHERE id = 900001'))).toBe('42501');
+    expect(await sqlState(dramas.query('ALTER TABLE drama ADD COLUMN x int'))).toBe('42501');
+  });
+
+  it.each(APP_TABLES.filter((table) => table !== 'drama'))('cannot read %s', async (table) => {
+    expect(await sqlState(dramas.query(`SELECT * FROM ${table}`))).toBe('42501');
+  });
+
+  // The API does not serve dramas yet: it reads them and nothing else.
+  it('lets acrux_api read dramas but not write them', async () => {
+    const api = await connectAs('acrux_api', 'api-test');
+    try {
+      const { rows } = await api.query('SELECT id FROM drama WHERE id = 900001');
+      expect(rows).toEqual([{ id: 900001 }]);
+      expect(await sqlState(api.query(`UPDATE drama SET title = 'x'`))).toBe('42501');
+      expect(await sqlState(api.query('DELETE FROM drama'))).toBe('42501');
+    } finally {
+      await api.end();
     }
   });
 });
