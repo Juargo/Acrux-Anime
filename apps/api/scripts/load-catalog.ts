@@ -3,23 +3,13 @@ import { createMyAnimeListSource } from '../src/modules/catalog/adapters/myanime
 import { createCatalogRepository } from '../src/modules/catalog/repositories/catalog.repository.js';
 import { loadCatalog } from '../src/modules/catalog/services/catalog-loader.js';
 import { storeFranchises } from './franchises.js';
+import { option } from './option.js';
 
 // pnpm --filter @acrux/api catalog:load [--details=6000] [--delay=1000]
 // Copies the catalog of MyAnimeList into the `anime` table (ADR-0043, point 3). It needs
 // MAL_CLIENT_ID and DATABASE_URL; in production the connection uses the acrux_catalog role.
 // It ends by storing the franchise of every anime (ADR-0045).
 // See docs/runbooks/catalogo.md.
-function option(name: string, fallback: number, min: number, max: number): number {
-  const raw = process.argv.find((arg) => arg.startsWith(`--${name}=`))?.split('=')[1];
-  if (raw === undefined || raw === '') return fallback;
-  const value = /^\d+$/.test(raw) ? Number(raw) : Number.NaN;
-  if (!(value >= min && value <= max)) {
-    console.error(`--${name} must be a whole number from ${min} to ${max}`);
-    process.exit(2);
-  }
-  return value;
-}
-
 const maxDetails = option('details', 6000, 0, 40_000);
 // Never faster than two requests per second (S7).
 const delayMs = option('delay', 1000, 500, 60_000);

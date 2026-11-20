@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { CatalogAnimeInput, Relation } from '../repositories/catalog.repository.js';
+import { SourceError } from '../source-error.js';
 
 // The MyAnimeList API v2 (ADR-0043). It is called only from the server: it sends no CORS
 // headers and its agreement forbids sharing the client id. Shapes confirmed on 2026-11-11.
@@ -158,21 +159,7 @@ export function toCatalogAnime(source: SourceAnime): CatalogAnimeInput {
   };
 }
 
-export class SourceError extends Error {
-  constructor(
-    // null when the request itself failed or timed out.
-    readonly status: number | null,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'SourceError';
-  }
-
-  // MyAnimeList is refusing requests: every caller stops asking for a while (S7).
-  get blocked(): boolean {
-    return this.status === 403 || this.status === 429;
-  }
-}
+export { SourceError };
 
 export interface CatalogSource {
   // null when MyAnimeList does not have the anime.
