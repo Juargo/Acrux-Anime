@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import pg from 'pg';
@@ -11,6 +12,7 @@ import type { PrismaClient } from '../../generated/prisma/client.js';
 import type { AnimeRow } from '../catalog/repositories/catalog.repository.js';
 import type { CatalogService } from '../catalog/services/catalog.service.js';
 import { createDramaCatalogRepository } from './repositories/drama-catalog.repository.js';
+import { searchKey } from './search-key.js';
 import { createDramaService, type DramaService } from './services/drama.service.js';
 
 // The drama catalog (ADR-0046): public, read-only and cacheable. It runs against the real
@@ -230,6 +232,134 @@ describe('GET /api/v1/dramas', () => {
       await seed(rows());
       const response = await request(app).get('/api/v1/dramas?origin=KR&genres=Drama');
       expect(ids(response.body)).toEqual([1]);
+    });
+  });
+
+  describe('search', () => {
+    const untamed = row(42806, {
+      title: 'The Untamed',
+      aliases: ['陈情令', 'Chén Qíng Lìng'],
+      searchText: searchKey('The Untamed 陈情令 Chén Qíng Lìng'),
+      country: 'CN',
+      language: 'Chinese',
+    });
+
+    it('finds a drama by part of its title, whatever the case', async () => {
+      await seed([untamed, row(2)]);
+      expect(ids((await request(app).get('/api/v1/dramas?search=the%20UNTAMED')).body)).toEqual([
+        42806,
+      ]);
+      expect(ids((await request(app).get('/api/v1/dramas?search=untam')).body)).toEqual([42806]);
+    });
+
+    it('finds a drama by an alias in its original script', async () => {
+      await seed([untamed, row(2)]);
+      const response = await request(app).get(
+        `/api/v1/dramas?search=${encodeURIComponent('陈情令')}`,
+      );
+      expect(ids(response.body)).toEqual([42806]);
+      expect(response.body.items[0].title).toBe('The Untamed');
+    });
+
+    it('ignores accents and tone marks, in the search and in the names', async () => {
+      await seed([untamed, row(2)]);
+      const plain = await request(app).get('/api/v1/dramas?search=Chen%20Qing%20Ling');
+      expect(ids(plain.body)).toEqual([42806]);
+      const marked = await request(app).get(
+        `/api/v1/dramas?search=${encodeURIComponent('Chén Qíng Lìng')}`,
+      );
+      expect(ids(marked.body)).toEqual([42806]);
+    });
+
+    it('answers an empty page, not an error, when no name matches', async () => {
+      await seed([untamed]);
+      const response = await request(app).get('/api/v1/dramas?search=El%20indomable');
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ items: [], nextPage: null });
+    });
+
+    it('gives every drama that shares a title', async () => {
+      await seed([
+        row(1, { title: 'Boys Over Flowers', searchText: 'boys over flowers', weight: 5 }),
+        row(2, { title: 'Boys Over Flowers', searchText: 'boys over flowers', weight: 9 }),
+        row(3),
+      ]);
+      const response = await request(app).get('/api/v1/dramas?search=boys%20over%20flowers');
+      expect(ids(response.body)).toEqual([2, 1]);
+    });
+
+    it('takes % and _ as plain characters', async () => {
+      await seed([row(1, { title: '100% Love', searchText: '100% love' }), row(2)]);
+      expect(ids((await request(app).get('/api/v1/dramas?search=%25')).body)).toEqual([1]);
+      expect(ids((await request(app).get('/api/v1/dramas?search=_')).body)).toEqual([]);
+    });
+
+    it('combines with origin and genre, and never finds an adult drama', async () => {
+      await seed([
+        untamed,
+        row(7, { title: 'Untamed Hearts', searchText: 'untamed hearts' }),
+        row(8, { title: 'Untamed Nights', searchText: 'untamed nights', genres: ['Adult'] }),
+      ]);
+      expect(ids((await request(app).get('/api/v1/dramas?search=untamed')).body)).toEqual([
+        7, 42806,
+      ]);
+      const korean = await request(app).get('/api/v1/dramas?search=untamed&origin=KR');
+      expect(ids(korean.body)).toEqual([7]);
+    });
+
+    it('treats a blank search as no search and rejects one that is too long or repeated', async () => {
+      await seed([row(1), row(2)]);
+      expect(ids((await request(app).get('/api/v1/dramas?search=%20')).body)).toEqual([1, 2]);
+      const long = await request(app).get(`/api/v1/dramas?search=${'a'.repeat(101)}`);
+      expect(long.status).toBe(400);
+      expect(long.body.code).toBe('dramas.invalid_query');
+      const twice = await request(app).get('/api/v1/dramas?search=a&search=b');
+      expect(twice.status).toBe(400);
+    });
+  });
+
+  describe('the rows loaded before the search ignored accents', () => {
+    const migration = readFileSync(
+      new URL(
+        '../../../prisma/migrations/20261120010000_busqueda_de_dramas_sin_tildes/migration.sql',
+        import.meta.url,
+      ),
+      'utf8',
+    );
+    const names = [
+      'the untamed 陈情令 chén qíng lìng',
+      'lǜ',
+      'ガール が',
+      '한글 드라마',
+      'crème brûlée',
+    ];
+
+    it('get the key the load and the search build, and nothing else changes', async () => {
+      await seed(
+        names.map((name, index) =>
+          row(index + 1, { title: `Title ${name}`, aliases: [name], searchText: name }),
+        ),
+      );
+      await owner.query(migration);
+      const { rows } = await owner.query(
+        'SELECT id, title, aliases, search_text FROM drama ORDER BY id',
+      );
+      expect(rows).toEqual(
+        names.map((name, index) => ({
+          id: index + 1,
+          title: `Title ${name}`,
+          aliases: [name],
+          search_text: searchKey(name),
+        })),
+      );
+      const found = await request(app).get('/api/v1/dramas?search=Chen%20Qing%20Ling');
+      expect(ids(found.body)).toEqual([1]);
+    });
+
+    it('are left alone when run again', async () => {
+      await seed([row(1, { searchText: 'chén qíng lìng' })]);
+      await owner.query(migration);
+      expect((await owner.query(migration)).rowCount).toBe(0);
     });
   });
 

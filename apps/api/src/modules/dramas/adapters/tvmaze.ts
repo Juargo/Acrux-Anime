@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { SourceError } from '../../catalog/source-error.js';
 import type { DramaInput } from '../repositories/drama.repository.js';
+import { searchKey } from '../search-key.js';
 
 // The public TVmaze API (ADR-0046), called only from the server. It needs no key and its
 // data is CC BY-SA 4.0. It allows at least 20 requests every 10 seconds per IP and answers
@@ -100,8 +101,7 @@ function toStartDate(value: string | null | undefined): Date | null {
 const positive = (value: number | null | undefined) =>
   typeof value === 'number' && value > 0 ? Math.round(value) : null;
 
-const searchTextOf = (names: readonly string[]) =>
-  [...new Set(names.map((name) => name.toLowerCase()))].join(' ');
+const searchTextOf = (names: readonly string[]) => [...new Set(names.map(searchKey))].join(' ');
 
 export function toDrama(source: SourceShow): DramaInput {
   const startDate = toStartDate(source.premiered);

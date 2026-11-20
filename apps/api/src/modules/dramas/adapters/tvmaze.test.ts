@@ -175,7 +175,7 @@ describe('createTvmazeSource', () => {
     expect(drama).toEqual({
       ...UNTAMED_ROW,
       aliases: ['陈情令', 'Chén Qíng Lìng'],
-      searchText: 'the untamed 陈情令 chén qíng lìng',
+      searchText: 'the untamed 陈情令 chen qing ling',
       seasons: 1,
       episodes: 50,
     });
