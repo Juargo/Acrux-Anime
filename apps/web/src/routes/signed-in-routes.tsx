@@ -3,7 +3,9 @@ import { type RouteObject, useNavigate, useParams } from 'react-router';
 import { BadgesScreen } from '../badges/BadgesScreen';
 import { CardScreen } from '../card/CardScreen';
 import { CatalogScreen } from '../catalog/CatalogScreen';
+import { ExploreSwitch } from '../components/ExploreSwitch';
 import { CuratorScreen } from '../curator/CuratorScreen';
+import { DramasScreen } from '../dramas/DramasScreen';
 import { FranchiseScreen } from '../franchise/FranchiseScreen';
 import { MyListScreen } from '../my-list/MyListScreen';
 import { PlusScreen } from '../plus/PlusScreen';
@@ -21,7 +23,20 @@ function CatalogPage() {
   return (
     <>
       <h1 className="visually-hidden">{t('nav.explore')}</h1>
+      <ExploreSwitch />
       <CatalogScreen {...context} />
+    </>
+  );
+}
+
+// The dramas live apart from the anime catalog (#151); they need no session data.
+function DramasPage() {
+  const { t } = useTranslation();
+  return (
+    <>
+      <h1 className="visually-hidden">{t('nav.explore')}</h1>
+      <ExploreSwitch />
+      <DramasScreen />
     </>
   );
 }
@@ -128,6 +143,7 @@ function CuratorPage() {
 // Screens behind the session gate of App, inside the signed-in layout (routes/Home.tsx).
 export const signedInRoutes: RouteObject[] = [
   { index: true, element: <CatalogPage /> },
+  { path: 'dramas', element: <DramasPage /> },
   { path: 'franquicia/:animeId', element: <FranchisePage /> },
   { path: 'mi-lista', element: <MyListPage /> },
   { path: 'tarjeta', element: <CardPage /> },

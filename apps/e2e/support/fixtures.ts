@@ -9,6 +9,7 @@ import {
   expect,
 } from '@playwright/test';
 import { installCatalog } from './catalog.ts';
+import { installDramas } from './dramas.ts';
 import { createUser, installNeonAuth, type TestUser } from './neon-auth.ts';
 
 const isLocal = (url: URL) => url.hostname === 'localhost' || url.hostname === '127.0.0.1';
@@ -28,6 +29,7 @@ async function isolate(context: BrowserContext) {
   );
   await context.addInitScript(withoutWebShare);
   await installCatalog(context);
+  await installDramas(context);
 }
 
 // A browser with no session, on the same phone: someone opening a public link.

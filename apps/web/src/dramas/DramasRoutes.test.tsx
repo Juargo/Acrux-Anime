@@ -1,0 +1,153 @@
+// @vitest-environment jsdom
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { cleanup, render, screen } from '@testing-library/react';
+import { createMemoryRouter, RouterProvider } from 'react-router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Profile } from '../profile-api';
+import { Home } from '../routes/Home';
+import { signedInRoutes } from '../routes/signed-in-routes';
+
+const profile: Profile = {
+  displayName: 'Camila',
+  avatarUrl: null,
+  avatarPreset: 'lavanda',
+  locale: 'es',
+  listVisibility: 'private',
+  counterMode: 'franchise',
+  handle: 'camila',
+  shownTotal: null,
+  shownMode: null,
+  cardShared: false,
+  createdAt: '2026-11-01T12:00:00.000Z',
+  analyticsId: null,
+};
+
+const requested: string[] = [];
+
+// The API as the browser sees it: only what each screen should ask for answers.
+function api(input: RequestInfo | URL): Response {
+  const url = new URL(String(input), 'http://localhost');
+  requested.push(`${url.pathname}${url.search}`);
+  if (url.pathname === '/api/v1/dramas') {
+    return Response.json({
+      items: [
+        {
+          id: 1,
+          title: 'Crash Landing on You',
+          coverUrl: null,
+          origin: 'KR',
+          year: 2019,
+          seasons: null,
+          episodes: null,
+          genres: [],
+        },
+      ],
+      nextPage: null,
+    });
+  }
+  if (url.pathname === '/api/v1/catalog/anime') {
+    return Response.json({
+      items: [
+        {
+          id: 154587,
+          title: 'Sousou no Frieren',
+          titleEnglish: null,
+          titleJapanese: null,
+          coverUrl: null,
+          format: 'TV',
+          startDate: '2023-09-29',
+          year: 2023,
+          episodes: 28,
+          durationMinutes: 24,
+          genres: [],
+          relations: [],
+        },
+      ],
+      chain: [],
+      related: [],
+      nextPage: null,
+    });
+  }
+  if (url.pathname === '/api/v1/catalog/franchise-years') return Response.json({ years: [] });
+  return Response.json({ items: [] });
+}
+
+beforeEach(() => {
+  requested.length = 0;
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL) => api(input)),
+  );
+});
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
+function renderAt(path: string) {
+  const router = createMemoryRouter(
+    [
+      {
+        path: '/',
+        element: (
+          <Home
+            profile={profile}
+            onSignOut={vi.fn()}
+            signingOut={false}
+            signOutFailed={false}
+            getToken={async () => 'jwt'}
+          />
+        ),
+        children: signedInRoutes,
+      },
+    ],
+    { initialEntries: [path] },
+  );
+  render(
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
+}
+
+describe('the drama route', () => {
+  it('shows dramas on /dramas and never asks for the anime catalog (S6)', async () => {
+    renderAt('/dramas');
+
+    expect(await screen.findByText('Crash Landing on You')).toBeTruthy();
+    expect(screen.queryByText('Sousou no Frieren')).toBeNull();
+    expect(requested.some((path) => path.startsWith('/api/v1/dramas'))).toBe(true);
+    expect(requested.filter((path) => path.startsWith('/api/v1/catalog/'))).toEqual([]);
+    expect(screen.getByRole('link', { name: 'TVmaze' })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'MyAnimeList' })).toBeNull();
+  });
+
+  it('shows anime on / and never asks for dramas, with only the MyAnimeList credit (S6, S8)', async () => {
+    renderAt('/');
+
+    expect(await screen.findByText('Sousou no Frieren')).toBeTruthy();
+    expect(screen.queryByText('Crash Landing on You')).toBeNull();
+    expect(requested.filter((path) => path.startsWith('/api/v1/dramas'))).toEqual([]);
+    expect(screen.getByRole('link', { name: 'MyAnimeList' })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'TVmaze' })).toBeNull();
+  });
+
+  it('puts the Anime / Dramas switch on both screens, with Explorar current on both (S2)', async () => {
+    renderAt('/dramas');
+    await screen.findByText('Crash Landing on You');
+    expect(screen.getByRole('group', { name: 'Qué explorar' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Explorar' }).getAttribute('aria-current')).toBe(
+      'page',
+    );
+    cleanup();
+
+    renderAt('/');
+    await screen.findByText('Sousou no Frieren');
+    expect(screen.getByRole('group', { name: 'Qué explorar' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Explorar' }).getAttribute('aria-current')).toBe(
+      'page',
+    );
+  });
+});
