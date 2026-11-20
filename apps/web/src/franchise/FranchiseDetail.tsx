@@ -17,11 +17,12 @@ const STATE_LABELS = {
 
 const SUBTITLE_GENRES = 2;
 
-// Figma M09: "TV · 24 ep. · 2020", "Película · 2021".
+// Figma M09: "TV · 24 ep. · 2020", "Película · 2021". A film is one episode: saying so adds nothing.
 function entryMeta(entry: FranchiseEntryDetail, t: TFunction): string {
+  const singleFilm = entry.format === 'MOVIE' && entry.episodes === 1;
   return [
     entry.format ? formatLabel(entry.format, t) : null,
-    entry.episodes ? t('franchise.episodes', { count: entry.episodes }) : null,
+    entry.episodes && !singleFilm ? t('franchise.episodes', { count: entry.episodes }) : null,
     entry.year ? String(entry.year) : null,
   ]
     .filter(Boolean)

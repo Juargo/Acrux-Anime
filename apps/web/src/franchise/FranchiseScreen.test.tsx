@@ -454,4 +454,60 @@ describe('franchise detail in English (RF-70)', () => {
     expect(screen.queryByText('Parcial')).toBeNull();
     expect(screen.queryByText('3 de 5 vistas')).toBeNull();
   });
+
+  it('shows a film without its single episode, with the film icon in the core and as an extra', async () => {
+    // A series 201, its sequel film 202 and a side-story film 203.
+    const films: Record<number, CatalogAnime> = {
+      201: anime(201, {
+        title: 'Serie',
+        year: 2020,
+        startDate: '2020-01-01',
+        episodes: 12,
+        relations: [
+          { type: 'SEQUEL', id: 202 },
+          { type: 'SIDE_STORY', id: 203 },
+        ],
+      }),
+      202: anime(202, {
+        title: 'Película final',
+        format: 'MOVIE',
+        year: 2021,
+        startDate: '2021-01-01',
+        episodes: 1,
+        relations: [{ type: 'PREQUEL', id: 201 }],
+      }),
+      203: anime(203, {
+        title: 'Película aparte',
+        format: 'MOVIE',
+        year: 2020,
+        startDate: '2020-06-01',
+        episodes: 1,
+        relations: [{ type: 'PARENT', id: 201 }],
+      }),
+    };
+    const client = fakeCatalogClient({
+      franchises: async (seeds) => serveFranchises((id) => films[id], seeds),
+    });
+    renderAt('/franquicia/201', { client });
+
+    const timeline = await screen.findByRole('region', { name: 'Línea de tiempo' });
+    const rowOf = (title: string) => within(timeline).getByText(title).closest('li') as HTMLElement;
+
+    expect(within(rowOf('Serie')).getByText('TV · 12 ep. · 2020')).toBeTruthy();
+    expect(rowOf('Serie').querySelector('svg[data-icon="movie"]')).toBeNull();
+
+    // In the core the film keeps its cover and takes the icon next to its title.
+    const core = rowOf('Película final');
+    expect(within(core).getByText('Película · 2021')).toBeTruthy();
+    expect(core.querySelector('img')).toBeTruthy();
+    expect(core.querySelector('svg[data-icon="movie"]')).toBeTruthy();
+    expect(within(core).queryByText('Extra · no cuenta para completar')).toBeNull();
+
+    // As an extra the icon takes the place of the cover.
+    const extra = rowOf('Película aparte');
+    expect(within(extra).getByText('Película · 2020')).toBeTruthy();
+    expect(extra.querySelector('img')).toBeNull();
+    expect(extra.querySelector('svg[data-icon="movie"]')).toBeTruthy();
+    expect(within(extra).getByText('Extra · no cuenta para completar')).toBeTruthy();
+  });
 });
