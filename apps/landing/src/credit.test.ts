@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getCopy } from './i18n';
-import { getLegalPage, MAL_URL } from './legal';
+import { CC_BY_SA_URL, getLegalPage, MAL_URL, TVMAZE_URL } from './legal';
 
 const LOCALES = ['es', 'en'] as const;
 
@@ -23,5 +23,26 @@ describe('MyAnimeList credit (ADR-0043, point 7)', () => {
     for (const key of ['privacy', 'support', 'terms'] as const) {
       expect(JSON.stringify(getLegalPage(locale, key))).not.toMatch(/anilist/i);
     }
+  });
+});
+
+describe('TVmaze credit (#150, ADR-0046, point 4)', () => {
+  it('links to TVmaze and to its license', () => {
+    expect(TVMAZE_URL).toBe('https://www.tvmaze.com');
+    expect(CC_BY_SA_URL).toBe('https://creativecommons.org/licenses/by-sa/4.0/');
+  });
+
+  it.each(LOCALES)('credits TVmaze in the footer (%s), next to MyAnimeList', (locale) => {
+    const { attribution } = getCopy(locale).footer;
+    expect(attribution).toContain('{mal}');
+    expect(attribution).toContain('{tvmaze}');
+  });
+
+  it.each(LOCALES)('credits TVmaze and names its license in the terms (%s)', (locale) => {
+    const section = getLegalPage(locale, 'terms').sections.find((s) => s.title.includes('TVmaze'));
+    const text = section?.paragraphs.join(' ');
+    expect(text).toContain('{mal}');
+    expect(text).toContain('{tvmaze}');
+    expect(text).toContain('{ccbysa}');
   });
 });

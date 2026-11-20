@@ -29,6 +29,17 @@ describe('AboutScreen', () => {
     expect(link('MyAnimeList')).toBe('https://myanimelist.net');
   });
 
+  it('credits TVmaze for the drama data and names its CC BY-SA 4.0 license (#150, ADR-0046)', () => {
+    renderAbout();
+    expect(
+      screen.getByText(
+        'Los datos de los dramas los provee TVmaze, bajo la licencia CC BY-SA 4.0. Acrux no está afiliada a TVmaze ni cuenta con su respaldo.',
+      ),
+    ).toBeTruthy();
+    expect(link('TVmaze')).toBe('https://www.tvmaze.com');
+    expect(link('CC BY-SA 4.0')).toBe('https://creativecommons.org/licenses/by-sa/4.0/');
+  });
+
   it('links to the privacy, terms and support pages of the landing', () => {
     renderAbout();
     expect(link('Privacidad')).toBe('https://acruxanime.com/privacidad');
@@ -55,6 +66,9 @@ describe('AboutScreen in English (#43)', () => {
     expect(link('Support')).toBe('https://acruxanime.com/soporte');
     expect(link('‹ Profile')).toBe('/perfil');
     screen.getByText('Version 0.0.0 (abc1234)');
+    screen.getByText(
+      'Drama data is provided by TVmaze under the CC BY-SA 4.0 license. Acrux is not affiliated with or endorsed by TVmaze.',
+    );
     expect(screen.queryByText('Versión 0.0.0 (abc1234)')).toBeNull();
   });
 });

@@ -24,6 +24,17 @@ export interface LegalPage {
 export const CONTACT_EMAIL = 'jorgeretamal.jjra@gmail.com';
 // Credit link requested by MyAnimeList's support (ADR-0043, point 7); `{mal}` in a paragraph renders it.
 export const MAL_URL = 'https://myanimelist.net';
+// TVmaze data is CC BY-SA 4.0 and asks for a link back (ADR-0046, point 4).
+export const TVMAZE_URL = 'https://www.tvmaze.com';
+export const CC_BY_SA_URL = 'https://creativecommons.org/licenses/by-sa/4.0/';
+
+// Tokens that a legal paragraph or the footer attribution render as an external link.
+export const CREDIT_LINKS: Record<string, { href: string; label: string }> = {
+  '{mal}': { href: MAL_URL, label: 'MyAnimeList' },
+  '{tvmaze}': { href: TVMAZE_URL, label: 'TVmaze' },
+  '{ccbysa}': { href: CC_BY_SA_URL, label: 'CC BY-SA 4.0' },
+};
+export const CREDIT_TOKENS = /(\{mal\}|\{tvmaze\}|\{ccbysa\})/;
 const OWNER = 'Jorge Retamal';
 const RESPONSE_TIME = { es: '3 días hábiles', en: '3 business days' };
 
@@ -128,7 +139,7 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
         description: 'Las reglas para usar Acrux.',
       },
       title: 'Términos de uso',
-      updated: 'Última actualización: 11 de noviembre de 2026',
+      updated: 'Última actualización: 20 de noviembre de 2026',
       sections: [
         {
           title: 'Qué es Acrux',
@@ -143,9 +154,10 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
           ],
         },
         {
-          title: 'Catálogo y MyAnimeList',
+          title: 'Catálogo, MyAnimeList y TVmaze',
           paragraphs: [
             'Los datos del catálogo los provee {mal}. Acrux no está afiliada a {mal} ni cuenta con su respaldo. Los títulos e imágenes de cada anime pertenecen a sus dueños.',
+            'Los datos de los dramas los provee {tvmaze}, bajo la licencia {ccbysa}. Acrux no está afiliada a {tvmaze} ni cuenta con su respaldo.',
           ],
         },
         {
@@ -273,7 +285,7 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
         description: 'The rules for using Acrux.',
       },
       title: 'Terms of use',
-      updated: 'Last updated: November 11, 2026',
+      updated: 'Last updated: November 20, 2026',
       sections: [
         {
           title: 'What Acrux is',
@@ -288,9 +300,10 @@ const pages: Record<Locale, Record<LegalPageKey, LegalPage>> = {
           ],
         },
         {
-          title: 'Catalog and MyAnimeList',
+          title: 'Catalog, MyAnimeList and TVmaze',
           paragraphs: [
             'Catalog data is provided by {mal}. Acrux is not affiliated with or endorsed by {mal}. Anime titles and images belong to their owners.',
+            'Drama data is provided by {tvmaze} under the {ccbysa} license. Acrux is not affiliated with or endorsed by {tvmaze}.',
           ],
         },
         {

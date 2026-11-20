@@ -2,6 +2,7 @@ import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { MAL_URL } from '../components/DataCredit';
+import { CC_BY_SA_URL, TVMAZE_URL } from '../components/TvmazeCredit';
 
 const LANDING = 'https://acruxanime.com';
 
@@ -12,6 +13,7 @@ export const APP_VERSION = __APP_VERSION__;
  * "Acerca de Acrux" (#45, RF-74). There is no Figma frame yet (P-08), so it reuses the
  * secondary screen layout. The attribution is the landing's own text (apps/landing/src/legal.ts),
  * required by ADR-0043 (credit with a link); "MyAnimeList" only names the data source, never the app (RES-24, ADR-0043).
+ * Drama data comes from TVmaze under CC BY-SA 4.0, which asks for the credit and the license (#150, ADR-0046).
  */
 export function AboutScreen({ version = APP_VERSION }: { version?: string }) {
   const { t } = useTranslation();
@@ -28,6 +30,15 @@ export function AboutScreen({ version = APP_VERSION }: { version?: string }) {
         <p>{t('about.attribution')}</p>
         <a href={MAL_URL} target="_blank" rel="noreferrer">
           MyAnimeList
+        </a>
+      </div>
+      <div className="privacy__status about__attribution">
+        <p>{t('about.attributionDramas')}</p>
+        <a href={TVMAZE_URL} target="_blank" rel="noreferrer">
+          TVmaze
+        </a>
+        <a href={CC_BY_SA_URL} target="_blank" rel="noreferrer">
+          CC BY-SA 4.0
         </a>
       </div>
       <ul className="profile__rows">
