@@ -10,7 +10,9 @@ import { createContainer, createModules } from '../../container.js';
 import { createPrismaClient } from '../../db/client.js';
 import type { PrismaClient } from '../../generated/prisma/client.js';
 import type { ErrorReporter } from '../../http/error-reporter.js';
+import { createDramaMarksRepository } from '../marks/repositories/drama-marks.repository.js';
 import { createMarksRepository } from '../marks/repositories/marks.repository.js';
+import { createDramaMarksService } from '../marks/services/drama-marks.service.js';
 import { createMarksService } from '../marks/services/marks.service.js';
 import { createProfileRepository } from '../profile/repositories/profile.repository.js';
 import { createProfileService } from '../profile/services/profile.service.js';
@@ -24,6 +26,7 @@ let prisma: PrismaClient;
 
 const USER = '7c1c2a3e-8b7d-4c1e-9a2f-0000000000c1';
 const OTHER = '7c1c2a3e-8b7d-4c1e-9a2f-0000000000c2';
+const DRAMA = 5001;
 const auth = { Authorization: 'Bearer token' };
 
 beforeAll(async () => {
@@ -36,6 +39,11 @@ beforeAll(async () => {
   const owner = new pg.Client({ connectionString: container.getConnectionUri() });
   await owner.connect();
   await owner.query(`ALTER ROLE acrux_api WITH LOGIN PASSWORD 'api-test'`);
+  // The API cannot write dramas: the load job does.
+  await owner.query(
+    `INSERT INTO drama (id, title, search_text, tvmaze_url)
+     VALUES (${DRAMA}, 'Signal', 'signal', 'https://www.tvmaze.com/shows/${DRAMA}/signal')`,
+  );
   await owner.end();
   const url = new URL(container.getConnectionUri());
   url.username = 'acrux_api';
@@ -53,9 +61,14 @@ function setup(options: { neonFails?: boolean; posthogFails?: boolean; neon?: bo
   const reported: unknown[] = [];
   const profileService = createProfileService(createProfileRepository(prisma));
   const marksService = createMarksService(createMarksRepository(prisma), profileService);
+  const dramaMarksService = createDramaMarksService(
+    createDramaMarksRepository(prisma),
+    profileService,
+  );
   const accountService = createAccountService({
     profiles: profileService,
     marks: marksService,
+    dramaMarks: dramaMarksService,
     directory:
       options.neon === false
         ? undefined
@@ -89,14 +102,15 @@ function setup(options: { neonFails?: boolean; posthogFails?: boolean; neon?: bo
       errorReporter,
     }),
   });
-  return { app, deleted, reported, marksService, profileService };
+  return { app, deleted, reported, marksService, dramaMarksService, profileService };
 }
 
 async function seed(userId: string, anilistUserId: number) {
-  const { profileService, marksService } = setup();
+  const { profileService, marksService, dramaMarksService } = setup();
   await profileService.me({ userId, name: userId === USER ? 'Camila' : 'Nami' });
   await marksService.put({ userId }, 10, { status: 'seen' });
   await marksService.put({ userId }, 20, { status: 'watching' });
+  await dramaMarksService.put({ userId }, DRAMA, { status: 'seen' });
   await prisma.anilistLink.create({
     data: { userId, anilistUserId, accessTokenEncrypted: Buffer.from('secret') },
   });
@@ -109,7 +123,7 @@ beforeEach(async () => {
 });
 
 describe('GET /api/v1/me/export', () => {
-  it('downloads the profile and every mark as JSON, never cached', async () => {
+  it('downloads the profile and every mark, of anime and of dramas, as JSON, never cached', async () => {
     const response = await request(setup().app).get('/api/v1/me/export').set(auth);
     expect(response.status).toBe(200);
     expect(response.headers['cache-control']).toBe('private, no-store');
@@ -134,6 +148,7 @@ describe('GET /api/v1/me/export', () => {
         { animeId: 10, status: 'seen', markedAt: expect.any(String) },
         { animeId: 20, status: 'watching', markedAt: expect.any(String) },
       ],
+      dramaMarks: [{ dramaId: DRAMA, status: 'seen', markedAt: expect.any(String) }],
     });
   });
 
@@ -144,17 +159,19 @@ describe('GET /api/v1/me/export', () => {
 });
 
 describe('DELETE /api/v1/me', () => {
-  it('@CA-RF06-01 deletes the profile, the marks and the AniList link, then Neon Auth and PostHog', async () => {
+  it('@CA-RF06-01 deletes the profile, the marks of anime and of dramas and the AniList link, then Neon Auth and PostHog', async () => {
     const { app, deleted } = setup();
     const response = await request(app).delete('/api/v1/me').set(auth);
     expect(response.status).toBe(204);
     expect(response.headers['cache-control']).toBe('private, no-store');
     expect(await prisma.profile.count({ where: { userId: USER } })).toBe(0);
     expect(await prisma.mark.count({ where: { userId: USER } })).toBe(0);
+    expect(await prisma.dramaMark.count({ where: { userId: USER } })).toBe(0);
     expect(await prisma.anilistLink.count({ where: { userId: USER } })).toBe(0);
     // Nobody else's data changes.
     expect(await prisma.profile.count({ where: { userId: OTHER } })).toBe(1);
     expect(await prisma.mark.count({ where: { userId: OTHER } })).toBe(2);
+    expect(await prisma.dramaMark.count({ where: { userId: OTHER } })).toBe(1);
     expect(await prisma.anilistLink.count({ where: { userId: OTHER } })).toBe(1);
     // Signing in with that user is no longer possible, and PostHog forgets the person.
     expect(deleted).toEqual({ neon: [USER], posthog: ['salted-c1'] });

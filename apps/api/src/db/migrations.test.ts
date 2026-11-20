@@ -20,6 +20,7 @@ const APP_TABLES = [
   'mark_anilist',
   'franchise_override_anilist',
   'drama',
+  'drama_mark',
 ];
 const USER_ID = '6f1c2a3e-8b7d-4c1e-9a2f-0d3b4c5e6f70';
 const backupUserId = '8c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f';
@@ -76,7 +77,7 @@ afterAll(async () => {
 });
 
 describe('initial schema', () => {
-  it('creates the ten application tables', async () => {
+  it('creates the eleven application tables', async () => {
     const { rows } = await owner.query<{ table_name: string }>(
       `SELECT table_name FROM information_schema.tables
        WHERE table_schema = 'public' AND table_name <> '_prisma_migrations'`,
@@ -178,6 +179,58 @@ describe('the acrux_api role', () => {
     await api.query('DELETE FROM profile WHERE user_id = $1', [otherUserId]);
     const remaining = await api.query('SELECT 1 FROM mark WHERE user_id = $1', [otherUserId]);
     expect(remaining.rowCount).toBe(0);
+  });
+
+  // Drama marks live in their own table (#154): the anime marks are not touched.
+  it('writes, updates and deletes drama marks, which go away with the profile', async () => {
+    await owner.query(
+      `INSERT INTO drama (id, title, search_text, tvmaze_url)
+       VALUES (900100, 'Marked', 'marked', 'https://www.tvmaze.com/shows/900100/marked')`,
+    );
+    await api.query(`INSERT INTO profile (user_id, display_name) VALUES ($1, 'Mateo')`, [
+      otherUserId,
+    ]);
+    await api.query(
+      `INSERT INTO drama_mark (user_id, drama_id, status) VALUES ($1, 900100, 'watching')`,
+      [otherUserId],
+    );
+    await api.query(`UPDATE drama_mark SET status = 'seen' WHERE user_id = $1`, [otherUserId]);
+    const { rows } = await api.query('SELECT drama_id, status FROM drama_mark WHERE user_id = $1', [
+      otherUserId,
+    ]);
+    expect(rows).toEqual([{ drama_id: 900100, status: 'seen' }]);
+    expect(
+      await sqlState(
+        api.query(
+          `INSERT INTO drama_mark (user_id, drama_id, status) VALUES ($1, 900100, 'seen')`,
+          [otherUserId],
+        ),
+      ),
+    ).toBe('23505');
+
+    await api.query('DELETE FROM drama_mark WHERE user_id = $1', [otherUserId]);
+    await api.query(
+      `INSERT INTO drama_mark (user_id, drama_id, status) VALUES ($1, 900100, 'seen')`,
+      [otherUserId],
+    );
+    await api.query('DELETE FROM profile WHERE user_id = $1', [otherUserId]);
+    const remaining = await api.query('SELECT 1 FROM drama_mark WHERE user_id = $1', [otherUserId]);
+    expect(remaining.rowCount).toBe(0);
+  });
+
+  it('cannot mark a drama that is not in the table', async () => {
+    await api.query(`INSERT INTO profile (user_id, display_name) VALUES ($1, 'Mateo')`, [
+      otherUserId,
+    ]);
+    expect(
+      await sqlState(
+        api.query(
+          `INSERT INTO drama_mark (user_id, drama_id, status) VALUES ($1, 900199, 'seen')`,
+          [otherUserId],
+        ),
+      ),
+    ).toBe('23503');
+    await api.query('DELETE FROM profile WHERE user_id = $1', [otherUserId]);
   });
 
   it('cannot change the schema', async () => {
