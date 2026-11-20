@@ -19,6 +19,14 @@ Los datos de TVmaze son CC BY-SA 4.0. Por eso están en una tabla aparte del cat
   3. Si TVmaze responde 403 o 429, se detiene y el workflow falla. Otro error se reintenta hasta tres veces seguidas.
 - **Lo que la carga no hace:** no borra series. Una serie que TVmaze quita o cambia de tipo queda en la tabla.
 
+## En la web
+
+- **Ruta:** `/dramas`, con un selector «Anime / Dramas» arriba de Explorar (`apps/web/src/components/ExploreSwitch.tsx`). «Explorar» de la barra queda activo en las dos rutas.
+- **Código:** `apps/web/src/dramas/` (pantalla, tarjetas y filtros de país y género) y `apps/web/src/drama-source/` (cliente y consultas contra `/api/v1/dramas`). Es una pantalla aparte: no pide nada a `/api/v1/catalog/*` y el catálogo de anime no pide dramas.
+- **Tarjeta:** título internacional, portada, país, año, temporadas y episodios. Lo que la API devuelve en `null` no se muestra.
+- **Crédito:** la pantalla de dramas lleva «Datos de TVmaze» con enlace a https://www.tvmaze.com y ningún crédito de MyAnimeList; las de anime siguen con solo el de MyAnimeList.
+- **Sin marcas:** los dramas no se marcan ni cuentan en el contador (issue #154).
+
 ## Variables
 
 | Variable | Dónde | Para qué |
