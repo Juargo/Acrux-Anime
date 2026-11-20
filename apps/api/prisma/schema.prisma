@@ -192,6 +192,47 @@ model Anime {
   @@map("anime")
 }
 
+// The live-action dramas copied from TVmaze (ADR-0046); the id is TVmaze's. One row per
+// show: its seasons and episodes are counts, not rows. TVmaze data is CC BY-SA 4.0, so it
+// never shares a table with the MyAnimeList catalog or with anything about a user.
+model Drama {
+  id              Int       @id
+  // The international title, as TVmaze names the show.
+  title           String
+  // The other names TVmaze knows, the original one included.
+  aliases         String[]  @default([])
+  // The title and every alias in lower case, for the search by name.
+  searchText      String    @map("search_text")
+  // Plain text; TVmaze sends HTML.
+  summary         String?
+  coverUrl        String?   @map("cover_url")
+  // The page of the show at TVmaze: where the row comes from and what its credit links to.
+  tvmazeUrl       String    @map("tvmaze_url")
+  // ISO code of the country of the network or platform; null for a global platform.
+  country         String?
+  language        String?
+  startDate       DateTime? @map("start_date") @db.Date
+  year            Int?
+  seasons         Int?
+  episodes        Int?
+  durationMinutes Int?      @map("duration_minutes")
+  genres          String[]  @default([])
+  status          String?
+  // TVmaze's popularity, from 0 to 100: the order to show dramas in.
+  weight          Int       @default(0)
+  imdbId          String?   @map("imdb_id")
+  thetvdbId       Int?      @map("thetvdb_id")
+  // When TVmaze last changed the show; a detail older than this is read again.
+  sourceUpdatedAt DateTime? @map("source_updated_at") @db.Timestamptz(6)
+  // When the detail (aliases, seasons and episodes) was last read; null until then.
+  detailedAt      DateTime? @map("detailed_at") @db.Timestamptz(6)
+  fetchedAt       DateTime  @default(now()) @map("fetched_at") @db.Timestamptz(6)
+
+  @@index([weight(sort: Desc), id])
+  @@index([year])
+  @@map("drama")
+}
+
 // Marks that could not be converted to MyAnimeList ids (ADR-0043), kept aside with the
 // reason: no_mal_id or duplicate. The API never reads them.
 model MarkAnilist {
