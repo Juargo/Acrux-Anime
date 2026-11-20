@@ -36,11 +36,15 @@ Supuestos, no pedidos por el stakeholder:
 
 ## Tasks
 
-- [ ] **T1** (S5, S6) Cliente y consultas de dramas en la web, contra la API propia. Ruta: delegada (respaldo de contexto: la sesión ya pasó por una compactación). Commit: pendiente.
-- [ ] **T2** (S3, S4, S5, S6, S7, S8) Pantalla de dramas: tarjetas, filtros de origen y género, búsqueda con el mensaje de títulos internacionales, crédito a TVmaze y textos en español e inglés. Ruta: delegada, mismo motivo. Commit: pendiente.
-- [ ] **T3** (S2, S6) Selector «Anime / Dramas» en Explorar, ruta `/dramas` y prueba de punta a punta. Ruta: delegada, mismo motivo. Commit: pendiente.
+- [x] **T1** (S5, S6) Cliente y consultas de dramas en la web, contra la API propia. Ruta: delegada (respaldo de contexto: la sesión ya pasó por una compactación). Commit: rama `feat/seccion-dramas-1-cliente`.
+- [x] **T2** (S3, S4, S5, S6, S7, S8) Pantalla de dramas: tarjetas, filtros de origen y género, búsqueda con el mensaje de títulos internacionales, crédito a TVmaze y textos en español e inglés. Ruta: delegada, mismo motivo. Commit: rama `feat/seccion-dramas-2-pantalla`.
+- [x] **T3** (S2, S6) Selector «Anime / Dramas» en Explorar, ruta `/dramas` y prueba de punta a punta. Ruta: delegada, mismo motivo. Commit: rama `feat/seccion-dramas-3-selector`.
 
 ## Log
 
 - **L1.** Pedido original del stakeholder, 2026-11-20: «continurmos», con el #151 propuesto como siguiente. Las tres definiciones previas del issue se resolvieron con un «si» cada una (S2, S3, S4).
 - **L2.** Previsión: unas 900 líneas escritas con pruebas. Pasa de 400, así que se entrega en cadena sobre esta rama, con un corte por tarea.
+- **L3.** Escrito por un trabajador delegado y revisado por el orquestador. Rojo y verde observados por regla; `pnpm --filter @acrux/web test`: 472 de 472; `typecheck` y `biome check` sin errores. El recorrido de Playwright (`apps/e2e/tests/dramas.spec.ts`) está escrito y carga, pero no se corrió en local: necesita una base de datos descartable. Queda para el CI del PR.
+- **L4.** Decisiones de implementación: la grilla de dramas carga de a 50 con un botón «Ver más», no con el desplazamiento infinito del anime. Los textos de sin conexión y de error son los del catálogo de anime. `getJson` sale de `catalog-source/client.ts` sin cambiar su comportamiento, para que los dos catálogos fallen igual.
+- **L5.** Tamaño real: unas 1.450 líneas en tres commits (290, 693 y 467), más de la mitad pruebas.
+- **L6.** Entrega en cadena sobre `feat/seccion-dramas`, que es la rama de integración: `-1-cliente` apunta a ella, `-2-pantalla` a `-1-cliente` y `-3-selector` a `-2-pantalla`. Se fusionan de arriba hacia abajo.
