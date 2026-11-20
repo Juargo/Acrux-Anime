@@ -18,6 +18,7 @@
     "db:generate": "prisma generate",
     "catalog:load": "prisma generate && tsx scripts/load-catalog.ts",
     "catalog:franchises": "prisma generate && tsx scripts/recompute-franchises.ts",
+    "dramas:load": "prisma generate && tsx scripts/load-dramas.ts",
     "openapi:emit": "prisma generate && tsx scripts/emit-openapi.ts",
     "openapi:check": "prisma generate && tsx scripts/emit-openapi.ts --check",
     "depcruise": "depcruise src --config .dependency-cruiser.cjs"

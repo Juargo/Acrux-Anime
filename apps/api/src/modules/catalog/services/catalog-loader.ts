@@ -1,5 +1,6 @@
-import { type CatalogSource, RANKING_PAGE_SIZE, SourceError } from '../adapters/myanimelist.js';
+import { type CatalogSource, RANKING_PAGE_SIZE } from '../adapters/myanimelist.js';
 import type { CatalogStore } from '../repositories/catalog.repository.js';
+import { type LoadResult, loadFromSource } from './source-load.js';
 
 // The scheduled load of the catalog (ADR-0043, point 3). It first refreshes the list
 // fields of every anime, walking the popularity ranking, and then reads details, which is
@@ -19,79 +20,22 @@ export interface LoadOptions {
   maxPages?: number;
 }
 
-export interface LoadResult {
-  listed: number;
-  detailed: number;
-  // Anime the source no longer has.
-  gone: number;
-  // Why the load ended before its work was done; null when it finished.
-  stopped: string | null;
-}
+export type { LoadResult };
 
 const MAX_PAGES = 200;
-// A request that fails for another reason is tried again this many times in a row.
-const MAX_FAILURES = 3;
-const FAILURE_PAUSE_MS = 10_000;
 
-export async function loadCatalog({
+export function loadCatalog({
   source,
   store,
-  maxDetails,
-  delayMs,
-  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
-  log = () => {},
   maxPages = MAX_PAGES,
+  ...options
 }: LoadOptions): Promise<LoadResult> {
-  const result: LoadResult = { listed: 0, detailed: 0, gone: 0, stopped: null };
-
-  // Runs one request or one write, retrying a passing failure. A refusal is never retried.
-  async function ask<T>(what: string, request: () => Promise<T>): Promise<T | undefined> {
-    for (let failures = 0; ; ) {
-      try {
-        return await request();
-      } catch (error) {
-        const blocked = error instanceof SourceError && error.blocked;
-        failures += 1;
-        if (blocked || failures >= MAX_FAILURES) {
-          result.stopped = `${what}: ${error instanceof Error ? error.message : String(error)}`;
-          return undefined;
-        }
-        log(`${what} failed (${failures}), trying again`);
-        await sleep(FAILURE_PAUSE_MS);
-      }
-    }
-  }
-
-  for (let page = 0; page < maxPages; page += 1) {
-    const offset = page * RANKING_PAGE_SIZE;
-    const answer = await ask(`ranking at ${offset}`, () => source.ranking(offset));
-    if (!answer) return result;
-    const saved = await ask(`saving the ranking at ${offset}`, async () => {
-      await store.saveListed(answer.items);
-      return true;
-    });
-    if (!saved) return result;
-    result.listed += answer.items.length;
-    log(`listed ${result.listed}`);
-    if (!answer.hasNext) break;
-    await sleep(delayMs);
-  }
-
-  const ids = await ask('choosing the details', () => store.nextToDetail(maxDetails));
-  if (!ids) return result;
-  for (const [index, id] of ids.entries()) {
-    await sleep(delayMs);
-    const anime = await ask(`detail of ${id}`, () => source.detail(id));
-    if (anime === undefined) return result;
-    const saved = await ask(`saving the detail of ${id}`, async () => {
-      if (anime === null) await store.markChecked(id);
-      else await store.saveDetailed(anime);
-      return true;
-    });
-    if (!saved) return result;
-    if (anime === null) result.gone += 1;
-    else result.detailed += 1;
-    if ((index + 1) % 100 === 0) log(`detailed ${index + 1} of ${ids.length}`);
-  }
-  return result;
+  return loadFromSource({
+    list: (page) => source.ranking(page * RANKING_PAGE_SIZE),
+    pageName: (page) => `ranking at ${page * RANKING_PAGE_SIZE}`,
+    detail: (id) => source.detail(id),
+    store,
+    maxPages,
+    ...options,
+  });
 }
