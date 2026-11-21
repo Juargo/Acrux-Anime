@@ -20,8 +20,7 @@ export interface CardCover {
 export interface CardBlock {
   value: number;
   label: string;
-  // Null when nothing is being watched: the seen total is then the large figure.
-  seen: string | null;
+  seen: string;
   // Null when nothing is chosen.
   cover: CardCover | null;
 }
@@ -85,20 +84,16 @@ const covers = (choices: readonly CardChoice[], chosen: readonly string[], max: 
     .slice(0, max)
     .map(({ id, title, coverUrl }) => ({ id, title, coverUrl }));
 
-// What is being watched leads its half of the card; with nothing in Viendo, the seen total does.
+// What is being watched leads its half of the card, a zero included, so every card reads alike.
 function block(
   watching: { value: number; one: string; many: string },
-  seen: { value: number; label: string; tag: string },
+  seen: string,
   cover: CardCover | undefined,
 ): CardBlock {
   return {
-    ...(watching.value > 0
-      ? {
-          value: watching.value,
-          label: watching.value === 1 ? watching.one : watching.many,
-          seen: seen.tag,
-        }
-      : { value: seen.value, label: seen.label, seen: null }),
+    value: watching.value,
+    label: watching.value === 1 ? watching.one : watching.many,
+    seen,
     cover: cover ?? null,
   };
 }
@@ -132,13 +127,7 @@ export function shareCardContent(input: {
         one: t('card.animeWatchingOne'),
         many: t('card.animeWatchingMany'),
       },
-      {
-        value: animeSeen,
-        label: t(complete ? 'card.complete' : 'card.seenEntries'),
-        tag: t(complete ? 'card.tagComplete' : 'card.tagSeenEntries', {
-          total: String(animeSeen),
-        }),
-      },
+      t(complete ? 'card.tagComplete' : 'card.tagSeenEntries', { total: String(animeSeen) }),
       covers(input.anime, input.chosenAnime, MAX_ANIME)[0],
     ),
   ];
@@ -150,11 +139,7 @@ export function shareCardContent(input: {
           one: t('card.dramasWatchingOne'),
           many: t('card.dramasWatchingMany'),
         },
-        {
-          value: input.dramasSeen,
-          label: t('card.dramasSeen'),
-          tag: t('card.tagDramasSeen', { total: String(input.dramasSeen) }),
-        },
+        t('card.tagDramasSeen', { total: String(input.dramasSeen) }),
         covers(input.dramas, input.chosenDramas, MAX_DRAMAS)[0],
       ),
     );

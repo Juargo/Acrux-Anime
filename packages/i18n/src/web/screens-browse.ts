@@ -219,9 +219,6 @@ export const browseEs = {
     },
   },
   card: {
-    complete: 'ANIMES COMPLETOS',
-    seenEntries: 'ENTRADAS VISTAS',
-    dramasSeen: 'DRAMAS VISTOS',
     animeWatchingOne: 'ANIME VIENDO',
     animeWatchingMany: 'ANIMES VIENDO',
     dramasWatchingOne: 'DRAMA VIENDO',
@@ -478,9 +475,6 @@ export const browseEn = {
     },
   },
   card: {
-    complete: 'ANIME COMPLETED',
-    seenEntries: 'ENTRIES WATCHED',
-    dramasSeen: 'DRAMAS WATCHED',
     animeWatchingOne: 'ANIME WATCHING',
     animeWatchingMany: 'ANIME WATCHING',
     dramasWatchingOne: 'DRAMA WATCHING',

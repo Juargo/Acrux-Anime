@@ -53,15 +53,12 @@ const content = (overrides: Partial<Parameters<typeof shareCardContent>[0]> = {}
   });
 
 describe('shareCardContent', () => {
-  it('leads with the complete franchises when nothing is in Viendo', () => {
+  it('leads with a zero when nothing is in Viendo, the total still tagged under it', () => {
     expect(content().blocks).toEqual([
-      { value: 48, label: 'ANIMES COMPLETOS', seen: null, cover: null },
+      { value: 0, label: 'ANIMES VIENDO', seen: '48 COMPLETOS', cover: null },
     ]);
-  });
-
-  it('leads with the seen entries when counting by entries', () => {
     expect(content({ mode: 'entry' }).blocks).toEqual([
-      { value: 130, label: 'ENTRADAS VISTAS', seen: null, cover: null },
+      { value: 0, label: 'ANIMES VIENDO', seen: '130 VISTAS', cover: null },
     ]);
   });
 
@@ -76,9 +73,9 @@ describe('shareCardContent', () => {
 
   it('adds the dramas after the anime once a drama is marked', () => {
     expect(content({ dramasSeen: 7 }).blocks[1]).toEqual({
-      value: 7,
-      label: 'DRAMAS VISTOS',
-      seen: null,
+      value: 0,
+      label: 'DRAMAS VIENDO',
+      seen: '7 VISTOS',
       cover: null,
     });
     expect(content({ dramasSeen: 0, dramasWatching: 1 }).blocks[1]).toEqual({
