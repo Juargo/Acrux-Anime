@@ -192,11 +192,31 @@ a {
   line-height: 28.8px;
 }
 
+.share-card__summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.share-card__totals {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  width: 100%;
+}
+
 .share-card__total {
   display: flex;
   flex-direction: column;
   gap: 2.4px;
   align-items: center;
+  min-width: 0;
+  text-align: center;
+}
+
+/* Two figures share the row (anime and dramas), each on its half. */
+.share-card__totals--pair .share-card__total {
+  flex: 1;
 }
 
 .share-card__count {
@@ -205,6 +225,18 @@ a {
   font-size: 96px;
   font-weight: 400;
   line-height: 100px;
+  font-variant-numeric: tabular-nums;
+}
+
+.share-card__totals--pair .share-card__count {
+  font-size: 56px;
+  line-height: 60px;
+}
+
+/* A figure of four digits or more still fits its half. */
+.share-card__totals--long .share-card__count {
+  font-size: 44px;
+  line-height: 60px;
 }
 
 .share-card__label {
@@ -215,7 +247,20 @@ a {
   letter-spacing: 0.288px;
 }
 
-.share-card__watching {
+/* The chosen covers: "ANIME" and "DRAMAS" side by side, two covers at most under each. */
+.share-card__picks {
+  --cover-width: 84px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+/* Four covers fill the row at three quarters of their size. */
+.share-card__picks--tight {
+  --cover-width: 63px;
+}
+
+.share-card__group {
   display: flex;
   flex-direction: column;
   gap: 9.6px;
@@ -223,12 +268,12 @@ a {
 
 .share-card__covers {
   display: flex;
-  justify-content: space-between;
+  gap: 6px;
 }
 
 .share-card__cover {
-  width: 84px;
-  height: 124.8px;
+  width: var(--cover-width);
+  height: calc(var(--cover-width) * 1.4857);
   border-radius: 9.6px;
   border: 2.4px solid var(--color-border-default);
   background: var(--color-bg-raised);
@@ -1447,7 +1492,6 @@ label.sheet__label {
 }
 
 /* Figma M05 · ¿Qué estás viendo ahora? and M07 · Vista previa de la tarjeta (#36). */
-.card-step,
 .card-preview {
   display: flex;
   flex-direction: column;
@@ -1457,7 +1501,6 @@ label.sheet__label {
   padding: 16px 0;
 }
 
-.card-step__title,
 .card-preview__title {
   margin: 0;
   font-size: 24px;
@@ -1548,6 +1591,52 @@ label.sheet__label {
   display: flex;
   justify-content: center;
   margin: 0;
+}
+
+/* Under the card: what it shows from "Mi lista", up to two anime and two dramas (RF-30). */
+.card-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.card-picker__title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 26px;
+}
+
+.card-picker__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 8px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.card-picker__legend {
+  padding: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.card-picker__empty {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.card-picker__empty a {
+  color: var(--color-text-link);
+  font-weight: 600;
+}
+
+/* A full group: the rows that cannot be added step back. */
+.card-choice:has(.card-choice__box:disabled) {
+  opacity: 0.55;
+  cursor: default;
 }
 
 /* Figma M14/M15 · Perfil público (#37). */

@@ -2,23 +2,12 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { TvmazeCredit } from '../components/TvmazeCredit';
-import type { DramaMarkDto } from '../drama-marks-api';
-import type { Drama, DramaClient } from '../drama-source/client';
+import type { DramaClient } from '../drama-source/client';
 import { defaultDramaClient, useDramasByIds } from '../drama-source/hooks';
 import { MARK_BUTTONS } from '../dramas/DramaGrid';
 import { useDramaMarkList, useDramaMarks } from '../dramas/use-drama-marks';
+import { dramaRows } from './drama-rows';
 import { markedOn } from './items';
-
-interface Row {
-  drama: Drama;
-  mark: DramaMarkDto;
-}
-
-// Watching first, then seen; inside each, the newest mark first and the same moment by title.
-const byStateThenNewest = (a: Row, b: Row) =>
-  Number(b.mark.status === 'watching') - Number(a.mark.status === 'watching') ||
-  b.mark.markedAt.localeCompare(a.mark.markedAt) ||
-  a.drama.title.localeCompare(b.drama.title);
 
 /**
  * Container: the "Dramas" tab of "Mi lista" (#166). Every marked drama in one list, each with
@@ -40,15 +29,7 @@ export function DramaList({
   const marks = marking.marks;
   const ids = useMemo(() => (marks ?? []).map((mark) => mark.dramaId), [marks]);
   const dramas = useDramasByIds(ids, client);
-  const rows = useMemo(() => {
-    const known = new Map((dramas.data ?? []).map((drama) => [drama.id, drama]));
-    return (marks ?? [])
-      .flatMap((mark): Row[] => {
-        const drama = known.get(mark.dramaId);
-        return drama ? [{ drama, mark }] : [];
-      })
-      .sort(byStateThenNewest);
-  }, [marks, dramas.data]);
+  const rows = useMemo(() => dramaRows(marks ?? [], dramas.data ?? []), [marks, dramas.data]);
 
   if (!marks ? list.isError : dramas.isError && !dramas.data) {
     return (

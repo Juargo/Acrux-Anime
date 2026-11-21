@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { AdSlot } from '../ads/AdSlot';
@@ -6,15 +6,28 @@ import type { CatalogClient } from '../catalog-source/client';
 import { defaultClient } from '../catalog-source/hooks';
 import { DataCredit } from '../components/DataCredit';
 import { ShareCard } from '../components/ShareCard';
+import { TvmazeCredit } from '../components/TvmazeCredit';
 import { useCounterMode } from '../counter/use-counter-mode';
 import { useMarkedFranchises } from '../counter/use-marked-franchises';
 import type { CounterMode } from '../counter/use-total-counter';
-import { type ListRow, myList } from '../my-list/items';
+import type { DramaClient } from '../drama-source/client';
+import { defaultDramaClient, useDramasByIds } from '../drama-source/hooks';
+import { useDramaMarkList } from '../dramas/use-drama-marks';
+import { dramaRows } from '../my-list/drama-rows';
+import { myList } from '../my-list/items';
 import type { ListMadePublicEvent } from '../profile/PrivacyScreen';
 import { ProfileEditor } from '../profile/ProfileEditor';
 import { useOwnProfile } from '../profile/use-own-profile';
 import type { Profile } from '../profile-api';
-import { defaultChoice, MAX_COVERS, shareCardContent } from './content';
+import {
+  animeChoices,
+  type CardChoice,
+  defaultChoice,
+  dramaChoices,
+  MAX_ANIME,
+  MAX_DRAMAS,
+  shareCardContent,
+} from './content';
 import { cardImage } from './image';
 import { shareOrDownload } from './share';
 
@@ -22,78 +35,141 @@ import { shareOrDownload } from './share';
 export type CardGeneratedEvent = { mode: CounterMode; covers: number };
 export type CardSharedEvent = { method: 'share' | 'download' };
 
-/** Presentational: Figma M05, "¿Qué estás viendo ahora?" over the franchises in Viendo. */
-function WatchingStep(props: {
-  watching: ListRow[];
+/** Presentational: one group of the picker, "Anime · 1 de 2", with a checkbox per row. */
+function ChoiceGroup(props: {
+  legend: string;
+  choices: CardChoice[];
   chosen: string[];
+  max: number;
   onToggle: (id: string) => void;
-  onSkip: () => void;
-  onContinue: () => void;
+  // Shown instead of the rows: nothing marked, nothing matching the search, or not loaded.
+  empty: ReactNode;
 }) {
-  const { watching, chosen, onToggle } = props;
+  const { choices, chosen } = props;
+  const full = chosen.length >= props.max;
+  return (
+    <fieldset className="card-picker__group">
+      <legend className="card-picker__legend">{props.legend}</legend>
+      {choices.length === 0 ? (
+        <p className="card-picker__empty">{props.empty}</p>
+      ) : (
+        <ul className="card-step__rows">
+          {choices.map((choice) => {
+            const checked = chosen.includes(choice.id);
+            return (
+              <li key={choice.id}>
+                <label className="card-choice">
+                  {choice.coverUrl ? (
+                    <img
+                      className="list-row__cover"
+                      src={choice.coverUrl}
+                      alt=""
+                      width={40}
+                      height={56}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="list-row__cover" />
+                  )}
+                  <span className="list-row__text">
+                    <span className="list-row__title">{choice.title}</span>
+                    <span className="list-row__detail">{choice.detail}</span>
+                  </span>
+                  <input
+                    className="card-choice__box"
+                    type="checkbox"
+                    aria-label={choice.title}
+                    checked={checked}
+                    disabled={!checked && full}
+                    onChange={() => props.onToggle(choice.id)}
+                  />
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </fieldset>
+  );
+}
+
+/**
+ * Presentational: under the card, what it shows from "Mi lista": up to two anime and two dramas,
+ * what the user is watching or wants to recommend (RF-30).
+ */
+function CardPicker(props: {
+  anime: CardChoice[];
+  dramas: CardChoice[];
+  chosenAnime: string[];
+  chosenDramas: string[];
+  dramasFailed: boolean;
+  onToggleAnime: (id: string) => void;
+  onToggleDrama: (id: string) => void;
+}) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const titleId = useId();
   const query = search.trim().toLowerCase();
-  const rows = query ? watching.filter((row) => row.title.toLowerCase().includes(query)) : watching;
-  const full = chosen.length >= MAX_COVERS;
+  const matching = (choices: CardChoice[]) =>
+    query ? choices.filter((choice) => choice.title.toLowerCase().includes(query)) : choices;
+  const noMatches = t('card.noMatches');
 
   return (
-    <section className="card-step" aria-labelledby={titleId}>
-      <h1 className="card-step__title" id={titleId}>
-        {t('card.askTitle')}
-      </h1>
-      <p className="card-step__text">{t('card.askText')}</p>
-      <input
-        className="card-step__search"
-        type="search"
-        aria-label={t('card.search')}
-        placeholder={t('card.search')}
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-      />
-      <ul className="card-step__rows">
-        {rows.map((row) => {
-          const checked = chosen.includes(row.id);
-          return (
-            <li key={row.id}>
-              <label className="card-choice">
-                {row.coverUrl ? (
-                  <img
-                    className="list-row__cover"
-                    src={row.coverUrl}
-                    alt=""
-                    width={40}
-                    height={56}
-                  />
-                ) : (
-                  <span className="list-row__cover" />
-                )}
-                <span className="list-row__text">
-                  <span className="list-row__title">{row.title}</span>
-                  <span className="list-row__detail">{row.detail}</span>
-                </span>
-                <input
-                  className="card-choice__box"
-                  type="checkbox"
-                  aria-label={row.title}
-                  checked={checked}
-                  disabled={!checked && full}
-                  onChange={() => onToggle(row.id)}
-                />
-              </label>
-            </li>
-          );
+    <section className="card-picker" aria-labelledby={titleId}>
+      <h2 className="card-picker__title" id={titleId}>
+        {t('card.pickTitle')}
+      </h2>
+      <p className="card-step__text">{t('card.pickText')}</p>
+      {props.anime.length + props.dramas.length > 0 && (
+        <input
+          className="card-step__search"
+          type="search"
+          aria-label={t('card.search')}
+          placeholder={t('card.search')}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+      )}
+      <ChoiceGroup
+        legend={t('card.pickAnime', {
+          chosen: String(props.chosenAnime.length),
+          max: String(MAX_ANIME),
         })}
-      </ul>
-      <div className="card-step__actions">
-        <button className="button button--secondary" type="button" onClick={props.onSkip}>
-          {t('card.skip')}
-        </button>
-        <button className="button button--primary" type="button" onClick={props.onContinue}>
-          {t('card.continue', { count: chosen.length })}
-        </button>
-      </div>
+        choices={matching(props.anime)}
+        chosen={props.chosenAnime}
+        max={MAX_ANIME}
+        onToggle={props.onToggleAnime}
+        empty={
+          props.anime.length > 0 ? (
+            noMatches
+          ) : (
+            <>
+              {t('card.noAnime')} <Link to="/">{t('card.exploreAnime')}</Link>
+            </>
+          )
+        }
+      />
+      <ChoiceGroup
+        legend={t('card.pickDramas', {
+          chosen: String(props.chosenDramas.length),
+          max: String(MAX_DRAMAS),
+        })}
+        choices={matching(props.dramas)}
+        chosen={props.chosenDramas}
+        max={MAX_DRAMAS}
+        onToggle={props.onToggleDrama}
+        empty={
+          props.dramasFailed ? (
+            t('card.dramasFailed')
+          ) : props.dramas.length > 0 ? (
+            noMatches
+          ) : (
+            <>
+              {t('card.noDramas')} <Link to="/dramas">{t('card.exploreDramas')}</Link>
+            </>
+          )
+        }
+      />
     </section>
   );
 }
@@ -141,13 +217,14 @@ function FirstShareOffer(props: {
 }
 
 /**
- * Container: "Tarjeta" (RF-30, RF-31, Figma M05 and M07). Asks what the user is watching, then
- * renders the 9:16 card, makes its PNG at once (so the share sheet opens within the tap) and
- * shares or downloads it.
+ * Container: "Tarjeta" (RF-30, RF-31, Figma M07). Opens on the 9:16 card, makes its PNG at once
+ * (so the share sheet opens within the tap) and shares or downloads it; under the card, the
+ * user chooses the anime and dramas of their list that it shows.
  */
 export function CardScreen({
   getToken,
   client = defaultClient,
+  dramaClient = defaultDramaClient,
   fetchFn = fetch,
   counterMode,
   profile: initial,
@@ -157,6 +234,7 @@ export function CardScreen({
 }: {
   getToken: () => Promise<string | null>;
   client?: CatalogClient | undefined;
+  dramaClient?: DramaClient | undefined;
   fetchFn?: typeof fetch | undefined;
   counterMode: CounterMode;
   profile: Profile;
@@ -170,30 +248,66 @@ export function CardScreen({
   const [offer, setOffer] = useState<'open' | 'saving' | 'done' | 'failed' | null>(null);
   const [mode] = useCounterMode(counterMode);
   const marked = useMarkedFranchises({ client, getToken, fetchFn, crawl: true });
-  const { marks, franchises, known, ready } = marked;
+  const { marks, franchises, known } = marked;
   const list = useMemo(
     () =>
-      marks && ready ? myList(franchises, marks, known, mode, new Date().toISOString(), t) : null,
-    [marks, franchises, known, ready, mode, t],
+      marks && marked.ready
+        ? myList(franchises, marks, known, mode, new Date().toISOString(), t)
+        : null,
+    [marks, franchises, known, marked.ready, mode, t],
   );
-  // null: the default choice ("Saltar" or not asked yet).
-  const [chosen, setChosen] = useState<string[] | null>(null);
-  const [asking, setAsking] = useState(true);
+  // The dramas are an extra of the card: when they cannot be loaded, it goes without them.
+  const dramaMarks = useDramaMarkList({ getToken, fetchFn });
+  const dramaIds = useMemo(
+    () => (dramaMarks.data ?? []).map((mark) => mark.dramaId),
+    [dramaMarks.data],
+  );
+  const dramaCatalog = useDramasByIds(dramaIds, dramaClient);
+  const dramasSettled =
+    dramaMarks.isError ||
+    (dramaMarks.data !== undefined &&
+      (dramaIds.length === 0 || dramaCatalog.data !== undefined || dramaCatalog.isError));
+  const dramasFailed = dramaMarks.isError || (dramaCatalog.isError && !dramaCatalog.data);
+  const anime = useMemo(() => (list ? animeChoices(list) : []), [list]);
+  const dramas = useMemo(
+    () => dramaChoices(dramaRows(dramaMarks.data ?? [], dramaCatalog.data ?? []), t),
+    [dramaMarks.data, dramaCatalog.data, t],
+  );
+  // null: what the user is watching, until they choose.
+  const [pickedAnime, setPickedAnime] = useState<string[] | null>(null);
+  const [pickedDramas, setPickedDramas] = useState<string[] | null>(null);
+  // Only what is still in the list counts against the limit.
+  const chosenAnime = (pickedAnime ?? defaultChoice(anime, MAX_ANIME)).filter((id) =>
+    anime.some((choice) => choice.id === id),
+  );
+  const chosenDramas = (pickedDramas ?? defaultChoice(dramas, MAX_DRAMAS)).filter((id) =>
+    dramas.some((choice) => choice.id === id),
+  );
+  const toggled = (chosen: string[], id: string) =>
+    chosen.includes(id) ? chosen.filter((other) => other !== id) : [...chosen, id];
   // Before the first card, the name and avatar it will show (#39, Figma M06, RN-M1).
   const [identityDone, setIdentityDone] = useState(false);
   const navigate = useNavigate();
-  const watching = list?.watching ?? [];
-  const step = !list
-    ? 'ask'
-    : asking && watching.length > 0
-      ? 'ask'
-      : !profile.cardShared && !identityDone
-        ? 'identity'
-        : 'preview';
+  const ready = list !== null && dramasSettled;
+  const step = !profile.cardShared && !identityDone ? 'identity' : 'preview';
 
-  const content = list
-    ? shareCardContent({ list, mode, profile, chosen: step === 'preview' ? chosen : null, t })
-    : null;
+  const content =
+    list && ready
+      ? shareCardContent({
+          list,
+          mode,
+          profile,
+          anime,
+          dramas,
+          // The seen dramas join the summary once one is marked.
+          dramasSeen: dramaMarks.data?.length
+            ? dramaMarks.data.filter((mark) => mark.status === 'seen').length
+            : null,
+          chosenAnime,
+          chosenDramas,
+          t,
+        })
+      : null;
 
   const cardRef = useRef<HTMLDivElement>(null);
   const [image, setImage] = useState<Blob | null>(null);
@@ -204,7 +318,7 @@ export function CardScreen({
   generatedRef.current = onCardGenerated;
   // A new image whenever what the card shows changes.
   const contentKey = content ? JSON.stringify(content) : null;
-  const coverCount = content?.covers.length ?? 0;
+  const coverCount = content?.picks.reduce((count, group) => count + group.covers.length, 0) ?? 0;
 
   useEffect(() => {
     if (step !== 'preview' || !contentKey || !cardRef.current) return;
@@ -278,28 +392,8 @@ export function CardScreen({
         profile={profile}
         getToken={getToken}
         fetchFn={fetchFn}
-        onBack={() => (watching.length > 0 ? setAsking(true) : navigate('/'))}
+        onBack={() => navigate('/')}
         onDone={() => setIdentityDone(true)}
-      />
-    );
-  }
-  if (step === 'ask') {
-    const current = chosen ?? defaultChoice(watching);
-    return (
-      <WatchingStep
-        watching={watching}
-        chosen={current}
-        onToggle={(id) =>
-          setChosen(current.includes(id) ? current.filter((x) => x !== id) : [...current, id])
-        }
-        onSkip={() => {
-          setChosen(null);
-          setAsking(false);
-        }}
-        onContinue={() => {
-          setChosen(current);
-          setAsking(false);
-        }}
       />
     );
   }
@@ -307,11 +401,6 @@ export function CardScreen({
   return (
     <section className="card-preview" aria-labelledby="card-preview-title">
       <div className="card-preview__bar">
-        {watching.length > 0 && (
-          <button className="card-preview__back" type="button" onClick={() => setAsking(true)}>
-            {t('card.back')}
-          </button>
-        )}
         <h1 className="card-preview__title" id="card-preview-title">
           {t('card.title')}
         </h1>
@@ -323,9 +412,8 @@ export function CardScreen({
           initial={content.initial}
           avatarUrl={content.avatarUrl}
           avatarPreset={content.avatarPreset}
-          total={content.total}
-          label={content.label}
-          covers={content.covers}
+          totals={content.totals}
+          picks={content.picks}
           badges={content.badges}
           url={`${window.location.host}/@${profile.handle}`}
           qr={`${window.location.origin}/@${profile.handle}`}
@@ -367,16 +455,26 @@ export function CardScreen({
           {t('card.download')}
         </button>
       </div>
-      {/* RF-58, ADR-0038: outside the card, so never in the shared image (RF-33). */}
-      <AdSlot />
       {offer && (
         <FirstShareOffer state={offer} onAccept={makePublic} onClose={() => setOffer(null)} />
       )}
+      <CardPicker
+        anime={anime}
+        dramas={dramas}
+        chosenAnime={chosenAnime}
+        chosenDramas={chosenDramas}
+        dramasFailed={dramasFailed}
+        onToggleAnime={(id) => setPickedAnime(toggled(chosenAnime, id))}
+        onToggleDrama={(id) => setPickedDramas(toggled(chosenDramas, id))}
+      />
+      {/* RF-58, ADR-0038: outside the card, so never in the shared image (RF-33). */}
+      <AdSlot />
       <Link className="card-preview__privacy" to="/privacidad" state={{ from: '/tarjeta' }}>
         {t('card.whoSees')}{' '}
         <span>{t(profile.listVisibility === 'public' ? 'card.public' : 'card.private')} ›</span>
       </Link>
       <DataCredit />
+      {dramas.length > 0 && <TvmazeCredit />}
     </section>
   );
 }

@@ -28,9 +28,11 @@ const IMAGES = [
   'https://static.tvmaze.com',
   'https://lh3.googleusercontent.com',
 ];
+// The share card fetches the covers it draws, anime and drama, to make its image (RF-30).
 const CONNECT = [
   "'self'",
   'https://cdn.myanimelist.net',
+  'https://static.tvmaze.com',
   'https://lh3.googleusercontent.com',
   'https://ep-round-snow-b5mftgmf.neonauth.c-7.us-east-2.aws.neon.tech',
   'https://eu.i.posthog.com',

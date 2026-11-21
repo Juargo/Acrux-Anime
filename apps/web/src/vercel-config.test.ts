@@ -126,9 +126,11 @@ describe('content security policy', () => {
     expect(directive('connect-src')).toContain('https://cdn.myanimelist.net');
   });
 
-  it('allows the TVmaze covers of the dramas as images only', () => {
+  it('allows the TVmaze covers of the dramas as images and as fetches of the share card', () => {
     expect(directive('img-src')).toContain('https://static.tvmaze.com');
-    expect(directive('connect-src')).not.toContain('tvmaze');
+    expect(directive('connect-src')).toContain('https://static.tvmaze.com');
+    // Only its image host: the TVmaze API is called from the server (ADR-0046).
+    expect(csp).not.toContain('api.tvmaze.com');
   });
 
   it('no longer allows AniList, and never the MyAnimeList API', () => {
