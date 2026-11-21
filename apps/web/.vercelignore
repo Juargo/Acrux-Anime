@@ -1,0 +1,3 @@
+# Vercel builds every file under api/ whose name does not start with "_" as a function. The
+# tests live next to the functions, so they are kept out of the build.
+api/**/*.test.ts
