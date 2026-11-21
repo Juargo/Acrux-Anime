@@ -29,7 +29,8 @@ type GetToken = () => Promise<string | null>;
 // The largest page the API serves.
 const PAGE_SIZE = 1000;
 
-async function call(
+// Shared with the drama marks (#154), which answer and fail the same way.
+export async function callMarksApi(
   getToken: GetToken,
   path: string,
   init: RequestInit,
@@ -62,7 +63,7 @@ export async function fetchMarks(
   // The API pages by animeId (#35); the counter and the list need every mark.
   do {
     const path: string = `/api/v1/me/marks?limit=${PAGE_SIZE}${cursor ? `&cursor=${cursor}` : ''}`;
-    const body = (await call(getToken, path, {}, fetchFn)) as {
+    const body = (await callMarksApi(getToken, path, {}, fetchFn)) as {
       items: MarkDto[];
       nextCursor: string | null;
     };
@@ -82,7 +83,7 @@ export async function saveMarks(
   batch: MarkBatch,
   fetchFn: typeof fetch = fetch,
 ): Promise<MarkDto[]> {
-  const body = (await call(
+  const body = (await callMarksApi(
     getToken,
     '/api/v1/me/marks:batch',
     {
@@ -102,7 +103,7 @@ export async function putMark(
   mark: { status: 'seen' | 'watching' },
   fetchFn: typeof fetch = fetch,
 ): Promise<MarkDto> {
-  return (await call(
+  return (await callMarksApi(
     getToken,
     `/api/v1/me/marks/${animeId}`,
     {
@@ -120,5 +121,5 @@ export async function deleteMark(
   animeId: number,
   fetchFn: typeof fetch = fetch,
 ): Promise<void> {
-  await call(getToken, `/api/v1/me/marks/${animeId}`, { method: 'DELETE' }, fetchFn);
+  await callMarksApi(getToken, `/api/v1/me/marks/${animeId}`, { method: 'DELETE' }, fetchFn);
 }

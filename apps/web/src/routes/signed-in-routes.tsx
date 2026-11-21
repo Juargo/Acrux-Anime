@@ -29,14 +29,15 @@ function CatalogPage() {
   );
 }
 
-// The dramas live apart from the anime catalog (#151); they need no session data.
+// The dramas live apart from the anime catalog (#151); the session is for their marks (#154).
 function DramasPage() {
+  const { getToken, fetchFn } = useSignedIn();
   const { t } = useTranslation();
   return (
     <>
       <h1 className="visually-hidden">{t('nav.explore')}</h1>
       <ExploreSwitch />
-      <DramasScreen />
+      <DramasScreen getToken={getToken} fetchFn={fetchFn} />
     </>
   );
 }
