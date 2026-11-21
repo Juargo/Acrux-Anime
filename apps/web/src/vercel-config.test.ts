@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 // apps/web/vercel.json sends only link-preview crawlers of /@handle to the API page with the
@@ -136,5 +136,20 @@ describe('content security policy', () => {
   it('no longer allows AniList, and never the MyAnimeList API', () => {
     expect(csp).not.toMatch(/anilist/i);
     expect(csp).not.toContain('api.myanimelist.net');
+  });
+});
+
+// Vercel turns every file under api/ into a function unless its name starts with "_" or
+// .vercelignore leaves it out: a test built as a function fails its type check in the deploy.
+describe('the files Vercel builds as functions', () => {
+  it('leaves the tests of api/ out of the build', () => {
+    const ignored = readFileSync(new URL('../.vercelignore', import.meta.url), 'utf8')
+      .split('\n')
+      .filter((line) => line && !line.startsWith('#'));
+    expect(ignored).toContain('api/**/*.test.ts');
+    const tests = readdirSync(new URL('../api', import.meta.url), { recursive: true }).filter(
+      (file) => /\.test\.[^.]+$/.test(String(file)),
+    );
+    expect(tests.every((file) => String(file).endsWith('.test.ts'))).toBe(true);
   });
 });
