@@ -58,13 +58,16 @@ const mark = (animeId: number, status: MarkDto['status'], day = 10): MarkDto => 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-function renderList(marks: MarkDto[] | 'fail') {
+function renderList(marks: MarkDto[] | 'fail', dramaMarks: unknown[] = []) {
   const { client, request } = fakeCatalog();
   const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
     if (url.startsWith('/api/v1/me/marks?')) {
       return marks === 'fail'
         ? json({ status: 503, code: 'marks.unavailable' }, 503)
         : json({ items: marks, nextCursor: null });
+    }
+    if (url.startsWith('/api/v1/me/drama-marks?')) {
+      return json({ items: dramaMarks, nextCursor: null });
     }
     if (url === '/api/v1/me' && init?.method === 'PATCH') {
       return json({ ...profile, counterMode: JSON.parse(init.body as string).counterMode });
@@ -200,6 +203,40 @@ describe('MyListScreen', () => {
     const alert = await within(list()).findByRole('alert');
     expect(alert.textContent).toContain('No pudimos cargar tu lista. Vuelve a intentarlo.');
     expect(within(alert).getByRole('button', { name: 'Reintentar' })).toBeTruthy();
+  });
+
+  it('counts the marked dramas on their own tab, apart from the anime figures (#166)', async () => {
+    renderList(
+      [mark(20, 'seen', 12)],
+      [
+        { dramaId: 1, status: 'seen', markedAt: '2026-11-20T12:00:00.000Z' },
+        { dramaId: 2, status: 'watching', markedAt: '2026-11-20T12:00:00.000Z' },
+      ],
+    );
+
+    expect(await within(list()).findByRole('tab', { name: 'Dramas (2)' })).toBeTruthy();
+    expect(within(list()).getByRole('tab', { name: 'Vistas (1)' })).toBeTruthy();
+    expect(within(list()).getByRole('tab', { name: 'Viendo (0)' })).toBeTruthy();
+    expect(list().querySelector('.my-list__stats')?.textContent).toBe(
+      'animes completos1entradas vistas1viendo ahora0',
+    );
+    expect(
+      within(screen.getByRole('region', { name: 'Contador total' })).getByText('1 anime'),
+    ).toBeTruthy();
+  });
+
+  it('opens the drama tab, empty until a drama is marked (#166)', async () => {
+    const user = userEvent.setup();
+    renderList([mark(20, 'seen', 12)]);
+
+    await user.click(await within(list()).findByRole('tab', { name: 'Dramas (0)' }));
+
+    const panel = within(list()).getByRole('tabpanel');
+    expect(await within(panel).findByText('Aún no marcaste ningún drama')).toBeTruthy();
+    expect(within(panel).getByRole('link', { name: 'Explorar dramas' }).getAttribute('href')).toBe(
+      '/dramas',
+    );
+    expect(rowTitles(panel)).toEqual([]);
   });
 
   it('reaches the list from the bar with Explorar, Mi lista, Tarjeta and Perfil (S5, #36, #39)', async () => {

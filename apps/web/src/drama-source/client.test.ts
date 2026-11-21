@@ -93,4 +93,24 @@ describe('createDramaClient', () => {
     const broken = clientFor(() => Response.json({ items: 'nope' }));
     await expect(broken.client.genres()).rejects.toBeInstanceOf(CatalogError);
   });
+
+  it('asks for the dramas of some ids, 100 at most per request, each id once', async () => {
+    const { client, fetchFn } = clientFor(() => Response.json({ items: [drama], missing: [] }));
+    const ids = [...Array.from({ length: 150 }, (_, index) => index + 1), 1, 2];
+
+    const found = await client.byIds(ids);
+
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    expect(requested(fetchFn).pathname).toBe('/api/v1/dramas/by-ids');
+    expect(requested(fetchFn).searchParams.get('ids')?.split(',')).toHaveLength(100);
+    expect(requested(fetchFn, 1).searchParams.get('ids')?.split(',')).toHaveLength(50);
+    expect(found.map((item) => item.title)).toEqual([drama.title, drama.title]);
+  });
+
+  it('asks nothing for no ids', async () => {
+    const { client, fetchFn } = clientFor(() => Response.json({ items: [], missing: [] }));
+
+    expect(await client.byIds([])).toEqual([]);
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
 });

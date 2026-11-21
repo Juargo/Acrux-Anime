@@ -45,10 +45,15 @@ const MONTHS = [
 ] as const;
 
 // "marcada el 12 de oct." in Spanish, "marked Oct 12" in English.
-export function markedOn(iso: string, t: TFunction = i18n.t): string {
+// A drama says "marcado": the key carries the gender of what was marked.
+export function markedOn(
+  iso: string,
+  t: TFunction = i18n.t,
+  key: 'myList.markedOn' | 'myList.dramaMarkedOn' = 'myList.markedOn',
+): string {
   const date = new Date(iso);
   const month = MONTHS[date.getMonth()] ?? 'jan';
-  return t('myList.markedOn', { day: String(date.getDate()), month: t(`myList.months.${month}`) });
+  return t(key, { day: String(date.getDate()), month: t(`myList.months.${month}`) });
 }
 
 type Sortable = ListRow & { markedAt: string };

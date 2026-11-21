@@ -133,3 +133,40 @@ test('a drama marked as seen stays marked after coming back, with its own counte
     'false',
   );
 });
+
+// Journey of issue #166: the marked dramas together, in their own tab of "Mi lista".
+test('the marked dramas show together in Mi lista, where they can be unmarked', async ({
+  page,
+  signedIn: _user,
+}) => {
+  const title = CRASH?.title ?? '';
+  await page.goto('/dramas');
+  await page
+    .getByRole('list', { name: 'Dramas' })
+    .getByRole('listitem')
+    .filter({ hasText: title })
+    .getByRole('button', { name: `Marcar «${title}» como viendo` })
+    .click();
+  await expect(page.getByRole('button', { name: `Quitar «${title}» de viendo` })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+
+  await page.goto('/mi-lista');
+  const myList = page.getByRole('region', { name: 'Mi lista' });
+  await myList.getByRole('tab', { name: 'Dramas (1)' }).click();
+  const rows = myList.getByRole('list', { name: 'Tus dramas marcados' });
+  await expect(rows.getByRole('listitem')).toHaveCount(1);
+  await expect(rows).toContainText(title);
+  await expect(myList.getByRole('link', { name: 'TVmaze' })).toBeVisible();
+  // The anime figures do not count dramas.
+  await expect(myList.getByRole('tab', { name: 'Viendo (0)' })).toBeVisible();
+
+  await rows.getByRole('button', { name: `Quitar «${title}» de viendo` }).click();
+  await expect(myList.getByText('Aún no marcaste ningún drama')).toBeVisible();
+  await expect(myList.getByRole('tab', { name: 'Dramas (0)' })).toBeVisible();
+
+  await page.reload();
+  await myList.getByRole('tab', { name: 'Dramas (0)' }).click();
+  await expect(myList.getByText('Aún no marcaste ningún drama')).toBeVisible();
+});

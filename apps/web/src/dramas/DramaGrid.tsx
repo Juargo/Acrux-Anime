@@ -39,7 +39,8 @@ export function DramaGrid(props: {
   );
 }
 
-const MARK_BUTTONS = [
+// Shared with the drama rows of "Mi lista" (#166).
+export const MARK_BUTTONS = [
   { status: 'seen', symbol: '✓', mark: 'dramas.markSeen', unmark: 'dramas.unmarkSeen' },
   {
     status: 'watching',
