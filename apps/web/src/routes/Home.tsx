@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Outlet } from 'react-router';
+import { Outlet, useMatch } from 'react-router';
 import type { CardGeneratedEvent, CardSharedEvent } from '../card/CardScreen';
 import type { FranchiseMarkedEvent } from '../catalog/use-franchise-marks';
 import type { CatalogClient } from '../catalog-source/client';
 import { Avatar } from '../components/Avatar';
 import { type CounterModeChangedEvent, TotalCounter } from '../counter/TotalCounter';
+import { DramaCounter } from '../dramas/DramaCounter';
 import type { ListMadePublicEvent } from '../profile/PrivacyScreen';
 import { useOwnProfile } from '../profile/use-own-profile';
 import type { Profile } from '../profile-api';
@@ -47,21 +48,27 @@ export function Home(props: {
   // The profile App loaded, then what the screens save (name, avatar, privacy).
   const [profile] = useOwnProfile({ initial: props.profile, getToken, fetchFn });
   const name = profile.displayName || t('app.noName');
+  // Two separate numbers (#154): the drama section shows its own counter, never the anime one.
+  const onDramas = useMatch('/dramas') !== null;
   return (
     <main className="home">
       <header className="home__bar">
-        <TotalCounter
-          initialMode={profile.counterMode}
-          getToken={getToken}
-          client={client}
-          fetchFn={fetchFn}
-          onCounterModeChanged={props.onCounterModeChanged}
-          initialShown={
-            profile.shownTotal !== null && profile.shownMode !== null
-              ? { total: profile.shownTotal, mode: profile.shownMode }
-              : null
-          }
-        />
+        {onDramas ? (
+          <DramaCounter getToken={getToken} fetchFn={fetchFn} />
+        ) : (
+          <TotalCounter
+            initialMode={profile.counterMode}
+            getToken={getToken}
+            client={client}
+            fetchFn={fetchFn}
+            onCounterModeChanged={props.onCounterModeChanged}
+            initialShown={
+              profile.shownTotal !== null && profile.shownMode !== null
+                ? { total: profile.shownTotal, mode: profile.shownMode }
+                : null
+            }
+          />
+        )}
         <div className="home__account">
           <Avatar
             name={name}

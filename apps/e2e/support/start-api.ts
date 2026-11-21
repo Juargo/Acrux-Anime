@@ -1,6 +1,7 @@
 // Starts the built API (apps/api/dist) for E2E (ADR-0037). The environment is built here, so
 // a developer's own variables (Sentry, Upstash, PostHog, real Neon) never leak in. Run with
 // `node` after `pnpm --filter @acrux/e2e build:apps`.
+import { DRAMAS } from './dramas.ts';
 import {
   API_PORT,
   CURATOR_USER_ID,
@@ -55,6 +56,30 @@ globalThis.fetch = (input, init) => {
   }
   return realFetch(input, init);
 };
+
+// A drama can only be marked when its row exists (#154), and nothing loads TVmaze data here:
+// the dramas the intercepted catalog answers are written to the table, with the same ids.
+const clientModule = new URL('../../api/dist/db/client.js', import.meta.url).href;
+const { createPrismaClient } = (await import(clientModule)) as {
+  createPrismaClient: (url: string) => {
+    drama: { upsert: (args: unknown) => Promise<unknown> };
+    $disconnect: () => Promise<void>;
+  };
+};
+const seeder = createPrismaClient(databaseUrl);
+for (const drama of DRAMAS) {
+  const row = {
+    title: drama.title,
+    searchText: drama.title.toLowerCase(),
+    tvmazeUrl: `https://www.tvmaze.com/shows/${drama.id}`,
+  };
+  await seeder.drama.upsert({
+    where: { id: drama.id },
+    create: { id: drama.id, ...row },
+    update: row,
+  });
+}
+await seeder.$disconnect();
 
 const appModule = new URL('../../api/dist/app.js', import.meta.url).href;
 const { default: app } = (await import(appModule)) as {

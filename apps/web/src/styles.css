@@ -2768,10 +2768,22 @@ label.sheet__label {
 }
 
 .drama-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-width: 0;
+}
+
+/* #154: seen at the right and watching next to it, over the cover like the anime ✓. */
+.drama-card__mark--watching {
+  right: 44px;
+  font-size: 12px;
+}
+
+.drama-card__mark--watching[aria-pressed="true"] {
+  border-color: var(--color-status-watching);
+  background: var(--color-status-watching);
 }
 
 .drama-card__facts {

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Profile } from '../profile-api';
@@ -69,6 +69,16 @@ function api(input: RequestInfo | URL): Response {
     });
   }
   if (url.pathname === '/api/v1/catalog/franchise-years') return Response.json({ years: [] });
+  if (url.pathname === '/api/v1/me/drama-marks') {
+    return Response.json({
+      items: [
+        { dramaId: 1, status: 'seen', markedAt: '2026-11-20T12:00:00.000Z' },
+        { dramaId: 2, status: 'seen', markedAt: '2026-11-20T12:00:00.000Z' },
+        { dramaId: 3, status: 'watching', markedAt: '2026-11-20T12:00:00.000Z' },
+      ],
+      nextCursor: null,
+    });
+  }
   return Response.json({ items: [] });
 }
 
@@ -132,6 +142,29 @@ describe('the drama route', () => {
     expect(requested.filter((path) => path.startsWith('/api/v1/dramas'))).toEqual([]);
     expect(screen.getByRole('link', { name: 'MyAnimeList' })).toBeTruthy();
     expect(screen.queryByRole('link', { name: 'TVmaze' })).toBeNull();
+  });
+
+  // S3: two separate numbers. Watching does not count as seen.
+  it('counts the dramas seen at the top of /dramas, instead of the anime counter', async () => {
+    renderAt('/dramas');
+    await screen.findByText('Crash Landing on You');
+
+    const counter = await screen.findByRole('region', { name: 'Contador de dramas' });
+    await within(counter).findByText('2 dramas');
+    expect(within(counter).getByText('vistos')).toBeTruthy();
+    expect(screen.queryByRole('region', { name: 'Contador total' })).toBeNull();
+    expect(screen.queryByText(/animes?$/)).toBeNull();
+    expect(requested.filter((path) => path.startsWith('/api/v1/me/marks'))).toEqual([]);
+  });
+
+  it('keeps the anime counter on /, which never asks for the drama marks', async () => {
+    renderAt('/');
+    await screen.findByText('Sousou no Frieren');
+
+    const counter = screen.getByRole('region', { name: 'Contador total' });
+    await within(counter).findByText('0 animes');
+    expect(screen.queryByRole('region', { name: 'Contador de dramas' })).toBeNull();
+    expect(requested.filter((path) => path.startsWith('/api/v1/me/drama-marks'))).toEqual([]);
   });
 
   it('puts the Anime / Dramas switch on both screens, with Explorar current on both (S2)', async () => {
