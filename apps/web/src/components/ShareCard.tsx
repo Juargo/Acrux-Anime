@@ -11,12 +11,12 @@ export interface ShareCardProps {
   avatarUrl: string | null;
   avatarPreset?: AvatarPreset | null;
   // The anime half and, once a drama is marked, the dramas half: the large figure with its
-  // label, the seen total tagged under it (null when it is the large figure) and the poster (a
-  // null cover URL draws an empty one; no poster when nothing is chosen).
+  // label, the seen total tagged under it and the poster (a null cover URL draws an empty one;
+  // no poster when nothing is chosen).
   blocks: {
     value: number | string;
     label: string;
-    seen: string | null;
+    seen: string;
     cover: { id: string; title: string; coverUrl: string | null } | null;
   }[];
   url: string;
@@ -105,21 +105,19 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
             <span className={countClass(block.value)}>{block.value}</span>
             <div className="share-card__meta">
               <span className="share-card__label">{block.label}</span>
-              {block.seen && (
-                <span className="share-card__seen">
-                  <svg aria-hidden="true" width="9" height="8" viewBox="0 0 15 13">
-                    <path
-                      d="M2 7L5.8 10.6L13 2.2"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  {block.seen}
-                </span>
-              )}
+              <span className="share-card__seen">
+                <svg aria-hidden="true" width="9" height="8" viewBox="0 0 15 13">
+                  <path
+                    d="M2 7L5.8 10.6L13 2.2"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                {block.seen}
+              </span>
               {index === 0 && <BadgeRow ids={badges} className="share-card__badges" />}
             </div>
           </div>

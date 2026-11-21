@@ -334,9 +334,9 @@ describe('CardScreen', () => {
     );
 
     await screen.findByRole('heading', { name: 'Tu tarjeta' });
-    // Nothing in Viendo among the anime: the total leads. One drama in Viendo leads the dramas.
+    // Nothing in Viendo among the anime: a zero leads, with the total under it.
     expect(figures()).toEqual([
-      ['2', 'ANIMES COMPLETOS'],
+      ['0', 'ANIMES VIENDO', '2 COMPLETOS'],
       ['1', 'DRAMA VIENDO', '2 VISTOS'],
     ]);
   });
@@ -366,7 +366,7 @@ describe('CardScreen', () => {
     renderCard([mark(20, 'watching')], {}, { dramas: [dramaMark(1, 'seen')] });
 
     await screen.findByRole('heading', { name: 'Tu tarjeta' });
-    within(card()).getByText('DRAMAS VISTOS');
+    expect(figures()[1]).toEqual(['0', 'DRAMAS VIENDO', '1 VISTOS']);
     screen.getByText('No pudimos cargar tus dramas. Tu tarjeta va sin ellos por ahora.');
   });
 
@@ -409,7 +409,7 @@ describe('CardScreen', () => {
 
     await screen.findByRole('heading', { name: 'Tu tarjeta' });
     const preview = within(card());
-    preview.getByText('ENTRADAS VISTAS');
+    expect(figures()).toEqual([['0', 'ANIMES VIENDO', '1 VISTAS']]);
     preview.getByText('Sin nombre');
     preview.getByText('?');
     // Nothing in Viendo: the first of my list, until I pick another.
@@ -598,7 +598,8 @@ describe('CardScreen in English (RF-70)', () => {
 
     await screen.findByRole('heading', { name: 'Your card' });
     const preview = within(screen.getByRole('figure', { name: 'Preview of your card' }));
-    preview.getByText('ENTRIES WATCHED');
+    preview.getByText('ANIME WATCHING');
+    preview.getByText('1 WATCHED');
     preview.getByText('No name');
   });
 });

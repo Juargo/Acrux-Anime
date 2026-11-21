@@ -37,5 +37,5 @@ Característica: Tarjeta vertical para compartir
     Cuando veo mi tarjeta
     Entonces muestra en grande cuántos animes y cuántos dramas estoy viendo
     Y debajo de cada cifra, en una etiqueta, cuántos he visto
-    Y si no estoy viendo ninguno de un tipo, su cifra grande es el total de vistos
+    Y si no estoy viendo ninguno de un tipo, su cifra grande es 0 y la etiqueta sigue debajo
     Y si no marqué ningún drama, solo muestra la mitad del anime
