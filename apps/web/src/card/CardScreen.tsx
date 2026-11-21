@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { AdSlot } from '../ads/AdSlot';
 import type { CatalogClient } from '../catalog-source/client';
 import { defaultClient } from '../catalog-source/hooks';
@@ -16,7 +16,6 @@ import { useDramaMarkList } from '../dramas/use-drama-marks';
 import { dramaRows } from '../my-list/drama-rows';
 import { myList } from '../my-list/items';
 import type { ListMadePublicEvent } from '../profile/PrivacyScreen';
-import { ProfileEditor } from '../profile/ProfileEditor';
 import { useOwnProfile } from '../profile/use-own-profile';
 import type { Profile } from '../profile-api';
 import {
@@ -285,11 +284,7 @@ export function CardScreen({
   );
   const toggled = (chosen: string[], id: string) =>
     chosen.includes(id) ? chosen.filter((other) => other !== id) : [...chosen, id];
-  // Before the first card, the name and avatar it will show (#39, Figma M06, RN-M1).
-  const [identityDone, setIdentityDone] = useState(false);
-  const navigate = useNavigate();
   const ready = list !== null && dramasSettled;
-  const step = !profile.cardShared && !identityDone ? 'identity' : 'preview';
 
   const content =
     list && ready
@@ -321,7 +316,7 @@ export function CardScreen({
   const coverCount = content?.picks.reduce((count, group) => count + group.covers.length, 0) ?? 0;
 
   useEffect(() => {
-    if (step !== 'preview' || !contentKey || !cardRef.current) return;
+    if (!contentKey || !cardRef.current) return;
     let cancelled = false;
     setImage(null);
     setFailed(false);
@@ -338,7 +333,7 @@ export function CardScreen({
     return () => {
       cancelled = true;
     };
-  }, [step, contentKey, coverCount, mode, attempt]);
+  }, [contentKey, coverCount, mode, attempt]);
 
   async function send(download: boolean) {
     if (!image) return;
@@ -386,18 +381,6 @@ export function CardScreen({
       </p>
     );
   }
-  if (step === 'identity') {
-    return (
-      <ProfileEditor
-        profile={profile}
-        getToken={getToken}
-        fetchFn={fetchFn}
-        onBack={() => navigate('/')}
-        onDone={() => setIdentityDone(true)}
-      />
-    );
-  }
-
   return (
     <section className="card-preview" aria-labelledby="card-preview-title">
       <div className="card-preview__bar">
