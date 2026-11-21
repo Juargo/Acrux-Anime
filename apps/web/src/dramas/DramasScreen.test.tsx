@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CatalogError } from '../catalog-source/client';
 import type { Drama, DramaBrowseParams, DramaClient } from '../drama-source/client';
 import { drama, fakeDramaClient } from '../drama-source/test-support';
@@ -33,12 +33,49 @@ function fakeClient(answer: (call: Call) => Answer = () => ({ items: [] })) {
   return { client: client as DramaClient, calls };
 }
 
-function renderScreen(client: DramaClient) {
+interface StoredMark {
+  dramaId: number;
+  status: 'seen' | 'watching';
+  markedAt: string;
+}
+
+// The drama marks of the API (#154), kept in memory; `failing` makes every write answer 500.
+function fakeMarksApi(initial: StoredMark[] = [], options: { failing?: boolean } = {}) {
+  const stored = new Map(initial.map((mark) => [mark.dramaId, mark]));
+  const writes: string[] = [];
+  const fetchFn = vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
+    const { pathname } = new URL(String(input), 'http://localhost');
+    const method = init.method ?? 'GET';
+    if (method === 'GET') {
+      return Response.json({ items: [...stored.values()], nextCursor: null });
+    }
+    const dramaId = Number(pathname.split('/').at(-1));
+    writes.push(`${method} ${dramaId}${init.body ? ` ${init.body}` : ''}`);
+    if (options.failing) return Response.json({ requestId: 'r1' }, { status: 500 });
+    if (method === 'DELETE') {
+      stored.delete(dramaId);
+      return new Response(null, { status: 204 });
+    }
+    const { status } = JSON.parse(String(init.body)) as { status: 'seen' | 'watching' };
+    const mark = { dramaId, status, markedAt: '2026-11-20T12:00:00.000Z' };
+    stored.set(dramaId, mark);
+    return Response.json(mark);
+  });
+  return { fetchFn: fetchFn as unknown as typeof fetch, writes };
+}
+
+const storedMark = (dramaId: number, status: 'seen' | 'watching'): StoredMark => ({
+  dramaId,
+  status,
+  markedAt: '2026-11-19T12:00:00.000Z',
+});
+
+function renderScreen(client: DramaClient, fetchFn: typeof fetch = fakeMarksApi().fetchFn) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
-        <DramasScreen client={client} />
+        <DramasScreen client={client} getToken={async () => 'jwt'} fetchFn={fetchFn} />
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -133,14 +170,14 @@ describe('DramasScreen', () => {
     await waitFor(() => expect(calls.at(-1)?.origin).toBeUndefined());
   });
 
-  it('has no era, year, format or marking controls (S3, S4)', async () => {
+  // Marking arrived with #154; the card still opens no detail screen.
+  it('has no era, year or format controls and no detail link (S3)', async () => {
     const { client } = fakeClient(() => ({ items: [drama(1)] }));
     renderScreen(client);
     await cardOf('Show 1');
 
     expect(screen.queryByText('Época')).toBeNull();
     expect(screen.queryByRole('button', { name: /Tipo|Streaming|\b20\d\d\b/ })).toBeNull();
-    expect(screen.queryByRole('button', { name: /Marcar|vista/ })).toBeNull();
     expect(screen.queryByRole('link', { name: /Show 1/ })).toBeNull();
   });
 
@@ -230,5 +267,92 @@ describe('DramasScreen', () => {
 
     await cardOf('Show 1');
     expect(calls).toHaveLength(2);
+  });
+});
+
+describe('DramasScreen marking (#154)', () => {
+  const two = () =>
+    fakeClient(() => ({
+      items: [drama(1, { title: 'Signal' }), drama(2, { title: 'Move to Heaven' })],
+    }));
+  const seenOf = (card: HTMLElement, title: string, pressed: boolean) =>
+    within(card).getByRole('button', {
+      name: pressed ? `Quitar «${title}» de vistos` : `Marcar «${title}» como visto`,
+    });
+  const watchingOf = (card: HTMLElement, title: string, pressed: boolean) =>
+    within(card).getByRole('button', {
+      name: pressed ? `Quitar «${title}» de viendo` : `Marcar «${title}» como viendo`,
+    });
+
+  it('shows on each card the mark the account already has', async () => {
+    const { fetchFn } = fakeMarksApi([storedMark(1, 'seen'), storedMark(2, 'watching')]);
+    renderScreen(two().client, fetchFn);
+
+    const signal = await cardOf('Signal');
+    await waitFor(() =>
+      expect(seenOf(signal, 'Signal', true).getAttribute('aria-pressed')).toBe('true'),
+    );
+    expect(watchingOf(signal, 'Signal', false).getAttribute('aria-pressed')).toBe('false');
+    const move = await cardOf('Move to Heaven');
+    expect(watchingOf(move, 'Move to Heaven', true).getAttribute('aria-pressed')).toBe('true');
+    expect(seenOf(move, 'Move to Heaven', false).getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('marks a drama as seen from its card and unmarks it with the same button', async () => {
+    const user = userEvent.setup();
+    const { fetchFn, writes } = fakeMarksApi();
+    renderScreen(two().client, fetchFn);
+    const signal = await cardOf('Signal');
+
+    await user.click(seenOf(signal, 'Signal', false));
+    await waitFor(() => expect(writes).toEqual(['PUT 1 {"status":"seen"}']));
+    expect(seenOf(signal, 'Signal', true).getAttribute('aria-pressed')).toBe('true');
+    // Only that card changes.
+    const move = await cardOf('Move to Heaven');
+    expect(seenOf(move, 'Move to Heaven', false).getAttribute('aria-pressed')).toBe('false');
+
+    await user.click(seenOf(signal, 'Signal', true));
+    await waitFor(() => expect(writes).toEqual(['PUT 1 {"status":"seen"}', 'DELETE 1']));
+    expect(seenOf(signal, 'Signal', false).getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('marks a drama as watching, and seen replaces watching (S2)', async () => {
+    const user = userEvent.setup();
+    const { fetchFn, writes } = fakeMarksApi();
+    renderScreen(two().client, fetchFn);
+    const signal = await cardOf('Signal');
+
+    await user.click(watchingOf(signal, 'Signal', false));
+    await waitFor(() => expect(writes).toEqual(['PUT 1 {"status":"watching"}']));
+    expect(watchingOf(signal, 'Signal', true).getAttribute('aria-pressed')).toBe('true');
+
+    await user.click(seenOf(signal, 'Signal', false));
+    await waitFor(() => expect(writes).toHaveLength(2));
+    expect(writes[1]).toBe('PUT 1 {"status":"seen"}');
+    expect(seenOf(signal, 'Signal', true).getAttribute('aria-pressed')).toBe('true');
+    expect(watchingOf(signal, 'Signal', false).getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('puts the card back and says so when saving fails', async () => {
+    const user = userEvent.setup();
+    const { fetchFn } = fakeMarksApi([storedMark(1, 'watching')], { failing: true });
+    renderScreen(two().client, fetchFn);
+    const signal = await cardOf('Signal');
+    await waitFor(() =>
+      expect(watchingOf(signal, 'Signal', true).getAttribute('aria-pressed')).toBe('true'),
+    );
+
+    await user.click(seenOf(signal, 'Signal', false));
+    expect((await screen.findByRole('alert')).textContent).toContain('No pudimos guardar');
+    expect(watchingOf(signal, 'Signal', true).getAttribute('aria-pressed')).toBe('true');
+    expect(seenOf(signal, 'Signal', false).getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('names the buttons in English', async () => {
+    await setLocale('en');
+    renderScreen(two().client);
+    const signal = await cardOf('Signal');
+    within(signal).getByRole('button', { name: 'Mark “Signal” as watched' });
+    within(signal).getByRole('button', { name: 'Mark “Signal” as watching' });
   });
 });

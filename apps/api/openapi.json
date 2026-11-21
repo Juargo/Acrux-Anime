@@ -1018,6 +1018,245 @@
         }
       }
     },
+    "/api/v1/me/drama-marks": {
+      "get": {
+        "summary": "Drama marks of the signed-in user, ordered by dramaId, one page at a time",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "marks"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "description": "The nextCursor of the previous page; leave it out for the first",
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            },
+            "description": "The nextCursor of the previous page; leave it out for the first"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "description": "Marks per page, 1 to 1000; 500 by default",
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            },
+            "description": "Marks per page, 1 to 1000; 500 by default"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of drama marks; nextCursor is null on the last page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DramaMark"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The cursor or the limit is not a valid positive integer"
+          },
+          "401": {
+            "description": "Missing, invalid or expired session",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/me/drama-marks/{dramaId}": {
+      "put": {
+        "summary": "Mark one drama, the whole show; the same status again keeps markedAt",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "marks"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dramaId",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "seen",
+                      "watching"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The stored mark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DramaMark"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid dramaId, unknown fields or an invalid body"
+          },
+          "401": {
+            "description": "Missing, invalid or expired session",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No drama of the catalog has that id"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unmark one drama; also 204 when it was not marked",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "marks"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dramaId",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Not marked anymore"
+          },
+          "400": {
+            "description": "The dramaId is not a positive integer"
+          },
+          "401": {
+            "description": "Missing, invalid or expired session",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
     "/api/v1/franchise-overrides": {
       "get": {
         "summary": "The curator table, applied before automatic grouping (RF-60)",
@@ -2346,12 +2585,44 @@
               ],
               "additionalProperties": false
             }
+          },
+          "dramaMarks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "dramaId": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "seen",
+                    "watching"
+                  ]
+                },
+                "markedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                }
+              },
+              "required": [
+                "dramaId",
+                "status",
+                "markedAt"
+              ],
+              "additionalProperties": false
+            }
           }
         },
         "required": [
           "exportedAt",
           "profile",
-          "marks"
+          "marks",
+          "dramaMarks"
         ],
         "additionalProperties": false
       },
@@ -2411,6 +2682,34 @@
         },
         "required": [
           "animeId",
+          "status",
+          "markedAt"
+        ],
+        "additionalProperties": false
+      },
+      "DramaMark": {
+        "type": "object",
+        "properties": {
+          "dramaId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "seen",
+              "watching"
+            ]
+          },
+          "markedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          }
+        },
+        "required": [
+          "dramaId",
           "status",
           "markedAt"
         ],

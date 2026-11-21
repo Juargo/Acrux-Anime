@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { ProblemError } from '../../http/problem.js';
 import type { Module } from '../../http/routes.js';
 import type { Session } from '../../http/session.js';
+import { dramaMarkRoutes } from './drama-marks.js';
+import type { DramaMarksService } from './services/drama-marks.service.js';
 import type { MarkPage, MarkPageQuery, MarksService, MarkView } from './services/marks.service.js';
 
 // Contract of the marks API (issue #33, S8 of odd/tasks/marcar-franquicia.md).
@@ -107,8 +109,12 @@ function toJson(mark: MarkView) {
   return { ...mark, markedAt: mark.markedAt.toISOString() };
 }
 
-// Without a database the routes stay mounted and answer 503, as the profile does.
-export function createMarksModule(service: MarksService | undefined): Module {
+// Without a database the routes stay mounted and answer 503, as the profile does. The drama
+// marks (#154) are part of the module, with their own routes and table.
+export function createMarksModule(
+  service: MarksService | undefined,
+  dramaMarks?: DramaMarksService,
+): Module {
   return {
     name: 'marks',
     routes: [
@@ -195,6 +201,7 @@ export function createMarksModule(service: MarksService | undefined): Module {
           response.json({ items: items.map(toJson) });
         },
       },
+      ...dramaMarkRoutes(dramaMarks),
     ],
   };
 }

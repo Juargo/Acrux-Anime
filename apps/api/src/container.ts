@@ -37,7 +37,12 @@ import {
   type FranchiseOverridesRepository,
 } from './modules/franchises/repositories/franchise-overrides.repository.js';
 import { createMarksModule } from './modules/marks/index.js';
+import { createDramaMarksRepository } from './modules/marks/repositories/drama-marks.repository.js';
 import { createMarksRepository } from './modules/marks/repositories/marks.repository.js';
+import {
+  createDramaMarksService,
+  type DramaMarksService,
+} from './modules/marks/services/drama-marks.service.js';
 import { createMarksService, type MarksService } from './modules/marks/services/marks.service.js';
 import { analyticsId } from './modules/profile/domain/analytics-id.js';
 import { createProfileModule } from './modules/profile/index.js';
@@ -78,6 +83,10 @@ export function createContainer(source: Record<string, string | undefined>): Con
     marksRepository && profileService
       ? createMarksService(marksRepository, profileService)
       : undefined;
+  const dramaMarksService =
+    prisma && profileService
+      ? createDramaMarksService(createDramaMarksRepository(prisma), profileService)
+      : undefined;
   const entitlements = prisma ? createEntitlementRepository(prisma) : undefined;
   const planOf = entitlements?.planOf;
   const publicProfileService =
@@ -86,10 +95,11 @@ export function createContainer(source: Record<string, string | undefined>): Con
       : undefined;
   const analyticsSecret = env.ANALYTICS_ID_SECRET;
   const accountService =
-    profileService && marksService
+    profileService && marksService && dramaMarksService
       ? createAccountService({
           profiles: profileService,
           marks: marksService,
+          dramaMarks: dramaMarksService,
           directory:
             env.NEON_API_KEY && env.NEON_PROJECT_ID && env.NEON_BRANCH_ID
               ? createNeonAuthAdmin({
@@ -169,6 +179,7 @@ export function createContainer(source: Record<string, string | undefined>): Con
       planOf,
       prisma ? catalogService(prisma, env.MAL_CLIENT_ID, logger) : undefined,
       prisma ? createDramaService(createDramaCatalogRepository(prisma)) : undefined,
+      dramaMarksService,
     ),
   };
 }
@@ -203,12 +214,13 @@ export function createModules(
   planOf?: PlanReader,
   catalog?: CatalogService,
   dramas?: DramaService,
+  dramaMarks?: DramaMarksService,
 ): Module[] {
   return [
     systemModule,
     createAccountModule(account?.service, account?.errorReporter),
     createProfileModule(profileService, { planOf, plusAvailable: billing !== undefined }),
-    createMarksModule(marksService),
+    createMarksModule(marksService, dramaMarks),
     createFranchisesModule(franchiseOverrides),
     createCatalogModule(catalog),
     createDramasModule(dramas),

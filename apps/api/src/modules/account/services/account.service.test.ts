@@ -18,6 +18,7 @@ function fakes(failing: { directory?: boolean; persons?: boolean } = {}) {
       },
     },
     marks: { listOf: async () => ({ items: [], nextCursor: null }) },
+    dramaMarks: { listOf: async () => ({ items: [], nextCursor: null }) },
     directory: {
       deleteUser: async (userId: string) => {
         calls.push(`neon ${userId}`);
@@ -73,11 +74,16 @@ describe('account service', () => {
     expect(calls).toEqual([]);
   });
 
-  it('exports every page of marks', async () => {
+  it('exports every page of marks, of anime and of dramas', async () => {
     const mark = (animeId: number) => ({
       animeId,
       status: 'seen' as const,
       markedAt: new Date('2026-11-01T00:00:00.000Z'),
+    });
+    const dramaMark = (dramaId: number) => ({
+      dramaId,
+      status: 'watching' as const,
+      markedAt: new Date('2026-11-02T00:00:00.000Z'),
     });
     const pages = new Map([
       [undefined, { items: [mark(1), mark(2)], nextCursor: 2 }],
@@ -105,10 +111,17 @@ describe('account service', () => {
       marks: {
         listOf: async (_userId, { after }) => pages.get(after) ?? { items: [], nextCursor: null },
       },
+      dramaMarks: {
+        listOf: async (_userId, { after }) =>
+          after === undefined
+            ? { items: [dramaMark(7)], nextCursor: 7 }
+            : { items: [dramaMark(9)], nextCursor: null },
+      },
       now: () => new Date('2026-11-05T00:00:00.000Z'),
     });
     const data = await service.exportData(session);
     expect(data.marks.map((m) => m.animeId)).toEqual([1, 2, 3]);
+    expect(data.dramaMarks.map((m) => m.dramaId)).toEqual([7, 9]);
     expect(data.profile).not.toHaveProperty('analyticsId');
     expect(data.exportedAt).toEqual(new Date('2026-11-05T00:00:00.000Z'));
   });

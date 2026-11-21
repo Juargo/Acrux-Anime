@@ -1,4 +1,5 @@
 import type { Session } from '../../../http/session.js';
+import type { DramaMarksService, DramaMarkView } from '../../marks/services/drama-marks.service.js';
 import type { MarksService, MarkView } from '../../marks/services/marks.service.js';
 import type { MeView, ProfileService } from '../../profile/services/profile.service.js';
 import type { AuthDirectory } from '../adapters/neon-auth-admin.js';
@@ -9,6 +10,7 @@ export interface AccountExport {
   exportedAt: Date;
   profile: Omit<MeView, 'analyticsId'>;
   marks: MarkView[];
+  dramaMarks: DramaMarkView[];
 }
 
 // The Neon Auth user could not be deleted after the data was: a retry finishes the job.
@@ -33,20 +35,24 @@ const EXPORT_PAGE = 500;
 export function createAccountService(options: {
   profiles: Pick<ProfileService, 'me' | 'remove'>;
   marks: Pick<MarksService, 'listOf'>;
+  dramaMarks: Pick<DramaMarksService, 'listOf'>;
   directory?: AuthDirectory | undefined;
   persons?: AnalyticsPersons | undefined;
   // The salted id PostHog knows the user by; null when analytics is off.
   analyticsIdOf?: ((userId: string) => string | null) | undefined;
   now?: () => Date;
 }): AccountService {
-  const { profiles, marks, directory, persons, analyticsIdOf } = options;
+  const { profiles, marks, dramaMarks, directory, persons, analyticsIdOf } = options;
   const now = options.now ?? (() => new Date());
 
-  async function allMarks(userId: string): Promise<MarkView[]> {
-    const items: MarkView[] = [];
+  // Every page of a list of marks, of anime or of dramas.
+  async function allPages<T>(
+    pageAfter: (after: number | undefined) => Promise<{ items: T[]; nextCursor: number | null }>,
+  ): Promise<T[]> {
+    const items: T[] = [];
     let after: number | undefined;
     do {
-      const page = await marks.listOf(userId, { after, limit: EXPORT_PAGE });
+      const page = await pageAfter(after);
       items.push(...page.items);
       after = page.nextCursor ?? undefined;
     } while (after !== undefined);
@@ -57,7 +63,15 @@ export function createAccountService(options: {
     canDelete: directory !== undefined,
     exportData: async (session) => {
       const { analyticsId: _analyticsId, ...profile } = await profiles.me(session);
-      return { exportedAt: now(), profile, marks: await allMarks(session.userId) };
+      const { userId } = session;
+      return {
+        exportedAt: now(),
+        profile,
+        marks: await allPages((after) => marks.listOf(userId, { after, limit: EXPORT_PAGE })),
+        dramaMarks: await allPages((after) =>
+          dramaMarks.listOf(userId, { after, limit: EXPORT_PAGE }),
+        ),
+      };
     },
     deleteAccount: async (session) => {
       if (!directory) throw new Error('Account deletion is not configured');

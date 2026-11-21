@@ -30,6 +30,13 @@ const exportSchema = z
         markedAt: z.iso.datetime(),
       }),
     ),
+    dramaMarks: z.array(
+      z.object({
+        dramaId: z.number().int(),
+        status: z.enum(['seen', 'watching']),
+        markedAt: z.iso.datetime(),
+      }),
+    ),
   })
   .meta({ id: 'AccountExport' });
 

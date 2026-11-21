@@ -89,3 +89,47 @@ test('the drama screen never asks for the anime catalog', async ({ page, signedI
 
   expect(catalogCalls).toEqual([]);
 });
+
+// Journey of issue #154: marking a drama, with its own counter.
+test('a drama marked as seen stays marked after coming back, with its own counter', async ({
+  page,
+  signedIn: _user,
+}) => {
+  const title = CRASH?.title ?? '';
+  await page.goto('/dramas');
+  const counter = page.getByRole('region', { name: 'Contador de dramas' });
+  const card = page
+    .getByRole('list', { name: 'Dramas' })
+    .getByRole('listitem')
+    .filter({ hasText: title });
+  await expect(counter).toContainText('0 dramas');
+  await expect(page.getByRole('region', { name: 'Contador total' })).toHaveCount(0);
+
+  await card.getByRole('button', { name: `Marcar «${title}» como visto` }).click();
+  await expect(counter).toContainText('1 drama');
+
+  // «Un drama marcado sigue marcado al volver a entrar».
+  await page.reload();
+  await expect(card.getByRole('button', { name: `Quitar «${title}» de vistos` })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(counter).toContainText('1 drama');
+
+  // Two separate numbers: the anime counter does not move.
+  await page
+    .getByRole('group', { name: 'Qué explorar' })
+    .getByRole('link', { name: 'Anime' })
+    .click();
+  await expect(page.getByRole('region', { name: 'Contador total' })).toContainText('0 animes');
+  await expect(page.getByRole('region', { name: 'Contador de dramas' })).toHaveCount(0);
+
+  await page.goto('/dramas');
+  await card.getByRole('button', { name: `Quitar «${title}» de vistos` }).click();
+  await expect(counter).toContainText('0 dramas');
+  await page.reload();
+  await expect(card.getByRole('button', { name: `Marcar «${title}» como visto` })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+});

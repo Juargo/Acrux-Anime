@@ -7,6 +7,7 @@ import type { DramaClient } from '../drama-source/client';
 import { defaultDramaClient, useDramaGenres, useDramas } from '../drama-source/hooks';
 import { DramaFilterSheet, type DramaFilters } from './DramaFilterSheet';
 import { DramaGrid } from './DramaGrid';
+import { type DramaMarkStatus, useDramaMarks } from './use-drama-marks';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -16,12 +17,17 @@ const countLabel = (label: string, count: number) => (count > 0 ? `${label} · $
 
 /**
  * Container: owns the search, the filters and the drama queries (ADR-0046). It is a sibling of
- * the anime catalog, not a mode of it: it never asks for anime and shows no marking.
+ * the anime catalog, not a mode of it: it never asks for anime. A card marks the whole show
+ * (#154), with its own marks, apart from the anime ones.
  */
 export function DramasScreen({
   client = defaultDramaClient,
+  getToken,
+  fetchFn,
 }: {
   client?: DramaClient | undefined;
+  getToken: () => Promise<string | null>;
+  fetchFn?: typeof fetch | undefined;
 }) {
   const { t } = useTranslation();
   const [input, setInput] = useState('');
@@ -36,6 +42,15 @@ export function DramasScreen({
   const items = useMemo(
     () => dramas.data?.pages.flatMap((page) => page.items) ?? [],
     [dramas.data],
+  );
+
+  const marking = useDramaMarks({ getToken, fetchFn });
+  const marks = useMemo(
+    () =>
+      new Map<number, DramaMarkStatus>(
+        (marking.marks ?? []).map((mark) => [mark.dramaId, mark.status]),
+      ),
+    [marking.marks],
   );
 
   const { fetchNextPage } = dramas;
@@ -102,7 +117,12 @@ export function DramasScreen({
         </div>
       ) : (
         <>
-          <DramaGrid items={items} />
+          {marking.failed && (
+            <p className="catalog__message" role="alert">
+              {t('marks.saveFailed')}
+            </p>
+          )}
+          <DramaGrid items={items} marks={marks} onChange={marking.change} />
           {dramas.isFetchingNextPage && (
             <p className="catalog__state" role="status">
               {t('catalog.loadingMore')}
