@@ -80,6 +80,19 @@ export const browseEs = {
     seasons_other: '{{count}} temporadas',
     episodes_one: '{{count}} episodio',
     episodes_other: '{{count}} episodios',
+    // Marking (#154): the whole show, as seen or as watching.
+    markSeen: 'Marcar «{{title}}» como visto',
+    unmarkSeen: 'Quitar «{{title}}» de vistos',
+    markWatching: 'Marcar «{{title}}» como viendo',
+    unmarkWatching: 'Quitar «{{title}}» de viendo',
+    counter: {
+      label: 'Contador de dramas',
+      unknown: '— dramas',
+      total_one: '{{count}} drama',
+      total_other: '{{count}} dramas',
+      total_many: '{{count}} dramas',
+      unit: 'vistos',
+    },
   },
   // The switch at the top of Explorar between the two catalogs.
   exploreSwitch: {
@@ -307,6 +320,19 @@ export const browseEn = {
     seasons_other: '{{count}} seasons',
     episodes_one: '{{count}} episode',
     episodes_other: '{{count}} episodes',
+    // Marking (#154): the whole show, as watched or as watching.
+    markSeen: 'Mark “{{title}}” as watched',
+    unmarkSeen: 'Remove “{{title}}” from watched',
+    markWatching: 'Mark “{{title}}” as watching',
+    unmarkWatching: 'Remove “{{title}}” from watching',
+    counter: {
+      label: 'Drama counter',
+      unknown: '— dramas',
+      total_one: '{{count}} drama',
+      total_other: '{{count}} dramas',
+      total_many: '{{count}} dramas',
+      unit: 'watched',
+    },
   },
   // The switch at the top of Explore between the two catalogs.
   exploreSwitch: {

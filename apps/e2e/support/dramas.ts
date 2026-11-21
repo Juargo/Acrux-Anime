@@ -1,7 +1,8 @@
 // The drama API intercepted with context.route() (ADR-0046): the browser's calls to
 // /api/v1/dramas/** get fixed answers with the same shapes as apps/api/src/modules/dramas.
-// The real API serves an empty table here, because nothing loads TVmaze data into the test
-// database. Covers come from the host that installCatalog already answers.
+// Nothing loads TVmaze data into the test database: support/start-api.ts only writes the rows
+// of DRAMAS, so the real API can mark them (#154). Covers come from the host that
+// installCatalog already answers.
 import type { BrowserContext, Route } from '@playwright/test';
 
 interface Drama {
