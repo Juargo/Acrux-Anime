@@ -6,7 +6,7 @@ import {
   type StartedNetwork,
   type StartedTestContainer,
 } from 'testcontainers';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createUpstashRateLimiter } from './upstash-rate-limiter.js';
 
 // Upstash speaks HTTP, so a local Redis behind its REST emulator stands in for it.
@@ -40,8 +40,26 @@ afterAll(async () => {
   await network?.stop();
 });
 
+// The limiter reads the clock to pick its window, so these tests pin it: a real clock makes
+// them fail whenever they run across the end of a window. The instant is in the future
+// because the store expires the counters on its own clock.
+const WINDOW_START_SECONDS = Date.UTC(2100, 0, 1) / 1000;
+
+function pinClock(secondsIntoWindow: number): void {
+  vi.spyOn(Date, 'now').mockReturnValue((WINDOW_START_SECONDS + secondsIntoWindow) * 1000);
+}
+
+async function expiryOf(key: string): Promise<number> {
+  return Number((await redis.exec(['redis-cli', 'EXPIRETIME', key])).output.trim());
+}
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe('createUpstashRateLimiter', () => {
   it('allows up to the limit, then denies with the seconds left in the window', async () => {
+    pinClock(10);
     const limiter = createUpstashRateLimiter({
       url,
       token: TOKEN,
@@ -55,11 +73,11 @@ describe('createUpstashRateLimiter', () => {
       results.push(await limiter.limit('public', 'key-a'));
     }
     expect(results.map((result) => result.allowed)).toEqual([true, true, false]);
-    expect(results[2]?.retryAfterSeconds).toBeGreaterThanOrEqual(1);
-    expect(results[2]?.retryAfterSeconds).toBeLessThanOrEqual(60);
+    expect(results[2]?.retryAfterSeconds).toBe(50);
   });
 
   it('keeps separate counters per key and per policy', async () => {
+    pinClock(10);
     const limiter = createUpstashRateLimiter({
       url,
       token: TOKEN,
@@ -74,7 +92,7 @@ describe('createUpstashRateLimiter', () => {
     expect((await limiter.limit('public', 'key-b')).allowed).toBe(false);
   });
 
-  it('expires each counter with its window', async () => {
+  it('expires each counter at the end of its window, even in its last instant', async () => {
     const limiter = createUpstashRateLimiter({
       url,
       token: TOKEN,
@@ -83,12 +101,32 @@ describe('createUpstashRateLimiter', () => {
         write: { requests: 5, windowSeconds: 30 },
       },
     });
-    await limiter.limit('public', 'key-ttl');
-    const keys = await redis.exec(['redis-cli', '--scan', '--pattern', 'acrux:public:key-ttl:*']);
-    const key = keys.output.trim();
-    const ttl = Number((await redis.exec(['redis-cli', 'TTL', key])).output.trim());
-    expect(ttl).toBeGreaterThan(0);
-    expect(ttl).toBeLessThanOrEqual(30);
+    const firstEnd = WINDOW_START_SECONDS + 30;
+    const secondEnd = WINDOW_START_SECONDS + 60;
+
+    pinClock(29.999);
+    expect((await limiter.limit('public', 'key-ttl')).retryAfterSeconds).toBe(1);
+    expect(await expiryOf(`acrux:public:key-ttl:${firstEnd}`)).toBe(firstEnd);
+
+    pinClock(30);
+    expect((await limiter.limit('public', 'key-ttl')).retryAfterSeconds).toBe(30);
+    expect(await expiryOf(`acrux:public:key-ttl:${secondEnd}`)).toBe(secondEnd);
+  });
+
+  it('starts a new count when the window ends', async () => {
+    const limiter = createUpstashRateLimiter({
+      url,
+      token: TOKEN,
+      policies: {
+        public: { requests: 1, windowSeconds: 30 },
+        write: { requests: 1, windowSeconds: 30 },
+      },
+    });
+    pinClock(29.999);
+    expect((await limiter.limit('public', 'key-roll')).allowed).toBe(true);
+    expect((await limiter.limit('public', 'key-roll')).allowed).toBe(false);
+    pinClock(30);
+    expect((await limiter.limit('public', 'key-roll')).allowed).toBe(true);
   });
 
   it('gives up after one second when the store does not answer', async () => {
