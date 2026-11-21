@@ -10,11 +10,15 @@ export interface ShareCardProps {
   initial: string;
   avatarUrl: string | null;
   avatarPreset?: AvatarPreset | null;
-  // The summary: one figure alone is drawn large, two share the row.
-  totals: { value: number | string; label: string }[];
-  // The covers under each heading ("ANIME", "DRAMAS"), four at most in all; a null cover draws
-  // an empty slot. No section when empty.
-  picks: { label: string; covers: { id: string; title: string; coverUrl: string | null }[] }[];
+  // The anime half and, once a drama is marked, the dramas half: the large figure with its
+  // label, the seen total tagged under it (null when it is the large figure) and the poster (a
+  // null cover URL draws an empty one; no poster when nothing is chosen).
+  blocks: {
+    value: number | string;
+    label: string;
+    seen: string | null;
+    cover: { id: string; title: string; coverUrl: string | null } | null;
+  }[];
   url: string;
   // The QR to the public profile (RF-32): a URL draws it, true draws the sample's placeholder.
   qr?: string | boolean;
@@ -23,9 +27,17 @@ export interface ShareCardProps {
   hidden?: boolean;
 }
 
+// A figure of three digits or more is drawn smaller, to fit beside its poster.
+function countClass(value: number | string) {
+  const digits = String(value).length;
+  return `share-card__count${digits > 3 ? ' share-card__count--longer' : digits > 2 ? ' share-card__count--long' : ''}`;
+}
+
 /**
- * Presentational: Figma 27:38 / M07 "Tarjeta para compartir · Clásica" at 324 × 576 (9:16,
- * RNF-51). The image of the card is rendered from this node (card/image.ts).
+ * Presentational: the share card at 324 × 576 (9:16, RNF-51): two colour fields split by a
+ * diagonal, the anime poster and its figures on the first, the drama's on the second. Alone,
+ * the anime half takes the whole card. The image of the card is rendered from this node
+ * (card/image.ts).
  */
 export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function ShareCard(
   {
@@ -33,8 +45,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
     initial,
     avatarUrl,
     avatarPreset = null,
-    totals,
-    picks,
+    blocks,
     badges = [],
     url,
     qr = false,
@@ -42,15 +53,13 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
   },
   ref,
 ) {
-  // Four covers only fit the row at their small size.
-  const coverCount = picks.reduce((count, group) => count + group.covers.length, 0);
-  const pair = totals.length > 1;
-  const long = pair && totals.some((total) => String(total.value).length > 3);
-  const totalsClass = `share-card__totals${pair ? ' share-card__totals--pair' : ''}${
-    long ? ' share-card__totals--long' : ''
-  }`;
   return (
-    <div className="share-card" ref={ref} aria-hidden={hidden || undefined}>
+    <div
+      className={`share-card${blocks.length === 1 ? ' share-card--solo' : ''}`}
+      ref={ref}
+      aria-hidden={hidden || undefined}
+    >
+      <span className="share-card__field" />
       <div className="share-card__user">
         {avatarPreset || avatarUrl ? (
           <Avatar
@@ -73,40 +82,49 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
           height={26.4}
         />
       </div>
-      <div className="share-card__summary">
-        <div className={totalsClass}>
-          {totals.map((total) => (
-            <div key={total.label} className="share-card__total">
-              <span className="share-card__count">{total.value}</span>
-              <span className="share-card__label">{total.label}</span>
-            </div>
-          ))}
-        </div>
-        <BadgeRow ids={badges} className="share-card__badges" />
-      </div>
-      {picks.length > 0 && (
-        <div className={`share-card__picks${coverCount > 3 ? ' share-card__picks--tight' : ''}`}>
-          {picks.map((group) => (
-            <div key={group.label} className="share-card__group">
-              <span className="share-card__label">{group.label}</span>
-              <div className="share-card__covers">
-                {group.covers.map((cover) =>
-                  cover.coverUrl ? (
-                    <img
-                      key={cover.id}
-                      className="share-card__cover"
-                      src={cover.coverUrl}
-                      alt={cover.title}
+      {blocks.map((block, index) => (
+        <div
+          key={block.label}
+          className={`share-card__block share-card__block--${index === 0 ? 'first' : 'second'}`}
+        >
+          {block.cover && (
+            <span className="share-card__poster">
+              <span className="share-card__slab" />
+              {block.cover.coverUrl ? (
+                <img
+                  className="share-card__cover"
+                  src={block.cover.coverUrl}
+                  alt={block.cover.title}
+                />
+              ) : (
+                <span className="share-card__cover" />
+              )}
+            </span>
+          )}
+          <div className="share-card__figure">
+            <span className={countClass(block.value)}>{block.value}</span>
+            <div className="share-card__meta">
+              <span className="share-card__label">{block.label}</span>
+              {block.seen && (
+                <span className="share-card__seen">
+                  <svg aria-hidden="true" width="9" height="8" viewBox="0 0 15 13">
+                    <path
+                      d="M2 7L5.8 10.6L13 2.2"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
-                  ) : (
-                    <span key={cover.id} className="share-card__cover" />
-                  ),
-                )}
-              </div>
+                  </svg>
+                  {block.seen}
+                </span>
+              )}
+              {index === 0 && <BadgeRow ids={badges} className="share-card__badges" />}
             </div>
-          ))}
+          </div>
         </div>
-      )}
+      ))}
       <div className="share-card__footer">
         <span className="share-card__url">{url}</span>
         {qr === true && <span className="share-card__qr">QR</span>}

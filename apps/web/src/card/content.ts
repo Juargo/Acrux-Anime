@@ -5,9 +5,9 @@ import type { DramaRow } from '../my-list/drama-rows';
 import type { MyList } from '../my-list/items';
 import type { Profile } from '../profile-api';
 
-// The card has room for four covers in a row: two anime and two dramas (RF-30).
-export const MAX_ANIME = 2;
-export const MAX_DRAMAS = 2;
+// The card draws its covers as posters: one anime and one drama (RF-30).
+export const MAX_ANIME = 1;
+export const MAX_DRAMAS = 1;
 
 export interface CardCover {
   id: string;
@@ -15,16 +15,15 @@ export interface CardCover {
   coverUrl: string | null;
 }
 
-// One figure of the summary: "48 ANIMES COMPLETOS".
-export interface CardTotal {
+// One half of the card, the anime or the dramas: its large figure ("2 ANIMES VIENDO"), the
+// seen total tagged under it ("9 VISTAS") and its poster.
+export interface CardBlock {
   value: number;
   label: string;
-}
-
-// The covers under one heading of the card: "ANIME" or "DRAMAS".
-export interface CardPicks {
-  label: string;
-  covers: CardCover[];
+  // Null when nothing is being watched: the seen total is then the large figure.
+  seen: string | null;
+  // Null when nothing is chosen.
+  cover: CardCover | null;
 }
 
 // One row of the picker under the card: something in the list that the card can show.
@@ -34,15 +33,14 @@ export interface CardChoice extends CardCover {
   watching: boolean;
 }
 
-// What the share card shows (RF-30): how much its owner has seen, who shares it and the covers
-// they chose to show.
+// What the share card shows (RF-30): who shares it and, for the anime and for the dramas, how
+// much its owner is watching and has seen, with the cover they chose to show.
 export interface ShareCardContent {
-  totals: CardTotal[];
+  blocks: CardBlock[];
   name: string;
   initial: string;
   avatarUrl: string | null;
   avatarPreset: Profile['avatarPreset'];
-  picks: CardPicks[];
   // The earned badges, only while the owner is Plus (RF-55).
   badges: string[];
 }
@@ -74,12 +72,11 @@ export function dramaChoices(rows: readonly DramaRow[], t: TFunction = i18n.t): 
   }));
 }
 
-// Until something is chosen, the card answers "what are you watching now?".
+// Until something is chosen, the card answers "what are you watching now?"; with nothing in
+// Viendo, it shows the first of the list, so a first card is never left without a poster.
 export function defaultChoice(choices: readonly CardChoice[], max: number): string[] {
-  return choices
-    .filter((choice) => choice.watching)
-    .slice(0, max)
-    .map((choice) => choice.id);
+  const watching = choices.filter((choice) => choice.watching);
+  return (watching.length > 0 ? watching : choices).slice(0, max).map((choice) => choice.id);
 }
 
 const covers = (choices: readonly CardChoice[], chosen: readonly string[], max: number) =>
@@ -88,10 +85,28 @@ const covers = (choices: readonly CardChoice[], chosen: readonly string[], max: 
     .slice(0, max)
     .map(({ id, title, coverUrl }) => ({ id, title, coverUrl }));
 
+// What is being watched leads its half of the card; with nothing in Viendo, the seen total does.
+function block(
+  watching: { value: number; one: string; many: string },
+  seen: { value: number; label: string; tag: string },
+  cover: CardCover | undefined,
+): CardBlock {
+  return {
+    ...(watching.value > 0
+      ? {
+          value: watching.value,
+          label: watching.value === 1 ? watching.one : watching.many,
+          seen: seen.tag,
+        }
+      : { value: seen.value, label: seen.label, seen: null }),
+    cover: cover ?? null,
+  };
+}
+
 /**
- * The content of the card: the anime total as "Mi lista" counts it (RNF-42), the seen dramas
- * once one is marked (null before that), and the chosen anime and dramas in the order of the
- * list, at most two of each.
+ * The content of the card: for the anime, what is in Viendo and the total as "Mi lista" counts
+ * it (RNF-42); the same for the dramas once one is marked (`dramasSeen` is null before that);
+ * and the chosen anime and drama, one of each at most.
  */
 export function shareCardContent(input: {
   list: MyList;
@@ -101,31 +116,55 @@ export function shareCardContent(input: {
   anime: readonly CardChoice[];
   dramas: readonly CardChoice[];
   dramasSeen: number | null;
+  dramasWatching: number;
   chosenAnime: readonly string[];
   chosenDramas: readonly string[];
   t?: TFunction;
 }): ShareCardContent {
   const { list, mode, profile, t = i18n.t } = input;
   const name = profile.displayName.trim();
-  const picks: CardPicks[] = [
-    { label: t('card.anime'), covers: covers(input.anime, input.chosenAnime, MAX_ANIME) },
-    { label: t('card.dramas'), covers: covers(input.dramas, input.chosenDramas, MAX_DRAMAS) },
-  ];
-  return {
-    totals: [
+  const complete = mode === 'franchise';
+  const animeSeen = complete ? list.stats.complete : list.stats.seenEntries;
+  const blocks = [
+    block(
       {
-        value: mode === 'franchise' ? list.stats.complete : list.stats.seenEntries,
-        label: t(mode === 'franchise' ? 'card.complete' : 'card.seenEntries'),
+        value: list.stats.watching,
+        one: t('card.animeWatchingOne'),
+        many: t('card.animeWatchingMany'),
       },
-      ...(input.dramasSeen === null
-        ? []
-        : [{ value: input.dramasSeen, label: t('card.dramasSeen') }]),
-    ],
+      {
+        value: animeSeen,
+        label: t(complete ? 'card.complete' : 'card.seenEntries'),
+        tag: t(complete ? 'card.tagComplete' : 'card.tagSeenEntries', {
+          total: String(animeSeen),
+        }),
+      },
+      covers(input.anime, input.chosenAnime, MAX_ANIME)[0],
+    ),
+  ];
+  if (input.dramasSeen !== null) {
+    blocks.push(
+      block(
+        {
+          value: input.dramasWatching,
+          one: t('card.dramasWatchingOne'),
+          many: t('card.dramasWatchingMany'),
+        },
+        {
+          value: input.dramasSeen,
+          label: t('card.dramasSeen'),
+          tag: t('card.tagDramasSeen', { total: String(input.dramasSeen) }),
+        },
+        covers(input.dramas, input.chosenDramas, MAX_DRAMAS)[0],
+      ),
+    );
+  }
+  return {
+    blocks,
     name: name || t('card.noName'),
     initial: name.charAt(0).toUpperCase() || '?',
     avatarUrl: profile.avatarUrl,
     avatarPreset: profile.avatarPreset ?? null,
     badges: profile.plan === 'plus' ? (profile.badges ?? []) : [],
-    picks: picks.filter((group) => group.covers.length > 0),
   };
 }

@@ -175,13 +175,16 @@ function renderCard(
 }
 
 const card = () => screen.getByRole('figure', { name: 'Vista previa de tu tarjeta' });
-// The covers of the card, by the heading they sit under.
-const coversUnder = (heading: string) =>
-  [
-    ...(within(card())
-      .queryByText(heading)
-      ?.parentElement?.querySelectorAll('.share-card__cover') ?? []),
-  ].map((img) => img.getAttribute('alt'));
+// The posters of the card: the anime first, then the drama.
+const posters = () =>
+  [...card().querySelectorAll('.share-card__cover')].map((img) => img.getAttribute('alt'));
+// The figures of each half of the card: the large one, its label and the seen total under it.
+const figures = () =>
+  [...card().querySelectorAll('.share-card__figure')].map((figure) =>
+    [...figure.querySelectorAll('.share-card__count, .share-card__label, .share-card__seen')].map(
+      (part) => part.textContent,
+    ),
+  );
 const box = (name: string) => screen.getByRole('checkbox', { name }) as HTMLInputElement;
 
 describe('CardScreen', () => {
@@ -208,20 +211,20 @@ describe('CardScreen', () => {
 
     await screen.findByRole('heading', { name: 'Tu tarjeta' });
     const preview = within(card());
-    preview.getByText('1');
-    preview.getByText('ANIMES COMPLETOS');
+    // What I am watching leads, with my total tagged under it.
+    expect(figures()).toEqual([['3', 'ANIMES VIENDO', '1 COMPLETOS']]);
     preview.getByText('Camila');
     expect(card().querySelector('.share-card__avatar')?.getAttribute('src')).toBe(
       'https://lh3.googleusercontent.com/a/camila',
     );
-    // Without choosing: the first two in Viendo.
-    expect(coversUnder('ANIME')).toEqual(['Saga B', 'Saga C']);
+    // Without choosing: the first in Viendo.
+    expect(posters()).toEqual(['Saga B']);
     preview.getByAltText('Acrux');
 
     const share = await screen.findByRole('button', { name: 'Compartir' });
     await vi.waitFor(() => expect((share as HTMLButtonElement).disabled).toBe(false));
     expect(cardImage).toHaveBeenCalledOnce();
-    expect(onCardGenerated).toHaveBeenCalledWith({ mode: 'franchise', covers: 2 });
+    expect(onCardGenerated).toHaveBeenCalledWith({ mode: 'franchise', covers: 1 });
 
     await user.click(share);
     expect(shareOrDownload).toHaveBeenCalledWith(png, { download: false });
@@ -271,34 +274,33 @@ describe('CardScreen', () => {
     renderCard([mark(1, 'seen'), mark(2, 'seen'), mark(20, 'watching', 12)]);
 
     await screen.findByRole('heading', { name: 'Elige qué mostrar' });
-    screen.getByRole('group', { name: 'Anime · 1 de 2' });
+    screen.getByRole('group', { name: 'Anime · 1 de 1' });
     expect(box('Saga B').checked).toBe(true);
     expect(box('Saga A').checked).toBe(false);
 
     await user.click(box('Saga A'));
 
-    screen.getByRole('group', { name: 'Anime · 2 de 2' });
-    expect(coversUnder('ANIME')).toEqual(['Saga B', 'Saga A']);
+    expect(posters()).toEqual(['Saga A']);
     // A new image for what the card shows now.
     await vi.waitFor(() => expect(cardImage).toHaveBeenCalledTimes(2));
   });
 
-  it('@CA-RF30-04 lets me choose at most two anime', async () => {
+  it('@CA-RF30-04 shows one anime: choosing another takes its place', async () => {
     const user = userEvent.setup();
     renderCard([mark(20, 'watching', 14), mark(30, 'watching', 13), mark(40, 'watching', 12)]);
 
     await screen.findByRole('heading', { name: 'Tu tarjeta' });
-    expect(box('Saga D').checked).toBe(false);
-    expect(box('Saga D').disabled).toBe(true);
-
-    await user.click(box('Saga C'));
+    expect(box('Saga B').checked).toBe(true);
     expect(box('Saga D').disabled).toBe(false);
+
     await user.click(box('Saga D'));
 
-    expect(coversUnder('ANIME')).toEqual(['Saga B', 'Saga D']);
+    screen.getByRole('group', { name: 'Anime · 1 de 1' });
+    expect(box('Saga B').checked).toBe(false);
+    expect(posters()).toEqual(['Saga D']);
   });
 
-  it('@CA-RF30-04 shows my dramas apart from my anime, at most two of them', async () => {
+  it('@CA-RF30-04 shows one drama next to my anime, chosen apart', async () => {
     const user = userEvent.setup();
     const { onCardGenerated } = renderCard(
       [mark(20, 'watching')],
@@ -309,19 +311,17 @@ describe('CardScreen', () => {
     );
 
     await screen.findByRole('heading', { name: 'Tu tarjeta' });
-    expect(coversUnder('ANIME')).toEqual(['Saga B']);
-    expect(coversUnder('DRAMAS')).toEqual(['Crash Landing on You']);
-    screen.getByRole('group', { name: 'Dramas · 1 de 2' });
+    expect(posters()).toEqual(['Saga B', 'Crash Landing on You']);
+    screen.getByRole('group', { name: 'Dramas · 1 de 1' });
     await vi.waitFor(() =>
       expect(onCardGenerated).toHaveBeenCalledWith({ mode: 'franchise', covers: 2 }),
     );
 
     await user.click(box('Alice in Borderland'));
 
-    expect(coversUnder('DRAMAS')).toEqual(['Crash Landing on You', 'Alice in Borderland']);
-    expect(box('The Untold Palace').disabled).toBe(true);
-    // The anime limit is its own.
-    expect(box('Saga B').disabled).toBe(false);
+    // The anime keeps its own choice.
+    expect(posters()).toEqual(['Saga B', 'Alice in Borderland']);
+    expect(box('Saga B').checked).toBe(true);
   });
 
   it('@CA-RF30-05 sums up how many anime and dramas I have seen', async () => {
@@ -334,18 +334,18 @@ describe('CardScreen', () => {
     );
 
     await screen.findByRole('heading', { name: 'Tu tarjeta' });
-    const figures = [...card().querySelectorAll('.share-card__total')].map(
-      (total) => total.textContent,
-    );
-    expect(figures).toEqual(['2ANIMES COMPLETOS', '2DRAMAS VISTOS']);
+    // Nothing in Viendo among the anime: the total leads. One drama in Viendo leads the dramas.
+    expect(figures()).toEqual([
+      ['2', 'ANIMES COMPLETOS'],
+      ['1', 'DRAMA VIENDO', '2 VISTOS'],
+    ]);
   });
 
   it('leaves the dramas out of the card of someone who marked none', async () => {
     renderCard([mark(20, 'watching')]);
 
     await screen.findByRole('heading', { name: 'Tu tarjeta' });
-    expect(within(card()).queryByText('DRAMAS VISTOS')).toBeNull();
-    expect(within(card()).queryByText('DRAMAS')).toBeNull();
+    expect(figures()).toEqual([['1', 'ANIME VIENDO', '0 COMPLETOS']]);
     screen.getByText('Aún no marcas dramas.');
     expect(screen.getByRole('link', { name: 'Explorar dramas' }).getAttribute('href')).toBe(
       '/dramas',
@@ -356,8 +356,8 @@ describe('CardScreen', () => {
     renderCard([mark(20, 'watching')], {}, { dramas: 'fail' });
 
     await screen.findByRole('heading', { name: 'Tu tarjeta' });
-    expect(coversUnder('ANIME')).toEqual(['Saga B']);
-    expect(within(card()).queryByText('DRAMAS VISTOS')).toBeNull();
+    expect(posters()).toEqual(['Saga B']);
+    expect(figures()).toHaveLength(1);
     screen.getByText('No pudimos cargar tus dramas. Tu tarjeta va sin ellos por ahora.');
   });
 
@@ -391,17 +391,17 @@ describe('CardScreen', () => {
       'Alice in Borderland',
     ]);
     // What was chosen stays on the card while it is filtered out of sight.
-    expect(coversUnder('ANIME')).toEqual(['Saga B', 'Saga C']);
+    expect(posters()).toEqual(['Saga B', 'Alice in Borderland']);
   });
 
-  it('leaves out the "ANIME" heading when nothing is chosen', async () => {
+  it('leaves out the poster when nothing is chosen', async () => {
     const user = userEvent.setup();
     renderCard([mark(20, 'watching')]);
 
     await user.click(await screen.findByRole('checkbox', { name: 'Saga B' }));
 
-    expect(within(card()).queryByText('ANIME')).toBeNull();
-    expect(card().querySelectorAll('.share-card__cover')).toHaveLength(0);
+    expect(posters()).toEqual([]);
+    expect(figures()).toHaveLength(1);
   });
 
   it('counts by entries and names a profile without a name', async () => {
@@ -412,9 +412,9 @@ describe('CardScreen', () => {
     preview.getByText('ENTRADAS VISTAS');
     preview.getByText('Sin nombre');
     preview.getByText('?');
-    // Nothing in Viendo: nothing chosen until I pick it.
-    expect(preview.queryByText('ANIME')).toBeNull();
-    expect(box('Saga B').checked).toBe(false);
+    // Nothing in Viendo: the first of my list, until I pick another.
+    expect(posters()).toEqual(['Saga B']);
+    expect(box('Saga B').checked).toBe(true);
   });
 
   it('offers a retry when the image cannot be made', async () => {
@@ -580,14 +580,14 @@ describe('CardScreen in English (RF-70)', () => {
 
     await screen.findByRole('heading', { name: 'Your card' });
     const preview = within(screen.getByRole('figure', { name: 'Preview of your card' }));
-    preview.getByText('ANIME COMPLETED');
-    preview.getByText('DRAMAS WATCHED');
-    preview.getByText('ANIME');
-    preview.getByText('DRAMAS');
-    expect(preview.queryByText('ANIMES COMPLETOS')).toBeNull();
+    preview.getByText('ANIME WATCHING');
+    preview.getByText('1 COMPLETED');
+    preview.getByText('DRAMA WATCHING');
+    preview.getByText('0 WATCHED');
+    expect(preview.queryByText('ANIME VIENDO')).toBeNull();
     screen.getByRole('heading', { name: 'Choose what to show' });
-    screen.getByRole('group', { name: 'Anime · 1 of 2' });
-    screen.getByRole('group', { name: 'Dramas · 1 of 2' });
+    screen.getByRole('group', { name: 'Anime · 1 of 1' });
+    screen.getByRole('group', { name: 'Dramas · 1 of 1' });
     expect(screen.getByRole('button', { name: 'Download image' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Descargar imagen' })).toBeNull();
   });

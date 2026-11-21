@@ -45,7 +45,8 @@ function ChoiceGroup(props: {
   empty: ReactNode;
 }) {
   const { choices, chosen } = props;
-  const full = chosen.length >= props.max;
+  // With room for one, choosing another replaces it, so no row is ever closed.
+  const full = props.max > 1 && chosen.length >= props.max;
   return (
     <fieldset className="card-picker__group">
       <legend className="card-picker__legend">{props.legend}</legend>
@@ -93,8 +94,8 @@ function ChoiceGroup(props: {
 }
 
 /**
- * Presentational: under the card, what it shows from "Mi lista": up to two anime and two dramas,
- * what the user is watching or wants to recommend (RF-30).
+ * Presentational: under the card, what it shows from "Mi lista": one anime and one drama, what
+ * the user is watching or wants to recommend (RF-30).
  */
 function CardPicker(props: {
   anime: CardChoice[];
@@ -282,8 +283,9 @@ export function CardScreen({
   const chosenDramas = (pickedDramas ?? defaultChoice(dramas, MAX_DRAMAS)).filter((id) =>
     dramas.some((choice) => choice.id === id),
   );
-  const toggled = (chosen: string[], id: string) =>
-    chosen.includes(id) ? chosen.filter((other) => other !== id) : [...chosen, id];
+  // Past the limit, the newest choice takes the place of the oldest.
+  const toggled = (chosen: string[], id: string, max: number) =>
+    chosen.includes(id) ? chosen.filter((other) => other !== id) : [...chosen, id].slice(-max);
   const ready = list !== null && dramasSettled;
 
   const content =
@@ -298,6 +300,8 @@ export function CardScreen({
           dramasSeen: dramaMarks.data?.length
             ? dramaMarks.data.filter((mark) => mark.status === 'seen').length
             : null,
+          dramasWatching: (dramaMarks.data ?? []).filter((mark) => mark.status === 'watching')
+            .length,
           chosenAnime,
           chosenDramas,
           t,
@@ -313,7 +317,7 @@ export function CardScreen({
   generatedRef.current = onCardGenerated;
   // A new image whenever what the card shows changes.
   const contentKey = content ? JSON.stringify(content) : null;
-  const coverCount = content?.picks.reduce((count, group) => count + group.covers.length, 0) ?? 0;
+  const coverCount = content?.blocks.filter((block) => block.cover).length ?? 0;
 
   useEffect(() => {
     if (!contentKey || !cardRef.current) return;
@@ -395,8 +399,7 @@ export function CardScreen({
           initial={content.initial}
           avatarUrl={content.avatarUrl}
           avatarPreset={content.avatarPreset}
-          totals={content.totals}
-          picks={content.picks}
+          blocks={content.blocks}
           badges={content.badges}
           url={`${window.location.host}/@${profile.handle}`}
           qr={`${window.location.origin}/@${profile.handle}`}
@@ -447,8 +450,8 @@ export function CardScreen({
         chosenAnime={chosenAnime}
         chosenDramas={chosenDramas}
         dramasFailed={dramasFailed}
-        onToggleAnime={(id) => setPickedAnime(toggled(chosenAnime, id))}
-        onToggleDrama={(id) => setPickedDramas(toggled(chosenDramas, id))}
+        onToggleAnime={(id) => setPickedAnime(toggled(chosenAnime, id, MAX_ANIME))}
+        onToggleDrama={(id) => setPickedDramas(toggled(chosenDramas, id, MAX_DRAMAS))}
       />
       {/* RF-58, ADR-0038: outside the card, so never in the shared image (RF-33). */}
       <AdSlot />
