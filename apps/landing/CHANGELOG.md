@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/Juargo/Acrux-Anime/compare/landing-v1.0.0...landing-v1.1.0) (2026-11-21)
+
+
+### Features
+
+* **web:** crédito a TVmaze y su licencia en «Acerca de» y en la landing ([#160](https://github.com/Juargo/Acrux-Anime/issues/160)) ([c26fe90](https://github.com/Juargo/Acrux-Anime/commit/c26fe9028a6f89cbc7fa1cab9597959613d73d11))
+* **web:** identidad nueva, cálida y clara, con lenguaje de interfaz de videojuego ([#138](https://github.com/Juargo/Acrux-Anime/issues/138)) ([761f4f3](https://github.com/Juargo/Acrux-Anime/commit/761f4f3549bc1defc675f77ad2bf17a14d74205f))
+
 ## 1.0.0 (2026-11-13)
 
 
