@@ -46,26 +46,53 @@ const content = (overrides: Partial<Parameters<typeof shareCardContent>[0]> = {}
     anime: [],
     dramas: [],
     dramasSeen: null,
+    dramasWatching: 0,
     chosenAnime: [],
     chosenDramas: [],
     ...overrides,
   });
 
 describe('shareCardContent', () => {
-  it('shows the complete franchises when counting by franchises', () => {
-    expect(content().totals).toEqual([{ value: 48, label: 'ANIMES COMPLETOS' }]);
-  });
-
-  it('shows the seen entries when counting by entries', () => {
-    expect(content({ mode: 'entry' }).totals).toEqual([{ value: 130, label: 'ENTRADAS VISTAS' }]);
-  });
-
-  it('adds the seen dramas next to the anime total once a drama is marked', () => {
-    expect(content({ dramasSeen: 7 }).totals).toEqual([
-      { value: 48, label: 'ANIMES COMPLETOS' },
-      { value: 7, label: 'DRAMAS VISTOS' },
+  it('leads with the complete franchises when nothing is in Viendo', () => {
+    expect(content().blocks).toEqual([
+      { value: 48, label: 'ANIMES COMPLETOS', seen: null, cover: null },
     ]);
-    expect(content({ dramasSeen: 0 }).totals).toHaveLength(2);
+  });
+
+  it('leads with the seen entries when counting by entries', () => {
+    expect(content({ mode: 'entry' }).blocks).toEqual([
+      { value: 130, label: 'ENTRADAS VISTAS', seen: null, cover: null },
+    ]);
+  });
+
+  it('leads with what is in Viendo and tags the total under it', () => {
+    expect(content({ list: list([row(1), row(2)]) }).blocks).toEqual([
+      { value: 2, label: 'ANIMES VIENDO', seen: '48 COMPLETOS', cover: null },
+    ]);
+    expect(content({ list: list([row(1)]), mode: 'entry' }).blocks).toEqual([
+      { value: 1, label: 'ANIME VIENDO', seen: '130 VISTAS', cover: null },
+    ]);
+  });
+
+  it('adds the dramas after the anime once a drama is marked', () => {
+    expect(content({ dramasSeen: 7 }).blocks[1]).toEqual({
+      value: 7,
+      label: 'DRAMAS VISTOS',
+      seen: null,
+      cover: null,
+    });
+    expect(content({ dramasSeen: 0, dramasWatching: 1 }).blocks[1]).toEqual({
+      value: 1,
+      label: 'DRAMA VIENDO',
+      seen: '0 VISTOS',
+      cover: null,
+    });
+    expect(content({ dramasSeen: 7, dramasWatching: 3 }).blocks[1]).toMatchObject({
+      value: 3,
+      label: 'DRAMAS VIENDO',
+      seen: '7 VISTOS',
+    });
+    expect(content().blocks).toHaveLength(1);
   });
 
   it('carries the name, the initial and the avatar of the profile', () => {
@@ -89,44 +116,46 @@ describe('shareCardContent', () => {
     });
   });
 
-  it('@CA-RF30-03 shows the chosen anime and dramas, each under its own heading', () => {
+  it('@CA-RF30-03 shows the chosen anime and the chosen drama, each on its half', () => {
     const anime = [choice('a1'), choice('a2'), choice('a3')];
     const dramas = [choice('d1'), choice('d2')];
-    const { picks } = content({
+    const { blocks } = content({
       anime,
       dramas,
-      chosenAnime: ['a3', 'a1'],
+      dramasSeen: 2,
+      chosenAnime: ['a3'],
       chosenDramas: ['d2'],
     });
-    expect(picks.map((group) => [group.label, group.covers.map((cover) => cover.id)])).toEqual([
-      ['ANIME', ['a1', 'a3']],
-      ['DRAMAS', ['d2']],
+    expect(blocks.map((block) => block.cover)).toEqual([
+      { id: 'a3', title: 'Title a3', coverUrl: 'https://cdn.example.test/a3.png' },
+      { id: 'd2', title: 'Title d2', coverUrl: 'https://cdn.example.test/d2.png' },
     ]);
   });
 
-  it('@CA-RF30-04 never shows more than two anime and two dramas', () => {
-    const anime = ['a1', 'a2', 'a3'].map((id) => choice(id));
-    const dramas = ['d1', 'd2', 'd3'].map((id) => choice(id));
-    const { picks } = content({
-      anime,
-      dramas,
+  it('@CA-RF30-04 never shows more than one anime and one drama', () => {
+    expect([MAX_ANIME, MAX_DRAMAS]).toEqual([1, 1]);
+    const { blocks } = content({
+      anime: ['a1', 'a2', 'a3'].map((id) => choice(id)),
+      dramas: ['d1', 'd2', 'd3'].map((id) => choice(id)),
+      dramasSeen: 3,
       chosenAnime: ['a1', 'a2', 'a3'],
-      chosenDramas: ['d1', 'd2', 'd3'],
+      chosenDramas: ['d2', 'd3'],
     });
-    expect(picks.map((group) => group.covers.length)).toEqual([MAX_ANIME, MAX_DRAMAS]);
+    expect(blocks.map((block) => block.cover?.id)).toEqual(['a1', 'd2']);
   });
 
-  it('leaves out a heading with nothing chosen under it', () => {
-    expect(content({ anime: [choice('a1')], dramas: [choice('d1')] }).picks).toEqual([]);
-    expect(
-      content({ anime: [choice('a1')], dramas: [choice('d1')], chosenDramas: ['d1'] }).picks.map(
-        (group) => group.label,
-      ),
-    ).toEqual(['DRAMAS']);
+  it('leaves a half without its poster when nothing is chosen for it', () => {
+    const { blocks } = content({
+      anime: [choice('a1')],
+      dramas: [choice('d1')],
+      dramasSeen: 1,
+      chosenDramas: ['d1'],
+    });
+    expect(blocks.map((block) => block.cover?.id)).toEqual([undefined, 'd1']);
   });
 
   it('ignores a chosen id that is no longer in the list', () => {
-    expect(content({ anime: [choice('a1')], chosenAnime: ['gone'] }).picks).toEqual([]);
+    expect(content({ anime: [choice('a1')], chosenAnime: ['gone'] }).blocks[0]?.cover).toBeNull();
   });
 });
 
@@ -175,10 +204,11 @@ describe('dramaChoices', () => {
 describe('defaultChoice', () => {
   it('checks what I am watching, up to the limit', () => {
     const choices = [choice('1', true), choice('2', true), choice('3', true), choice('4')];
-    expect(defaultChoice(choices, MAX_ANIME)).toEqual(['1', '2']);
+    expect(defaultChoice(choices, 2)).toEqual(['1', '2']);
   });
 
-  it('checks nothing when I am watching nothing', () => {
-    expect(defaultChoice([choice('1'), choice('2')], MAX_ANIME)).toEqual([]);
+  it('checks the first of the list when I am watching nothing', () => {
+    expect(defaultChoice([choice('1'), choice('2')], MAX_ANIME)).toEqual(['1']);
+    expect(defaultChoice([], MAX_ANIME)).toEqual([]);
   });
 });
