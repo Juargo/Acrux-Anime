@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { drama } from '../drama-source/test-support';
 import type { ListRow, MyList } from '../my-list/items';
-import { defaultChoice, MAX_COVERS, shareCardContent } from './content';
+import {
+  animeChoices,
+  type CardChoice,
+  defaultChoice,
+  dramaChoices,
+  MAX_ANIME,
+  MAX_DRAMAS,
+  shareCardContent,
+} from './content';
 
 const row = (
   id: number,
@@ -13,28 +22,54 @@ const row = (
   detail: '',
 });
 
-const list = (watching: ListRow[]): MyList => ({
+const list = (watching: ListRow[], seen: ListRow[] = []): MyList => ({
   stats: { complete: 48, seenEntries: 130, watching: watching.length },
   watching,
-  seen: [],
+  seen,
+});
+
+const choice = (id: string, watching = false): CardChoice => ({
+  id,
+  title: `Title ${id}`,
+  coverUrl: `https://cdn.example.test/${id}.png`,
+  detail: '',
+  watching,
 });
 
 const profile = { displayName: 'Jorge', avatarUrl: 'https://lh3.googleusercontent.com/a/x' };
 
+const content = (overrides: Partial<Parameters<typeof shareCardContent>[0]> = {}) =>
+  shareCardContent({
+    list: list([]),
+    mode: 'franchise',
+    profile,
+    anime: [],
+    dramas: [],
+    dramasSeen: null,
+    chosenAnime: [],
+    chosenDramas: [],
+    ...overrides,
+  });
+
 describe('shareCardContent', () => {
   it('shows the complete franchises when counting by franchises', () => {
-    const card = shareCardContent({ list: list([]), mode: 'franchise', profile, chosen: null });
-    expect(card).toMatchObject({ total: 48, label: 'ANIMES COMPLETOS' });
+    expect(content().totals).toEqual([{ value: 48, label: 'ANIMES COMPLETOS' }]);
   });
 
   it('shows the seen entries when counting by entries', () => {
-    const card = shareCardContent({ list: list([]), mode: 'entry', profile, chosen: null });
-    expect(card).toMatchObject({ total: 130, label: 'ENTRADAS VISTAS' });
+    expect(content({ mode: 'entry' }).totals).toEqual([{ value: 130, label: 'ENTRADAS VISTAS' }]);
+  });
+
+  it('adds the seen dramas next to the anime total once a drama is marked', () => {
+    expect(content({ dramasSeen: 7 }).totals).toEqual([
+      { value: 48, label: 'ANIMES COMPLETOS' },
+      { value: 7, label: 'DRAMAS VISTOS' },
+    ]);
+    expect(content({ dramasSeen: 0 }).totals).toHaveLength(2);
   });
 
   it('carries the name, the initial and the avatar of the profile', () => {
-    const card = shareCardContent({ list: list([]), mode: 'franchise', profile, chosen: null });
-    expect(card).toMatchObject({
+    expect(content()).toMatchObject({
       name: 'Jorge',
       initial: 'J',
       avatarUrl: 'https://lh3.googleusercontent.com/a/x',
@@ -42,74 +77,108 @@ describe('shareCardContent', () => {
   });
 
   it('@CA-RF55-02 carries the badges only while the owner is Plus', () => {
-    const earned = { ...profile, badges: ['titles_10', 'hours_50'] };
-    const plus = shareCardContent({
-      list: list([]),
-      mode: 'franchise',
-      profile: { ...earned, plan: 'plus' },
-      chosen: null,
-    });
-    expect(plus.badges).toEqual(['titles_10', 'hours_50']);
-    const free = shareCardContent({
-      list: list([]),
-      mode: 'franchise',
-      profile: { ...earned, plan: 'free' },
-      chosen: null,
-    });
-    expect(free.badges).toEqual([]);
+    const badges = ['titles-10', 'hours-50'];
+    expect(content({ profile: { ...profile, plan: 'plus', badges } }).badges).toEqual(badges);
+    expect(content({ profile: { ...profile, plan: 'free', badges } }).badges).toEqual([]);
   });
 
   it('falls back to "Sin nombre" and "?" without a name', () => {
-    const card = shareCardContent({
-      list: list([]),
-      mode: 'franchise',
-      profile: { displayName: '  ', avatarUrl: null },
-      chosen: null,
-    });
-    expect(card).toMatchObject({ name: 'Sin nombre', initial: '?', avatarUrl: null });
-  });
-
-  it('shows the first three franchises in Viendo when nothing was chosen', () => {
-    const watching = [row(1), row(2), row(3), row(4)];
-    const card = shareCardContent({
-      list: list(watching),
-      mode: 'franchise',
-      profile,
-      chosen: null,
-    });
-    expect(card.covers.map((cover) => cover.id)).toEqual(['1', '2', '3']);
-    expect(card.covers[0]).toEqual({
-      id: '1',
-      title: 'Saga 1',
-      coverUrl: 'https://cdn.example.test/anime/1.png',
+    expect(content({ profile: { displayName: '  ', avatarUrl: null } })).toMatchObject({
+      name: 'Sin nombre',
+      initial: '?',
     });
   });
 
-  it('shows only the chosen franchises, in the order of the list and at most three', () => {
-    const watching = [row(1), row(2), row(3), row(4), row(5)];
-    const card = shareCardContent({
-      list: list(watching),
-      mode: 'franchise',
-      profile,
-      chosen: ['5', '2', '4', '1'],
+  it('@CA-RF30-03 shows the chosen anime and dramas, each under its own heading', () => {
+    const anime = [choice('a1'), choice('a2'), choice('a3')];
+    const dramas = [choice('d1'), choice('d2')];
+    const { picks } = content({
+      anime,
+      dramas,
+      chosenAnime: ['a3', 'a1'],
+      chosenDramas: ['d2'],
     });
-    expect(card.covers.map((cover) => cover.id)).toEqual(['1', '2', '4']);
+    expect(picks.map((group) => [group.label, group.covers.map((cover) => cover.id)])).toEqual([
+      ['ANIME', ['a1', 'a3']],
+      ['DRAMAS', ['d2']],
+    ]);
   });
 
-  it('shows no covers when the choice is empty or nothing is in Viendo', () => {
+  it('@CA-RF30-04 never shows more than two anime and two dramas', () => {
+    const anime = ['a1', 'a2', 'a3'].map((id) => choice(id));
+    const dramas = ['d1', 'd2', 'd3'].map((id) => choice(id));
+    const { picks } = content({
+      anime,
+      dramas,
+      chosenAnime: ['a1', 'a2', 'a3'],
+      chosenDramas: ['d1', 'd2', 'd3'],
+    });
+    expect(picks.map((group) => group.covers.length)).toEqual([MAX_ANIME, MAX_DRAMAS]);
+  });
+
+  it('leaves out a heading with nothing chosen under it', () => {
+    expect(content({ anime: [choice('a1')], dramas: [choice('d1')] }).picks).toEqual([]);
     expect(
-      shareCardContent({ list: list([row(1)]), mode: 'franchise', profile, chosen: [] }).covers,
-    ).toEqual([]);
-    expect(
-      shareCardContent({ list: list([]), mode: 'franchise', profile, chosen: null }).covers,
-    ).toEqual([]);
+      content({ anime: [choice('a1')], dramas: [choice('d1')], chosenDramas: ['d1'] }).picks.map(
+        (group) => group.label,
+      ),
+    ).toEqual(['DRAMAS']);
+  });
+
+  it('ignores a chosen id that is no longer in the list', () => {
+    expect(content({ anime: [choice('a1')], chosenAnime: ['gone'] }).picks).toEqual([]);
+  });
+});
+
+describe('animeChoices', () => {
+  it('offers what is in Viendo first, then what is seen, each once', () => {
+    const choices = animeChoices(list([row(1), row(2)], [row(3), row(1)]));
+    expect(choices.map(({ id, watching }) => [id, watching])).toEqual([
+      ['1', true],
+      ['2', true],
+      ['3', false],
+    ]);
+  });
+});
+
+describe('dramaChoices', () => {
+  it('offers the marked dramas with their origin and year', () => {
+    const choices = dramaChoices([
+      {
+        drama: drama(5, { title: 'Signal', origin: 'KR', year: 2016 }),
+        mark: { dramaId: 5, status: 'watching', markedAt: '2026-10-10T12:00:00.000Z' },
+      },
+      {
+        drama: drama(6, { title: 'Nirvana in Fire', origin: 'CN', year: 2015, coverUrl: null }),
+        mark: { dramaId: 6, status: 'seen', markedAt: '2026-10-09T12:00:00.000Z' },
+      },
+    ]);
+    expect(choices).toEqual([
+      {
+        id: 'drama-5',
+        title: 'Signal',
+        coverUrl: 'https://static.tvmaze.test/5.jpg',
+        detail: 'Corea · 2016',
+        watching: true,
+      },
+      {
+        id: 'drama-6',
+        title: 'Nirvana in Fire',
+        coverUrl: null,
+        detail: 'China · 2015',
+        watching: false,
+      },
+    ]);
   });
 });
 
 describe('defaultChoice', () => {
-  it('checks the first three franchises in Viendo', () => {
-    expect(MAX_COVERS).toBe(3);
-    expect(defaultChoice([row(1), row(2), row(3), row(4)])).toEqual(['1', '2', '3']);
-    expect(defaultChoice([row(7)])).toEqual(['7']);
+  it('checks what I am watching, up to the limit', () => {
+    const choices = [choice('1', true), choice('2', true), choice('3', true), choice('4')];
+    expect(defaultChoice(choices, MAX_ANIME)).toEqual(['1', '2']);
+  });
+
+  it('checks nothing when I am watching nothing', () => {
+    expect(defaultChoice([choice('1'), choice('2')], MAX_ANIME)).toEqual([]);
   });
 });

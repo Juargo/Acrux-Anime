@@ -72,7 +72,7 @@ Estimaciones del estudio (no verificadas): SAM de 1,6–6 M de hispanohablantes 
 | RU-03 | Cualquier usuario | ver cada anime como un solo ítem con todas sus temporadas, películas y OVAs | entender qué he visto de una saga | Must |
 | RU-04 | Cualquier usuario | marcar una franquicia como vista o viendo con un toque | registrar sin fricción | Must |
 | RU-05 | Cualquier usuario | ver cuántos animes he visto de verdad, y poder contar por entradas | elegir el conteo que prefiero | Must |
-| RU-06 | Otaku que comparte | generar una tarjeta vertical con mi total, mi nombre, mi avatar y lo que estoy viendo | subirla a Stories y TikTok | Must |
+| RU-06 | Otaku que comparte | generar una tarjeta vertical con mi total, mi nombre, mi avatar y las series que elijo mostrar: lo que estoy viendo o lo que recomiendo | subirla a Stories y TikTok | Must |
 | RU-07 | Cualquier usuario | ver qué me falta de una saga ("3/5 temporadas") | saber qué ver después | Should |
 | RU-08 | Otaku que comparte | tener un enlace público a mi perfil | que otros vean mi lista sin crear una cuenta | Must |
 | RU-09 | Cualquier usuario | decidir si mi lista es pública o privada | controlar qué muestro | Must |

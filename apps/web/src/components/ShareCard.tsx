@@ -1,5 +1,4 @@
 import { forwardRef } from 'react';
-import { useTranslation } from 'react-i18next';
 import type { AvatarPreset } from '../profile-api';
 import { Avatar } from './Avatar';
 import { BadgeRow } from './BadgeRow';
@@ -11,10 +10,11 @@ export interface ShareCardProps {
   initial: string;
   avatarUrl: string | null;
   avatarPreset?: AvatarPreset | null;
-  total: number | string;
-  label: string;
-  // Up to three covers under "VIENDO AHORA"; null draws an empty slot. No section when empty.
-  covers: { id: string; title: string; coverUrl: string | null }[];
+  // The summary: one figure alone is drawn large, two share the row.
+  totals: { value: number | string; label: string }[];
+  // The covers under each heading ("ANIME", "DRAMAS"), four at most in all; a null cover draws
+  // an empty slot. No section when empty.
+  picks: { label: string; covers: { id: string; title: string; coverUrl: string | null }[] }[];
   url: string;
   // The QR to the public profile (RF-32): a URL draws it, true draws the sample's placeholder.
   qr?: string | boolean;
@@ -33,9 +33,8 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
     initial,
     avatarUrl,
     avatarPreset = null,
-    total,
-    label,
-    covers,
+    totals,
+    picks,
     badges = [],
     url,
     qr = false,
@@ -43,7 +42,13 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
   },
   ref,
 ) {
-  const { t } = useTranslation();
+  // Four covers only fit the row at their small size.
+  const coverCount = picks.reduce((count, group) => count + group.covers.length, 0);
+  const pair = totals.length > 1;
+  const long = pair && totals.some((total) => String(total.value).length > 3);
+  const totalsClass = `share-card__totals${pair ? ' share-card__totals--pair' : ''}${
+    long ? ' share-card__totals--long' : ''
+  }`;
   return (
     <div className="share-card" ref={ref} aria-hidden={hidden || undefined}>
       <div className="share-card__user">
@@ -68,30 +73,38 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
           height={26.4}
         />
       </div>
-      <div className="share-card__total">
-        <span className="share-card__count">{total}</span>
-        <span className="share-card__label">{label}</span>
+      <div className="share-card__summary">
+        <div className={totalsClass}>
+          {totals.map((total) => (
+            <div key={total.label} className="share-card__total">
+              <span className="share-card__count">{total.value}</span>
+              <span className="share-card__label">{total.label}</span>
+            </div>
+          ))}
+        </div>
         <BadgeRow ids={badges} className="share-card__badges" />
       </div>
-      {covers.length > 0 && (
-        <div className="share-card__watching">
-          <span className="share-card__label">{t('card.watchingNow')}</span>
-          <div className="share-card__covers">
-            {covers.map((cover) =>
-              cover.coverUrl ? (
-                <img
-                  key={cover.id}
-                  className="share-card__cover"
-                  src={cover.coverUrl}
-                  alt={cover.title}
-                  width={84}
-                  height={125}
-                />
-              ) : (
-                <span key={cover.id} className="share-card__cover" />
-              ),
-            )}
-          </div>
+      {picks.length > 0 && (
+        <div className={`share-card__picks${coverCount > 3 ? ' share-card__picks--tight' : ''}`}>
+          {picks.map((group) => (
+            <div key={group.label} className="share-card__group">
+              <span className="share-card__label">{group.label}</span>
+              <div className="share-card__covers">
+                {group.covers.map((cover) =>
+                  cover.coverUrl ? (
+                    <img
+                      key={cover.id}
+                      className="share-card__cover"
+                      src={cover.coverUrl}
+                      alt={cover.title}
+                    />
+                  ) : (
+                    <span key={cover.id} className="share-card__cover" />
+                  ),
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
       <div className="share-card__footer">

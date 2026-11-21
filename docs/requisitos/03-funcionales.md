@@ -47,7 +47,7 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 
 | ID | Requisito | Prioridad | Hito | Origen y pantallas |
 |---|---|---|---|---|
-| RF-30 | El usuario genera una tarjeta vertical 9:16 con su total, nombre, avatar y portadas de lo que está viendo ahora. Justo antes se le pregunta "¿Qué estás viendo ahora?" (se puede saltar). | Must | H2 | DD-10 · M04–M07/D04–D07 |
+| RF-30 | El usuario genera una tarjeta vertical 9:16 con su nombre, su avatar, el resumen de cuántos animes y dramas ha visto y las portadas que elige de su lista. La pantalla abre directamente en la tarjeta; debajo, el usuario elige hasta 2 animes y 2 dramas de su lista (lo que está viendo o lo que quiere recomendar). Sin elegir, la tarjeta muestra lo que está viendo. Hasta 2026-11-21 se preguntaba antes "¿Qué estás viendo ahora?" y solo se podía elegir entre lo que estaba en Viendo. La personalización visual de la tarjeta queda para más adelante (RF-52). | Must | H2 | DD-10 · M06–M07/D06–D07; `docs/criterios/RF-30.feature` |
 | RF-31 | La tarjeta se comparte con la hoja del navegador (Web Share API) cuando existe; si no, se descarga la imagen. | Must | H2 | ADR-0026, Figma flujo 1 |
 | RF-32 | La tarjeta lleva una marca discreta de Acrux y un enlace o QR al perfil público. | Should | H2 | — |
 | RF-33 | La tarjeta básica es gratuita y nunca lleva anuncios. | Must | H2 | RN-05 |
