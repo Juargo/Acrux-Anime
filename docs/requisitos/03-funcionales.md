@@ -12,7 +12,7 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 | RF-04 | El usuario puede desvincular AniList sin perder su cuenta ni sus marcas; no se borra nada en AniList. **Fuera del alcance del lanzamiento (2026-11-10, ADR-0043, punto 8).** | Must (si existe RF-02) | — | Figma flujo 4 · M18/D18 |
 | RF-05 | El usuario puede cerrar sesión. | Must | H2 | — |
 | RF-06 | El usuario puede borrar su cuenta y todos sus datos. Si la sesión tiene más de 24 horas, debe volver a iniciar sesión antes. Si tiene Plus, se le avisa que el plan vitalicio se pierde sin reembolso. | Must | H2 | ADR-0025, DD-30, DD-33, ADR-0036 · M19/D19 |
-| RF-07 | El usuario puede editar su nombre visible y su avatar. Se toman de Google y solo se piden si faltan. | Must | H2 | DD-11; Must porque la tarjeta los exige · M06/D06 |
+| RF-07 | El usuario puede editar su nombre visible y su avatar desde Perfil. Se toman de Google. Hasta 2026-11-21 se pedían en una pantalla previa a la primera tarjeta; esa pantalla se eliminó y la tarjeta se muestra directamente. | Must | H2 | DD-11; Must porque la tarjeta los exige · M06/D06 |
 | RF-08 | El usuario puede descargar sus datos personales en JSON en cualquier momento. | Must | H2 | ADR-0028, Ley 21.719 · D35 |
 | RF-09 | Antes de crear la cuenta, el usuario declara tener 16 años o más. | Must (propuesta, P-07) | H2 | Figma M01/D01 |
 
@@ -47,7 +47,7 @@ Prioridad MoSCoW. **Hito** es el primero en que el requisito debe estar listo (A
 
 | ID | Requisito | Prioridad | Hito | Origen y pantallas |
 |---|---|---|---|---|
-| RF-30 | El usuario genera una tarjeta vertical 9:16 con su nombre, su avatar, el resumen de cuántos animes y dramas ha visto y las portadas que elige de su lista. La pantalla abre directamente en la tarjeta; debajo, el usuario elige hasta 2 animes y 2 dramas de su lista (lo que está viendo o lo que quiere recomendar). Sin elegir, la tarjeta muestra lo que está viendo. Hasta 2026-11-21 se preguntaba antes "¿Qué estás viendo ahora?" y solo se podía elegir entre lo que estaba en Viendo. La personalización visual de la tarjeta queda para más adelante (RF-52). | Must | H2 | DD-10 · M06–M07/D06–D07; `docs/criterios/RF-30.feature` |
+| RF-30 | El usuario genera una tarjeta vertical 9:16 con su nombre, su avatar, el resumen de cuántos animes y dramas ha visto y las portadas que elige de su lista. La pantalla abre directamente en la tarjeta, también la primera vez, sin pasos previos; debajo, el usuario elige hasta 2 animes y 2 dramas de su lista (lo que está viendo o lo que quiere recomendar). Sin elegir, la tarjeta muestra lo que está viendo. Hasta 2026-11-21 se preguntaba antes "¿Qué estás viendo ahora?" y solo se podía elegir entre lo que estaba en Viendo. La personalización visual de la tarjeta queda para más adelante (RF-52). | Must | H2 | DD-10 · M06–M07/D06–D07; `docs/criterios/RF-30.feature` |
 | RF-31 | La tarjeta se comparte con la hoja del navegador (Web Share API) cuando existe; si no, se descarga la imagen. | Must | H2 | ADR-0026, Figma flujo 1 |
 | RF-32 | La tarjeta lleva una marca discreta de Acrux y un enlace o QR al perfil público. | Should | H2 | — |
 | RF-33 | La tarjeta básica es gratuita y nunca lleva anuncios. | Must | H2 | RN-05 |

@@ -108,7 +108,7 @@ const BASE: Profile = {
   handle: 'camila',
   shownTotal: null,
   shownMode: null,
-  // Most tests share again; the first card asks for the name and avatar first (#39).
+  // Most tests share again; the first card offers to make a private list public (#36).
   cardShared: true,
   createdAt: '2026-11-01T12:00:00.000Z',
   analyticsId: null,
@@ -451,10 +451,6 @@ describe('CardScreen', () => {
 
   describe('the link to the public profile (#37)', () => {
     async function shareOnce(user: ReturnType<typeof userEvent.setup>) {
-      const step = await screen.findByRole('heading', { name: /Así aparecerás|Tu tarjeta/ });
-      if (step.textContent === 'Así aparecerás en tu tarjeta') {
-        await user.click(screen.getByRole('button', { name: 'Continuar' }));
-      }
       const share = await screen.findByRole('button', { name: 'Compartir' });
       await vi.waitFor(() => expect((share as HTMLButtonElement).disabled).toBe(false));
       await user.click(share);
@@ -557,25 +553,13 @@ describe('CardScreen', () => {
     });
   });
 
-  describe('the name and avatar before the first card (#39, Figma M06)', () => {
-    it('asks for them before the first card', async () => {
-      const user = userEvent.setup();
-      const { patches } = renderCard([mark(20, 'watching')], { cardShared: false });
+  it('opens on the card before the first one too, without asking for the name and avatar', async () => {
+    const { patches } = renderCard([mark(20, 'watching')], { cardShared: false });
 
-      await screen.findByRole('heading', { name: 'Así aparecerás en tu tarjeta' });
-      await user.click(screen.getByRole('radio', { name: 'Avatar coral' }));
-      await user.click(screen.getByRole('button', { name: 'Continuar' }));
-
-      await screen.findByRole('heading', { name: 'Tu tarjeta' });
-      expect(card().querySelector('.avatar--coral')).not.toBeNull();
-      expect(patches).toEqual([{ avatarPreset: 'coral' }]);
-    });
-
-    it('does not ask after the first card', async () => {
-      renderCard([mark(20, 'seen')]);
-      await screen.findByRole('heading', { name: 'Tu tarjeta' });
-      expect(screen.queryByRole('heading', { name: 'Así aparecerás en tu tarjeta' })).toBeNull();
-    });
+    await screen.findByRole('heading', { name: 'Tu tarjeta' });
+    within(card()).getByText('Camila');
+    expect(screen.queryByRole('heading', { name: 'Así aparecerás en tu tarjeta' })).toBeNull();
+    expect(patches).toEqual([]);
   });
 });
 

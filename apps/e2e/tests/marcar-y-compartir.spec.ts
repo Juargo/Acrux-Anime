@@ -22,12 +22,11 @@ test('@CA-RF12-01 @CA-RF24-01 @CA-RF30-02 @CA-RF31-02 search a franchise, mark i
     grid.getByRole('button', { name: `Quitar «${FRIEREN.title}» de vistas` }),
   ).toHaveAttribute('aria-pressed', 'true');
 
-  // First card: the name and avatar it shows, then the preview.
+  // "Tarjeta" opens on the card, the first time too.
   await page
     .getByRole('navigation', { name: 'Principal' })
     .getByRole('link', { name: 'Tarjeta' })
     .click();
-  await page.getByRole('button', { name: 'Continuar' }).click();
   await expect(page.getByRole('heading', { name: 'Tu tarjeta' })).toBeVisible();
   await expect(page.getByRole('figure', { name: 'Vista previa de tu tarjeta' })).toContainText('1');
 
