@@ -75,6 +75,13 @@ export function answer(url: URL): unknown {
     );
     return { items: items.map(toJson), nextPage: null };
   }
+  if (pathname === '/api/v1/dramas/by-ids') {
+    const ids = (params.get('ids') ?? '').split(',').map(Number);
+    return {
+      items: DRAMAS.filter((drama) => ids.includes(drama.id)).map(toJson),
+      missing: ids.filter((id) => !DRAMAS.some((drama) => drama.id === id)),
+    };
+  }
   if (pathname === '/api/v1/dramas/genres') {
     return { items: ['Drama', 'Romance', 'Thriller'] };
   }

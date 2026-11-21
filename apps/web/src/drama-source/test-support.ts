@@ -23,6 +23,7 @@ export function fakeDramaClient(methods: Partial<DramaClient> = {}) {
   };
   return {
     browse: vi.fn(methods.browse ?? unexpected('browse')),
+    byIds: vi.fn(methods.byIds ?? unexpected('byIds')),
     genres: vi.fn(methods.genres ?? unexpected('genres')),
   } satisfies DramaClient;
 }

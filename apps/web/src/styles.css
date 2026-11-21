@@ -616,6 +616,35 @@ a {
   background: var(--color-accent-default);
 }
 
+/* #166: a drama row is not a link; its two buttons change its state, as on its card. */
+.list-row__mark {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: var(--stroke) solid var(--color-border-default);
+  border-radius: 50%;
+  background: none;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.list-row__mark--seen[aria-pressed="true"] {
+  border-color: var(--color-status-seen);
+  background: var(--color-status-seen);
+  color: var(--color-text-on-accent);
+}
+
+.list-row__mark--watching[aria-pressed="true"] {
+  border-color: var(--color-status-watching);
+  background: var(--color-status-watching);
+  color: var(--color-text-on-accent);
+}
+
 .my-list__empty {
   display: flex;
   flex-direction: column;

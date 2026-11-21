@@ -29,6 +29,10 @@ const dramaPageSchema = z.object({
   nextPage: z.number().int().nullable(),
 });
 const genresSchema = z.object({ items: z.array(z.string()) });
+// The ids the catalog does not serve come in "missing"; nothing here needs them.
+const byIdsSchema = z.object({ items: z.array(dramaSchema) });
+// The most ids the API takes in one request.
+const BY_IDS_BATCH = 100;
 
 export type DramaPage = z.infer<typeof dramaPageSchema>;
 
@@ -41,6 +45,8 @@ export interface DramaBrowseParams {
 
 export interface DramaClient {
   browse(params: DramaBrowseParams, page: number): Promise<DramaPage>;
+  // The dramas the catalog serves among the ids, in no particular order.
+  byIds(ids: readonly number[]): Promise<Drama[]>;
   genres(): Promise<string[]>;
 }
 
@@ -54,6 +60,19 @@ export function createDramaClient(options: { fetch?: typeof fetch } = {}): Drama
       if (params.genres.length > 0) query.set('genres', params.genres.join(','));
       query.set('page', String(page));
       return getJson(fetchFn, `${DRAMAS_PATH}?${query}`, dramaPageSchema);
+    },
+    async byIds(ids) {
+      const unique = [...new Set(ids)];
+      const batches: number[][] = [];
+      for (let start = 0; start < unique.length; start += BY_IDS_BATCH) {
+        batches.push(unique.slice(start, start + BY_IDS_BATCH));
+      }
+      const pages = await Promise.all(
+        batches.map((batch) =>
+          getJson(fetchFn, `${DRAMAS_PATH}/by-ids?ids=${batch.join(',')}`, byIdsSchema),
+        ),
+      );
+      return pages.flatMap((page) => page.items);
     },
     async genres() {
       return (await getJson(fetchFn, `${DRAMAS_PATH}/genres`, genresSchema)).items;
