@@ -420,6 +420,49 @@ describe('catalog repository: store', () => {
     expect((await stored(16498)).detailedAt).not.toBeNull();
   });
 
+  it('stores the openings of a detail, and a list read later leaves them alone', async () => {
+    const repository = createCatalogRepository(prisma);
+    const openings = [
+      { title: 'again', artist: 'YUI', episodes: '1-14' },
+      { title: 'Period', artist: null, episodes: null },
+    ];
+    await repository.saveDetailed(input(9301, { openings }));
+    await repository.saveDetailed(input(9302));
+    await repository.saveListed([input(9301, { title: 'Renamed' }), input(9303)]);
+    await prisma.anime.create({
+      data: { id: 9304, title: 'x', searchText: 'x', adult: true, openings },
+    });
+    await prisma.anime.create({
+      data: { id: 9305, title: 'y', searchText: 'y', openings: { not: 'a list' } },
+    });
+
+    const read = await repository.openings([9305, 9304, 9303, 9302, 9301, 404]);
+    expect(read.sort((a, b) => a.animeId - b.animeId)).toEqual([
+      { animeId: 9301, openings },
+      // A detail always states its openings; an anime only listed was never read for them.
+      { animeId: 9302, openings: [] },
+      { animeId: 9303, openings: null },
+      // Openings in an unexpected shape read as none, so nothing asks for them forever.
+      { animeId: 9305, openings: [] },
+    ]);
+    expect(await repository.openings([])).toEqual([]);
+  });
+
+  it('gives an anime the source no longer has no openings, keeping the ones it had', async () => {
+    const repository = createCatalogRepository(prisma);
+    const openings = [{ title: 'again', artist: 'YUI', episodes: null }];
+    await repository.saveListed([input(9310)]);
+    await repository.saveDetailed(input(9311, { openings }));
+    await repository.markChecked(9310);
+    await repository.markChecked(9311);
+
+    const read = await repository.openings([9310, 9311]);
+    expect(read.sort((a, b) => a.animeId - b.animeId)).toEqual([
+      { animeId: 9310, openings: [] },
+      { animeId: 9311, openings },
+    ]);
+  });
+
   it('reads next the anime never read, most popular first, then the oldest reads', async () => {
     const repository = createCatalogRepository(prisma);
     await prisma.anime.deleteMany();

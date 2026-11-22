@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { CatalogAnimeInput, Relation } from '../repositories/catalog.repository.js';
+import type { CatalogAnimeInput, Opening, Relation } from '../repositories/catalog.repository.js';
 import { SourceError } from '../source-error.js';
 
 // The MyAnimeList API v2 (ADR-0043). It is called only from the server: it sends no CORS
@@ -19,8 +19,9 @@ const LIST_FIELDS = [
   'rating',
   'num_list_users',
 ].join(',');
-// Relations only come with the detail of one anime, never in a list.
-const DETAIL_FIELDS = `${LIST_FIELDS},related_anime`;
+// Relations only come with the detail of one anime, never in a list. opening_themes is not
+// in the reference of MyAnimeList; the API answered it on 2026-11-21.
+const DETAIL_FIELDS = `${LIST_FIELDS},related_anime,opening_themes`;
 const SEARCH_LIMIT = 100;
 export const RANKING_PAGE_SIZE = 500;
 // MyAnimeList answers 400 "invalid q" to a shorter name.
@@ -53,6 +54,8 @@ const animeSchema = z.object({
   related_anime: z
     .array(z.object({ node: z.object({ id: z.int().positive() }), relation_type: z.string() }))
     .optional(),
+  // Each also brings its id and the id of the anime, which nothing here reads.
+  opening_themes: z.array(z.looseObject({ text: z.string() })).optional(),
 });
 
 const listSchema = z.object({
@@ -122,6 +125,27 @@ function toStartDate(value: string | undefined): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+// '#1: "again" by YUI (eps 1-14)', or '"Yume Tourou (夢灯籠)" by RADWIMPS' when the anime has
+// one opening. The artist may hold parentheses of its own, so the episodes are the last ones.
+const OPENING = /^(?:#\d+:\s*)?"(.+)"(?:\s+by\s+(.+?))?(?:\s*\(eps?\s+([^()]+)\))?$/;
+
+// A text in another shape stays whole as the title, so no opening is lost; a blank one is.
+function toOpenings(themes: readonly { text: string }[]): Opening[] {
+  return themes.flatMap(({ text }) => {
+    const whole = text.trim();
+    if (whole === '') return [];
+    const match = OPENING.exec(whole);
+    if (!match?.[1]) return [{ title: whole, artist: null, episodes: null }];
+    return [
+      {
+        title: match[1].trim(),
+        artist: match[2]?.trim() || null,
+        episodes: match[3]?.trim() || null,
+      },
+    ];
+  });
+}
+
 const positive = (value: number | undefined) => (value !== undefined && value > 0 ? value : null);
 
 export function toCatalogAnime(source: SourceAnime): CatalogAnimeInput {
@@ -156,6 +180,7 @@ export function toCatalogAnime(source: SourceAnime): CatalogAnimeInput {
     // MyAnimeList marks hentai as nsfw "gray", the same as ecchi: the rating tells them apart.
     adult: source.rating === 'rx' || source.nsfw === 'black' || sourceGenres.includes('Hentai'),
     ...(relations === undefined ? {} : { relations }),
+    ...(source.opening_themes === undefined ? {} : { openings: toOpenings(source.opening_themes) }),
   };
 }
 
@@ -216,8 +241,8 @@ export function createMyAnimeListSource({
       if (body === null) return null;
       const anime = animeSchema.safeParse(body);
       if (!anime.success) throw new SourceError(null, 'MyAnimeList sent an unexpected anime');
-      // A detail always states its relations, even when it has none.
-      return { relations: [], ...toCatalogAnime(anime.data) };
+      // A detail always states its relations and openings, even when it has none.
+      return { relations: [], openings: [], ...toCatalogAnime(anime.data) };
     },
     search: async (name) => {
       const q = name.trim();

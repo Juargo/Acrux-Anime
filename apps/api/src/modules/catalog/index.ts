@@ -38,6 +38,14 @@ const animeSchema = z
   })
   .meta({ id: 'CatalogAnime' });
 
+const openingSchema = z
+  .object({
+    title: z.string(),
+    artist: z.string().nullable(),
+    episodes: z.string().nullable().meta({ description: 'The episodes it played in, as text' }),
+  })
+  .meta({ id: 'CatalogOpening' });
+
 const unavailable = { description: 'The database is not configured' };
 const invalidQuery = { description: 'A query parameter is missing, repeated or not valid' };
 const text = (description: string) => z.string().optional().meta({ description });
@@ -228,6 +236,32 @@ export function createCatalogModule(service: CatalogService | undefined): Module
             missing: result.missing,
             pending: result.pending,
           });
+        },
+      },
+      {
+        method: 'get',
+        path: '/api/v1/catalog/openings',
+        public: true,
+        rateLimit: 'public',
+        docs: {
+          summary: 'The opening themes of the given anime, in the order they aired',
+          query: { ids: idList('ids') },
+          responses: {
+            200: {
+              description:
+                'The anime whose openings are known, an empty list included, and the ids left for another request; an id in neither list has no openings to show',
+              schema: z.object({
+                items: z.array(z.object({ animeId: id, openings: z.array(openingSchema) })),
+                pending: z.array(id),
+              }),
+            },
+            400: invalidQuery,
+            503: unavailable,
+          },
+        },
+        handler: async (request, response) => {
+          const catalog = start(service, response);
+          response.json(await catalog.openings(parseIds(request.query, 'ids')));
         },
       },
       {

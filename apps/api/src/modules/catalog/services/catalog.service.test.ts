@@ -6,6 +6,7 @@ import type {
   CatalogAnimeInput,
   CatalogRepository,
   CatalogStore,
+  Opening,
   Relation,
 } from '../repositories/catalog.repository.js';
 import { CATALOG_PAGE_SIZE, createCatalogService } from './catalog.service.js';
@@ -62,6 +63,7 @@ function fakeRepository(rows: AnimeRow[]) {
     genres: async () => ['Action', 'Drama'],
     franchiseYears: async () => [],
     knowsName: async () => false,
+    openings: async () => [],
   };
   return { repository, browsed, asked };
 }
@@ -214,12 +216,17 @@ function filling(
     details?: AnimeRow[];
     detailed?: number[];
     found?: AnimeRow[];
+    // Openings the table holds, by id; an anime not named here was never read for them.
+    openings?: Record<number, Opening[]>;
+    // Openings the source answers with a detail, by id.
+    sourceOpenings?: Record<number, Opening[]>;
     fail?: SourceError;
     clock?: { now: number };
   } = {},
 ) {
   const rows = new Map(initial.map((row) => [row.id, row]));
   const detailed = new Set(options.detailed ?? []);
+  const openings = new Map(Object.entries(options.openings ?? {}).map(([id, list]) => [+id, list]));
   const calls = {
     detail: [] as number[],
     search: [] as string[],
@@ -231,6 +238,7 @@ function filling(
     searchText: row.title.toLowerCase(),
     members: 0,
     adult: false,
+    openings: options.sourceOpenings?.[row.id] ?? [],
   });
   const repository: CatalogRepository = {
     browse: async (query) =>
@@ -247,6 +255,10 @@ function filling(
     franchiseYears: async () => [],
     knowsName: async (search) =>
       [...rows.values()].some((row) => row.title.toLowerCase().includes(search)),
+    openings: async (ids) =>
+      ids
+        .filter((id) => rows.has(id))
+        .map((id) => ({ animeId: id, openings: openings.get(id) ?? null })),
   };
   const store: CatalogStore = {
     detailState: async (ids) =>
@@ -255,12 +267,15 @@ function filling(
       calls.saved.push(listed.map((row) => row.id));
       for (const row of listed) rows.set(row.id, { ...row, relations: [] });
     },
-    saveDetailed: async (row) => {
+    saveDetailed: async ({ openings: read, ...row }) => {
       rows.set(row.id, { ...row, relations: row.relations ?? [] });
       detailed.add(row.id);
+      openings.set(row.id, read ?? []);
     },
     markChecked: async (id) => {
-      if (rows.has(id)) detailed.add(id);
+      if (!rows.has(id)) return;
+      detailed.add(id);
+      if (!openings.has(id)) openings.set(id, []);
     },
     nextToDetail: async () => [],
   };
@@ -375,6 +390,86 @@ describe('franchises, filling from the source', () => {
     clock.now += 5 * 60_000;
     await service.franchises([2]);
     expect(calls.detail).toEqual([1, 2]);
+  });
+});
+
+describe('openings', () => {
+  const AGAIN: Opening = { title: 'again', artist: 'YUI', episodes: '1-14' };
+  const HOLOGRAM: Opening = { title: 'Hologram', artist: null, episodes: null };
+
+  it('serves the openings the table holds without asking the source', async () => {
+    const { service, calls } = filling([anime(1), anime(2)], {
+      detailed: [1, 2],
+      openings: { 1: [AGAIN, HOLOGRAM], 2: [] },
+    });
+    expect(await service.openings([1, 2, 9])).toEqual({
+      items: [
+        { animeId: 1, openings: [AGAIN, HOLOGRAM] },
+        { animeId: 2, openings: [] },
+      ],
+      pending: [],
+    });
+    expect(calls.detail).toEqual([]);
+  });
+
+  it('reads the detail of an anime whose openings were never read, and stores them', async () => {
+    const { service, calls } = filling([anime(1)], {
+      detailed: [1],
+      details: [anime(1)],
+      sourceOpenings: { 1: [AGAIN] },
+    });
+    const expected = { items: [{ animeId: 1, openings: [AGAIN] }], pending: [] };
+    expect(await service.openings([1])).toEqual(expected);
+    expect(await service.openings([1])).toEqual(expected);
+    expect(calls.detail).toEqual([1]);
+  });
+
+  it('reads only so many details per request and leaves the rest as pending', async () => {
+    const rows = [anime(1), anime(2), anime(3)];
+    const { service, calls } = filling(rows, { details: rows, sourceOpenings: { 1: [AGAIN] } });
+    expect(await service.openings([1, 2, 3])).toEqual({
+      items: [
+        { animeId: 1, openings: [AGAIN] },
+        { animeId: 2, openings: [] },
+      ],
+      pending: [3],
+    });
+    expect(calls.detail).toEqual([1, 2]);
+  });
+
+  it('gives an anime the source no longer has no openings, and asks only once', async () => {
+    const { service, calls } = filling([anime(1)], { details: [] });
+    const expected = { items: [{ animeId: 1, openings: [] }], pending: [] };
+    expect(await service.openings([1])).toEqual(expected);
+    expect(await service.openings([1])).toEqual(expected);
+    expect(calls.detail).toEqual([1]);
+  });
+
+  it('leaves out an anime whose openings are unknown when the source fails', async () => {
+    const { service, calls } = filling([anime(1), anime(2)], {
+      openings: { 2: [AGAIN] },
+      fail: new SourceError(500, 'MyAnimeList 500'),
+    });
+    expect(await service.openings([1, 2])).toEqual({
+      items: [{ animeId: 2, openings: [AGAIN] }],
+      pending: [],
+    });
+    expect(calls.errors).toHaveLength(1);
+  });
+
+  it('serves only what the table holds when nothing can be read from the source', async () => {
+    const { repository } = fakeRepository([]);
+    const service = createCatalogService({
+      ...repository,
+      openings: async () => [
+        { animeId: 1, openings: null },
+        { animeId: 2, openings: [AGAIN] },
+      ],
+    });
+    expect(await service.openings([1, 2])).toEqual({
+      items: [{ animeId: 2, openings: [AGAIN] }],
+      pending: [],
+    });
   });
 });
 

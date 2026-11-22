@@ -58,6 +58,62 @@ describe('toCatalogAnime', () => {
     });
   });
 
+  // Shapes of the undocumented opening_themes field, read on 2026-11-21.
+  it('reads the openings of a detail in the order given: title, artist and episodes', () => {
+    const anime = toCatalogAnime({
+      ...FULLMETAL,
+      opening_themes: [
+        { id: 21177, anime_id: 5114, text: '#1: "again" by YUI (eps 1-14)' },
+        {
+          id: 85133,
+          anime_id: 21,
+          text: '#01: "We Are! (ウィーアー!)" by Hiroshi Kitadani (きただにひろし) (eps 1-47, 1000)',
+        },
+      ],
+    });
+    expect(anime.openings).toEqual([
+      { title: 'again', artist: 'YUI', episodes: '1-14' },
+      {
+        title: 'We Are! (ウィーアー!)',
+        artist: 'Hiroshi Kitadani (きただにひろし)',
+        episodes: '1-47, 1000',
+      },
+    ]);
+  });
+
+  it('reads a single opening, which comes without number or episodes', () => {
+    const anime = toCatalogAnime({
+      ...FULLMETAL,
+      opening_themes: [
+        {
+          id: 71568,
+          anime_id: 48556,
+          text: '"takt (タクト)" by ryo (supercell) feat. Mafumafu, gaku',
+        },
+      ],
+    });
+    expect(anime.openings).toEqual([
+      { title: 'takt (タクト)', artist: 'ryo (supercell) feat. Mafumafu, gaku', episodes: null },
+    ]);
+  });
+
+  it('keeps whole as the title an opening written in another shape, and skips a blank one', () => {
+    const anime = toCatalogAnime({
+      ...FULLMETAL,
+      opening_themes: [
+        { id: 1, anime_id: 5114, text: ' Some theme without quotes ' },
+        { id: 2, anime_id: 5114, text: '  ' },
+      ],
+    });
+    expect(anime.openings).toEqual([
+      { title: 'Some theme without quotes', artist: null, episodes: null },
+    ]);
+  });
+
+  it('leaves the openings out of an item that does not bring the field', () => {
+    expect(toCatalogAnime(FULLMETAL)).not.toHaveProperty('openings');
+  });
+
   it('leaves the relations out of a list item, which never brings them', () => {
     const { related_anime: _, ...listed } = FULLMETAL;
     expect(toCatalogAnime(listed).relations).toBeUndefined();
@@ -176,6 +232,22 @@ describe('MyAnimeList source', () => {
     expect(calls[0]?.url.searchParams.get('fields')).toContain('related_anime');
     expect(new Headers(calls[0]?.init.headers).get('X-MAL-CLIENT-ID')).toBe('secret-id');
     expect(calls[0]?.url.href).not.toContain('secret-id');
+  });
+
+  it('asks a detail for its openings and states them even when it has none', async () => {
+    const { fetchFn, calls } = fakeFetch(() => json(FULLMETAL));
+    const source = createMyAnimeListSource({ clientId: 'secret-id', fetchFn });
+
+    expect((await source.detail(5114))?.openings).toEqual([]);
+    expect(calls[0]?.url.searchParams.get('fields')).toContain('opening_themes');
+  });
+
+  it('does not ask a list for the openings', async () => {
+    const { fetchFn, calls } = fakeFetch(() => json({ data: [] }));
+    const source = createMyAnimeListSource({ clientId: 'secret-id', fetchFn });
+
+    await source.search('alchemist');
+    expect(calls[0]?.url.searchParams.get('fields')).not.toContain('opening_themes');
   });
 
   it('answers null for an anime MyAnimeList does not have', async () => {
