@@ -41,6 +41,7 @@ Mientras un anime no tiene detalle, el catálogo lo muestra como un ítem suelto
 - **Corrida a mano:** workflow **Catalog** → *Run workflow*, con el número de detalles.
 - **En local:** con `MAL_CLIENT_ID` y `DATABASE_URL` en el entorno, `pnpm --filter @acrux/api catalog:load --details=40`. `--delay` cambia la pausa entre pedidos, en milisegundos (mínimo 500).
 - **Franquicia de cada anime:** al terminar, la corrida guarda la raíz y el año de estreno de la franquicia de cada anime (ADR-0045); el filtro por año y el conteo del catálogo salen de ahí. Para recalcular sin cargar nada de MyAnimeList: `pnpm --filter @acrux/api catalog:franchises`, con `DATABASE_URL` en el entorno. Después de aplicar la migración que agrega esas columnas hay que correrlo una vez.
+- **Openings:** llegan con el detalle de cada anime, en el campo `opening_themes`, que MyAnimeList responde aunque no esté en su referencia (comprobado el 2026-11-21). Un anime leído antes de que existiera la columna `openings` la tiene en `null`: se completa cuando la corrida vuelve a leer su detalle o cuando alguien abre la pestaña Openings de su franquicia (hasta 8 detalles por petición). Si MyAnimeList deja de responder el campo, los detalles nuevos quedan sin openings y la pestaña lo dice; nada más se rompe.
 - **Si el workflow falla con «stopped early»:** MyAnimeList rechazó o falló. No relanzar enseguida; esperar al menos una hora. Lo ya guardado queda guardado y la próxima corrida sigue desde ahí.
 
 ## Comprobación

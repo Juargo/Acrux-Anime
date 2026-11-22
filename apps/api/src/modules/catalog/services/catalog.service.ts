@@ -1,5 +1,6 @@
 import { type CatalogSource, SourceError } from '../adapters/myanimelist.js';
 import type {
+  AnimeOpenings,
   AnimeRow,
   CatalogRepository,
   CatalogStore,
@@ -60,10 +61,19 @@ export interface FranchiseCrawl {
   pending: number[];
 }
 
+export interface OpeningsAnswer {
+  // The anime whose openings are known, an empty list included; an id the catalog does not
+  // hold, or whose openings could not be read, is in neither list.
+  items: (AnimeOpenings & { openings: NonNullable<AnimeOpenings['openings']> })[];
+  // Ids left for another request because the limit of details was reached.
+  pending: number[];
+}
+
 export interface CatalogService {
   browse(filters: BrowseFilters, page: number): Promise<CatalogPage>;
   byIds(ids: readonly number[]): Promise<AnimeRow[]>;
   franchises(seedIds: readonly number[]): Promise<FranchiseCrawl>;
+  openings(ids: readonly number[]): Promise<OpeningsAnswer>;
   genres(): Promise<string[]>;
   franchiseYears(): Promise<FranchiseYear[]>;
 }
@@ -112,6 +122,12 @@ export function createCatalogService(
       failed(error);
       return [];
     }
+    return readDetails(need, budget);
+  }
+
+  // Reads and stores the detail of the ids, up to `budget.left`; returns the ids left over.
+  async function readDetails(need: readonly number[], budget: { left: number }) {
+    if (!fill) return [];
     const reading = need.slice(0, budget.left);
     budget.left -= reading.length;
     for (let start = 0; start < reading.length && canAsk(); start += DETAIL_CONCURRENCY) {
@@ -245,6 +261,24 @@ export function createCatalogService(
       pending = [...pending, ...deferred];
       const skipped = new Set([...asked, ...pending]);
       return { items, related: await neighbours(items, skipped), missing, pending };
+    },
+
+    // Openings come with the detail of an anime. One detailed before they were stored is read
+    // again here, within the same limit a franchise has (ADR-0043, point 3).
+    openings: async (ids) => {
+      let rows = await repository.openings(ids);
+      const unread = rows.filter((row) => row.openings === null).map((row) => row.animeId);
+      let pending: number[] = [];
+      if (unread.length > 0 && canAsk()) {
+        pending = await readDetails(unread, { left: maxDetails });
+        rows = await repository.openings(ids);
+      }
+      return {
+        items: rows.flatMap((row) =>
+          row.openings === null ? [] : [{ animeId: row.animeId, openings: row.openings }],
+        ),
+        pending,
+      };
     },
 
     genres: () => repository.genres(),

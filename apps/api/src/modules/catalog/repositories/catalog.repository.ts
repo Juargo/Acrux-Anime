@@ -26,6 +26,20 @@ export interface AnimeRow {
   relations: Relation[];
 }
 
+// One opening theme of an anime, as MyAnimeList words it.
+export interface Opening {
+  title: string;
+  artist: string | null;
+  // The episodes it played in ("1-14", "1-47, 1000"); null when the source does not say.
+  episodes: string | null;
+}
+
+export interface AnimeOpenings {
+  animeId: number;
+  // In the order they aired; null while no detail read has brought them.
+  openings: Opening[] | null;
+}
+
 export interface BrowseQuery {
   // Part of any of the names of the anime.
   search?: string;
@@ -62,15 +76,18 @@ export interface CatalogRepository {
   franchiseYears(): Promise<FranchiseYear[]>;
   // Whether any anime the table holds, shown or not, has the text in one of its names.
   knowsName(search: string): Promise<boolean>;
+  // The openings of the anime the catalog shows among the ids, in no particular order.
+  openings(ids: readonly number[]): Promise<AnimeOpenings[]>;
 }
 
-// What the source knows about one anime. `relations` only comes with its detail.
+// What the source knows about one anime. `relations` and `openings` only come with its detail.
 export interface CatalogAnimeInput extends Omit<AnimeRow, 'relations'> {
   // Every name of the anime in lower case.
   searchText: string;
   members: number;
   adult: boolean;
   relations?: Relation[];
+  openings?: Opening[];
 }
 
 // The writing side of the catalog: the load job and the fill on demand (ADR-0043, point 3).
@@ -80,10 +97,11 @@ export interface CatalogStore {
   detailState(ids: readonly number[]): Promise<Map<number, boolean>>;
   // Creates or refreshes the list fields; relations and their date stay as they are.
   saveListed(rows: readonly CatalogAnimeInput[]): Promise<void>;
-  // Stores a detail with its relations. An anime it points to that does not point back
-  // has an outdated detail, so it is queued to be read again.
+  // Stores a detail with its relations and openings. An anime it points to that does not
+  // point back has an outdated detail, so it is queued to be read again.
   saveDetailed(row: CatalogAnimeInput): Promise<void>;
-  // The source no longer has the anime: it stays, and is not asked for again soon.
+  // The source no longer has the anime: it stays, and is not asked for again soon. Openings
+  // never read become none; the ones it had stay.
   markChecked(id: number): Promise<void>;
   // The anime whose detail the load job reads next: never read first, most popular first,
   // then the oldest reads. Adult titles and videos that join no franchise are left out.
@@ -152,12 +170,23 @@ const columns = {
 
 const relationsSchema = z.array(z.object({ type: z.string(), id: z.int().positive() }));
 
+const openingsSchema = z.array(
+  z.object({ title: z.string(), artist: z.string().nullable(), episodes: z.string().nullable() }),
+);
+
 type StoredRow = Omit<AnimeRow, 'relations'> & { relations: unknown };
 
 // A row with relations in an unexpected shape still belongs to the catalog.
 function parseRelations(raw: unknown): Relation[] {
   const relations = relationsSchema.safeParse(raw);
   return relations.success ? relations.data : [];
+}
+
+// Openings in an unexpected shape read as none: as unknown they would be asked for forever.
+function parseOpenings(raw: unknown): Opening[] | null {
+  if (raw === null) return null;
+  const openings = openingsSchema.safeParse(raw);
+  return openings.success ? openings.data : [];
 }
 
 function toRow(stored: StoredRow): AnimeRow {
@@ -278,6 +307,14 @@ export function createCatalogRepository(
       });
       return row !== null;
     },
+    openings: async (ids) => {
+      if (ids.length === 0) return [];
+      const rows = await prisma.anime.findMany({
+        where: { id: { in: [...ids] }, adult: false },
+        select: { id: true, openings: true },
+      });
+      return rows.map((row) => ({ animeId: row.id, openings: parseOpenings(row.openings) }));
+    },
 
     franchiseSources: async () => {
       const rows = await prisma.anime.findMany({
@@ -344,6 +381,7 @@ export function createCatalogRepository(
       const fields = {
         ...listFields(row),
         relations: relations as object[],
+        openings: (row.openings ?? []) as object[],
         detailedAt: new Date(),
       };
       const targets = relations.map((relation) => relation.id);
@@ -369,6 +407,10 @@ export function createCatalogRepository(
 
     markChecked: async (id) => {
       await prisma.anime.updateMany({ where: { id }, data: { detailedAt: new Date() } });
+      await prisma.anime.updateMany({
+        where: { id, openings: { equals: Prisma.DbNull } },
+        data: { openings: [] },
+      });
     },
 
     nextToDetail: async (limit) => {

@@ -1720,6 +1720,101 @@
         }
       }
     },
+    "/api/v1/catalog/openings": {
+      "get": {
+        "summary": "The opening themes of the given anime, in the order they aired",
+        "security": [],
+        "tags": [
+          "catalog"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ids",
+            "schema": {
+              "type": "string",
+              "description": "ids: 1 to 100 anime ids, separated by commas"
+            },
+            "required": true,
+            "description": "ids: 1 to 100 anime ids, separated by commas"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The anime whose openings are known, an empty list included, and the ids left for another request; an id in neither list has no openings to show",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "animeId": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 2147483647
+                          },
+                          "openings": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/CatalogOpening"
+                            }
+                          }
+                        },
+                        "required": [
+                          "animeId",
+                          "openings"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "pending": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483647
+                      }
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "pending"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A query parameter is missing, repeated or not valid"
+          },
+          "429": {
+            "description": "Too many requests; retry after the seconds in Retry-After",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is not configured"
+          }
+        }
+      }
+    },
     "/api/v1/catalog/franchise-years": {
       "get": {
         "summary": "The years franchises first released in, with how many franchises each holds",
@@ -2874,6 +2969,33 @@
           "durationMinutes",
           "genres",
           "relations"
+        ],
+        "additionalProperties": false
+      },
+      "CatalogOpening": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "artist": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "episodes": {
+            "description": "The episodes it played in, as text",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "artist",
+          "episodes"
         ],
         "additionalProperties": false
       },

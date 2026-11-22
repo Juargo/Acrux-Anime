@@ -40,6 +40,13 @@ function fakeService() {
       return { items: [FULLMETAL], related: [], missing: [9], pending: [] };
     },
     genres: async () => ['Action', 'Drama'],
+    openings: async (ids) => {
+      calls.push({ openings: ids });
+      return {
+        items: [{ animeId: 5114, openings: [{ title: 'again', artist: 'YUI', episodes: '1-14' }] }],
+        pending: [21],
+      };
+    },
     franchiseYears: async () => [
       { year: 1998, franchises: 4 },
       { year: 2016, franchises: 123 },
@@ -274,5 +281,40 @@ describe('GET /api/v1/catalog/genres', () => {
     expect(response.status).toBe(200);
     expect(response.headers['cache-control']).toBe(CACHE);
     expect(response.body).toEqual({ items: ['Action', 'Drama'] });
+  });
+});
+
+describe('GET /api/v1/catalog/openings', () => {
+  it('gives the openings of the ids to anyone, with the ids left for another request', async () => {
+    const { service, calls } = fakeService();
+    const response = await request(appWith(service))
+      .get('/api/v1/catalog/openings')
+      .query({ ids: '5114,21,5114' });
+    expect(response.status).toBe(200);
+    expect(response.headers['cache-control']).toBe(CACHE);
+    expect(response.body).toEqual({
+      items: [{ animeId: 5114, openings: [{ title: 'again', artist: 'YUI', episodes: '1-14' }] }],
+      pending: [21],
+    });
+    expect(calls).toEqual([{ openings: [5114, 21] }]);
+  });
+
+  it('rejects a request without ids, with too many or with one that is not an id', async () => {
+    const { service, calls } = fakeService();
+    const app = appWith(service);
+    const tooMany = Array.from({ length: 101 }, (_, index) => index + 1).join(',');
+    for (const query of [{}, { ids: '' }, { ids: '5114,x' }, { ids: tooMany }]) {
+      const response = await request(app).get('/api/v1/catalog/openings').query(query);
+      expect(response.status).toBe(400);
+      expect(response.body.code).toBe('catalog.invalid_query');
+    }
+    expect(calls).toEqual([]);
+  });
+
+  it('answers 503 without a database', async () => {
+    const response = await request(appWith(undefined))
+      .get('/api/v1/catalog/openings')
+      .query({ ids: '5114' });
+    expect(response.status).toBe(503);
   });
 });
