@@ -1,5 +1,5 @@
 import { franchiseProgress } from '@acrux/domain';
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { AdSlot } from '../ads/AdSlot';
@@ -7,10 +7,11 @@ import { useOnline } from '../catalog/hooks';
 import type { CatalogItem } from '../catalog/items';
 import { type FranchiseMarkedEvent, useFranchiseMarks } from '../catalog/use-franchise-marks';
 import type { CatalogClient } from '../catalog-source/client';
-import { defaultClient, useFranchise } from '../catalog-source/hooks';
+import { defaultClient, useFranchise, useOpenings } from '../catalog-source/hooks';
 import { catalogErrorMessage } from '../catalog-source/messages';
 import { DataCredit } from '../components/DataCredit';
-import { FranchiseDetailView } from './FranchiseDetail';
+import { FranchiseDetailView, type FranchiseTab, timelineOf } from './FranchiseDetail';
+import type { OpeningsState } from './FranchiseOpenings';
 import { useEntryMarks } from './use-entry-marks';
 
 /**
@@ -39,6 +40,23 @@ export function FranchiseScreen({
   const marking = useFranchiseMarks({ client, getToken, fetchFn, onFranchiseMarked });
   const entryMarks = useEntryMarks({ getToken, fetchFn, onMarkedSeen: onEntryMarkedSeen });
   const detail = query.data?.detail;
+  // Each franchise opens on its timeline; the route keys the screen by its anime.
+  const [tab, setTab] = useState<FranchiseTab>('timeline');
+  // Openings are asked for in the order they are shown, once their tab opens.
+  const entryIds = useMemo(
+    () => (detail ? timelineOf(detail).map(({ entry }) => entry.animeId) : []),
+    [detail],
+  );
+  const openingsQuery = useOpenings(entryIds, tab === 'openings', client);
+  const openings: OpeningsState = openingsQuery.data
+    ? { status: 'ready', byAnime: openingsQuery.data }
+    : openingsQuery.isError
+      ? {
+          status: 'error',
+          message: catalogErrorMessage(openingsQuery.error, t),
+          onRetry: () => openingsQuery.refetch(),
+        }
+      : { status: 'loading' };
 
   const progress = useMemo(
     () => detail && franchiseProgress(detail.franchise, marking.marks, new Date().toISOString()),
@@ -105,6 +123,9 @@ export function FranchiseScreen({
         sagaPending={marking.pendingRootId === saga.rootId}
         onToggleSaga={() => marking.toggle(saga)}
         onChangeEntry={entryMarks.change}
+        tab={tab}
+        onChangeTab={setTab}
+        openings={openings}
       />
     );
   }

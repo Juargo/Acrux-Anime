@@ -57,6 +57,16 @@ const franchisesSchema = z.object({
   missing: z.array(animeId),
   pending: z.array(animeId),
 });
+const openingSchema = z.object({
+  title: z.string(),
+  artist: z.string().nullable(),
+  // The episodes it played in, as the source words them ("1-14").
+  episodes: z.string().nullable(),
+});
+const openingsSchema = z.object({
+  items: z.array(z.object({ animeId, openings: z.array(openingSchema) })),
+  pending: z.array(animeId),
+});
 const genresSchema = z.object({ items: z.array(z.string()) });
 const franchiseYearsSchema = z.object({
   years: z.array(z.object({ year: z.number().int(), franchises: z.number().int().positive() })),
@@ -79,6 +89,11 @@ export interface BrowseParams {
 // the last one).
 export type BrowsePage = z.infer<typeof browsePageSchema>;
 
+export type Opening = z.infer<typeof openingSchema>;
+
+// The openings the catalog knows among the ids asked for, and the ids left for another request.
+export type OpeningsAnswer = z.infer<typeof openingsSchema>;
+
 // What the server found by following sequels and prequels from the seeds.
 export type FranchiseCrawl = z.infer<typeof franchisesSchema>;
 
@@ -88,6 +103,8 @@ export interface CatalogClient {
   byIds(ids: readonly number[]): Promise<CatalogAnime[]>;
   // One request: at most 100 seeds; `pending` ids are for the next request (see franchise.ts).
   franchises(seeds: readonly number[]): Promise<FranchiseCrawl>;
+  // One request: at most 100 ids; `pending` ids are for the next request (see openings.ts).
+  openings(ids: readonly number[]): Promise<OpeningsAnswer>;
   genres(): Promise<string[]>;
   franchiseYears(): Promise<FranchiseYearCount[]>;
 }
@@ -150,6 +167,9 @@ export function createCatalogClient(options: CatalogClientOptions = {}): Catalog
     },
     franchises(seeds) {
       return get(`/api/v1/catalog/franchises?seeds=${seeds.join(',')}`, franchisesSchema);
+    },
+    openings(ids) {
+      return get(`/api/v1/catalog/openings?ids=${ids.join(',')}`, openingsSchema);
     },
     async genres() {
       return (await get('/api/v1/catalog/genres', genresSchema)).items;
