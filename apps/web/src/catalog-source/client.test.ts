@@ -208,3 +208,20 @@ describe('catalog client: franchise years', () => {
     await expect(client.franchiseYears()).rejects.toMatchObject({ kind: 'invalid-response' });
   });
 });
+
+describe('catalog client: openings', () => {
+  it('reads the openings of the ids and the ids left for another request', async () => {
+    const answer = {
+      items: [{ animeId: 1, openings: [{ title: 'again', artist: 'YUI', episodes: '1-14' }] }],
+      pending: [2],
+    };
+    const { client, fetch } = harness(() => reply(answer));
+    expect(await client.openings([1, 2])).toEqual(answer);
+    expect(requested(fetch)).toEqual({ path: '/api/v1/catalog/openings', query: { ids: '1,2' } });
+  });
+
+  it('rejects an answer in another shape', async () => {
+    const { client } = harness(() => reply({ items: [{ animeId: 1 }], pending: [] }));
+    await expect(client.openings([1])).rejects.toMatchObject({ kind: 'invalid-response' });
+  });
+});

@@ -3,6 +3,7 @@ import { overridesVersion, useFranchiseOverrides } from '../franchise/use-franch
 import { type CatalogQuery, fetchCatalogPage, fetchGenres } from './catalog';
 import { type CatalogClient, createCatalogClient } from './client';
 import { fetchFranchise } from './franchise';
+import { fetchOpenings } from './openings';
 import { fetchAnimeByIds } from './queries';
 
 export const defaultClient: CatalogClient = createCatalogClient();
@@ -59,5 +60,18 @@ export function useFranchise(
     queryKey: ['catalog', 'franchise', animeId, overridesVersion(overrides)],
     queryFn: () => fetchFranchise(client, [animeId], overrides),
     enabled: Number.isInteger(animeId) && animeId > 0 && overrides !== undefined,
+  });
+}
+
+// The openings of the entries of a franchise, asked for once their tab opens.
+export function useOpenings(
+  ids: readonly number[],
+  enabled: boolean,
+  client: CatalogClient = defaultClient,
+) {
+  return useQuery({
+    queryKey: ['catalog', 'openings', ids],
+    queryFn: () => fetchOpenings(client, ids),
+    enabled: enabled && ids.length > 0,
   });
 }

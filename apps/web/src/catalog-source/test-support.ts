@@ -29,6 +29,7 @@ export function fakeCatalogClient(methods: Partial<CatalogClient> = {}) {
     browse: vi.fn(methods.browse ?? unexpected('browse')),
     byIds: vi.fn(methods.byIds ?? unexpected('byIds')),
     franchises: vi.fn(methods.franchises ?? unexpected('franchises')),
+    openings: vi.fn(methods.openings ?? unexpected('openings')),
     genres: vi.fn(methods.genres ?? unexpected('genres')),
     franchiseYears: vi.fn(methods.franchiseYears ?? unexpected('franchiseYears')),
   };

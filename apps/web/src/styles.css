@@ -640,14 +640,16 @@ a {
   color: var(--color-accent-text);
 }
 
-.my-list__tabs {
+.my-list__tabs,
+.franchise__tabs {
   display: flex;
   gap: 24px;
   margin-bottom: 12px;
   border-bottom: 2px solid var(--color-border-subtle);
 }
 
-.my-list__tab {
+.my-list__tab,
+.franchise__tab {
   padding: 8px 0;
   border: 0;
   border-bottom: 2px solid transparent;
@@ -659,7 +661,8 @@ a {
   cursor: pointer;
 }
 
-.my-list__tab[aria-selected="true"] {
+.my-list__tab[aria-selected="true"],
+.franchise__tab[aria-selected="true"] {
   border-bottom-color: var(--color-accent-default);
   color: var(--color-accent-text);
 }
@@ -1279,6 +1282,69 @@ label.sheet__label {
   letter-spacing: 0.04em;
   line-height: 16px;
   text-transform: uppercase;
+}
+
+.franchise__tabs {
+  margin-top: 24px;
+}
+
+/* The openings tab: one group per entry, in the order of the timeline. */
+.openings__entry {
+  margin-top: 24px;
+}
+
+.openings__entry-title {
+  margin: 0 0 8px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.openings__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.opening {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.opening__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.opening__title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.opening__meta,
+.openings__note {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.opening__link {
+  flex-shrink: 0;
+  color: var(--color-accent-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.openings__note {
+  margin: 16px 0 0;
 }
 
 /* One timeline (Claude Design "Riel con ramas"): the core on the rail, extras as branches. */

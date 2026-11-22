@@ -511,3 +511,99 @@ describe('franchise detail in English (RF-70)', () => {
     expect(within(extra).getByText('Extra · no cuenta para completar')).toBeTruthy();
   });
 });
+
+describe('openings tab', () => {
+  const again = { title: 'again', artist: 'YUI', episodes: '1-14' };
+  const period = { title: 'Period', artist: null, episodes: null };
+  const rain = { title: 'Rain', artist: 'SID', episodes: null };
+
+  function withOpenings(openings: CatalogClient['openings']) {
+    const client = { ...fakeCatalog(), openings: vi.fn(openings) };
+    renderAt('/franquicia/101', { client });
+    return client;
+  }
+
+  it('opens on the timeline and asks for no openings until their tab opens', async () => {
+    const client = withOpenings(async () => ({ items: [], pending: [] }));
+
+    const tab = await screen.findByRole('tab', { name: 'Línea de tiempo' });
+    expect(tab.getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByRole('tab', { name: 'Openings' }).getAttribute('aria-selected')).toBe(
+      'false',
+    );
+    expect(screen.getByRole('region', { name: 'Línea de tiempo' })).toBeTruthy();
+    expect(client.openings).not.toHaveBeenCalled();
+  });
+
+  it('lists the openings of each entry in the order of the timeline, with a YouTube search', async () => {
+    const client = withOpenings(async () => ({
+      items: [
+        { animeId: 102, openings: [rain] },
+        { animeId: 109, openings: [] },
+        { animeId: 101, openings: [again, period] },
+      ],
+      pending: [],
+    }));
+
+    await userEvent.click(await screen.findByRole('tab', { name: 'Openings' }));
+
+    const panel = await screen.findByRole('tabpanel', { name: 'Openings' });
+    await within(panel).findByText('again');
+    // Every entry of the timeline is asked for: the core and the extras.
+    expect(client.openings).toHaveBeenCalledWith([101, 109, 102, 103, 104, 105]);
+    expect(screen.queryByRole('region', { name: 'Línea de tiempo' })).toBeNull();
+
+    const groups = within(panel).getAllByRole('heading', { level: 3 });
+    expect(groups.map((heading) => heading.textContent)).toEqual(['Temporada 1', 'Temporada 2']);
+    const titles = within(panel)
+      .getAllByRole('listitem')
+      .flatMap((item) => item.querySelector('.opening__title')?.textContent ?? []);
+    expect(titles).toEqual(['again', 'Period', 'Rain']);
+    expect(within(panel).getByText('YUI · ep. 1-14')).toBeTruthy();
+    expect(within(panel).getByText('SID')).toBeTruthy();
+
+    const link = within(panel).getByRole('link', { name: 'Ver «again» en YouTube' });
+    expect(link.getAttribute('href')).toBe(
+      'https://www.youtube.com/results?search_query=Temporada+1+opening+again+YUI',
+    );
+    expect(link.getAttribute('target')).toBe('_blank');
+    expect(link.getAttribute('rel')).toBe('noreferrer');
+    // 103, 104 and 105 came in no list: their openings are not known yet.
+    expect(within(panel).getByText('Aún no tenemos los openings de 3 entradas.')).toBeTruthy();
+  });
+
+  it('says so when the franchise has no openings', async () => {
+    withOpenings(async (ids) => ({
+      items: ids.map((animeId) => ({ animeId, openings: [] })),
+      pending: [],
+    }));
+    await userEvent.click(await screen.findByRole('tab', { name: 'Openings' }));
+    expect(await screen.findByText('Esta franquicia no tiene openings registrados.')).toBeTruthy();
+  });
+
+  it('says so when no opening of the franchise is known yet', async () => {
+    withOpenings(async () => ({ items: [], pending: [] }));
+    await userEvent.click(await screen.findByRole('tab', { name: 'Openings' }));
+    expect(
+      await screen.findByText('Aún no tenemos los openings de esta franquicia. Vuelve más tarde.'),
+    ).toBeTruthy();
+  });
+
+  it('offers to try again when the openings fail to load, and goes back to the timeline', async () => {
+    let failures = 1;
+    withOpenings(async (ids) => {
+      if (failures > 0) {
+        failures -= 1;
+        throw new CatalogError('unavailable', 'The catalog is down');
+      }
+      return { items: ids.map((animeId) => ({ animeId, openings: [again] })), pending: [] };
+    });
+    await userEvent.click(await screen.findByRole('tab', { name: 'Openings' }));
+    const panel = await screen.findByRole('tabpanel', { name: 'Openings' });
+    await userEvent.click(await within(panel).findByRole('button', { name: 'Reintentar' }));
+    expect(await within(panel).findAllByText('again')).toHaveLength(6);
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Línea de tiempo' }));
+    expect(screen.getByRole('region', { name: 'Línea de tiempo' })).toBeTruthy();
+  });
+});

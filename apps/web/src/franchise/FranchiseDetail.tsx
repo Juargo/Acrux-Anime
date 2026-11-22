@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { formatLabel, genreLabel } from '../catalog-source/catalog';
 import type { FranchiseDetail, FranchiseEntryDetail } from '../catalog-source/franchise';
+import { FranchiseOpenings, type OpeningsState } from './FranchiseOpenings';
 import type { EntryMarkChange } from './use-entry-marks';
 
 // RF-26: Viendo > Vista > Parcial > Sin marcar; M35 flags a season released after completing.
@@ -16,6 +17,14 @@ const STATE_LABELS = {
 } as const satisfies Record<FranchiseProgress['state'], string>;
 
 const SUBTITLE_GENRES = 2;
+
+export const FRANCHISE_TABS = ['timeline', 'openings'] as const;
+export type FranchiseTab = (typeof FRANCHISE_TABS)[number];
+
+const TAB_LABELS = {
+  timeline: 'franchise.timeline',
+  openings: 'franchise.openings',
+} as const satisfies Record<FranchiseTab, string>;
 
 // Figma M09: "TV · 24 ep. · 2020", "Película · 2021". A film is one episode: saying so adds nothing.
 function entryMeta(entry: FranchiseEntryDetail, t: TFunction): string {
@@ -51,10 +60,15 @@ export function FranchiseDetailView(props: {
   sagaPending: boolean;
   onToggleSaga: () => void;
   onChangeEntry: (change: EntryMarkChange) => void;
+  tab: FranchiseTab;
+  onChangeTab: (tab: FranchiseTab) => void;
+  openings: OpeningsState;
 }) {
-  const { detail, progress, statusOf, onChangeEntry } = props;
+  const { detail, progress, statusOf, onChangeEntry, tab } = props;
   const { t } = useTranslation();
   const timelineHeading = useId();
+  const tabsId = useId();
+  const timeline = timelineOf(detail);
   const percent =
     progress.releasedCore === 0 ? 0 : Math.round((progress.seenCore / progress.releasedCore) * 100);
   const chip = t(progress.hasNewEntries ? 'franchise.newSeason' : STATE_LABELS[progress.state]);
@@ -99,48 +113,71 @@ export function FranchiseDetailView(props: {
         {progress.hasNewEntries && <p className="franchise__note">{t('franchise.newEntryNote')}</p>}
       </div>
 
-      <section className="franchise__section" aria-labelledby={timelineHeading}>
-        <h2 className="franchise__heading" id={timelineHeading}>
-          {t('franchise.timeline')}
-        </h2>
-        <div className="timeline__legend">
-          <span className="timeline__legend-item timeline__legend-item--core">
-            {t('franchise.core')}
-          </span>
-          {detail.extras.length > 0 && (
-            <span className="timeline__legend-item timeline__legend-item--extra">
-              {t('franchise.extras')}
-            </span>
-          )}
-        </div>
-        <ol className="timeline">
-          {timelineOf(detail).map(({ entry, core }) => (
-            <EntryRow
-              key={entry.animeId}
-              entry={entry}
-              core={core}
-              status={statusOf.get(entry.animeId)}
-              onChange={onChangeEntry}
-            />
-          ))}
-          {detail.related.map((related) => (
-            <li className="timeline__item timeline__item--related" key={related.rootId}>
-              <Link className="timeline__link" to={`/franquicia/${related.rootId}`}>
-                <span className="timeline__icon timeline__icon--related">
-                  <Icon name="related" />
+      <div className="franchise__tabs" role="tablist" aria-label={t('franchise.tabs')}>
+        {FRANCHISE_TABS.map((value) => (
+          <button
+            key={value}
+            className="franchise__tab"
+            type="button"
+            role="tab"
+            id={`${tabsId}-${value}`}
+            aria-selected={tab === value}
+            aria-controls={`${tabsId}-panel`}
+            onClick={() => props.onChangeTab(value)}
+          >
+            {t(TAB_LABELS[value])}
+          </button>
+        ))}
+      </div>
+      <div id={`${tabsId}-panel`} role="tabpanel" aria-labelledby={`${tabsId}-${tab}`}>
+        {tab === 'openings' ? (
+          <FranchiseOpenings entries={timeline.map(({ entry }) => entry)} state={props.openings} />
+        ) : (
+          <section className="franchise__section" aria-labelledby={timelineHeading}>
+            {/* The tab already shows the name; the heading keeps it in the outline. */}
+            <h2 className="visually-hidden" id={timelineHeading}>
+              {t('franchise.timeline')}
+            </h2>
+            <div className="timeline__legend">
+              <span className="timeline__legend-item timeline__legend-item--core">
+                {t('franchise.core')}
+              </span>
+              {detail.extras.length > 0 && (
+                <span className="timeline__legend-item timeline__legend-item--extra">
+                  {t('franchise.extras')}
                 </span>
-                <span className="entry-row__text">
-                  <span className="entry-row__title">{related.title}</span>
-                  <span className="entry-row__meta">{t('franchise.relatedEntry')}</span>
-                </span>
-                <span className="timeline__chevron">
-                  <Icon name="chevron" />
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ol>
-      </section>
+              )}
+            </div>
+            <ol className="timeline">
+              {timeline.map(({ entry, core }) => (
+                <EntryRow
+                  key={entry.animeId}
+                  entry={entry}
+                  core={core}
+                  status={statusOf.get(entry.animeId)}
+                  onChange={onChangeEntry}
+                />
+              ))}
+              {detail.related.map((related) => (
+                <li className="timeline__item timeline__item--related" key={related.rootId}>
+                  <Link className="timeline__link" to={`/franquicia/${related.rootId}`}>
+                    <span className="timeline__icon timeline__icon--related">
+                      <Icon name="related" />
+                    </span>
+                    <span className="entry-row__text">
+                      <span className="entry-row__title">{related.title}</span>
+                      <span className="entry-row__meta">{t('franchise.relatedEntry')}</span>
+                    </span>
+                    <span className="timeline__chevron">
+                      <Icon name="chevron" />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+      </div>
 
       <div className="franchise__actions">
         <button
@@ -280,7 +317,9 @@ function iconOf(format: string | null): 'movie' | 'special' | null {
 
 // Core and extras as one list by year: within a year the core goes first, and entries without
 // a year (not released yet) close the list.
-function timelineOf(detail: FranchiseDetail): { entry: FranchiseEntryDetail; core: boolean }[] {
+export function timelineOf(
+  detail: FranchiseDetail,
+): { entry: FranchiseEntryDetail; core: boolean }[] {
   const yearOf = (entry: FranchiseEntryDetail) => entry.year ?? Number.MAX_SAFE_INTEGER;
   return [
     ...detail.core.map((entry) => ({ entry, core: true })),
