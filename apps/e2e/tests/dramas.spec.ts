@@ -60,7 +60,7 @@ test('a country door of the map opens the Dramas world on that country', async (
   await expect(page).toHaveURL(/\/dramas\?origin=KR$/);
   const grid = page.getByRole('list', { name: 'Dramas' });
   await expect(grid.getByRole('listitem')).toHaveCount(1);
-  await expect(grid.getByRole('listitem')).toContainText(CRASH.title);
+  await expect(grid.getByRole('listitem')).toContainText(CRASH?.title ?? '');
   await expect(page.getByRole('button', { name: 'País · 1' })).toHaveAttribute(
     'aria-pressed',
     'true',
