@@ -29,17 +29,20 @@ export function CatalogScreen({
   getToken,
   fetchFn = fetch,
   onFranchiseMarked,
+  initialYears,
 }: {
   client?: CatalogClient | undefined;
   // Without a session the catalog still browses, but cards cannot be marked.
   getToken?: (() => Promise<string | null>) | undefined;
   fetchFn?: typeof fetch | undefined;
   onFranchiseMarked?: ((event: FranchiseMarkedEvent) => void) | undefined;
+  // The years the screen opens on: the era of the door taken on the map of worlds.
+  initialYears?: number[] | undefined;
 }) {
   const { t } = useTranslation();
   const [input, setInput] = useState('');
   const search = useDebounced(input.trim(), SEARCH_DEBOUNCE_MS);
-  const [years, setYears] = useState<number[]>([]);
+  const [years, setYears] = useState<number[]>(initialYears ?? []);
   const [filters, setFilters] = useState(defaultFilters);
   const [sheetOpen, setSheetOpen] = useState(false);
   const online = useOnline();

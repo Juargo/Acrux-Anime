@@ -100,8 +100,9 @@ export const browseEs = {
     enter: 'Entrar',
     enterWorld: 'Entrar a {{world}}',
     backToMap: 'Volver a los mundos',
+    eraDoor: '{{name}}, {{from}}–{{to}}',
     anime: { name: 'Anime', hint: 'Seis eras, de 1917 a hoy' },
-    dramas: { name: 'Dramas', hint: 'Corea, China y Japón' },
+    dramas: { name: 'Dramas', tags: { KR: 'K-drama', CN: 'C-drama', JP: 'J-drama' } },
     series: { name: 'Series', locked: 'Mundo bloqueado' },
   },
   // The era filter of the catalog (S1): eras group the years a franchise first released in.
@@ -372,8 +373,9 @@ export const browseEn = {
     enter: 'Enter',
     enterWorld: 'Enter {{world}}',
     backToMap: 'Back to the worlds',
+    eraDoor: '{{name}}, {{from}}–{{to}}',
     anime: { name: 'Anime', hint: 'Six eras, from 1917 to today' },
-    dramas: { name: 'Dramas', hint: 'Korea, China and Japan' },
+    dramas: { name: 'Dramas', tags: { KR: 'K-drama', CN: 'C-drama', JP: 'J-drama' } },
     series: { name: 'Series', locked: 'Locked world' },
   },
   // The era filter of the catalog (S1): eras group the years a franchise first released in.

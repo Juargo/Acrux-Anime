@@ -19,8 +19,8 @@ The app copy keeps the word "Dramas" that every other screen uses; the boards sa
 
 ## Tasks
 
-- [x] T1 · S1, S2, S3, S4, S5 · inline · Shell: routes, last world, map with one door per world, world header, navigation, links, i18n, styles, e2e, runbook. First commit of the branch; RED seen on 11 tests, then 529 of 529 green in `apps/web`, typecheck and lint clean.
-- [ ] T2 · S6 · inline · Doors by level: era stops and country tiles on the map, `?era=` and `?origin=` on the worlds.
+- [x] T1 · S1, S2, S3, S4, S5 · inline · Shell: routes, last world, map with one door per world, world header, navigation, links, i18n, styles, e2e, runbook. Commit `6ecb3dc`; RED seen on 11 tests, then 529 of 529 green in `apps/web`, typecheck and lint clean.
+- [x] T2 · S6 · inline · Doors by level: era stops and country tiles on the map, `?era=` and `?origin=` on the worlds; `ERAS` moved to `apps/web/src/catalog/eras.ts`. Second commit of the branch; RED seen on 4 tests, then 535 of 535 green in `apps/web`, typecheck clean in every package, lint clean.
 - [ ] T3 · S7 · pending, not started (delivery 2).
 - [ ] T4 · S8 · pending, not started (delivery 3).
 - [ ] T5 · S9 · pending, not started (delivery 4).
@@ -37,3 +37,4 @@ Forecast: about 450 authored changed lines for T1 and 200 for T2; one work-unit 
 - L5 (2026-11-25, user, answering "¿Arranco ya con la implementación de la entrega 1 en una rama, o preferís antes revisar y ajustar las pantallas del prototipo?"): "arranquemos".
 - L6 (2026-11-25, evidence): `apps/web/src/styles.css` already carries the tokens of the Acrux design system the boards use, so the boards translate to the existing classes and variables. The boards were never looked at in a browser by the agent. The direct Anime / Dramas switch disappears with S5: going from one world to the other takes two taps through the map.
 - L7 (2026-11-25, evidence, T1): map and world headers looked at in a browser at 390 and 1280 px through a throwaway preview page (not committed); they match board M1 and the top of M2. The Playwright journeys were rewritten but not run: they need a disposable Postgres (`DATABASE_URL`) this session does not have, so CI is their first run. `docs/requisitos` has no requirement for the drama section or the worlds yet.
+- L8 (2026-11-25, evidence, T2): the map with its doors looked at in a browser at 320, 390 and 1280 px; at 320 px the era stops overlapped and "Japón" overflowed its tile, both fixed (the stop narrows, the country name scales with the viewport). Design detector of the Impeccable skill: no findings. An unknown `?era=` or `?origin=` opens the world unfiltered. The running count passed the forecast (about 820 changed lines in T1, mostly tests), so the slicing into pull requests is the user's open decision. Receipt-driven development is off (global), so no native review ran.
