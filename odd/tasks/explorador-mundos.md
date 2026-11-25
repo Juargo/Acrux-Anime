@@ -1,7 +1,7 @@
 # Feature: the explorer as worlds ("Mundos")
 
 Objective: Explorar stops being one catalog with a switch and becomes a map of worlds (Anime, Dramas, and a locked Series), each with its own native way of filtering. Design: alternative D of the Claude Design canvas https://claude.ai/artifact/PZQ2nikrwMQhMeUHP3yDTt (boards M1 to M4).
-Branch: `feat/explorador-mundos` · Delivery: `ask-on-risk` · Test runner: vitest in `apps/web`, Playwright in `apps/e2e`.
+Branch: `feat/explorador-mundos` · Delivery: `ask-on-risk`, chain `stacked-to-main` · Test runner: vitest in `apps/web`, Playwright in `apps/e2e`.
 
 ## Specs
 
@@ -38,3 +38,4 @@ Forecast: about 450 authored changed lines for T1 and 200 for T2; one work-unit 
 - L6 (2026-11-25, evidence): `apps/web/src/styles.css` already carries the tokens of the Acrux design system the boards use, so the boards translate to the existing classes and variables. The boards were never looked at in a browser by the agent. The direct Anime / Dramas switch disappears with S5: going from one world to the other takes two taps through the map.
 - L7 (2026-11-25, evidence, T1): map and world headers looked at in a browser at 390 and 1280 px through a throwaway preview page (not committed); they match board M1 and the top of M2. The Playwright journeys were rewritten but not run: they need a disposable Postgres (`DATABASE_URL`) this session does not have, so CI is their first run. `docs/requisitos` has no requirement for the drama section or the worlds yet.
 - L8 (2026-11-25, evidence, T2): the map with its doors looked at in a browser at 320, 390 and 1280 px; at 320 px the era stops overlapped and "Japón" overflowed its tile, both fixed (the stop narrows, the country name scales with the viewport). Design detector of the Impeccable skill: no findings. An unknown `?era=` or `?origin=` opens the world unfiltered. The running count passed the forecast (about 820 changed lines in T1, mostly tests), so the slicing into pull requests is the user's open decision. Receipt-driven development is off (global), so no native review ran.
+- L9 (2026-11-25, user, answering "¿La subo como dos PRs encadenadas (cascarón primero, puertas por nivel después), como hicimos con Openings, o como una sola?"): "dos encadenadas". Slices: PR #180 `feat/mundos-cascaron` to `main` holds `6ecb3dc` (T1, 822 lines, over the budget: the routes, the header and the map do not work apart); PR #181 `feat/explorador-mundos` to `feat/mundos-cascaron` holds `c66c7cb` and `d6a2d5a` (T2, 372 lines). When #180 merges, #181 has to be pointed at `main`.
