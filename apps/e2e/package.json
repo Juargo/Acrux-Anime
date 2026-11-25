@@ -11,10 +11,10 @@
     "e2e": "playwright test"
   },
   "devDependencies": {
-    "@playwright/test": "^1.65.0",
+    "@playwright/test": "^1.65.1",
     "@types/node": "^22.20.5",
     "jose": "^6.2.17",
     "typescript": "^6.0.3",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   }
 }
