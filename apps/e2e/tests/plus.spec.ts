@@ -70,7 +70,7 @@ test('@CA-RF57-04 @CA-RF56-01 a paid order shows Plus in Perfil, and a refund ta
 
   await page.reload();
   await expect(plus.getByRole('button', { name: 'Comprar Plus' })).toBeVisible();
-  await page.goto('/');
+  await page.goto('/anime');
   await expect(page.getByRole('region', { name: 'Contador total' })).toContainText('1 anime');
 });
 

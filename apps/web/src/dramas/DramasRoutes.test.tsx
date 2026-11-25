@@ -134,8 +134,8 @@ describe('the drama route', () => {
     expect(screen.queryByRole('link', { name: 'MyAnimeList' })).toBeNull();
   });
 
-  it('shows anime on / and never asks for dramas, with only the MyAnimeList credit (S6, S8)', async () => {
-    renderAt('/');
+  it('shows anime on /anime and never asks for dramas, with only the MyAnimeList credit (S6, S8)', async () => {
+    renderAt('/anime');
 
     expect(await screen.findByText('Sousou no Frieren')).toBeTruthy();
     expect(screen.queryByText('Crash Landing on You')).toBeNull();
@@ -157,8 +157,8 @@ describe('the drama route', () => {
     expect(requested.filter((path) => path.startsWith('/api/v1/me/marks'))).toEqual([]);
   });
 
-  it('keeps the anime counter on /, which never asks for the drama marks', async () => {
-    renderAt('/');
+  it('keeps the anime counter on /anime, which never asks for the drama marks', async () => {
+    renderAt('/anime');
     await screen.findByText('Sousou no Frieren');
 
     const counter = screen.getByRole('region', { name: 'Contador total' });
@@ -167,18 +167,16 @@ describe('the drama route', () => {
     expect(requested.filter((path) => path.startsWith('/api/v1/me/drama-marks'))).toEqual([]);
   });
 
-  it('puts the Anime / Dramas switch on both screens, with Explorar current on both (S2)', async () => {
+  it('keeps Explorar current in the navigation on both worlds (S2)', async () => {
     renderAt('/dramas');
     await screen.findByText('Crash Landing on You');
-    expect(screen.getByRole('group', { name: 'Qué explorar' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Explorar' }).getAttribute('aria-current')).toBe(
       'page',
     );
     cleanup();
 
-    renderAt('/');
+    renderAt('/anime');
     await screen.findByText('Sousou no Frieren');
-    expect(screen.getByRole('group', { name: 'Qué explorar' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Explorar' }).getAttribute('aria-current')).toBe(
       'page',
     );

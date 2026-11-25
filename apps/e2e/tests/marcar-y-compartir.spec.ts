@@ -6,7 +6,9 @@ test('@CA-RF12-01 @CA-RF24-01 @CA-RF30-02 @CA-RF31-02 search a franchise, mark i
   page,
   signedIn: _user,
 }) => {
+  // A first visit lands on the map of worlds.
   await page.goto('/');
+  await page.getByRole('link', { name: 'Entrar a Anime' }).click();
   const counter = page.getByRole('region', { name: 'Contador total' });
   await expect(counter).toContainText('0 animes');
 

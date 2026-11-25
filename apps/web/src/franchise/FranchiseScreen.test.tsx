@@ -416,7 +416,7 @@ describe('franchise detail', () => {
 
 describe('catalog card', () => {
   it('opens the franchise detail and keeps the ✓ button that marks in one tap', async () => {
-    const { router } = renderAt('/');
+    const { router } = renderAt('/anime');
 
     expect(
       await screen.findByRole('button', { name: 'Marcar «Temporada 1» como vista' }),

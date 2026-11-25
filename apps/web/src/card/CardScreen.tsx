@@ -144,7 +144,7 @@ function CardPicker(props: {
             noMatches
           ) : (
             <>
-              {t('card.noAnime')} <Link to="/">{t('card.exploreAnime')}</Link>
+              {t('card.noAnime')} <Link to="/anime">{t('card.exploreAnime')}</Link>
             </>
           )
         }

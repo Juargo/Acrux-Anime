@@ -195,7 +195,7 @@ describe('MyListScreen', () => {
     ).toBeTruthy();
     expect(
       within(list()).getByRole('link', { name: 'Explorar el catálogo' }).getAttribute('href'),
-    ).toBe('/');
+    ).toBe('/anime');
   });
 
   it('says so when the marks cannot load', async () => {

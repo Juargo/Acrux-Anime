@@ -34,7 +34,16 @@ describe('MainNav', () => {
     expect(renderAt('/mi-lista')).toEqual(['Mi lista']);
   });
 
-  it('keeps Explorar current on /dramas (S2)', () => {
-    expect(renderAt('/dramas')).toEqual(['Explorar']);
+  it('keeps Explorar current on the map and on every world', () => {
+    for (const path of ['/mundos', '/anime', '/dramas']) {
+      expect(renderAt(path)).toEqual(['Explorar']);
+      cleanup();
+    }
+  });
+
+  it('sends Explorar to /, which reopens the last world', () => {
+    renderAt('/dramas');
+
+    expect(screen.getByRole('link', { name: 'Explorar' }).getAttribute('href')).toBe('/');
   });
 });

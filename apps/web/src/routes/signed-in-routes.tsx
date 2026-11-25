@@ -1,11 +1,13 @@
-import { useTranslation } from 'react-i18next';
 import { type RouteObject, useNavigate, useParams } from 'react-router';
 import { BadgesScreen } from '../badges/BadgesScreen';
 import { CardScreen } from '../card/CardScreen';
 import { CatalogScreen } from '../catalog/CatalogScreen';
-import { ExploreSwitch } from '../components/ExploreSwitch';
 import { CuratorScreen } from '../curator/CuratorScreen';
 import { DramasScreen } from '../dramas/DramasScreen';
+import { ExploreEntry } from '../explore/ExploreEntry';
+import { useRememberWorld } from '../explore/last-world';
+import { WorldHeader } from '../explore/WorldHeader';
+import { WorldsMap } from '../explore/WorldsMap';
 import { FranchiseScreen } from '../franchise/FranchiseScreen';
 import { MyListScreen } from '../my-list/MyListScreen';
 import { PlusScreen } from '../plus/PlusScreen';
@@ -17,13 +19,13 @@ import { ProfileScreen } from '../profile/ProfileScreen';
 import { StatsScreen } from '../stats/StatsScreen';
 import { useSignedIn } from './signed-in-context';
 
+// The Anime world of Explorar.
 function CatalogPage() {
   const context = useSignedIn();
-  const { t } = useTranslation();
+  useRememberWorld('anime');
   return (
     <>
-      <h1 className="visually-hidden">{t('nav.explore')}</h1>
-      <ExploreSwitch />
+      <WorldHeader world="anime" />
       <CatalogScreen {...context} />
     </>
   );
@@ -32,11 +34,10 @@ function CatalogPage() {
 // The dramas live apart from the anime catalog (#151); the session is for their marks (#154).
 function DramasPage() {
   const { getToken, fetchFn } = useSignedIn();
-  const { t } = useTranslation();
+  useRememberWorld('dramas');
   return (
     <>
-      <h1 className="visually-hidden">{t('nav.explore')}</h1>
-      <ExploreSwitch />
+      <WorldHeader world="dramas" />
       <DramasScreen getToken={getToken} fetchFn={fetchFn} />
     </>
   );
@@ -143,7 +144,10 @@ function CuratorPage() {
 
 // Screens behind the session gate of App, inside the signed-in layout (routes/Home.tsx).
 export const signedInRoutes: RouteObject[] = [
-  { index: true, element: <CatalogPage /> },
+  // Explorar: `/` only decides between the last world visited and the map.
+  { index: true, element: <ExploreEntry /> },
+  { path: 'mundos', element: <WorldsMap /> },
+  { path: 'anime', element: <CatalogPage /> },
   { path: 'dramas', element: <DramasPage /> },
   { path: 'franquicia/:animeId', element: <FranchisePage /> },
   { path: 'mi-lista', element: <MyListPage /> },

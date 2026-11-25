@@ -79,7 +79,7 @@ export function FranchiseScreen({
     body = (
       <div className="catalog__notice">
         <p>{t('franchise.notFound')}</p>
-        <Link className="button button--secondary" to="/">
+        <Link className="button button--secondary" to="/anime">
           {t('franchise.backToCatalog')}
         </Link>
       </div>

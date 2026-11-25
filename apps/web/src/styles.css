@@ -3059,30 +3059,150 @@ label.sheet__label {
   padding: 24px 0 0;
 }
 
-/* The switch at the top of Explorar: Anime or Dramas. */
-.explore-switch {
+/* Explorar as worlds (Claude Design, boards M1 and M2). A world has one colour, on its door in
+   the map and on its header once inside. */
+.worlds__title,
+.world__name,
+.world-header__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.worlds__title {
+  font-size: 30px;
+  line-height: 36px;
+  text-wrap: balance;
+}
+
+.worlds__list {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.world {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
   min-width: 0;
-  margin: 16px 0 0;
-  padding: 0;
-  border: 0;
-}
-
-.explore-switch__link {
-  min-height: 40px;
-  padding: 8px 16px;
+  padding: 14px;
   border: var(--stroke) solid var(--color-border-default);
-  border-radius: 999px;
-  background: var(--color-bg-surface);
-  color: var(--color-text-primary);
-  font-size: 14px;
-  line-height: 22px;
-  text-decoration: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-hard);
 }
 
-.explore-switch__link[aria-current="page"] {
-  border-color: var(--color-accent-text);
+.world--anime,
+.world-header--anime {
   background: var(--color-accent-default);
-  color: var(--color-text-on-accent);
+}
+
+.world--dramas,
+.world-header--dramas {
+  background: var(--color-accent-alt);
+}
+
+.world__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.world__name {
+  font-size: 24px;
+  line-height: 28px;
+}
+
+.world__enter,
+.world-header__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border: var(--stroke) solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-hard);
+  color: var(--color-text-primary);
+  font-weight: 800;
+  text-decoration: none;
+  transition:
+    transform 80ms,
+    box-shadow 80ms;
+}
+
+.world__enter {
+  padding: 0 18px;
+  border-radius: 999px;
+}
+
+.world__enter:active,
+.world-header__back:active {
+  box-shadow: var(--shadow-pressed);
+  transform: translateY(3px);
+}
+
+.world__hint {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 800;
+}
+
+/* Series has no catalog yet: announced, with no door and no weight. */
+.world--locked {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-style: dashed;
+  background: var(--color-bg-surface);
+  box-shadow: none;
+  color: var(--color-text-secondary);
+}
+
+.world__lock {
+  margin: 0;
+  font-family: var(--font-hud);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.world-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px;
+  border: var(--stroke) solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+}
+
+.world-header__back {
+  flex-shrink: 0;
+  width: 48px;
+  border-radius: var(--radius-md);
+}
+
+.world-header__title {
+  min-width: 0;
+  font-size: 30px;
+  line-height: 36px;
+}
+
+@media (min-width: 640px) {
+  .worlds__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .world--locked {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .world__enter,
+  .world-header__back {
+    transition: none;
+  }
 }

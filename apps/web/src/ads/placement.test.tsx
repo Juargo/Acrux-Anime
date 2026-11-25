@@ -100,7 +100,7 @@ const noAdSlot = () =>
 
 describe('ad placement (RF-58, RF-59)', () => {
   it('@CA-RF58-01 shows one ad on Inicio, after the filters', async () => {
-    renderAt('/');
+    renderAt('/anime');
     await adSlot();
     expect(screen.getAllByRole('complementary', { name: 'Publicidad' })).toHaveLength(1);
   });
@@ -135,7 +135,7 @@ describe('ad placement (RF-58, RF-59)', () => {
 
   it('@CA-RF59-01 shows no ad to a Plus user and never loads AdSense', async () => {
     const plus = { ...free, plan: 'plus' as const };
-    for (const path of ['/', '/mi-lista', '/tarjeta']) {
+    for (const path of ['/anime', '/mi-lista', '/tarjeta']) {
       const { inject } = renderAt(path, plus);
       await screen.findAllByRole('heading');
       noAdSlot();

@@ -21,7 +21,7 @@ Los datos de TVmaze son CC BY-SA 4.0. Por eso están en una tabla aparte del cat
 
 ## En la web
 
-- **Ruta:** `/dramas`, con un selector «Anime / Dramas» arriba de Explorar (`apps/web/src/components/ExploreSwitch.tsx`). «Explorar» de la barra queda activo en las dos rutas.
+- **Ruta:** `/dramas`, uno de los mundos de Explorar (`apps/web/src/explore/`). El mapa de mundos está en `/mundos` y el anime en `/anime`; `/` abre el último mundo visitado en ese dispositivo, o el mapa si todavía no hay ninguno. La cabecera de cada mundo tiene la vuelta al mapa. «Explorar» de la barra queda activo en el mapa y en los mundos.
 - **Código:** `apps/web/src/dramas/` (pantalla, tarjetas y filtros de país y género) y `apps/web/src/drama-source/` (cliente y consultas contra `/api/v1/dramas`). Es una pantalla aparte: no pide nada a `/api/v1/catalog/*` y el catálogo de anime no pide dramas.
 - **Tarjeta:** título internacional, portada, país, año, temporadas y episodios. Lo que la API devuelve en `null` no se muestra.
 - **Crédito:** la pantalla de dramas lleva «Datos de TVmaze» con enlace a https://www.tvmaze.com y ningún crédito de MyAnimeList; las de anime siguen con solo el de MyAnimeList.

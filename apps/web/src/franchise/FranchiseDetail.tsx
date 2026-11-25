@@ -78,7 +78,7 @@ export function FranchiseDetailView(props: {
     <article className="franchise">
       <div className="franchise__hero">
         {detail.coverUrl && <img className="franchise__backdrop" src={detail.coverUrl} alt="" />}
-        <Link className="franchise__back" to="/" aria-label={t('franchise.backToCatalog')}>
+        <Link className="franchise__back" to="/anime" aria-label={t('franchise.backToCatalog')}>
           <span aria-hidden="true">‹</span>
         </Link>
       </div>
