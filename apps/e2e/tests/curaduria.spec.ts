@@ -49,6 +49,6 @@ test('@CA-RF60-01 the curator splits a saga from /curador and the counter follow
   );
 
   // Part 1 alone is now a whole franchise, so the one seen entry completes it.
-  await page.goto('/');
+  await page.goto('/anime');
   await expect(page.getByRole('region', { name: 'Contador total' })).toContainText('1 anime');
 });

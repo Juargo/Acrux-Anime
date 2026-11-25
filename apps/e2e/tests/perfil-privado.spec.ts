@@ -14,7 +14,7 @@ test('@CA-RF42-01 @CA-RF41-02 a visitor sees only the summary of a private list,
   await markSeen(request, user, [FRIEREN.rootId, 182255]);
 
   // The owner opens the app once, so the link shows the counter they see.
-  await page.goto('/');
+  await page.goto('/anime');
   await expect(page.getByRole('region', { name: 'Contador total' })).toContainText('1 anime');
 
   const visitor = await visitorContext(browser);

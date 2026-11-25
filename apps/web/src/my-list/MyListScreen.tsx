@@ -34,7 +34,7 @@ function Rows({ rows, tab }: { rows: ListRow[]; tab: AnimeTab }) {
         </span>
         <p className="my-list__empty-title">{t(empty.title)}</p>
         {empty.text && <p className="my-list__empty-text">{t(empty.text)}</p>}
-        <Link className="button button--primary" to="/">
+        <Link className="button button--primary" to="/anime">
           {t('myList.explore')}
         </Link>
       </div>

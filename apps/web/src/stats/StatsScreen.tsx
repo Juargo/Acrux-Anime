@@ -49,7 +49,7 @@ export function StatsScreen({
   } else if (seenIds.length === 0) {
     body = (
       <p className="stats__status">
-        {t('stats.empty')} <Link to="/">{t('stats.explore')}</Link>
+        {t('stats.empty')} <Link to="/anime">{t('stats.explore')}</Link>
       </p>
     );
   } else if (media.isError) {

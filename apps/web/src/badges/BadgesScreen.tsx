@@ -67,7 +67,7 @@ export function BadgesScreen({
   } else if (seenIds.length === 0) {
     body = (
       <p className="stats__status">
-        {t('badges.empty')} <Link to="/">{t('stats.explore')}</Link>
+        {t('badges.empty')} <Link to="/anime">{t('stats.explore')}</Link>
       </p>
     );
   } else if (media.isError) {

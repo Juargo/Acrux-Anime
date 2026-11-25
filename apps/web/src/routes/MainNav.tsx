@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { NavLink, useLocation } from 'react-router';
+import { Link, NavLink, useLocation } from 'react-router';
+import { MAP_PATH, WORLD_PATH } from '../explore/last-world';
 
 // Figma M03/M12/M16: the bar at the bottom on phones, the sidebar of D12 on wide screens.
 const ITEMS = [
@@ -25,32 +26,47 @@ const ITEMS = [
   },
 ] as const;
 
+const EXPLORE_PATHS = ['/', MAP_PATH, ...Object.values(WORLD_PATH)];
+
 export function MainNav() {
   const { t } = useTranslation();
-  // The dramas are part of Explorar: its item stays current there, and stays on that section.
-  const onDramas = useLocation().pathname === '/dramas';
+  // Explorar is the map and its worlds; `/` reopens the last world visited.
+  const { pathname } = useLocation();
+  const exploring = EXPLORE_PATHS.some((path) => path === pathname);
   return (
     <nav className="main-nav" aria-label={t('nav.label')}>
-      {ITEMS.map((item) => (
-        <NavLink
-          key={item.to}
-          className="main-nav__link"
-          to={item.to === '/' && onDramas ? '/dramas' : item.to}
-          end
-        >
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
-            <path
-              d={item.icon}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          {t(`nav.${item.label}`)}
-        </NavLink>
-      ))}
+      {ITEMS.map((item) => {
+        const content = (
+          <>
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+              <path
+                d={item.icon}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {t(`nav.${item.label}`)}
+          </>
+        );
+        // Explorar spans several addresses, so its current state is not NavLink's to decide.
+        return item.to === '/' ? (
+          <Link
+            key={item.to}
+            className="main-nav__link"
+            to={item.to}
+            aria-current={exploring ? 'page' : undefined}
+          >
+            {content}
+          </Link>
+        ) : (
+          <NavLink key={item.to} className="main-nav__link" to={item.to} end>
+            {content}
+          </NavLink>
+        );
+      })}
     </nav>
   );
 }

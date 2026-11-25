@@ -94,11 +94,15 @@ export const browseEs = {
       unit: 'vistos',
     },
   },
-  // The switch at the top of Explorar between the two catalogs.
-  exploreSwitch: {
-    label: 'Qué explorar',
-    anime: 'Anime',
-    dramas: 'Dramas',
+  // Explorar as a map of worlds: each catalog is a world, entered from the map.
+  worlds: {
+    title: 'Elige un mundo',
+    enter: 'Entrar',
+    enterWorld: 'Entrar a {{world}}',
+    backToMap: 'Volver a los mundos',
+    anime: { name: 'Anime', hint: 'Seis eras, de 1917 a hoy' },
+    dramas: { name: 'Dramas', hint: 'Corea, China y Japón' },
+    series: { name: 'Series', locked: 'Mundo bloqueado' },
   },
   // The era filter of the catalog (S1): eras group the years a franchise first released in.
   eras: {
@@ -362,11 +366,15 @@ export const browseEn = {
       unit: 'watched',
     },
   },
-  // The switch at the top of Explore between the two catalogs.
-  exploreSwitch: {
-    label: 'What to explore',
-    anime: 'Anime',
-    dramas: 'Dramas',
+  // Explorar as a map of worlds: each catalog is a world, entered from the map.
+  worlds: {
+    title: 'Pick a world',
+    enter: 'Enter',
+    enterWorld: 'Enter {{world}}',
+    backToMap: 'Back to the worlds',
+    anime: { name: 'Anime', hint: 'Six eras, from 1917 to today' },
+    dramas: { name: 'Dramas', hint: 'Korea, China and Japan' },
+    series: { name: 'Series', locked: 'Locked world' },
   },
   // The era filter of the catalog (S1): eras group the years a franchise first released in.
   eras: {
