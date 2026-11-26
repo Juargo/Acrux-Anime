@@ -2978,7 +2978,7 @@ label.sheet__label {
   gap: 0 8px;
 }
 
-.era-years__name {
+.level-title {
   margin: 0;
   font-family: var(--font-display);
   font-size: 22px;
@@ -2995,7 +2995,7 @@ label.sheet__label {
 
 /* One row that scrolls sideways: an era can hold forty years. The padding keeps the hard
    shadows and the focus rings of the chips inside the scroll box. */
-.era-years__list {
+.level-row {
   display: flex;
   gap: 8px;
   margin: 8px -4px 0;
@@ -3004,10 +3004,6 @@ label.sheet__label {
   list-style: none;
   scrollbar-color: var(--color-border-default) transparent;
   scrollbar-width: thin;
-}
-
-.era-years__list .chip--level {
-  position: relative;
 }
 
 .era-years__dot {
@@ -3026,6 +3022,15 @@ label.sheet__label {
 
 .chip-levels .chips {
   gap: 10px 8px;
+}
+
+.catalog--world > .level-title {
+  margin-top: 16px;
+}
+
+.chip-levels--row {
+  margin-top: 0;
+  margin-bottom: 8px;
 }
 
 .chip-levels__hint {
@@ -3288,9 +3293,26 @@ label.sheet__label {
     box-shadow 80ms;
 }
 
-.world__country:active {
+.world__country:active,
+.world__country[aria-pressed="true"] {
   box-shadow: var(--shadow-pressed);
   transform: translateY(3px);
+}
+
+.world__country[aria-pressed="true"] {
+  background: var(--color-accent-soft);
+}
+
+.world__country:is(button) {
+  align-items: flex-start;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+fieldset.world__countries {
+  min-width: 0;
+  border: 0;
 }
 
 .world__country-name {

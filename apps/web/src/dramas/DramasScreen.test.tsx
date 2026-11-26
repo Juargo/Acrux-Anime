@@ -86,6 +86,12 @@ const cardOf = async (title: string) => {
   return within(grid).getByText(title).closest('li') as HTMLElement;
 };
 
+// The search waits behind its button in the header of the world.
+async function openSearch(name = 'Buscar dramas') {
+  await userEvent.click(screen.getByRole('button', { name: /^(Buscar en|Search in) Dramas$/ }));
+  return screen.getByRole('searchbox', { name });
+}
+
 describe('DramasScreen', () => {
   it('shows the international title, cover, country, year, seasons and episodes (S5)', async () => {
     const { client } = fakeClient(() => ({
@@ -136,24 +142,36 @@ describe('DramasScreen', () => {
     expect(card.querySelector('.catalog-card__cover--empty')).not.toBeNull();
   });
 
-  it('filters by one country and by genres through the sheet (S3)', async () => {
+  it('filters by one country and by genres in view, each tap applied at once (S8)', async () => {
     const { client, calls } = fakeClient();
     renderScreen(client);
     await screen.findByText('No encontramos dramas con estos filtros.');
     expect(calls[0]).toMatchObject({ page: 1, genres: [] });
     expect(calls[0]?.origin).toBeUndefined();
+    expect(screen.getByRole('heading', { level: 2, name: 'Todos los dramas' })).toBeTruthy();
 
-    await userEvent.click(screen.getByRole('button', { name: 'País' }));
-    const sheet = screen.getByRole('dialog', { name: 'Filtrar' });
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Corea' }));
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Japón' }));
-    expect(within(sheet).getByRole('button', { name: 'Corea' }).getAttribute('aria-pressed')).toBe(
+    // The countries in the order of the board, none taken.
+    const countries = within(screen.getByRole('group', { name: 'País' }));
+    expect(countries.getAllByRole('button').map((button) => button.textContent)).toEqual([
+      'CoreaK-drama',
+      'ChinaC-drama',
+      'JapónJ-drama',
+    ]);
+    expect(countries.queryAllByRole('button', { pressed: true })).toHaveLength(0);
+
+    await userEvent.click(countries.getByRole('button', { name: 'Corea' }));
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ origin: 'KR', page: 1 }));
+    await userEvent.click(countries.getByRole('button', { name: 'Japón' }));
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ origin: 'JP', page: 1 }));
+    expect(countries.getByRole('button', { name: 'Corea' }).getAttribute('aria-pressed')).toBe(
       'false',
     );
-    await userEvent.click(await within(sheet).findByRole('button', { name: 'Romance' }));
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Thriller' }));
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Ver resultados' }));
+    expect(screen.getByRole('heading', { level: 2, name: 'Dramas de Japón' })).toBeTruthy();
 
+    const genres = within(screen.getByRole('group', { name: 'Género' }));
+    expect(genres.getByRole('button', { name: 'Todos' }).getAttribute('aria-pressed')).toBe('true');
+    await userEvent.click(await genres.findByRole('button', { name: 'Romance' }));
+    await userEvent.click(genres.getByRole('button', { name: 'Thriller' }));
     await waitFor(() =>
       expect(calls.at(-1)).toMatchObject({
         origin: 'JP',
@@ -161,13 +179,38 @@ describe('DramasScreen', () => {
         page: 1,
       }),
     );
-    expect(screen.getByRole('button', { name: 'País · 1' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Género · 2' })).toBeTruthy();
+    expect(genres.getByRole('button', { name: 'Todos' }).getAttribute('aria-pressed')).toBe(
+      'false',
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
 
-    await userEvent.click(screen.getByRole('button', { name: 'País · 1' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Todos' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Ver resultados' }));
+    // "Todos" lets every genre go, and the country taken lets go with a second tap.
+    await userEvent.click(genres.getByRole('button', { name: 'Todos' }));
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ origin: 'JP', genres: [] }));
+    await userEvent.click(countries.getByRole('button', { name: 'Japón' }));
     await waitFor(() => expect(calls.at(-1)?.origin).toBeUndefined());
+    expect(screen.getByRole('heading', { level: 2, name: 'Todos los dramas' })).toBeTruthy();
+  });
+
+  it('keeps the search one tap away in the header, and closing it clears it', async () => {
+    const { client, calls } = fakeClient();
+    renderScreen(client);
+    await screen.findByText('No encontramos dramas con estos filtros.');
+    expect(screen.queryByRole('searchbox')).toBeNull();
+    expect(screen.getByRole('heading', { level: 1, name: 'Dramas' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Volver a los mundos' })).toBeTruthy();
+
+    const toggle = screen.getByRole('button', { name: 'Buscar en Dramas' });
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    const box = await openSearch();
+    expect(document.activeElement).toBe(box);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    await userEvent.type(box, 'crash');
+    await waitFor(() => expect(calls.at(-1)).toMatchObject({ search: 'crash' }));
+
+    await userEvent.click(toggle);
+    expect(screen.queryByRole('searchbox')).toBeNull();
+    await waitFor(() => expect(calls.at(-1)?.search).toBeFalsy());
   });
 
   // Marking arrived with #154; the card still opens no detail screen.
@@ -189,7 +232,7 @@ describe('DramasScreen', () => {
     );
     renderScreen(client);
 
-    await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar dramas' }), 'crash');
+    await userEvent.type(await openSearch(), 'crash');
 
     await cardOf('Crash Landing on You');
     const searches = calls.filter((call) => call.search);
@@ -201,7 +244,7 @@ describe('DramasScreen', () => {
     const { client } = fakeClient();
     renderScreen(client);
 
-    await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar dramas' }), 'El indomable');
+    await userEvent.type(await openSearch(), 'El indomable');
 
     expect(await screen.findByText('No encontramos dramas para «El indomable».')).toBeTruthy();
     expect(screen.getByText(/versión internacional/)).toBeTruthy();
@@ -212,7 +255,7 @@ describe('DramasScreen', () => {
     const { client } = fakeClient();
     renderScreen(client);
 
-    await userEvent.type(screen.getByRole('searchbox', { name: 'Search dramas' }), 'El indomable');
+    await userEvent.type(await openSearch('Search dramas'), 'El indomable');
 
     expect(await screen.findByText('We found no dramas for "El indomable".')).toBeTruthy();
     expect(screen.getByText(/international version/)).toBeTruthy();

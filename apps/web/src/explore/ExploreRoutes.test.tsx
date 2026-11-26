@@ -323,9 +323,8 @@ describe('the doors by level', () => {
     await screen.findByText('Crash Landing on You');
 
     expect(dramaRequests().at(-1)).toContain('origin=KR');
-    expect(screen.getByRole('button', { name: 'País · 1' }).getAttribute('aria-pressed')).toBe(
-      'true',
-    );
+    expect(screen.getByRole('button', { name: 'Corea' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('heading', { level: 2, name: 'Dramas de Corea' })).toBeTruthy();
   });
 
   it('opens the Dramas world on every country without a door, or with an unknown one', async () => {

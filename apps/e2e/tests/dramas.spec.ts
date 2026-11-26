@@ -61,10 +61,7 @@ test('a country door of the map opens the Dramas world on that country', async (
   const grid = page.getByRole('list', { name: 'Dramas' });
   await expect(grid.getByRole('listitem')).toHaveCount(1);
   await expect(grid.getByRole('listitem')).toContainText(CRASH?.title ?? '');
-  await expect(page.getByRole('button', { name: 'País · 1' })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(page.getByRole('button', { name: 'Corea' })).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('a drama card shows its facts, and nothing false when the detail is not read yet', async ({
@@ -89,21 +86,16 @@ test('the dramas filter by country and search says titles are international', as
   await page.goto('/dramas');
   const grid = page.getByRole('list', { name: 'Dramas' });
 
-  await page.getByRole('button', { name: 'País' }).click();
-  const sheet = page.getByRole('dialog', { name: 'Filtrar' });
-  await sheet.getByRole('button', { name: 'Japón' }).click();
-  await sheet.getByRole('button', { name: 'Ver resultados' }).click();
+  // The countries are in view: one tap takes a country, a second one lets it go.
+  const japan = page.getByRole('button', { name: 'Japón' });
+  await japan.click();
   await expect(grid.getByRole('listitem')).toHaveCount(1);
   await expect(grid).toContainText('Alice in Borderland');
 
-  await page.getByRole('button', { name: 'País · 1' }).click();
-  await page
-    .getByRole('dialog', { name: 'Filtrar' })
-    .getByRole('button', { name: 'Todos' })
-    .click();
-  await page.getByRole('button', { name: 'Ver resultados' }).click();
+  await japan.click();
   await expect(grid.getByRole('listitem')).toHaveCount(DRAMAS.length);
 
+  await page.getByRole('button', { name: 'Buscar en Dramas' }).click();
   await page.getByRole('searchbox', { name: 'Buscar dramas' }).fill('El indomable');
   await expect(page.getByText('No encontramos dramas para «El indomable».')).toBeVisible();
   await expect(page.getByText(/versión internacional/)).toBeVisible();

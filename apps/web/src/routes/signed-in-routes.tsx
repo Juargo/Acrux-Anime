@@ -8,7 +8,6 @@ import { ORIGINS } from '../drama-source/client';
 import { DramasScreen } from '../dramas/DramasScreen';
 import { ExploreEntry } from '../explore/ExploreEntry';
 import { useRememberWorld } from '../explore/last-world';
-import { WorldHeader } from '../explore/WorldHeader';
 import { WorldsMap } from '../explore/WorldsMap';
 import { FranchiseScreen } from '../franchise/FranchiseScreen';
 import { MyListScreen } from '../my-list/MyListScreen';
@@ -39,12 +38,7 @@ function DramasPage() {
   const [params] = useSearchParams();
   const initialOrigin = ORIGINS.find((origin) => origin === params.get('origin'));
   useRememberWorld('dramas');
-  return (
-    <>
-      <WorldHeader world="dramas" />
-      <DramasScreen getToken={getToken} fetchFn={fetchFn} initialOrigin={initialOrigin} />
-    </>
-  );
+  return <DramasScreen getToken={getToken} fetchFn={fetchFn} initialOrigin={initialOrigin} />;
 }
 
 // Any entry id of the franchise works, so a shared link survives a regrouping (RF-16).

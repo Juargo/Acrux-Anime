@@ -72,14 +72,14 @@ export function EraYears({
   return (
     <section className="era-years" aria-labelledby={titleId}>
       <div className="era-years__heading">
-        <h2 className="era-years__name" id={titleId}>
+        <h2 className="level-title" id={titleId}>
           {t(`eras.${era.key}`)}
         </h2>
         <span className="era-years__range">
           {era.first}–{era.last === null ? t('eras.today') : era.last}
         </span>
       </div>
-      <ul className="era-years__list">
+      <ul className="level-row">
         <li>
           <button
             type="button"

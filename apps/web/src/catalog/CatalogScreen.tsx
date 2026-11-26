@@ -7,6 +7,7 @@ import { defaultClient, useCatalog, useFranchiseYears, useGenres } from '../cata
 import { catalogErrorMessage } from '../catalog-source/messages';
 import { DataCredit } from '../components/DataCredit';
 import { WorldHeader } from '../explore/WorldHeader';
+import { WorldSearchButton } from '../explore/WorldSearchButton';
 import { useFranchiseOverrides } from '../franchise/use-franchise-overrides';
 import { CatalogGrid } from './CatalogGrid';
 import { ChipLevels } from './ChipLevels';
@@ -115,24 +116,15 @@ export function CatalogScreen({
       <WorldHeader
         world="anime"
         action={
-          <button
-            className="world-header__action"
-            type="button"
-            aria-label={t('catalog.openSearch')}
-            aria-expanded={searchOpen}
-            onClick={() => {
+          <WorldSearchButton
+            label={t('catalog.openSearch')}
+            open={searchOpen}
+            onToggle={() => {
               // A search out of view would filter in silence: closing it clears it.
               if (searchOpen) setInput('');
               setSearchOpen(!searchOpen);
             }}
-          >
-            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
-              <g fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-                <circle cx="10.5" cy="10.5" r="6.5" />
-                <path d="M16 16l5 5" />
-              </g>
-            </svg>
-          </button>
+          />
         }
       >
         {searchOpen && (
