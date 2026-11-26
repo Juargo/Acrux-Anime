@@ -1,4 +1,4 @@
-import { type RouteObject, useNavigate, useParams, useSearchParams } from 'react-router';
+import { Navigate, type RouteObject, useNavigate, useParams, useSearchParams } from 'react-router';
 import { BadgesScreen } from '../badges/BadgesScreen';
 import { CardScreen } from '../card/CardScreen';
 import { CatalogScreen } from '../catalog/CatalogScreen';
@@ -6,8 +6,10 @@ import { eraYears } from '../catalog/eras';
 import { CuratorScreen } from '../curator/CuratorScreen';
 import { ORIGINS } from '../drama-source/client';
 import { DramasScreen } from '../dramas/DramasScreen';
+import { CrossingScreen } from '../explore/CrossingScreen';
+import { crossingOf, doorGenres } from '../explore/crossings';
 import { ExploreEntry } from '../explore/ExploreEntry';
-import { useRememberWorld } from '../explore/last-world';
+import { MAP_PATH, useRememberWorld } from '../explore/last-world';
 import { WorldsMap } from '../explore/WorldsMap';
 import { FranchiseScreen } from '../franchise/FranchiseScreen';
 import { MyListScreen } from '../my-list/MyListScreen';
@@ -28,7 +30,13 @@ function CatalogPage() {
   const initialYears = eraYears(params.get('era'), new Date().getFullYear());
   useRememberWorld('anime');
   // The world header is part of the screen: it holds the levels of the catalog.
-  return <CatalogScreen {...context} initialYears={initialYears} />;
+  return (
+    <CatalogScreen
+      {...context}
+      initialYears={initialYears}
+      initialGenres={doorGenres('anime', params.get('genre'))}
+    />
+  );
 }
 
 // The dramas live apart from the anime catalog (#151); the session is for their marks (#154).
@@ -38,7 +46,24 @@ function DramasPage() {
   const [params] = useSearchParams();
   const initialOrigin = ORIGINS.find((origin) => origin === params.get('origin'));
   useRememberWorld('dramas');
-  return <DramasScreen getToken={getToken} fetchFn={fetchFn} initialOrigin={initialOrigin} />;
+  return (
+    <DramasScreen
+      getToken={getToken}
+      fetchFn={fetchFn}
+      initialOrigin={initialOrigin}
+      initialGenres={doorGenres('dramas', params.get('genre'))}
+    />
+  );
+}
+
+// One genre in every world. A genre that crosses none goes back to the map.
+function CrossingPage() {
+  const { client, fetchFn } = useSignedIn();
+  const crossing = crossingOf(useParams().genre);
+  if (!crossing) return <Navigate to={MAP_PATH} replace />;
+  return (
+    <CrossingScreen key={crossing.key} crossing={crossing} client={client} fetchFn={fetchFn} />
+  );
 }
 
 // Any entry id of the franchise works, so a shared link survives a regrouping (RF-16).
@@ -145,6 +170,7 @@ export const signedInRoutes: RouteObject[] = [
   // Explorar: `/` only decides between the last world visited and the map.
   { index: true, element: <ExploreEntry /> },
   { path: 'mundos', element: <WorldsMap /> },
+  { path: 'mundos/genero/:genre', element: <CrossingPage /> },
   { path: 'anime', element: <CatalogPage /> },
   { path: 'dramas', element: <DramasPage /> },
   { path: 'franquicia/:animeId', element: <FranchisePage /> },

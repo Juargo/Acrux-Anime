@@ -193,3 +193,29 @@ test('the marked dramas show together in Mi lista, where they can be unmarked', 
   await myList.getByRole('tab', { name: 'Dramas (0)' }).click();
   await expect(myList.getByText('Aún no marcaste ningún drama')).toBeVisible();
 });
+
+test('a genre crosses the worlds from the map and leads into a world on that genre', async ({
+  page,
+  signedIn: _user,
+}) => {
+  await page.goto('/mundos');
+  await page
+    .getByRole('navigation', { name: 'Cruza los mundos por género' })
+    .getByRole('link', { name: 'Romance' })
+    .click();
+  await expect(page).toHaveURL(/\/mundos\/genero\/romance$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Romance' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'En Anime' })).toBeVisible();
+
+  const dramas = page.getByRole('region', { name: 'En Dramas' });
+  await expect(dramas.getByRole('listitem')).toHaveCount(1);
+  await expect(dramas).toContainText(CRASH?.title ?? '');
+
+  await dramas.getByRole('link', { name: 'Ir al mundo Dramas' }).click();
+  await expect(page).toHaveURL(/\/dramas\?genre=Romance$/);
+  await expect(page.getByRole('button', { name: 'Romance' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(page.getByRole('list', { name: 'Dramas' }).getByRole('listitem')).toHaveCount(1);
+});

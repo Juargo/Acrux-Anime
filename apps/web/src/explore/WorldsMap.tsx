@@ -1,13 +1,16 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { ERAS } from '../catalog/eras';
+import { genreLabel } from '../catalog-source/catalog';
 import { COUNTRIES } from '../dramas/countries';
+import { crossingPath, MAP_CROSSINGS } from './crossings';
 import { WORLD_PATH } from './last-world';
 
 /**
  * Presentational: the map of Explorar. One door per world, and one per level of its native
  * axis: the eras of anime, the countries of the dramas. Series is announced but has no door
- * until its catalog exists. It asks for no catalog data.
+ * until its catalog exists. Below them, the genres that cross the worlds. It asks for no
+ * catalog data.
  */
 export function WorldsMap() {
   const { t } = useTranslation();
@@ -77,6 +80,21 @@ export function WorldsMap() {
           <p className="world__lock">{t('worlds.series.locked')}</p>
         </section>
       </div>
+
+      <nav className="worlds__crossings" aria-labelledby="worlds-crossings">
+        <h2 className="worlds__crossings-title" id="worlds-crossings">
+          {t('worlds.crossTitle')}
+        </h2>
+        <ul className="chips">
+          {MAP_CROSSINGS.map((crossing) => (
+            <li key={crossing.key}>
+              <Link className="chip chip--level chip--door" to={crossingPath(crossing)}>
+                {genreLabel(crossing.anime, t)}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </section>
   );
 }
