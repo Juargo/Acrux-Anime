@@ -10,6 +10,7 @@ import { CrossingScreen } from '../explore/CrossingScreen';
 import { crossingOf, doorGenres } from '../explore/crossings';
 import { ExploreEntry } from '../explore/ExploreEntry';
 import { MAP_PATH, useRememberWorld } from '../explore/last-world';
+import { WorldSearchScreen } from '../explore/WorldSearchScreen';
 import { WorldsMap } from '../explore/WorldsMap';
 import { FranchiseScreen } from '../franchise/FranchiseScreen';
 import { MyListScreen } from '../my-list/MyListScreen';
@@ -35,6 +36,7 @@ function CatalogPage() {
       {...context}
       initialYears={initialYears}
       initialGenres={doorGenres('anime', params.get('genre'))}
+      initialSearch={params.get('q')?.trim()}
     />
   );
 }
@@ -52,6 +54,7 @@ function DramasPage() {
       fetchFn={fetchFn}
       initialOrigin={initialOrigin}
       initialGenres={doorGenres('dramas', params.get('genre'))}
+      initialSearch={params.get('q')?.trim()}
     />
   );
 }
@@ -64,6 +67,15 @@ function CrossingPage() {
   return (
     <CrossingScreen key={crossing.key} crossing={crossing} client={client} fetchFn={fetchFn} />
   );
+}
+
+// One search in every world. With nothing to search it goes back to the map.
+function WorldSearchPage() {
+  const { client, fetchFn } = useSignedIn();
+  const [params] = useSearchParams();
+  const search = params.get('q')?.trim() ?? '';
+  if (search === '') return <Navigate to={MAP_PATH} replace />;
+  return <WorldSearchScreen key={search} search={search} client={client} fetchFn={fetchFn} />;
 }
 
 // Any entry id of the franchise works, so a shared link survives a regrouping (RF-16).
@@ -170,6 +182,7 @@ export const signedInRoutes: RouteObject[] = [
   // Explorar: `/` only decides between the last world visited and the map.
   { index: true, element: <ExploreEntry /> },
   { path: 'mundos', element: <WorldsMap /> },
+  { path: 'mundos/buscar', element: <WorldSearchPage /> },
   { path: 'mundos/genero/:genre', element: <CrossingPage /> },
   { path: 'anime', element: <CatalogPage /> },
   { path: 'dramas', element: <DramasPage /> },

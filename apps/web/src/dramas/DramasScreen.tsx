@@ -28,6 +28,7 @@ export function DramasScreen({
   fetchFn,
   initialOrigin,
   initialGenres,
+  initialSearch = '',
 }: {
   client?: DramaClient | undefined;
   getToken: () => Promise<string | null>;
@@ -36,13 +37,15 @@ export function DramasScreen({
   initialOrigin?: Origin | undefined;
   // The genres the screen opens on: the door of a crossing.
   initialGenres?: string[] | undefined;
+  // The name the screen opens searching: the door of a search across the worlds.
+  initialSearch?: string | undefined;
 }) {
   const { t } = useTranslation();
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(initialSearch);
   const search = useDebounced(input.trim(), SEARCH_DEBOUNCE_MS);
   const [origin, setOrigin] = useState(initialOrigin);
   const [genres, setGenres] = useState<string[]>(initialGenres ?? []);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(initialSearch !== '');
   const online = useOnline();
 
   const query = useMemo(() => ({ search, origin, genres }), [search, origin, genres]);

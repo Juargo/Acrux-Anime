@@ -38,6 +38,7 @@ export function CatalogScreen({
   onFranchiseMarked,
   initialYears,
   initialGenres,
+  initialSearch = '',
 }: {
   client?: CatalogClient | undefined;
   // Without a session the catalog still browses, but cards cannot be marked.
@@ -48,15 +49,17 @@ export function CatalogScreen({
   initialYears?: number[] | undefined;
   // The genres the screen opens on, with their levels in view: the door of a crossing.
   initialGenres?: string[] | undefined;
+  // The name the screen opens searching: the door of a search across the worlds.
+  initialSearch?: string | undefined;
 }) {
   const { t } = useTranslation();
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(initialSearch);
   const search = useDebounced(input.trim(), SEARCH_DEBOUNCE_MS);
   const [years, setYears] = useState<number[]>(initialYears ?? []);
   const [genres, setGenres] = useState<string[]>(initialGenres ?? []);
   const [formats, setFormats] = useState<string[]>([]);
   const [axis, setAxis] = useState<Axis>(initialGenres?.length ? 'genre' : 'era');
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(initialSearch !== '');
   const axisRef = useRef<HTMLDivElement>(null);
   // Set by a chip that swaps the axis and goes away with it: focus follows to the axis.
   const focusAxis = useRef(false);

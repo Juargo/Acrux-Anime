@@ -115,6 +115,10 @@ export const browseEs = {
     inWorld: 'En {{world}}',
     goToWorld: 'Ir al mundo',
     goToWorldNamed: 'Ir al mundo {{world}}',
+    // One search in every world (board M1).
+    searchAll: 'Buscar en todos los mundos',
+    searchSubmit: 'Buscar',
+    searchHeading: 'Búsqueda',
   },
   // What the levels of the Anime world are read by (board M2).
   levels: { by: 'Niveles por', era: 'Era', genre: 'Género', format: 'Formato' },
@@ -388,6 +392,10 @@ export const browseEn = {
     inWorld: 'In {{world}}',
     goToWorld: 'Go to the world',
     goToWorldNamed: 'Go to the {{world}} world',
+    // One search in every world (board M1).
+    searchAll: 'Search every world',
+    searchSubmit: 'Search',
+    searchHeading: 'Search',
   },
   // What the levels of the Anime world are read by (board M2).
   levels: { by: 'Levels by', era: 'Era', genre: 'Genre', format: 'Format' },

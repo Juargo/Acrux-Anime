@@ -5,6 +5,7 @@ import { genreLabel } from '../catalog-source/catalog';
 import { COUNTRIES } from '../dramas/countries';
 import { crossingPath, MAP_CROSSINGS } from './crossings';
 import { WORLD_PATH } from './last-world';
+import { WorldSearchForm } from './WorldSearchForm';
 
 /**
  * Presentational: the map of Explorar. One door per world, and one per level of its native
@@ -19,6 +20,7 @@ export function WorldsMap() {
   return (
     <section className="worlds">
       <h1 className="worlds__title">{t('worlds.title')}</h1>
+      <WorldSearchForm />
       <div className="worlds__list">
         <section className="world world--anime">
           <div className="world__top">
