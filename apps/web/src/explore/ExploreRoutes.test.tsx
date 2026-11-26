@@ -298,9 +298,12 @@ describe('the doors by level', () => {
     expect(catalogRequests().at(-1)).toContain(
       'years=1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005',
     );
+    // The stop of the era is taken, and its years are in view as the whole era.
     expect(
-      screen.getByRole('button', { name: 'Edad de oro, 1995–2005, 11 años seleccionados' }),
-    ).toBeTruthy();
+      screen.getByRole('button', { name: 'Edad de oro, 1995–2005' }).getAttribute('aria-pressed'),
+    ).toBe('true');
+    const years = within(screen.getByRole('region', { name: 'Edad de oro' }));
+    expect(years.getByRole('button', { name: 'Todos' }).getAttribute('aria-pressed')).toBe('true');
   });
 
   it('opens the Anime world on every year without a door, or with an unknown one', async () => {

@@ -50,8 +50,8 @@ export const browseEs = {
   catalog: {
     label: 'Explorar',
     search: 'Buscar anime',
+    openSearch: 'Buscar en Anime',
     genre: 'Género',
-    format: 'Tipo',
     offline:
       'Estás sin conexión. El catálogo se carga cuando vuelvas a conectarte; lo que marcaste sigue guardado.',
     loading: 'Cargando el catálogo…',
@@ -105,9 +105,10 @@ export const browseEs = {
     dramas: { name: 'Dramas', tags: { KR: 'K-drama', CN: 'C-drama', JP: 'J-drama' } },
     series: { name: 'Series', locked: 'Mundo bloqueado' },
   },
-  // The era filter of the catalog (S1): eras group the years a franchise first released in.
+  // What the levels of the Anime world are read by (board M2).
+  levels: { by: 'Niveles por', era: 'Era', genre: 'Género', format: 'Formato' },
+  // The eras of the catalog: they group the years a franchise first released in.
   eras: {
-    heading: 'Época',
     today: 'hoy',
     pioneers: 'Pioneros',
     tezuka: 'Era Tezuka',
@@ -115,13 +116,7 @@ export const browseEs = {
     goldenAge: 'Edad de oro',
     digital: 'Era digital',
     streaming: 'Streaming',
-    panelTitle: '{{name}} · {{from}} – {{to}}',
-    decade: '{{decade}}s',
     all: 'Todos',
-    none: 'Ninguno',
-    clear: 'Limpiar filtro',
-    selectedYears_one: '{{count}} año seleccionado',
-    selectedYears_other: '{{count}} años seleccionados',
     yearFranchises_one: '{{year}}, {{count}} franquicia',
     yearFranchises_other: '{{year}}, {{count}} franquicias',
   },
@@ -131,7 +126,6 @@ export const browseEs = {
     searchCoversAllYears: 'La búsqueda cubre todos los años.',
     genre: 'Género',
     loadingGenres: 'Cargando géneros…',
-    format: 'Tipo',
     sagaHint: 'Una saga aparece si alguna de sus entradas cumple el filtro.',
     clear: 'Limpiar',
     apply: 'Ver resultados',
@@ -323,8 +317,8 @@ export const browseEn = {
   catalog: {
     label: 'Explore',
     search: 'Search anime',
+    openSearch: 'Search in Anime',
     genre: 'Genre',
-    format: 'Type',
     offline:
       "You're offline. The catalog loads when you're back online; what you marked is still saved.",
     loading: 'Loading the catalog…',
@@ -378,9 +372,10 @@ export const browseEn = {
     dramas: { name: 'Dramas', tags: { KR: 'K-drama', CN: 'C-drama', JP: 'J-drama' } },
     series: { name: 'Series', locked: 'Locked world' },
   },
-  // The era filter of the catalog (S1): eras group the years a franchise first released in.
+  // What the levels of the Anime world are read by (board M2).
+  levels: { by: 'Levels by', era: 'Era', genre: 'Genre', format: 'Format' },
+  // The eras of the catalog: they group the years a franchise first released in.
   eras: {
-    heading: 'Era',
     today: 'today',
     pioneers: 'Pioneers',
     tezuka: 'Tezuka era',
@@ -388,13 +383,7 @@ export const browseEn = {
     goldenAge: 'Golden age',
     digital: 'Digital era',
     streaming: 'Streaming',
-    panelTitle: '{{name}} · {{from}} – {{to}}',
-    decade: '{{decade}}s',
     all: 'All',
-    none: 'None',
-    clear: 'Clear filter',
-    selectedYears_one: '{{count}} year selected',
-    selectedYears_other: '{{count}} years selected',
     yearFranchises_one: '{{year}}, {{count}} franchise',
     yearFranchises_other: '{{year}}, {{count}} franchises',
   },
@@ -404,7 +393,6 @@ export const browseEn = {
     searchCoversAllYears: 'Search covers every year.',
     genre: 'Genre',
     loadingGenres: 'Loading genres…',
-    format: 'Type',
     sagaHint: 'A saga shows up if any of its entries matches the filter.',
     clear: 'Clear',
     apply: 'Show results',

@@ -19,3 +19,23 @@ export function eraYears(key: string | null, currentYear: number): number[] {
   const era = ERAS.find((it) => it.key === key);
   return era ? yearRange(era.first, era.last ?? currentYear) : [];
 }
+
+/** The era a year belongs to, with its years up to the current one. */
+export function eraOf(year: number | undefined, currentYear: number) {
+  const era = ERAS.find(
+    (it) => year !== undefined && year >= it.first && year <= (it.last ?? currentYear),
+  );
+  return era && { ...era, years: yearRange(era.first, era.last ?? currentYear) };
+}
+
+/**
+ * The selection after a tap on one year of the era. From the whole era the year narrows it
+ * down; an era never stays with no year, so taking the last one off widens it again.
+ */
+export function toggleYear(selected: readonly number[], era: readonly number[], year: number) {
+  if (selected.length === era.length) return [year];
+  const next = selected.includes(year)
+    ? selected.filter((it) => it !== year)
+    : [...selected, year].sort((a, b) => a - b);
+  return next.length === 0 ? [...era] : next;
+}
