@@ -37,6 +37,7 @@ export function CatalogScreen({
   fetchFn = fetch,
   onFranchiseMarked,
   initialYears,
+  initialGenres,
 }: {
   client?: CatalogClient | undefined;
   // Without a session the catalog still browses, but cards cannot be marked.
@@ -45,14 +46,16 @@ export function CatalogScreen({
   onFranchiseMarked?: ((event: FranchiseMarkedEvent) => void) | undefined;
   // The years the screen opens on: the era of the door taken on the map of worlds.
   initialYears?: number[] | undefined;
+  // The genres the screen opens on, with their levels in view: the door of a crossing.
+  initialGenres?: string[] | undefined;
 }) {
   const { t } = useTranslation();
   const [input, setInput] = useState('');
   const search = useDebounced(input.trim(), SEARCH_DEBOUNCE_MS);
   const [years, setYears] = useState<number[]>(initialYears ?? []);
-  const [genres, setGenres] = useState<string[]>([]);
+  const [genres, setGenres] = useState<string[]>(initialGenres ?? []);
   const [formats, setFormats] = useState<string[]>([]);
-  const [axis, setAxis] = useState<Axis>('era');
+  const [axis, setAxis] = useState<Axis>(initialGenres?.length ? 'genre' : 'era');
   const [searchOpen, setSearchOpen] = useState(false);
   const axisRef = useRef<HTMLDivElement>(null);
   // Set by a chip that swaps the axis and goes away with it: focus follows to the axis.

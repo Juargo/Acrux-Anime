@@ -3386,6 +3386,165 @@ fieldset.world__countries {
   line-height: 36px;
 }
 
+/* Crossing the worlds by genre (Claude Design, boards M1 and M4): the genres as doors on the
+   map, and one genre with a row of each world. */
+.worlds__crossings {
+  margin-top: 24px;
+}
+
+.worlds__crossings-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 800;
+}
+
+.worlds__crossings .chips {
+  margin: 0;
+  padding: 0 0 6px;
+  list-style: none;
+}
+
+a.chip--level {
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.chip--door,
+.chip--level[aria-current="page"] {
+  background: var(--color-accent-soft);
+}
+
+.chip--level[aria-current="page"] {
+  box-shadow: var(--shadow-pressed);
+  transform: translateY(3px);
+}
+
+.chip--door:active {
+  box-shadow: var(--shadow-pressed);
+  transform: translateY(3px);
+}
+
+.crossing {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.crossing__header,
+.crossing__world-top {
+  display: flex;
+  align-items: center;
+}
+
+.crossing__header {
+  gap: 12px;
+}
+
+.crossing .level-row {
+  margin-top: 0;
+}
+
+.crossing__world {
+  min-width: 0;
+}
+
+.crossing__world-top {
+  gap: 10px;
+}
+
+.crossing__swatch {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: var(--stroke) solid var(--color-border-default);
+  border-radius: 8px;
+}
+
+.crossing__world-name {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 26px;
+}
+
+.crossing__door {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
+}
+
+.crossing__row {
+  display: flex;
+  gap: 12px;
+  margin: 6px -4px 0;
+  padding: 4px 4px 10px;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-color: var(--color-border-default) transparent;
+  scrollbar-width: thin;
+}
+
+.crossing__card {
+  flex: 0 0 104px;
+  min-width: 0;
+}
+
+.crossing__card,
+.crossing__card-link {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.crossing__card-link {
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.crossing__card .catalog-card__cover {
+  border: var(--stroke) solid var(--color-border-default);
+  box-shadow: var(--shadow-hard);
+}
+
+.crossing__card-title {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 16px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.crossing__card-facts {
+  color: var(--color-text-secondary);
+  font-family: var(--font-hud);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  line-height: 16px;
+}
+
+.crossing__state {
+  margin: 6px 0 0;
+  padding: 24px 0;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
 @media (min-width: 640px) {
   .worlds__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));

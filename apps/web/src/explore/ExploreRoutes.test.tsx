@@ -68,6 +68,12 @@ function api(input: RequestInfo | URL): Response {
     });
   }
   if (url.pathname === '/api/v1/catalog/franchise-years') return Response.json({ years: [] });
+  if (url.pathname === '/api/v1/catalog/genres') {
+    return Response.json({ items: ['Romance', 'Sci-Fi'] });
+  }
+  if (url.pathname === '/api/v1/dramas/genres') {
+    return Response.json({ items: ['Romance', 'Thriller'] });
+  }
   return Response.json({ items: [] });
 }
 
@@ -337,5 +343,113 @@ describe('the doors by level', () => {
       expect(dramaRequests().filter((request) => request.includes('origin='))).toEqual([]);
       cleanup();
     }
+  });
+});
+
+describe('crossing the worlds by genre (S9)', () => {
+  it('offers the crossings on the map, each one a door to its genre', async () => {
+    renderAt('/mundos');
+    await screen.findByRole('heading', { level: 1, name: 'Elige un mundo' });
+
+    const crossings = within(
+      screen.getByRole('navigation', { name: 'Cruza los mundos por género' }),
+    );
+    expect(
+      crossings.getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')]),
+    ).toEqual([
+      ['Romance', '/mundos/genero/romance'],
+      ['Misterio', '/mundos/genero/mystery'],
+      ['Comedia', '/mundos/genero/comedy'],
+      ['Fantasía', '/mundos/genero/fantasy'],
+    ]);
+  });
+
+  it('shows one genre in every world, asking each catalog by the name it uses', async () => {
+    renderAt('/mundos/genero/sci-fi');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Ciencia ficción' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Volver a los mundos' }).getAttribute('href')).toBe(
+      '/mundos',
+    );
+
+    const anime = within(screen.getByRole('region', { name: 'En Anime' }));
+    const frieren = await anime.findByRole('link', { name: 'Sousou no Frieren' });
+    expect(frieren.getAttribute('href')).toBe('/franquicia/154587');
+    expect(anime.getByRole('link', { name: 'Ir al mundo Anime' }).getAttribute('href')).toBe(
+      '/anime?genre=Sci-Fi',
+    );
+
+    const dramas = within(screen.getByRole('region', { name: 'En Dramas' }));
+    expect((await dramas.findByText('Crash Landing on You')).closest('li')?.textContent).toContain(
+      'Corea · 2019',
+    );
+    expect(dramas.getByRole('link', { name: 'Ir al mundo Dramas' }).getAttribute('href')).toBe(
+      '/dramas?genre=Science-Fiction',
+    );
+
+    expect(catalogRequests().at(-1)).toContain('genres=Sci-Fi');
+    expect(dramaRequests().at(-1)).toContain('genres=Science-Fiction');
+    // Series is announced, with no door; both sources are credited.
+    expect(screen.getByRole('heading', { level: 2, name: 'En Series' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'MyAnimeList' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'TVmaze' })).toBeTruthy();
+  });
+
+  it('moves between genres from the crossing, with the one in view marked', async () => {
+    renderAt('/mundos/genero/romance');
+    await screen.findByRole('heading', { level: 1, name: 'Romance' });
+
+    const genres = within(screen.getByRole('navigation', { name: 'Géneros' }));
+    expect(genres.getByRole('link', { name: 'Romance' }).getAttribute('aria-current')).toBe('page');
+    expect(genres.getByRole('link', { name: 'Suspenso' }).getAttribute('href')).toBe(
+      '/mundos/genero/suspense',
+    );
+    expect(genres.getByRole('link', { name: 'Suspenso' }).getAttribute('aria-current')).toBeNull();
+  });
+
+  it('says so when a world has nothing of the genre', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) =>
+        String(input).includes('/api/v1/dramas?')
+          ? Response.json({ items: [], nextPage: null })
+          : api(input),
+      ),
+    );
+    renderAt('/mundos/genero/romance');
+
+    const dramas = within(await screen.findByRole('region', { name: 'En Dramas' }));
+    expect(await dramas.findByText('Nada de este género por aquí todavía.')).toBeTruthy();
+  });
+
+  it('goes back to the map for a genre that crosses no world', async () => {
+    renderAt('/mundos/genero/ecchi');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Elige un mundo' })).toBeTruthy();
+  });
+
+  it('opens each world on the genre of the crossing', async () => {
+    renderAt('/anime?genre=Sci-Fi');
+    await screen.findByText('Sousou no Frieren');
+    expect(catalogRequests().at(-1)).toContain('genres=Sci-Fi');
+    expect(screen.getByRole<HTMLInputElement>('radio', { name: 'Género' }).checked).toBe(true);
+    expect(
+      (await screen.findByRole('button', { name: 'Ciencia ficción' })).getAttribute('aria-pressed'),
+    ).toBe('true');
+    cleanup();
+
+    renderAt('/dramas?genre=Thriller');
+    await screen.findByText('Crash Landing on You');
+    expect(dramaRequests().at(-1)).toContain('genres=Thriller');
+    expect(
+      (await screen.findByRole('button', { name: 'Thriller' })).getAttribute('aria-pressed'),
+    ).toBe('true');
+  });
+
+  it('opens a world unfiltered for a genre it does not have', async () => {
+    renderAt('/anime?genre=Thriller');
+    await screen.findByText('Sousou no Frieren');
+
+    expect(catalogRequests().filter((request) => request.includes('genres='))).toEqual([]);
   });
 });

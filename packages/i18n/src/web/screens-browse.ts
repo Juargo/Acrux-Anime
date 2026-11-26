@@ -108,6 +108,13 @@ export const browseEs = {
     anime: { name: 'Anime', hint: 'Seis eras, de 1917 a hoy' },
     dramas: { name: 'Dramas', tags: { KR: 'K-drama', CN: 'C-drama', JP: 'J-drama' } },
     series: { name: 'Series', locked: 'Mundo bloqueado' },
+    // One genre read across the worlds (board M4).
+    crossTitle: 'Cruza los mundos por género',
+    crossGenres: 'Géneros',
+    crossEmpty: 'Nada de este género por aquí todavía.',
+    inWorld: 'En {{world}}',
+    goToWorld: 'Ir al mundo',
+    goToWorldNamed: 'Ir al mundo {{world}}',
   },
   // What the levels of the Anime world are read by (board M2).
   levels: { by: 'Niveles por', era: 'Era', genre: 'Género', format: 'Formato' },
@@ -374,6 +381,13 @@ export const browseEn = {
     anime: { name: 'Anime', hint: 'Six eras, from 1917 to today' },
     dramas: { name: 'Dramas', tags: { KR: 'K-drama', CN: 'C-drama', JP: 'J-drama' } },
     series: { name: 'Series', locked: 'Locked world' },
+    // One genre read across the worlds (board M4).
+    crossTitle: 'Cross the worlds by genre',
+    crossGenres: 'Genres',
+    crossEmpty: 'Nothing of this genre here yet.',
+    inWorld: 'In {{world}}',
+    goToWorld: 'Go to the world',
+    goToWorldNamed: 'Go to the {{world}} world',
   },
   // What the levels of the Anime world are read by (board M2).
   levels: { by: 'Levels by', era: 'Era', genre: 'Genre', format: 'Format' },
