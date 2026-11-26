@@ -28,12 +28,8 @@ function CatalogPage() {
   const [params] = useSearchParams();
   const initialYears = eraYears(params.get('era'), new Date().getFullYear());
   useRememberWorld('anime');
-  return (
-    <>
-      <WorldHeader world="anime" />
-      <CatalogScreen {...context} initialYears={initialYears} />
-    </>
-  );
+  // The world header is part of the screen: it holds the levels of the catalog.
+  return <CatalogScreen {...context} initialYears={initialYears} />;
 }
 
 // The dramas live apart from the anime catalog (#151); the session is for their marks (#154).

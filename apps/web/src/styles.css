@@ -2850,160 +2850,189 @@ label.sheet__label {
   min-height: 100px;
 }
 
-/* Era filter of the catalog (S1, S2): era chips, and for the open era a panel of years by decade. */
-.catalog__era {
-  margin-top: 16px;
+/* The levels of the Anime world (Claude Design, board M2): one axis in view at a time, and
+   every chip of it is a key that stays down while it is taken. */
+.catalog--world {
+  margin-top: 0;
 }
 
 .catalog__era-hint {
-  margin-top: 8px;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  line-height: 18px;
-}
-
-.era-filter__heading {
-  margin: 0 0 8px;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  line-height: 16px;
-  text-transform: uppercase;
-}
-
-.era-filter__era {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.era-filter__era[aria-expanded="true"] {
-  box-shadow: 0 0 0 2px var(--color-accent-default);
-}
-
-.era-filter__range,
-.era-filter__count {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-
-.era-filter__badge {
-  min-width: 20px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: var(--color-accent-default);
-  color: var(--color-text-on-accent);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 20px;
-  text-align: center;
-}
-
-/* On a filled chip the accent badge would vanish: invert it. */
-.era-filter__era[aria-pressed="true"] {
-  border-color: var(--color-accent-text);
-  background: var(--color-bg-surface);
-  color: var(--color-text-primary);
-}
-
-.era-filter__panel {
-  min-width: 0;
-  margin: 16px 0 0;
-  padding: 16px 0 0;
-  border: 0;
-  border-top: 2px solid var(--color-border-subtle);
-}
-
-.era-filter__panel-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px 16px;
-  margin-bottom: 12px;
-}
-
-.era-filter__panel-title {
   margin: 0;
   font-size: 14px;
-  font-weight: 600;
   line-height: 20px;
+  font-weight: 800;
 }
 
-.era-filter__actions {
+.level-axis {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 16px;
+  align-items: center;
+  gap: 8px 10px;
 }
 
-.era-filter__link {
-  min-height: 32px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--color-text-link);
-  font: inherit;
-  font-size: 13px;
-  text-decoration: underline;
+.level-axis__label {
+  flex-shrink: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 800;
+}
+
+.level-axis__options {
+  display: flex;
+  /* On a 320 px phone the three options take the row and the label sits above them. */
+  flex: 1 1 216px;
+  gap: 2px;
+  min-width: 0;
+  padding: 3px;
+  border: var(--stroke) solid var(--color-border-default);
+  border-radius: 999px;
+  background: var(--color-bg-surface);
+}
+
+.level-axis__option {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.level-axis__option input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
   cursor: pointer;
 }
 
-.era-filter__link:disabled,
-.era-filter__era:disabled,
-.era-filter__year:disabled {
+.level-axis__option span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 4px;
+  border: var(--stroke) solid transparent;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 800;
+  transition:
+    background-color 120ms,
+    border-color 120ms;
+}
+
+.level-axis__option input:checked + span {
+  border-color: var(--color-border-default);
+  background: var(--color-accent-soft);
+}
+
+.level-axis__option input:focus-visible + span {
+  outline: 3px solid var(--color-border-default);
+  outline-offset: 2px;
+}
+
+.chip--level {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  box-shadow: var(--shadow-hard);
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+  transition:
+    transform 80ms,
+    box-shadow 80ms;
+}
+
+.chip--level[aria-pressed="true"] {
+  border-color: var(--color-border-default);
+  background: var(--color-accent-soft);
+  box-shadow: var(--shadow-pressed);
+  transform: translateY(3px);
+}
+
+.chip--level:disabled,
+.world__era:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.era-filter__decade {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 8px 12px;
-  margin-bottom: 8px;
+.chip__count {
+  font-family: var(--font-hud);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
 }
 
-.era-filter__decade-label {
-  flex: 0 0 56px;
-  padding-top: 10px;
+.era-years,
+.chip-levels {
+  margin-top: 16px;
+}
+
+.era-years__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+}
+
+.era-years__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 28px;
+}
+
+.era-years__range {
+  color: var(--color-text-secondary);
+  font-family: var(--font-hud);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+/* One row that scrolls sideways: an era can hold forty years. The padding keeps the hard
+   shadows and the focus rings of the chips inside the scroll box. */
+.era-years__list {
+  display: flex;
+  gap: 8px;
+  margin: 8px -4px 0;
+  padding: 4px 4px 10px;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-color: var(--color-border-default) transparent;
+  scrollbar-width: thin;
+}
+
+.era-years__list .chip--level {
+  position: relative;
+}
+
+.era-years__dot {
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--color-border-default);
+  border-radius: 50%;
+  background: var(--color-accent-alt);
+}
+
+.chip-levels {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+
+.chip-levels .chips {
+  gap: 10px 8px;
+}
+
+.chip-levels__hint {
+  margin: 12px 0 0;
   color: var(--color-text-secondary);
   font-size: 13px;
-}
-
-.era-filter__years {
-  display: flex;
-  flex: 1 1 200px;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.era-filter__year {
-  position: relative;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.era-filter__year--has {
-  border-color: var(--color-accent-text);
-}
-
-.era-filter__year[aria-pressed="true"] .era-filter__count {
-  color: var(--color-text-on-accent);
-}
-
-.era-filter__dot {
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-status-new);
+  line-height: 18px;
 }
 
 /* The dramas (#151): cards in normal flow, since the list is short pages with a "Ver más". */
@@ -3115,7 +3144,8 @@ label.sheet__label {
 }
 
 .world__enter,
-.world-header__back {
+.world-header__back,
+.world-header__action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3137,7 +3167,9 @@ label.sheet__label {
 }
 
 .world__enter:active,
-.world-header__back:active {
+.world-header__back:active,
+.world-header__action:active,
+.world-header__action[aria-expanded="true"] {
   box-shadow: var(--shadow-pressed);
   transform: translateY(3px);
 }
@@ -3183,6 +3215,15 @@ label.sheet__label {
   text-decoration: none;
 }
 
+.world__era:is(button) {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
 .world__era-level {
   display: flex;
   align-items: center;
@@ -3202,6 +3243,12 @@ label.sheet__label {
 }
 
 .world__era:active .world__era-level {
+  box-shadow: var(--shadow-pressed);
+  transform: translateY(3px);
+}
+
+.world__era[aria-pressed="true"] .world__era-level {
+  background: var(--color-accent-soft);
   box-shadow: var(--shadow-pressed);
   transform: translateY(3px);
 }
@@ -3280,21 +3327,38 @@ label.sheet__label {
 
 .world-header {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 14px;
   margin-top: 16px;
   padding: 12px;
   border: var(--stroke) solid var(--color-border-default);
   border-radius: var(--radius-lg);
 }
 
-.world-header__back {
+.world-header__top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.world-header__back,
+.world-header__action {
   flex-shrink: 0;
   width: 48px;
   border-radius: var(--radius-md);
 }
 
+.world-header__action {
+  padding: 0;
+  cursor: pointer;
+}
+
+.world-header__action[aria-expanded="true"] {
+  background: var(--color-accent-soft);
+}
+
 .world-header__title {
+  flex: 1 1 0;
   min-width: 0;
   font-size: 30px;
   line-height: 36px;
@@ -3314,7 +3378,10 @@ label.sheet__label {
   .world__enter,
   .world__era-level,
   .world__country,
-  .world-header__back {
+  .world-header__back,
+  .world-header__action,
+  .chip--level,
+  .level-axis__option span {
     transition: none;
   }
 }

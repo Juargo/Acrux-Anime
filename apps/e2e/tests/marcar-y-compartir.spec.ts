@@ -13,6 +13,7 @@ test('@CA-RF12-01 @CA-RF24-01 @CA-RF30-02 @CA-RF31-02 search a franchise, mark i
   await expect(counter).toContainText('0 animes');
 
   // Two seasons in the catalog, one item in the catalog.
+  await page.getByRole('button', { name: 'Buscar en Anime' }).click();
   await page.getByRole('searchbox', { name: 'Buscar anime' }).fill(FRIEREN.search);
   const grid = page.getByRole('list', { name: 'Catálogo' });
   await expect(grid.getByRole('listitem')).toHaveCount(1);
