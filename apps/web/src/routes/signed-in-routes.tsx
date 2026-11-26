@@ -1,8 +1,10 @@
-import { type RouteObject, useNavigate, useParams } from 'react-router';
+import { type RouteObject, useNavigate, useParams, useSearchParams } from 'react-router';
 import { BadgesScreen } from '../badges/BadgesScreen';
 import { CardScreen } from '../card/CardScreen';
 import { CatalogScreen } from '../catalog/CatalogScreen';
+import { eraYears } from '../catalog/eras';
 import { CuratorScreen } from '../curator/CuratorScreen';
+import { ORIGINS } from '../drama-source/client';
 import { DramasScreen } from '../dramas/DramasScreen';
 import { ExploreEntry } from '../explore/ExploreEntry';
 import { useRememberWorld } from '../explore/last-world';
@@ -22,11 +24,14 @@ import { useSignedIn } from './signed-in-context';
 // The Anime world of Explorar.
 function CatalogPage() {
   const context = useSignedIn();
+  // A door of the map opens the world on one era.
+  const [params] = useSearchParams();
+  const initialYears = eraYears(params.get('era'), new Date().getFullYear());
   useRememberWorld('anime');
   return (
     <>
       <WorldHeader world="anime" />
-      <CatalogScreen {...context} />
+      <CatalogScreen {...context} initialYears={initialYears} />
     </>
   );
 }
@@ -34,11 +39,14 @@ function CatalogPage() {
 // The dramas live apart from the anime catalog (#151); the session is for their marks (#154).
 function DramasPage() {
   const { getToken, fetchFn } = useSignedIn();
+  // A door of the map opens the world on one country.
+  const [params] = useSearchParams();
+  const initialOrigin = ORIGINS.find((origin) => origin === params.get('origin'));
   useRememberWorld('dramas');
   return (
     <>
       <WorldHeader world="dramas" />
-      <DramasScreen getToken={getToken} fetchFn={fetchFn} />
+      <DramasScreen getToken={getToken} fetchFn={fetchFn} initialOrigin={initialOrigin} />
     </>
   );
 }

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useDebounced, useOnline } from '../catalog/hooks';
 import { catalogErrorMessage } from '../catalog-source/messages';
 import { TvmazeCredit } from '../components/TvmazeCredit';
-import type { DramaClient } from '../drama-source/client';
+import type { DramaClient, Origin } from '../drama-source/client';
 import { defaultDramaClient, useDramaGenres, useDramas } from '../drama-source/hooks';
 import { DramaFilterSheet, type DramaFilters } from './DramaFilterSheet';
 import { DramaGrid } from './DramaGrid';
@@ -24,15 +24,21 @@ export function DramasScreen({
   client = defaultDramaClient,
   getToken,
   fetchFn,
+  initialOrigin,
 }: {
   client?: DramaClient | undefined;
   getToken: () => Promise<string | null>;
   fetchFn?: typeof fetch | undefined;
+  // The country the screen opens on: the door taken on the map of worlds.
+  initialOrigin?: Origin | undefined;
 }) {
   const { t } = useTranslation();
   const [input, setInput] = useState('');
   const search = useDebounced(input.trim(), SEARCH_DEBOUNCE_MS);
-  const [filters, setFilters] = useState(defaultFilters);
+  const [filters, setFilters] = useState<DramaFilters>(() => ({
+    ...defaultFilters(),
+    origin: initialOrigin,
+  }));
   const [sheetOpen, setSheetOpen] = useState(false);
   const online = useOnline();
 

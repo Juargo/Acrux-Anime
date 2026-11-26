@@ -3149,6 +3149,116 @@ label.sheet__label {
   font-weight: 800;
 }
 
+/* The eras as the levels of a game path: six stops on a dashed track, oldest first. */
+.world__eras,
+.world__countries {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.world__eras {
+  position: relative;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.world__eras::before {
+  position: absolute;
+  top: 22px;
+  right: 8.33%;
+  left: 8.33%;
+  border-top: var(--stroke) dashed var(--color-border-default);
+  content: "";
+}
+
+.world__era {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.world__era-level {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Six stops must fit a 320 px phone: the stop narrows before it overlaps its neighbour. */
+  width: 100%;
+  max-width: 44px;
+  height: 44px;
+  border: var(--stroke) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-hard);
+  font-family: var(--font-display);
+  transition:
+    transform 80ms,
+    box-shadow 80ms;
+}
+
+.world__era:active .world__era-level {
+  box-shadow: var(--shadow-pressed);
+  transform: translateY(3px);
+}
+
+.world__era-year,
+.world__country-tag {
+  font-family: var(--font-hud);
+  letter-spacing: 0.04em;
+}
+
+.world__era-year {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.world__countries {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.world__country {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  min-height: 72px;
+  padding: 10px 8px;
+  border: var(--stroke) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-hard);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition:
+    transform 80ms,
+    box-shadow 80ms;
+}
+
+.world__country:active {
+  box-shadow: var(--shadow-pressed);
+  transform: translateY(3px);
+}
+
+.world__country-name {
+  font-family: var(--font-display);
+  /* "Japón" has to fit a third of a 320 px phone. */
+  font-size: clamp(14px, 4.4vw, 18px);
+  line-height: 24px;
+}
+
+.world__country-tag {
+  font-size: 13px;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
 /* Series has no catalog yet: announced, with no door and no weight. */
 .world--locked {
   flex-direction: row;
@@ -3202,6 +3312,8 @@ label.sheet__label {
 
 @media (prefers-reduced-motion: reduce) {
   .world__enter,
+  .world__era-level,
+  .world__country,
   .world-header__back {
     transition: none;
   }

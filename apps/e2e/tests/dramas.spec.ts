@@ -51,6 +51,22 @@ test('Explorar opens on the map, enters each world with its own credit, and reop
   await expect(grid.getByRole('listitem')).toHaveCount(DRAMAS.length);
 });
 
+test('a country door of the map opens the Dramas world on that country', async ({
+  page,
+  signedIn: _user,
+}) => {
+  await page.goto('/mundos');
+  await page.getByRole('link', { name: 'Corea' }).click();
+  await expect(page).toHaveURL(/\/dramas\?origin=KR$/);
+  const grid = page.getByRole('list', { name: 'Dramas' });
+  await expect(grid.getByRole('listitem')).toHaveCount(1);
+  await expect(grid.getByRole('listitem')).toContainText(CRASH?.title ?? '');
+  await expect(page.getByRole('button', { name: 'País · 1' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+});
+
 test('a drama card shows its facts, and nothing false when the detail is not read yet', async ({
   page,
   signedIn: _user,

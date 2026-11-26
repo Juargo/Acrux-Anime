@@ -1,20 +1,6 @@
 import { useId, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
-// The eras of the catalog filter (S1). The last one has no end: it runs to the current year.
-const ERAS = [
-  { key: 'pioneers', first: 1917, last: 1959 },
-  { key: 'tezuka', first: 1960, last: 1979 },
-  { key: 'ovaBoom', first: 1980, last: 1994 },
-  { key: 'goldenAge', first: 1995, last: 2005 },
-  { key: 'digital', first: 2006, last: 2014 },
-  { key: 'streaming', first: 2015, last: null },
-] as const;
-
-type EraKey = (typeof ERAS)[number]['key'];
-
-const range = (first: number, last: number) =>
-  Array.from({ length: Math.max(0, last - first + 1) }, (_, index) => first + index);
+import { ERAS, type EraKey, yearRange as range } from './eras';
 
 // One row per decade; the first and the last rows are cut at the edges of the era.
 function decadesOf(first: number, last: number) {
