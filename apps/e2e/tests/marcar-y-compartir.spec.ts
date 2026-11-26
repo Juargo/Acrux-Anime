@@ -42,3 +42,26 @@ test('@CA-RF12-01 @CA-RF24-01 @CA-RF30-02 @CA-RF31-02 search a franchise, mark i
   // A private list on the first card: the app offers to make it public (RF-30).
   await expect(page.getByRole('heading', { name: '¿Hacemos pública tu lista?' })).toBeVisible();
 });
+
+test('a search on the map looks in every world and leads into the world that has it', async ({
+  page,
+  signedIn: _user,
+}) => {
+  await page.goto('/mundos');
+  const field = page.getByRole('searchbox', { name: 'Buscar en todos los mundos' });
+  await field.fill(FRIEREN.search);
+  await field.press('Enter');
+  await expect(page).toHaveURL(/\/mundos\/buscar\?q=/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Búsqueda' })).toBeVisible();
+
+  const anime = page.getByRole('region', { name: 'En Anime' });
+  await expect(anime.getByRole('link', { name: FRIEREN.title })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'En Dramas' })).toContainText(
+    /No encontramos dramas para/,
+  );
+
+  await anime.getByRole('link', { name: 'Ir al mundo Anime' }).click();
+  await expect(page).toHaveURL(/\/anime\?q=/);
+  await expect(page.getByRole('searchbox', { name: 'Buscar anime' })).toHaveValue(FRIEREN.search);
+  await expect(page.getByRole('list', { name: 'Catálogo' }).getByRole('listitem')).toHaveCount(1);
+});

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Profile } from '../profile-api';
@@ -451,5 +452,114 @@ describe('crossing the worlds by genre (S9)', () => {
     await screen.findByText('Sousou no Frieren');
 
     expect(catalogRequests().filter((request) => request.includes('genres='))).toEqual([]);
+  });
+});
+
+describe('searching across the worlds (S9)', () => {
+  const searchField = () => screen.getByRole('searchbox', { name: 'Buscar en todos los mundos' });
+
+  it('searches every world from the map', async () => {
+    const router = renderAt('/mundos');
+    await screen.findByRole('heading', { level: 1, name: 'Elige un mundo' });
+
+    await userEvent.type(searchField(), ' frieren {Enter}');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Búsqueda' })).toBeTruthy();
+    expect(`${router.state.location.pathname}${router.state.location.search}`).toBe(
+      '/mundos/buscar?q=frieren',
+    );
+    expect(searchField()).toHaveProperty('value', 'frieren');
+
+    const anime = within(screen.getByRole('region', { name: 'En Anime' }));
+    expect(
+      (await anime.findByRole('link', { name: 'Sousou no Frieren' })).getAttribute('href'),
+    ).toBe('/franquicia/154587');
+    expect(anime.getByRole('link', { name: 'Ir al mundo Anime' }).getAttribute('href')).toBe(
+      '/anime?q=frieren',
+    );
+    const dramas = within(screen.getByRole('region', { name: 'En Dramas' }));
+    expect(await dramas.findByText('Crash Landing on You')).toBeTruthy();
+    expect(dramas.getByRole('link', { name: 'Ir al mundo Dramas' }).getAttribute('href')).toBe(
+      '/dramas?q=frieren',
+    );
+
+    expect(catalogRequests().at(-1)).toContain('search=frieren');
+    expect(dramaRequests().at(-1)).toContain('search=frieren');
+    expect(screen.getByRole('heading', { level: 2, name: 'En Series' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'MyAnimeList' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'TVmaze' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Volver a los mundos' }).getAttribute('href')).toBe(
+      '/mundos',
+    );
+  });
+
+  it('stays on the map when there is nothing to search', async () => {
+    const router = renderAt('/mundos');
+    await screen.findByRole('heading', { level: 1, name: 'Elige un mundo' });
+
+    await userEvent.type(searchField(), '   {Enter}');
+    await userEvent.click(screen.getByRole('button', { name: 'Buscar' }));
+
+    expect(router.state.location.pathname).toBe('/mundos');
+    expect(catalogRequests()).toEqual([]);
+  });
+
+  it('searches again from the results, with the button as well', async () => {
+    const router = renderAt('/mundos/buscar?q=frieren');
+    await screen.findByRole('heading', { level: 1, name: 'Búsqueda' });
+
+    await userEvent.clear(searchField());
+    await userEvent.type(searchField(), 'one piece');
+    await userEvent.click(screen.getByRole('button', { name: 'Buscar' }));
+
+    await waitFor(() => expect(router.state.location.search).toBe('?q=one+piece'));
+    await waitFor(() => expect(catalogRequests().at(-1)).toContain('search=one+piece'));
+    expect(screen.getByRole('link', { name: 'Ir al mundo Dramas' }).getAttribute('href')).toBe(
+      '/dramas?q=one+piece',
+    );
+  });
+
+  it('says what each world did not find, and that drama titles are international', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) =>
+        /\/api\/v1\/(dramas|catalog\/anime)\?/.test(String(input))
+          ? Response.json({ items: [], chain: [], related: [], nextPage: null })
+          : api(input),
+      ),
+    );
+    renderAt('/mundos/buscar?q=zzz');
+
+    const anime = within(await screen.findByRole('region', { name: 'En Anime' }));
+    expect(await anime.findByText('No encontramos animes para «zzz».')).toBeTruthy();
+    const dramas = within(screen.getByRole('region', { name: 'En Dramas' }));
+    expect(await dramas.findByText('No encontramos dramas para «zzz».')).toBeTruthy();
+    expect(dramas.getByText(/versión internacional/)).toBeTruthy();
+  });
+
+  it('goes back to the map without anything to search', async () => {
+    renderAt('/mundos/buscar?q=%20');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Elige un mundo' })).toBeTruthy();
+    expect(catalogRequests()).toEqual([]);
+  });
+
+  it('opens each world on the search, with its search box in view', async () => {
+    renderAt('/anime?q=frieren');
+    await screen.findByText('Sousou no Frieren');
+    expect(screen.getByRole('searchbox', { name: 'Buscar anime' })).toHaveProperty(
+      'value',
+      'frieren',
+    );
+    expect(catalogRequests().at(-1)).toContain('search=frieren');
+    cleanup();
+
+    renderAt('/dramas?q=crash');
+    await screen.findByText('Crash Landing on You');
+    expect(screen.getByRole('searchbox', { name: 'Buscar dramas' })).toHaveProperty(
+      'value',
+      'crash',
+    );
+    expect(dramaRequests().at(-1)).toContain('search=crash');
   });
 });

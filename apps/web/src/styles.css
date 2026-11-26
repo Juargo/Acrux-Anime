@@ -3109,6 +3109,63 @@ label.sheet__label {
   text-wrap: balance;
 }
 
+/* The search of every world (board M1): one field, the magnifier is its button. */
+.worlds__search {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  margin-top: 16px;
+  border: var(--stroke) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.crossing .worlds__search {
+  margin-top: 0;
+}
+
+.worlds__search:focus-within {
+  outline: 3px solid var(--color-border-default);
+  outline-offset: 2px;
+}
+
+.worlds__search-input {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 42px;
+  padding: 0 0 0 14px;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 16px;
+}
+
+.worlds__search-input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.worlds__search-submit {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 0 10px 10px 0;
+  background: none;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.worlds__search-submit:focus-visible {
+  background: var(--color-accent-soft);
+  outline: 0;
+}
+
 .worlds__list {
   display: grid;
   gap: 16px;
