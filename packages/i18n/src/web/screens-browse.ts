@@ -68,8 +68,12 @@ export const browseEs = {
   dramas: {
     label: 'Dramas',
     search: 'Buscar dramas',
+    openSearch: 'Buscar en Dramas',
     origin: 'País',
-    origins: { all: 'Todos', KR: 'Corea', JP: 'Japón', CN: 'China' },
+    origins: { KR: 'Corea', JP: 'Japón', CN: 'China' },
+    titleAll: 'Todos los dramas',
+    titleOf: 'Dramas de {{country}}',
+    allGenres: 'Todos',
     grid: 'Dramas',
     loadMore: 'Ver más',
     noResults: 'No encontramos dramas con estos filtros.',
@@ -121,14 +125,9 @@ export const browseEs = {
     yearFranchises_other: '{{year}}, {{count}} franquicias',
   },
   filters: {
-    close: 'Cerrar filtros',
-    title: 'Filtrar',
     searchCoversAllYears: 'La búsqueda cubre todos los años.',
-    genre: 'Género',
     loadingGenres: 'Cargando géneros…',
     sagaHint: 'Una saga aparece si alguna de sus entradas cumple el filtro.',
-    clear: 'Limpiar',
-    apply: 'Ver resultados',
   },
   marks: {
     saveFailed:
@@ -335,8 +334,12 @@ export const browseEn = {
   dramas: {
     label: 'Dramas',
     search: 'Search dramas',
+    openSearch: 'Search in Dramas',
     origin: 'Country',
-    origins: { all: 'All', KR: 'Korea', JP: 'Japan', CN: 'China' },
+    origins: { KR: 'Korea', JP: 'Japan', CN: 'China' },
+    titleAll: 'All dramas',
+    titleOf: 'Dramas from {{country}}',
+    allGenres: 'All',
     grid: 'Dramas',
     loadMore: 'Show more',
     noResults: 'We found no dramas with these filters.',
@@ -388,14 +391,9 @@ export const browseEn = {
     yearFranchises_other: '{{year}}, {{count}} franchises',
   },
   filters: {
-    close: 'Close filters',
-    title: 'Filter',
     searchCoversAllYears: 'Search covers every year.',
-    genre: 'Genre',
     loadingGenres: 'Loading genres…',
     sagaHint: 'A saga shows up if any of its entries matches the filter.',
-    clear: 'Clear',
-    apply: 'Show results',
   },
   marks: {
     saveFailed: "We couldn't save your mark. Try again; what you already marked is still saved.",

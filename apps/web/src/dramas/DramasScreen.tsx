@@ -5,20 +5,22 @@ import { catalogErrorMessage } from '../catalog-source/messages';
 import { TvmazeCredit } from '../components/TvmazeCredit';
 import type { DramaClient, Origin } from '../drama-source/client';
 import { defaultDramaClient, useDramaGenres, useDramas } from '../drama-source/hooks';
-import { DramaFilterSheet, type DramaFilters } from './DramaFilterSheet';
+import { WorldHeader } from '../explore/WorldHeader';
+import { WorldSearchButton } from '../explore/WorldSearchButton';
 import { DramaGrid } from './DramaGrid';
+import { CountryTiles, GenreRow } from './DramaLevels';
 import { type DramaMarkStatus, useDramaMarks } from './use-drama-marks';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-const defaultFilters = (): DramaFilters => ({ origin: undefined, genres: [] });
-
-const countLabel = (label: string, count: number) => (count > 0 ? `${label} · ${count}` : label);
+// Stable, so React calls it once: when the search box comes into view.
+const focusOnMount = (element: HTMLInputElement | null) => element?.focus();
 
 /**
- * Container: owns the search, the filters and the drama queries (ADR-0046). It is a sibling of
- * the anime catalog, not a mode of it: it never asks for anime. A card marks the whole show
- * (#154), with its own marks, apart from the anime ones.
+ * Container: the Dramas world (board M3). Owns the search, the country and the genres taken,
+ * and the drama queries (ADR-0046). Every pick applies at once. It is a sibling of the anime
+ * catalog, not a mode of it: it never asks for anime. A card marks the whole show (#154), with
+ * its own marks, apart from the anime ones.
  */
 export function DramasScreen({
   client = defaultDramaClient,
@@ -35,16 +37,14 @@ export function DramasScreen({
   const { t } = useTranslation();
   const [input, setInput] = useState('');
   const search = useDebounced(input.trim(), SEARCH_DEBOUNCE_MS);
-  const [filters, setFilters] = useState<DramaFilters>(() => ({
-    ...defaultFilters(),
-    origin: initialOrigin,
-  }));
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [origin, setOrigin] = useState(initialOrigin);
+  const [genres, setGenres] = useState<string[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
   const online = useOnline();
 
-  const query = useMemo(() => ({ search, ...filters }), [search, filters]);
+  const query = useMemo(() => ({ search, origin, genres }), [search, origin, genres]);
   const dramas = useDramas(query, client);
-  const genres = useDramaGenres(sheetOpen, client);
+  const genreOptions = useDramaGenres(true, client);
   const items = useMemo(
     () => dramas.data?.pages.flatMap((page) => page.items) ?? [],
     [dramas.data],
@@ -63,38 +63,44 @@ export function DramasScreen({
   const loadMore = useCallback(() => {
     void fetchNextPage();
   }, [fetchNextPage]);
-  const closeSheet = useCallback(() => setSheetOpen(false), []);
   const searching = search !== '';
 
   return (
-    <section className="catalog" aria-label={t('dramas.label')}>
-      <input
-        className="catalog__search"
-        type="search"
-        aria-label={t('dramas.search')}
-        placeholder={t('dramas.search')}
-        value={input}
-        onChange={(event) => setInput(event.target.value)}
-      />
+    <section className="catalog catalog--world" aria-label={t('dramas.label')}>
+      <WorldHeader
+        world="dramas"
+        action={
+          <WorldSearchButton
+            label={t('dramas.openSearch')}
+            open={searchOpen}
+            onToggle={() => {
+              // A search out of view would filter in silence: closing it clears it.
+              if (searchOpen) setInput('');
+              setSearchOpen(!searchOpen);
+            }}
+          />
+        }
+      >
+        {searchOpen && (
+          <input
+            ref={focusOnMount}
+            className="catalog__search"
+            type="search"
+            aria-label={t('dramas.search')}
+            placeholder={t('dramas.search')}
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+          />
+        )}
+        <CountryTiles origin={origin} onChange={setOrigin} />
+      </WorldHeader>
 
-      <div className="chips catalog__filters">
-        <button
-          className="chip"
-          type="button"
-          aria-pressed={filters.origin !== undefined}
-          onClick={() => setSheetOpen(true)}
-        >
-          {countLabel(t('dramas.origin'), filters.origin ? 1 : 0)}
-        </button>
-        <button
-          className="chip"
-          type="button"
-          aria-pressed={filters.genres.length > 0}
-          onClick={() => setSheetOpen(true)}
-        >
-          {countLabel(t('catalog.genre'), filters.genres.length)}
-        </button>
-      </div>
+      <h2 className="level-title">
+        {origin
+          ? t('dramas.titleOf', { country: t(`dramas.origins.${origin}`) })
+          : t('dramas.titleAll')}
+      </h2>
+      <GenreRow genres={genreOptions.data} selected={genres} onChange={setGenres} />
 
       {!online ? (
         <p className="catalog__notice" role="alert">
@@ -152,22 +158,6 @@ export function DramasScreen({
         </>
       )}
       <TvmazeCredit />
-
-      {sheetOpen && (
-        <DramaFilterSheet
-          initial={filters}
-          genres={genres.data}
-          onApply={(next) => {
-            setFilters(next);
-            setSheetOpen(false);
-          }}
-          onClear={() => {
-            setFilters(defaultFilters());
-            setSheetOpen(false);
-          }}
-          onClose={closeSheet}
-        />
-      )}
     </section>
   );
 }

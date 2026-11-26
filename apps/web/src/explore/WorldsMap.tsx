@@ -1,10 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { ERAS } from '../catalog/eras';
+import { COUNTRIES } from '../dramas/countries';
 import { WORLD_PATH } from './last-world';
-
-// The order of the board, not the one of the API.
-const COUNTRIES = ['KR', 'CN', 'JP'] as const;
 
 /**
  * Presentational: the map of Explorar. One door per world, and one per level of its native
